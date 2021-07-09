@@ -1,0 +1,29 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        maven {
+            name = 'Forge'
+            url = 'https://files.minecraftforge.net/maven/'
+        }
+        maven {
+            name = 'Architectury'
+            url = 'https://maven.architectury.dev/'
+        }
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'CatLib'
+
+include 'common', 'platforms:forge', 'platforms:fabric'
+
+includeBuild('buildTools') {
+    dependencySubstitution {
+        substitute module('local.personthecat:gradle-plugin') with project(':')
+    }
+}
+
+startParameter.excludedTaskNames += [':build', ':platforms:build']

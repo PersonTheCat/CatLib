@@ -1,0 +1,11 @@
+modLoader="javafml"
+loaderVersion="[34,)"
+issueTrackerURL="${mod_issues}"
+license="GNUv3"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+description="${mod_description}"

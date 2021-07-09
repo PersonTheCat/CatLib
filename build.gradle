@@ -1,0 +1,81 @@
+import personthecat.buildtools.OverwriteValidator
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'local.personthecat', name: 'gradle-plugin'
+        classpath group: 'gradle.plugin.com.github.jengelman.gradle.plugins', name: 'shadow', version: '7.0.0'
+    }
+}
+
+plugins {
+    id 'architectury-plugin' version "$architectury_version"
+    id 'dev.architectury.loom' version "$architectury_loom_version" apply false
+}
+
+architectury {
+    minecraft = mc_version
+}
+
+allprojects {
+    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+    apply plugin: 'maven-publish'
+    apply plugin: OverwriteValidator
+
+    version = mod_version
+
+    repositories {
+        // So we can conveniently read dependencies from GH.
+        maven { url = 'https://jitpack.io' }
+        mavenCentral()
+    }
+
+    configurations {
+        bundle
+        implementation.extendsFrom bundle
+    }
+
+    dependencies {
+        bundle group: 'com.github.PersonTheCat', name: 'hjson-java', version: '3.0.0-C2'
+        bundle group: 'com.github.PersonTheCat', name: 'FResult', version: '2.0-BETA-1'
+        implementation 'org.jetbrains:annotations:16.0.2'
+
+        compileOnly group: 'local.personthecat', name: 'gradle-plugin'
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
+
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+    }
+
+    jar {
+        from {
+            configurations.bundle.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+        archivesBaseName = "$archive_base-$platform"
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    shadowJar {
+        configurations = [project.configurations.bundle]
+        relocate 'org.hjson', 'caveshadow.org.hjson'
+        relocate 'personthecat.fresult', 'caveshadow.personthecat.fresult'
+        classifier = ''
+    }
+
+    build.dependsOn shadowJar
+
+    tasks.withType(Test) {
+        useJUnitPlatform()
+        ignoreFailures = false
+        failFast = true
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}

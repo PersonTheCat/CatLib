@@ -1,0 +1,10 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'fr.inria.gforge.spoon:spoon-core:9.1.0-beta-12'
+    implementation gradleApi()
+}
