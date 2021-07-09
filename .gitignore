@@ -1,8 +1,12 @@
 build/
 .gradle/
 .idea/
-.iml
 run/
 runServer/
 .vscode/
 logs/
+*.launch
+*.classpath
+*.prefs
+*.project
+*.iml
