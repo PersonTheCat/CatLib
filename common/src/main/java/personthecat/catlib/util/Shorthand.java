@@ -3,7 +3,9 @@ package personthecat.catlib.util;
 import lombok.experimental.UtilityClass;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.util.Optional.empty;
 import static personthecat.catlib.exception.Exceptions.invalidConstant;
@@ -167,15 +169,20 @@ public class Shorthand {
     }
 
     /** Variant of Arrays#sort which returns the array. */
-    public static int[] sort(int[] array) {
+    public static int[] sort(final int[] array) {
         Arrays.sort(array);
         return array;
     }
 
     /** Variant of Arrays#sort which returns the array. */
-    public static float[] sort(float[] array) {
+    public static float[] sort(final float[] array) {
         Arrays.sort(array);
         return array;
+    }
+
+    /** Maps the given list to an {@link ArrayList} of a new type. */
+    public static <T, U> List<U> map(final List<T> list, final Function<T, U> mapper) {
+        return list.stream().map(mapper).collect(Collectors.toList());
     }
 
     public static <T extends Enum<T>> T getEnumConstant(final String s, final Class<T> clazz) {

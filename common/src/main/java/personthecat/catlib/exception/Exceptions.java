@@ -108,6 +108,27 @@ public class Exceptions {
     }
 
     /**
+     * Shorthand for a regular {@link JsonMappingException}.
+     *
+     * @param x The error message to display.
+     * @return A new {@link JsonMappingException}.
+     */
+    public static JsonMappingException mappingEx(final String x) {
+        return new JsonMappingException(x);
+    }
+
+    /**
+     * Shorthand for a regular {@link JsonMappingException} using {@link Shorthand#f}.
+     *
+     * @param x The string template being interpolated.
+     * @param args The interpolated arguments replacing <code>{}</code>.
+     * @return A new {@link JsonMappingException}.
+     */
+    public static JsonMappingException mappingEx(final String x, final Object... args) {
+        return new JsonMappingException(x);
+    }
+
+    /**
      * Shorthand for a simple {@link CommandSyntaxException}.
      *
      * @param reader The reader being used to parse an argument.
