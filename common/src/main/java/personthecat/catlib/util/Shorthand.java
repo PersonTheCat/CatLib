@@ -2,7 +2,11 @@ package personthecat.catlib.util;
 
 import lombok.experimental.UtilityClass;
 
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
+
+import static java.util.Optional.empty;
+import static personthecat.catlib.exception.Exceptions.invalidConstant;
 
 /**
  * A collection of platform-agnostic <b>shorthand</b> utilities.
@@ -34,6 +38,16 @@ public class Shorthand {
         return Optional.ofNullable(val);
     }
 
+    /** Returns a random number between the input bounds, inclusive. */
+    public static int numBetween(final Random rand, final int min, final int max) {
+        return min == max ? min : rand.nextInt(max - min + 1) + min;
+    }
+
+    /** Returns a random number between the input bounds, inclusive. */
+    public static float numBetween(final Random rand, final float min, final float max) {
+        return min == max ? min : rand.nextFloat() * (max - min) + min;
+    }
+
     /**
      * Interpolates strings by replacing instances of <code>{}</code> in order.
      *
@@ -56,5 +70,116 @@ public class Shorthand {
         }
         sb.append(s.substring(begin));
         return sb.toString();
+    }
+
+    /**
+     * Uses a linear search algorithm to locate a value in an array, matching
+     * the predicate `by`. Shorthand for Stream#findFirst.
+     *
+     * <p>Example:</p>
+     * <pre>
+     *    // Find x by x.name
+     *    Object[] vars = getObjectsWithNames();
+     *    Optional<Object> var = find(vars, (x) -> x.name.equals("Cat"));
+     *    // You can then get the value -> NPE
+     *    Object result = var.get()
+     *    // Or use an alternative. Standard java.util.Optional. -> no NPE
+     *    Object result = var.orElse(new Object("Cat"))
+     * </pre>
+     *
+     * @param <T> The type of array being passed in.
+     * @param values The actual array containing the value.
+     * @param by A predicate which determines which value to return.
+     * @return The value, or else {@link Optional#empty}.
+     */
+    public static <T> Optional<T> find(final T[] values, final Predicate<T> by) {
+        for (final T val : values) {
+            if (by.test(val)) {
+                return full(val);
+            }
+        }
+        return empty();
+    }
+
+    /**
+     * Variant of {@link #find(Object[], Predicate)} which consumes any type of
+     * {@link Iterable} instead.
+     *
+     * @param <T> The type of array being passed in.
+     * @param values The actual array containing the value.
+     * @param by A predicate which determines which value to return.
+     * @return The value, or else {@link Optional#empty}.
+     */
+    public static <T> Optional<T> find(final Iterable<T> values, final Predicate<T> by) {
+        for (final T val : values) {
+            if (by.test(val)) {
+                return full(val);
+            }
+        }
+        return empty();
+    }
+
+    public static <K, V> Optional<V> find(final Map<K, V> map, final Predicate<V> by) {
+        return find(map.values(), by);
+    }
+
+    public static <T> List<T> findAll(final Collection<T> values, final Predicate<T> by) {
+        final List<T> all = new ArrayList<>();
+        for (T val : values) {
+            if (by.test(val)) {
+                all.add(val);
+            }
+        }
+        return all;
+    }
+
+    public static <K, V> List<V> findAll(final Map<K, V> map, final Predicate<V> by) {
+        return findAll(map.values(), by);
+    }
+
+    /** Determines whether any value in the collection matches the predicate. */
+    public static <T> boolean anyMatches(final Collection<T> values, final Predicate<T> by) {
+        for (T val : values) {
+            if (by.test(val)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static <T> boolean anyMatches(final T[] values, final Predicate<T> by) {
+        for (T val : values) {
+            if (by.test(val)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Safely retrieves a value from the input map. */
+    public static <K, V> Optional<V> safeGet(final Map<K, V> map, final K key) {
+        return Optional.ofNullable(map.get(key));
+    }
+
+    /** Safely retrieves a value from the input array. */
+    public static <T> Optional<T> safeGet(final T[] array, final int index) {
+        return index >= 0 && index < array.length ? full(array[index]) : empty();
+    }
+
+    /** Variant of Arrays#sort which returns the array. */
+    public static int[] sort(int[] array) {
+        Arrays.sort(array);
+        return array;
+    }
+
+    /** Variant of Arrays#sort which returns the array. */
+    public static float[] sort(float[] array) {
+        Arrays.sort(array);
+        return array;
+    }
+
+    public static <T extends Enum<T>> T getEnumConstant(final String s, final Class<T> clazz) {
+        return find(clazz.getEnumConstants(), v -> v.toString().equalsIgnoreCase(s))
+            .orElseThrow(() -> invalidConstant(s, clazz));
     }
 }

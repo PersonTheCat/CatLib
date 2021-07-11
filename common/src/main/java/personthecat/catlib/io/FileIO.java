@@ -1,20 +1,25 @@
 package personthecat.catlib.io;
 
+import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.exception.ResourceException;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import personthecat.fresult.OptionalResult;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
-import personthecat.fresult.functions.ThrowingBiFunction;
 import personthecat.fresult.functions.ThrowingConsumer;
-import personthecat.fresult.functions.ThrowingFunction;
 import personthecat.fresult.functions.ThrowingRunnable;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -22,10 +27,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Optional.empty;
 import static personthecat.catlib.exception.Exceptions.runEx;
 import static personthecat.catlib.exception.Exceptions.resourceEx;
-import static personthecat.catlib.util.Shorthand.full;
 import static personthecat.catlib.util.Shorthand.nullable;
 
 @Log4j2
@@ -85,7 +88,7 @@ public class FileIO {
      * @param dir The directory being operated on.
      * @return An array of all files in the given directory.
      */
-    @Nonnull
+    @NotNull
     @CheckReturnValue
     public static File[] listFiles(final File dir) {
         return nullable(dir.listFiles()).orElseGet(() -> new File[0]);
@@ -99,7 +102,7 @@ public class FileIO {
      * @param filter A predicate determining whether a given file should be included.
      * @return An array containing the requested files.
      */
-    @Nonnull
+    @NotNull
     @CheckReturnValue
     public static File[] safeListFiles(final File dir, final FileFilter filter) {
         return nullable(dir.listFiles(filter)).orElse(new File[0]);
@@ -112,7 +115,7 @@ public class FileIO {
      * @param dir The directory being operated on.
      * @return A {@link List} of <em>all</em> files in the given directory.
      */
-    @Nonnull
+    @NotNull
     @CheckReturnValue
     public static List<File> listFilesRecursive(final File dir) {
         if (dir.isFile()) {
@@ -291,13 +294,20 @@ public class FileIO {
      */
     @CheckReturnValue
     private static OptionalResult<String, IOException> readString(final InputStream is) {
-        return Result.<BufferedReader, IOException>with(() -> new BufferedReader(new InputStreamReader(is)))
-            .and(() -> is)
+        return Result.<InputStream, IOException>with(() -> is)
+            .and(() -> new BufferedReader(new InputStreamReader(is)))
             .nullable(FileIO::read)
             .ifErr(e -> log.error("Reading string", e));
     }
 
-    private static String read(final BufferedReader reader, final InputStream is) throws IOException {
+    /**
+     * Parses all lines out of the given reader.
+     *
+     * @throws IOException Declared by {@link BufferedReader#readLine()}
+     * @param reader The buffered reader providing string data.
+     * @return A parsed string.
+     */
+    private static String read(final BufferedReader reader) throws IOException {
         final StringBuilder sb = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
