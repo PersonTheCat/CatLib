@@ -1,12 +1,14 @@
 package personthecat.catlib.io;
 
-import personthecat.catlib.exception.Ex;
 import personthecat.catlib.exception.ResourceException;
-import personthecat.catlib.util.Sh;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
+import personthecat.fresult.OptionalResult;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
+import personthecat.fresult.functions.ThrowingBiFunction;
+import personthecat.fresult.functions.ThrowingConsumer;
+import personthecat.fresult.functions.ThrowingFunction;
 import personthecat.fresult.functions.ThrowingRunnable;
 
 import javax.annotation.CheckReturnValue;
@@ -15,7 +17,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.Optional.empty;
+import static personthecat.catlib.exception.Exceptions.runEx;
+import static personthecat.catlib.exception.Exceptions.resourceEx;
+import static personthecat.catlib.util.Shorthand.full;
+import static personthecat.catlib.util.Shorthand.nullable;
 
 @Log4j2
 @UtilityClass
@@ -77,7 +88,7 @@ public class FileIO {
     @Nonnull
     @CheckReturnValue
     public static File[] listFiles(final File dir) {
-        return Sh.nullable(dir.listFiles()).orElseGet(() -> new File[0]);
+        return nullable(dir.listFiles()).orElseGet(() -> new File[0]);
     }
 
     /**
@@ -91,7 +102,7 @@ public class FileIO {
     @Nonnull
     @CheckReturnValue
     public static File[] safeListFiles(final File dir, final FileFilter filter) {
-        return Optional.ofNullable(dir.listFiles(filter)).orElse(new File[0]);
+        return nullable(dir.listFiles(filter)).orElse(new File[0]);
     }
 
     /**
@@ -101,6 +112,7 @@ public class FileIO {
      * @param dir The directory being operated on.
      * @return A {@link List} of <em>all</em> files in the given directory.
      */
+    @Nonnull
     @CheckReturnValue
     public static List<File> listFilesRecursive(final File dir) {
         if (dir.isFile()) {
@@ -161,16 +173,16 @@ public class FileIO {
      */
     public static int backup(final File dir, final File f) {
         if (!mkdirs(dir)) {
-            throw Ex.resourceF("Error creating backup directory: {}", dir);
+            throw resourceEx("Error creating backup directory: {}", dir);
         }
         final File backup = new File(dir, f.getName());
         final BackupHelper helper = new BackupHelper(f);
         final int count = helper.cycle(dir);
         if (fileExists(backup)) {
-            throw Ex.resourceF("Could not rename backups: {}", f.getName());
+            throw resourceEx("Could not rename backups: {}", f.getName());
         }
         if (!f.renameTo(backup)) {
-            throw Ex.resourceF("Error moving {} to backups", f.getName());
+            throw resourceEx("Error moving {} to backups", f.getName());
         }
         return count + 1;
     }
@@ -184,7 +196,7 @@ public class FileIO {
     public static void rename(final File f, final String name) {
         final File path = new File(f.getParentFile(), name);
         if (!f.renameTo(path)) {
-            throw Ex.runtimeF("Cannot rename: {}", path);
+            throw runEx("Cannot rename: {}", path);
         }
     }
 
@@ -220,7 +232,7 @@ public class FileIO {
     @CheckReturnValue
     public static Result<Void, IOException> copyStream(final InputStream is, final String path) {
         return Result.<OutputStream, IOException>with(() -> new FileOutputStream(path))
-            .of(Result.wrapVoid(os -> copyStream(is, os).throwIfErr()))
+            .of((ThrowingConsumer<OutputStream, IOException>) os -> copyStream(is, os).throwIfErr())
             .ifErr(e -> log.error("Error creating output stream", e));
     }
 
@@ -241,9 +253,10 @@ public class FileIO {
      *
      * @param path The path to the file, with or without the beginning <code>/</code>.
      */
+    @CheckReturnValue
     public static Optional<InputStream> getResource(final String path) {
         final String file = path.startsWith("/") ? path : "/" + path;
-        return Sh.nullable(FileIO.class.getResourceAsStream(path));
+        return nullable(FileIO.class.getResourceAsStream(path));
     }
 
     /**
@@ -253,9 +266,10 @@ public class FileIO {
      * @param path The path to the file, with or without the beginning <code>/</code>.
      * @return The resource as an {@link InputStream}.
      */
+    @CheckReturnValue
     public static InputStream getRequiredResource(final String path) {
         return getResource(path).orElseThrow(() ->
-            Ex.resourceF("The required file \"{}\" does not exist.", path));
+            resourceEx("The required file \"{}\" does not exist.", path));
     }
 
     /**
@@ -264,8 +278,9 @@ public class FileIO {
      * @param path The path to the resource being read.
      * @return The resource as a string, or else {@link Optional#empty}.
      */
-    public static Optional<String> getResourceAsString(final String path) {
-        return getResource(path).flatMap(FileIO::readString);
+    @CheckReturnValue
+    public static OptionalResult<String, IOException> getResourceAsString(final String path) {
+        return Result.<InputStream, IOException>nullable(getResource(path)).flatMap(FileIO::readString);
     }
 
     /**
@@ -274,27 +289,21 @@ public class FileIO {
      * @param is The stream being copied out of.
      * @return The file as a string, or else {@link Optional#empty}, if err.
      */
-    private static Optional<String> readString(final InputStream is) {
-        final BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        final StringBuilder sb = new StringBuilder();
+    @CheckReturnValue
+    private static OptionalResult<String, IOException> readString(final InputStream is) {
+        return Result.<BufferedReader, IOException>with(() -> new BufferedReader(new InputStreamReader(is)))
+            .and(() -> is)
+            .nullable(FileIO::read)
+            .ifErr(e -> log.error("Reading string", e));
+    }
 
-        try {
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-                sb.append(NEW_LINE);
-            }
-            return Sh.full(sb.toString());
-        } catch (IOException e) {
-            log.error("Error reading input.");
-            return Sh.empty();
-        } finally {
-            try {
-                is.close();
-                br.close();
-            } catch (IOException e) {
-                log.error("Error closing streams", e);
-            }
+    private static String read(final BufferedReader reader, final InputStream is) throws IOException {
+        final StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+            sb.append(NEW_LINE);
         }
+        return sb.toString();
     }
 }

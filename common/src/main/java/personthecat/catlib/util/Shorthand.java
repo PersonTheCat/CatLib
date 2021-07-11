@@ -9,12 +9,7 @@ import java.util.Optional;
  */
 @UtilityClass
 @SuppressWarnings("unused")
-public class Sh {
-
-    /** Shorthand for calling Optional#empty. */
-    public static <T> Optional<T> empty() {
-        return Optional.empty();
-    }
+public class Shorthand {
 
     /**
      * Shorthand for calling Optional#of, matching the existing syntax of

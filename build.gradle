@@ -6,7 +6,6 @@ buildscript {
     }
     dependencies {
         classpath group: 'local.personthecat', name: 'gradle-plugin'
-        classpath group: 'gradle.plugin.com.github.jengelman.gradle.plugins', name: 'shadow', version: '7.0.0'
     }
 }
 
@@ -20,7 +19,6 @@ architectury {
 }
 
 allprojects {
-    apply plugin: 'com.github.johnrengelman.shadow'
     apply plugin: 'java'
     apply plugin: 'eclipse'
     apply plugin: 'maven-publish'
@@ -41,7 +39,7 @@ allprojects {
 
     dependencies {
         bundle group: 'com.github.PersonTheCat', name: 'hjson-java', version: '3.0.0-C2'
-        bundle group: 'com.github.PersonTheCat', name: 'FResult', version: '2.0-BETA-1'
+        bundle group: 'com.github.PersonTheCat', name: 'FResult', version: '2.0-BETA-3'
 
         implementation group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
         implementation group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
@@ -57,20 +55,13 @@ allprojects {
 
     jar {
         from {
+            // Todo: why is javax bundled?
+            if (it.name.contains("javax") || it.name.contains("jsr305")) return null
             configurations.bundle.collect { it.isDirectory() ? it : zipTree(it) }
         }
         archivesBaseName = "$archive_base-$platform"
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
-
-    shadowJar {
-        configurations = [project.configurations.bundle]
-        relocate 'org.hjson', 'caveshadow.org.hjson'
-        relocate 'personthecat.fresult', 'caveshadow.personthecat.fresult'
-        classifier = ''
-    }
-
-    build.dependsOn shadowJar
 
     tasks.withType(Test) {
         useJUnitPlatform()

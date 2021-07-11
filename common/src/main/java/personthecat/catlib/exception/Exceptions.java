@@ -6,11 +6,13 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import lombok.experimental.UtilityClass;
-import personthecat.catlib.util.Sh;
+import lombok.extern.log4j.Log4j2;
+import personthecat.catlib.util.Shorthand;
 
+@Log4j2
 @UtilityClass
 @SuppressWarnings("unused")
-public class Ex {
+public class Exceptions {
 
     /**
      * Returns a clean-looking, general-purpose {@link RuntimeException}.
@@ -18,7 +20,7 @@ public class Ex {
      * @param x The error message to display.
      * @return A new {@link RuntimeException}.
      */
-    public static RuntimeException runtime(final String x) {
+    public static RuntimeException runEx(final String x) {
         return new RuntimeException(x);
     }
 
@@ -28,7 +30,7 @@ public class Ex {
      * @param e The exception being wrapped.
      * @return A new {@link RuntimeException}.
      */
-    public static RuntimeException runtime(final Throwable e) {
+    public static RuntimeException runEx(final Throwable e) {
         return new RuntimeException(e);
     }
 
@@ -39,30 +41,41 @@ public class Ex {
      * @param e The exception being wrapped.
      * @return A new {@link RuntimeException}.
      */
-    public static RuntimeException runtime(final String x, final Throwable e) {
+    public static RuntimeException runEx(final String x, final Throwable e) {
         return new RuntimeException(x, e);
     }
 
     /**
-     * Shorthand for a {@link RuntimeException} using {@link Sh#f}.
+     * Shorthand for a {@link RuntimeException} using {@link Shorthand#f}.
      *
      * @param x The string template being interpolated.
      * @param args The interpolated arguments replacing <code>{}</code>.
      * @return A new {@link RuntimeException}.
      */
-    public static RuntimeException runtimeF(final String x, final Object... args) {
-        return new RuntimeException(Sh.f(x, args));
+    public static RuntimeException runEx(final String x, final Object... args) {
+        return new RuntimeException(Shorthand.f(x, args));
     }
 
     /**
-     * Shorthand for a {@link ResourceException} using {@link Sh#f}.
+     * Shorthand for a regular {@link ResourceException}.
      *
      * @param x The string template being interpolated.
      * @param args The interpolated arguments replacing <code>{}</code>.
      * @return A new {@link ResourceException}.
      */
-    public static ResourceException resourceF(final String x, final Object... args) {
-        return new ResourceException(Sh.f(x, args));
+    public static ResourceException resourceEx(final String x) {
+        return new ResourceException(x);
+    }
+
+    /**
+     * Shorthand for a {@link ResourceException} using {@link Shorthand#f}.
+     *
+     * @param x The string template being interpolated.
+     * @param args The interpolated arguments replacing <code>{}</code>.
+     * @return A new {@link ResourceException}.
+     */
+    public static ResourceException resourceEx(final String x, final Object... args) {
+        return new ResourceException(Shorthand.f(x, args));
     }
 
     /**

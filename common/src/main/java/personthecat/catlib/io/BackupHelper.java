@@ -1,6 +1,6 @@
 package personthecat.catlib.io;
 
-import personthecat.catlib.exception.Ex;
+import personthecat.catlib.exception.Exceptions;
 
 import java.io.File;
 import java.util.Arrays;
@@ -42,7 +42,7 @@ public class BackupHelper {
             final int number = i + 1;
             final File newFile = new File(f.getParentFile(), base + " (" + number + ")" + ext);
             if (!f.renameTo(newFile)) {
-                throw Ex.runtimeF("Could not increment backup: {}", f.getName());
+                throw Exceptions.runEx("Could not increment backup: {}", f.getName());
             }
         }
         return matching.size();
@@ -58,7 +58,7 @@ public class BackupHelper {
 
     int getNumber(final File file) {
         final Matcher matcher = pattern.matcher(file.getName());
-        if (!matcher.find()) throw Ex.runtimeF("Backup deleted externally: {}", file.getName());
+        if (!matcher.find()) throw Exceptions.runEx("Backup deleted externally: {}", file.getName());
         final String g2 = matcher.group(2);
         return g2 == null ? 0 : Integer.parseInt(g2);
     }
