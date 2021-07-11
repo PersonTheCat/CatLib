@@ -56,7 +56,7 @@ allprojects {
     jar {
         from {
             // Todo: why is javax bundled?
-            if (it.name.contains("javax") || it.name.contains("jsr305")) return null
+            if (it == null || it.name.contains("javax") || it.name.contains("jsr305")) return null
             configurations.bundle.collect { it.isDirectory() ? it : zipTree(it) }
         }
         archivesBaseName = "$archive_base-$platform"

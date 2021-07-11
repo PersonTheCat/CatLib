@@ -124,7 +124,7 @@ public class Exceptions {
     /**
      * Shorthand for a regular {@link BiomeNotFoundException}.
      *
-     * @param name The name of the block being researched.
+     * @param name The name of the biome being researched.
      * @return A new {@link BiomeNotFoundException}.
      */
     public static BiomeNotFoundException noBiomeNamed(final String name) {
@@ -134,7 +134,7 @@ public class Exceptions {
     /**
      * Shorthand for a regular {@link BiomeTypeNotFoundException}.
      *
-     * @param name The name of the block being researched.
+     * @param name The name of the biome category being researched.
      * @return A new {@link BiomeTypeNotFoundException}.
      */
     public static BiomeTypeNotFoundException noBiomeTypeNamed(final String name) {
@@ -149,6 +149,16 @@ public class Exceptions {
      */
     public static BlockNotFoundException noBlockNamed(final String name) {
         return new BlockNotFoundException(name);
+    }
+
+    /**
+     * Shorthand for a regular {@link ItemNotFoundException}.
+     *
+     * @param name The name of the item being researched.
+     * @return A new {@link ItemNotFoundException}.
+     */
+    public static ItemNotFoundException noItemNamed(final String name) {
+        return new ItemNotFoundException(name);
     }
 
     /**

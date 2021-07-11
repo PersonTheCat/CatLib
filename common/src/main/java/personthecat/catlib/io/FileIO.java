@@ -8,7 +8,6 @@ import personthecat.fresult.OptionalResult;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 import personthecat.fresult.functions.ThrowingConsumer;
-import personthecat.fresult.functions.ThrowingRunnable;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -212,9 +211,8 @@ public class FileIO {
      * @param os The output stream being copied into.
      * @return The result of the operation. <b>Any errors should not be ignored</b>.
      */
-    @SuppressWarnings("RedundantCast")
     public static Result<Void, IOException> copyStream(final InputStream is, final OutputStream os) {
-        return Result.of((ThrowingRunnable<IOException>) () -> {
+        return Result.of(() -> {
             final byte[] b = new byte[BUFFER_SIZE];
             int length;
             while ((length = is.read(b)) > 0) {
@@ -294,6 +292,7 @@ public class FileIO {
      */
     @CheckReturnValue
     private static OptionalResult<String, IOException> readString(final InputStream is) {
+        // Todo: Would a regular supplier here allow any exception type?
         return Result.<InputStream, IOException>with(() -> is)
             .and(() -> new BufferedReader(new InputStreamReader(is)))
             .nullable(FileIO::read)
