@@ -1,12 +1,7 @@
 package personthecat.buildtools;
 
 import org.gradle.api.Project;
-import personthecat.buildtools.processors.InheritMissingMembersProcessor;
-import personthecat.buildtools.processors.InheritProcessor;
-import personthecat.buildtools.processors.MissingOverwriteProcessor;
-import personthecat.buildtools.processors.OverwriteClassProcessor;
-import personthecat.buildtools.processors.OverwriteProcessor;
-import personthecat.buildtools.processors.OverwriteTargetProcessor;
+import personthecat.buildtools.processors.*;
 import spoon.Launcher;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtType;
@@ -103,6 +98,7 @@ public final class LauncherContext {
         final CtModel model = launcher.getModel();
         OverwriteTargetProcessor.processModel(model);
         MissingOverwriteProcessor.processModel(project, model);
+        ManualImportProcessor.fixImports(project, launcher);
     }
 
     @Nonnull

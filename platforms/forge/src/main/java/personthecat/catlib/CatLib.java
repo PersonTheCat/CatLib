@@ -10,7 +10,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.catlib.util.Reference;
 
 @Mod(Reference.MOD_ID)
-@FieldNameConstants
 public class CatLib {
 
     private final IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();

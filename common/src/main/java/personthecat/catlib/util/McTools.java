@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.*;
 import personthecat.catlib.exception.BiomeNotFoundException;
 import personthecat.catlib.exception.BiomeTypeNotFoundException;
 import personthecat.catlib.exception.BlockNotFoundException;
