@@ -13,6 +13,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +46,7 @@ public class ManualImportProcessor {
      * @param launcher The context storing the parsed AST of this project.
      */
     public static void fixImports(final Project project, final Launcher launcher) {
-        final File javaSources = LauncherContext.getJavaDirectory(project);
+        final Set<File> javaSources = LauncherContext.getMainSourceSet(project);
         final File generatedSources = launcher.getEnvironment().getSourceOutputDirectory();
         for (final CtType<?> type : CtUtils.getAllClasses(launcher.getModel())) {
             final CtType<?> overwritten = LauncherContext.getOverwrittenClass(type);
@@ -56,8 +57,15 @@ public class ManualImportProcessor {
         }
     }
 
-    private static String getRelativePath(final File dir, final File f) {
-        return f.getPath().replace(dir.getPath(), "");
+    private static String getRelativePath(final Set<File> sources, final File f) {
+        final String filePath = f.getPath();
+        for (final File source : sources) {
+            final String sourcePath = source.getPath();
+            if (filePath.startsWith(sourcePath)) {
+                return filePath.substring(sourcePath.length());
+            }
+        }
+        throw new IllegalStateException("No matching source: " + filePath);
     }
 
     private static void fixClassFile(final File generated, final File common) {

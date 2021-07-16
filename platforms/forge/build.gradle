@@ -50,6 +50,6 @@ remapJar {
     classifier 'remapped'
 }
 
-//compileJava {
-//    source = file("$buildDir/generated")
-//}
+overwriteValidator {
+    outputDirectory file("$buildDir/test")
+}
