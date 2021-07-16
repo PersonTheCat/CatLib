@@ -1,4 +1,6 @@
-package personthecat.buildtools;
+package personthecat.buildtools.annotations;
+
+import personthecat.buildtools.OverwriteValidator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,9 +10,12 @@ import java.lang.annotation.Target;
 /**
  * Indicates that a given class should be overwritten in all child source sets.
  * <p>
- *   This marker is <b>not currently validated</b> by {@link OverwriteValidator}.
+ *   This marker is validated by {@link OverwriteValidator}.
  * </p>
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface OverwriteTarget {}
+@SuppressWarnings("unused")
+public @interface OverwriteTarget {
+    boolean required() default false;
+}

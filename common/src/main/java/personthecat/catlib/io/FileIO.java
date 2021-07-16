@@ -292,7 +292,6 @@ public class FileIO {
      */
     @CheckReturnValue
     private static OptionalResult<String, IOException> readString(final InputStream is) {
-        // Todo: Would a regular supplier here allow any exception type?
         return Result.<InputStream, IOException>with(() -> is)
             .and(() -> new BufferedReader(new InputStreamReader(is)))
             .nullable(FileIO::read)

@@ -55,9 +55,13 @@ allprojects {
 
     jar {
         from {
-            // Todo: why is javax bundled?
-            if (it == null || it.name.contains("javax") || it.name.contains("jsr305")) return null
-            configurations.bundle.collect { it.isDirectory() ? it : zipTree(it) }
+            configurations.bundle.collect {
+                if (configurationContainsFile(configurations.bundle, it)) {
+                    it.isDirectory() ? it : zipTree(it)
+                } else {
+                    null
+                }
+            }
         }
         archivesBaseName = "$archive_base-$platform"
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -72,4 +76,8 @@ allprojects {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
+}
+
+static def configurationContainsFile(final Configuration configuration, final File file) {
+    file.path.contains("build/libs") || configuration.dependencies.find {file.name.contains(it.name) }
 }

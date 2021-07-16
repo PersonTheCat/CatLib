@@ -49,3 +49,7 @@ processResources {
 remapJar {
     classifier 'remapped'
 }
+
+compileJava {
+    source = file("$buildDir/generated")
+}

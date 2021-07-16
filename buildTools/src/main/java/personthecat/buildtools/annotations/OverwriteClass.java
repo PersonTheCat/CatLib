@@ -1,4 +1,6 @@
-package personthecat.buildtools;
+package personthecat.buildtools.annotations;
+
+import personthecat.buildtools.OverwriteValidator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
