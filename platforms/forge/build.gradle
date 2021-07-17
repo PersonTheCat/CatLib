@@ -47,9 +47,7 @@ processResources {
 }
 
 remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
     classifier 'remapped'
-}
-
-overwriteValidator {
-    outputDirectory file("$buildDir/test")
 }

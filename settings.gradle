@@ -20,10 +20,4 @@ rootProject.name = 'CatLib'
 
 include 'common', 'platforms:forge', 'platforms:fabric'
 
-includeBuild('buildTools') {
-    dependencySubstitution {
-        substitute module('local.personthecat:gradle-plugin') with project(':')
-    }
-}
-
 startParameter.excludedTaskNames += [':build', ':platforms:build']

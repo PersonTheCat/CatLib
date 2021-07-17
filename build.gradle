@@ -1,11 +1,13 @@
-import personthecat.buildtools.OverwriteValidator
+import personthecat.overwritevalidator.OverwriteValidator
 
 buildscript {
     repositories {
+        maven { url = "https://jitpack.io" }
         mavenCentral()
     }
     dependencies {
-        classpath group: 'local.personthecat', name: 'gradle-plugin'
+        classpath group: 'com.github.PersonTheCat', name: 'OverwriteValidator', version: '1.3'
+        classpath group: 'gradle.plugin.com.github.jengelman.gradle.plugins', name: 'shadow', version: '7.0.0'
     }
 }
 
@@ -19,6 +21,7 @@ architectury {
 }
 
 allprojects {
+    apply plugin: 'com.github.johnrengelman.shadow'
     apply plugin: 'java'
     apply plugin: 'eclipse'
     apply plugin: 'maven-publish'
@@ -41,11 +44,11 @@ allprojects {
         bundle group: 'com.github.PersonTheCat', name: 'hjson-java', version: '3.0.0-C2'
         bundle group: 'com.github.PersonTheCat', name: 'FResult', version: '2.0-BETA-3'
 
-        implementation group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
-        implementation group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
-        implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
+        compileOnly group: 'com.github.PersonTheCat', name: 'OverwriteValidatorAnnotations', version: '1.2'
+        compileOnly group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
+        compileOnly group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
+        compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
 
-        compileOnly group: 'local.personthecat', name: 'gradle-plugin'
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
 
@@ -54,18 +57,17 @@ allprojects {
     }
 
     jar {
-        from {
-            configurations.bundle.collect {
-                if (configurationContainsFile(configurations.bundle, it)) {
-                    it.isDirectory() ? it : zipTree(it)
-                } else {
-                    null
-                }
-            }
-        }
         archivesBaseName = "$archive_base-$platform"
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
+
+    shadowJar {
+        configurations = [project.configurations.bundle]
+        exclude 'javax/**', 'javax.*', '**/jsr305/**'
+        classifier = ''
+    }
+
+    build.dependsOn shadowJar
 
     tasks.withType(Test) {
         useJUnitPlatform()
@@ -76,8 +78,4 @@ allprojects {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
-}
-
-static def configurationContainsFile(final Configuration configuration, final File file) {
-    file.path.contains("build/libs") || configuration.dependencies.find {file.name.contains(it.name) }
 }

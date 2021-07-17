@@ -10,7 +10,7 @@ import personthecat.catlib.exception.BiomeTypeNotFoundException;
 import personthecat.catlib.exception.BlockNotFoundException;
 import personthecat.catlib.exception.ItemNotFoundException;
 import personthecat.catlib.exception.MissingOverrideException;
-import personthecat.buildtools.annotations.OverwriteTarget;
+import personthecat.overwritevalidator.annotations.OverwriteTarget;
 
 import java.io.File;
 import java.util.List;

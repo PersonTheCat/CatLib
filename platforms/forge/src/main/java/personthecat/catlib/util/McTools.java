@@ -1,7 +1,7 @@
 package personthecat.catlib.util;
 
-import personthecat.buildtools.annotations.InheritMissingMembers;
-import personthecat.buildtools.annotations.OverwriteClass;
+import personthecat.overwritevalidator.annotations.InheritMissingMembers;
+import personthecat.overwritevalidator.annotations.OverwriteClass;
 
 @OverwriteClass
 @InheritMissingMembers
