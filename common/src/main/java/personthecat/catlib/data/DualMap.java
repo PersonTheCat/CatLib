@@ -13,6 +13,7 @@ import java.util.function.Consumer;
  * @param <K2> The second key type.
  * @param <V> The mapped value type.
  */
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public interface DualMap<K1, K2, V> {
 
     DualMap<K1, K2, V> put(final K1 k1, final K2 k2, final V v);

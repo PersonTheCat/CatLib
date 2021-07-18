@@ -24,7 +24,7 @@ import static personthecat.catlib.exception.Exceptions.noBlockNamed;
 import static personthecat.catlib.exception.Exceptions.noItemNamed;
 
 @UtilityClass
-@OverwriteTarget
+@OverwriteTarget(required = true)
 @SuppressWarnings("unused")
 public class McTools {
 
