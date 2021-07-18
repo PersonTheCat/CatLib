@@ -36,7 +36,7 @@ allprojects {
     }
 
     configurations {
-        bundle
+        bundle { transitive = false }
         implementation.extendsFrom bundle
     }
 
@@ -63,7 +63,6 @@ allprojects {
 
     shadowJar {
         configurations = [project.configurations.bundle]
-        exclude 'javax/**', 'javax.*', '**/jsr305/**'
         classifier = ''
     }
 

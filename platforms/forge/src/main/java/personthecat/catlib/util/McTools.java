@@ -1,8 +1,10 @@
 package personthecat.catlib.util;
 
+import lombok.experimental.UtilityClass;
 import personthecat.overwritevalidator.annotations.InheritMissingMembers;
 import personthecat.overwritevalidator.annotations.OverwriteClass;
 
+@UtilityClass
 @OverwriteClass
 @InheritMissingMembers
 @SuppressWarnings("unused")

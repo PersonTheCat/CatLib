@@ -47,79 +47,135 @@ public class PathTools {
     /**
      * Reuses a foreign path as a sub path. This function will specifically
      * place the namespace after <code>block/</code> or <code>item/</code>
+     * <p>
+     *   For example, the resource ID <code>minecraft:block/id</code> will be
+     *   converted into <code>block/minecraft/id</code>
+     * </p>
+     * <p>
+     *   Note: this is unable to output backslashes instead of forward slashes.
+     * </p>
      *
-     * For example, the resource ID <code>minecraft:block/id</code> will be
-     * converted into <code>block/minecraft/id</code>
-     *
-     * Note: this is unable to output backslashes instead of forward slashes.
+     * @param id The resource location being transformed.
+     * @return The transformed path.
      */
     public static String namespaceToSub(final ResourceLocation id) {
         return id.getPath().replaceFirst("(blocks?|items?|^)[/\\\\]?", "$1/" + id.getNamespace() + "/");
     }
 
-    /** Shorthand for {@link #namespaceToSub(ResourceLocation)} using a regular string. */
+    /**
+     * Shorthand for {@link #namespaceToSub(ResourceLocation)} using a regular string.
+     *
+     * @param id The resource location being transformed.
+     * @return The transformed path.
+     */
     public static String namespaceToSub(final String id) {
         return namespaceToSub(new ResourceLocation(id));
     }
 
-    /** Removes all parent directories from a resource location as a string. */
-    public static String endOfPath(final String path) {
-        final String[] split = path.split("[/\\\\]");
-        return split[split.length - 1];
-    }
-
-    public static String endOfPath(final ResourceLocation id) {
-        return endOfPath(id.getPath());
-    }
-
-    /** Determines the extension of the input `file`. */
-    public static String extension(final File file) {
-        final String name = file.getName();
-        return name.substring(name.lastIndexOf(".") + 1);
-    }
-
-    /** Gets the name of the file, minus the extension. */
-    public static String noExtension(final File file) {
-        return noExtension(file.getName());
-    }
-
-    /** Returns the full contents of `s` up to the last dot. */
-    public static String noExtension(final String s) {
-        final int extIndex = s.lastIndexOf(".");
-        if (extIndex < 0) {
-            return s;
-        }
-        return s.substring(0, extIndex);
-    }
-
-    /** Returns the end of the input path. */
+    /**
+     * Removes all parent directories from a resource location as a string.
+     * <p>
+     *   For example, <code>name:pathA/pathB</code> will be transformed into
+     *   <code>pathB</code>.
+     * </p>
+     * @param path The path being parsed.
+     * @return The filename or key at the end of the path.
+     */
     public static String filename(final String path) {
         final String[] split = path.split("[/\\\\]");
         return split[split.length - 1];
     }
 
     /**
-     * Prepends a new string of text before the last part of a file path.
+     * Variant of {@link #filename(String)} which accepts a {@link ResourceLocation}.
      *
-     * Note: empty strings would probably produce invalid results.
+     * @param id The path being parsed.
+     * @return The filename or key at the end of the path.
+     */
+    public static String endOfPath(final ResourceLocation id) {
+        return filename(id.getPath());
+    }
+
+    /**
+     * Determines the extension of the input file.
+     */
+    public static String extension(final File file) {
+        final String name = file.getName();
+        final int index = name.lastIndexOf(".");
+        return index < 0 ? "" : name.substring(index + 1);
+    }
+
+    /**
+     * Gets the name of the file, minus the extension.
+     *
+     * @param file The file being operated on.
+     * @return The regular filename.
+     */
+    public static String noExtension(final File file) {
+        return noExtension(file.getName());
+    }
+
+    /**
+     * Variant of {@link #noExtension(File)} which accepts a string.
+     *
+     * @param s The name of the file or path being operated on.
+     * @return The regular filename.
+     */
+    public static String noExtension(final String s) {
+        final int index = s.lastIndexOf(".");
+        return index < 0 ? s : s.substring(0, index);
+    }
+
+    /**
+     * Prepends a new string of text before the last part of a file path.
+     * <p>
+     *   For example, prepending <code>bar_</code> onto <code>foo/baz</code>
+     *   will output <code>foo/bar_baz</code>
+     * </p>
+     * <p>
+     *   Note: empty strings would probably produce invalid results.
+     * </p>
+     * @param path The fully-qualified file path.
+     * @param prefix The string to prepend to the filename.
      */
     public static String prependFilename(final String path, final String prefix) {
         return path.replaceFirst("^(.*[/\\\\])*([^/\\\\]+)$", "$1" + prefix + "$2");
     }
 
-    public static Stream<String> getSimpleContents(File current) {
+    /**
+     * Returns a stream of the relative file paths in the given directory.
+     *
+     * @param root The root directory of the output paths.
+     * @param current The current file or directory being examined.
+     * @return A stream of the relative file paths contained at this location.
+     */
+    public static Stream<String> getSimpleContents(final File root, final File current) {
+        final File dir = current.isDirectory() ? current : current.getParentFile();
+        return Stream.of(listFiles(dir)).map(f -> formatContents(root, f));
+    }
+
+    /**
+     * Variant of {@link #getSimpleContents(File, File)} in which the current
+     * directory is also the root directory.
+     *
+     * @param current The current directory being examined.
+     * @return The relative file paths in this directory.
+     */
+    public static Stream<String> getSimpleContents(final File current) {
         return getSimpleContents(current, current);
     }
 
-    public static Stream<String> getSimpleContents(File root, File current) {
-        final File dir = current.isDirectory() ? current : current.getParentFile();
-        return Stream.of(listFiles(dir))
-            .map(f -> formatContents(root, f));
-    }
-
-    private static String formatContents(File root, File f) {
+    /**
+     * Formats the given path to return only a relative path using forward slashes
+     * instead of backward slashes.
+     *
+     * @param root The root directory.
+     * @param f The file which the relative path is generated from.
+     * @return The formatted path.
+     */
+    private static String formatContents(final File root, final File f) {
         final String edit = f.getAbsolutePath()
-            .replace(root.getAbsolutePath(), "")
+            .substring(root.getAbsolutePath().length())
             .replace("\\", "/")
             .substring(1);
         return noExtension(edit);

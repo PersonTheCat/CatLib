@@ -15,53 +15,299 @@ import static personthecat.catlib.util.Shorthand.f;
  * This class contains a series of high level utilities to be used for updating old JSON presets
  * to contain the current field names and syntax standards. It is designed to be used in a builder
  * pattern and can handle renaming fields and collapsing nested objects into single objects.
+ * <br><br>
+ * <h3>Renaming Values:</h3>
+ * <p>
+ *   For example, when given the following JSON data:
+ * </p>
+ * <pre>
+ *   a: {
+ *     b: [
+ *       {
+ *         old: value
+ *       }
+ *       {
+ *         other: value
+ *       }
+ *     ]
+ *   }
+ * </pre>
+ * <p>
+ *   And the following history:
+ * </p>
+ * <pre>
+ *   FieldHistory.withPath("a", "b")
+ *     .history("old", "other", "new")
+ *     .updateAll(json);
+ * </pre>
+ * <p>
+ *   The object will be transformed as follows:
+ * </p>
+ * <pre>
+ *   a: {
+ *     b: [
+ *       {
+ *         new: value
+ *       }
+ *       {
+ *         new: value
+ *       }
+ *     ]
+ *   }
+ * </pre>
+ * <h3>Marking Fields as Removed</h3>
+ * <p>
+ *   For another example, when given the following JSON data:
+ * </p>
+ * <pre>
+ *   a: {
+ *     container: {
+ *       removed: value
+ *     }
+ *   }
+ *   b: {
+ *     container: {
+ *       removed: value
+ *     }
+ *   }
+ * </pre>
+ * <p>
+ *   And the following history:
+ * </p>
+ * <pre>
+ *   FieldHistory.recursive("container")
+ *     .markRemoved("removed", "1.0')
+ *     .updateAll(json);
+ * </pre>
+ * <p>
+ *   The object will be transformed as follows:
+ * </p>
+ * <pre>
+ *   a: {
+ *     container: {
+ *       # Removed in 1.0. You can delete this field.
+ *       removed: value
+ *     }
+ *   }
+ *   b: {
+ *     container: {
+ *       # Removed in 1.0. You can delete this field.
+ *       removed: value
+ *     }
+ *   }
+ * </pre>
+ * <h3>Author's Note:</h3>
+ * <p>
+ *   I am especially fond of this class. If you would like additional transformations
+ *   to be supported by the library, <b>please</b> create an issue on
+ *   <a href="">GitHub</a>.
+ *   Thanks for your help!
+ * </p>
  */
 @SuppressWarnings("unused")
 public class FieldHistory {
 
-    public static ObjectResolver withPath(String... path) {
+    public static ObjectResolver withPath(final String... path) {
         return new StaticObjectResolver(path);
     }
 
-    public static ObjectResolver recursive(String key) {
+    public static ObjectResolver recursive(final String key) {
         return new RecursiveObjectResolver(key);
     }
 
     public static abstract class ObjectResolver {
         private final List<Updater> updates = new LinkedList<>();
 
-        public final ObjectResolver history(String... names) {
+        /**
+         * A series of names for any given field over time.
+         * <p>
+         *   For example, a field with the following history:
+         * </p>
+         * <ul>
+         *   <li><code>name1</code></li>
+         *   <li><code>name2</code></li>
+         *   <li><code>name3</code></li>
+         * </ul>
+         * <p>
+         *   Will be transformed to <code>name3</code> regardless of which name it has in
+         *   the current file.
+         * </p>
+         * @param names A list of names for the given field over time.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver history(final String... names) {
             updates.add(new RenameHistory(this, names));
             return this;
         }
 
-        public final ObjectResolver collapse(String outer, String inner) {
+        /**
+         * Collapses the fields inside of a nested object into its parent.
+         * <p>
+         *   For example, given the following JSON:
+         * </p>
+         * <pre>
+         *   outer: {
+         *     inner: {
+         *       a: value
+         *       b: value
+         *     }
+         *   }
+         * </pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>
+         *   FieldHistory.withPath()
+         *     .collapse("outer", "inner")
+         *     .updateAll(json);
+         * </pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>
+         *   outer: {
+         *     a: value
+         *     b: value
+         *   }
+         * </pre>
+         *
+         * @param outer The name of the outer object.
+         * @param inner The name of the inner object.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver collapse(final String outer, final String inner) {
             updates.add(new PathCollapseHelper(this, outer, inner));
             return this;
         }
 
-        public final ObjectResolver toRange(String minKey, Number minDefault, String maxKey, Number maxDefault, String newKey) {
+        /**
+         * Converts a JSON value in the following format:
+         * <pre>
+         *   minValue: 0
+         *   maxValue: 1
+         * </pre>
+         * <p>
+         *   Into an array as follows:
+         * </p>
+         * <pre>
+         *   value: [ 0, 1 ]
+         * </pre>
+         * @param minKey The name of the original key for the minimum value.
+         * @param minDefault The default value minimum value.
+         * @param maxKey The name of the original key for the maximum value.
+         * @param maxDefault The default maximum value.
+         * @param newKey The new key for the combined value.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver toRange(final String minKey, final Number minDefault, final String maxKey,
+                                            final Number maxDefault, final String newKey) {
             updates.add(new RangeConverter(this, minKey, minDefault, maxKey, maxDefault, newKey));
             return this;
         }
 
-        public final ObjectResolver markRemoved(String key, String version) {
+        /**
+         * Adds a comment indicating that a field has been removed. This is preferable
+         * to outright removing the field, which the user may not be aware of.
+         *
+         * @param key The name of the field being removed.
+         * @param version The version in which this field was removed.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver markRemoved(final String key, final String version) {
             updates.add(new RemovedFieldNotifier(this, key, version));
             return this;
         }
 
-        public final ObjectResolver renameValue(String key, String from, String to) {
+        /**
+         * Renames a value if it matches the given string.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>
+         *   a: [
+         *     {
+         *       b: old1
+         *     }
+         *     {
+         *       b: old2
+         *     }
+         *   ]
+         * </pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>
+         *   FieldHistory.withPath("a")
+         *     .renameValue("b", "old1", "new1")
+         *     .renameValue("b", "old2", "new2")
+         *     .updateAll(json);
+         * </pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>
+         *   a: [
+         *     {
+         *       b: new1
+         *     }
+         *     {
+         *       b: new2
+         *     }
+         *   ]
+         * </pre>
+         *
+         * @param key The key of the value being renamed
+         * @param from The original name which has been changed
+         * @param to The new name for this value.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver renameValue(final String key, final String from, final String to) {
             updates.add(new FieldRenameHelper(this, key, from, to));
             return this;
         }
 
-        public final ObjectResolver transform(String key, MemberTransformation transformation) {
+        /**
+         * Applies a generic transformation with the given instructions.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>
+         *   a: {
+         *     old1: old2
+         *   }
+         * </pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>
+         *   FieldHistory.withPath("a")
+         *     .transform((k, v) -> Pair.of("new1", JsonValue.valueOf("new2")))
+         *     .updateAll(json)
+         * </pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>
+         *   a: {
+         *     new1: new2
+         *   }
+         * </pre>
+         * @param key The name of the field being transformed.
+         * @param transformation A functional interface for updating the field programatically.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver transform(final String key, final MemberTransformation transformation) {
             updates.add(new MemberTransformationHelper(this, key, transformation));
             return this;
         }
 
-        public final void updateAll(JsonObject json) {
-            for (Updater update : updates) {
+        /**
+         * Runs all of the transformations defined on the given JSON object.
+         *
+         * @param json The JSON object target for these transformations.
+         */
+        public final void updateAll(final JsonObject json) {
+            for (final Updater update : updates) {
                 update.update(json);
             }
         }
@@ -79,16 +325,16 @@ public class FieldHistory {
     public static class StaticObjectResolver extends ObjectResolver {
         private final String[] path;
 
-        private StaticObjectResolver(String[] path) {
+        private StaticObjectResolver(final String[] path) {
             this.path = path;
         }
 
         @Override
-        public void forEach(JsonObject json, Consumer<JsonObject> fn) {
+        public void forEach(final JsonObject json, final Consumer<JsonObject> fn) {
             forEachContainer(json, 0, fn);
         }
 
-        private void forEachContainer(JsonObject container, int index, Consumer<JsonObject> fn) {
+        private void forEachContainer(final JsonObject container, final int index, final Consumer<JsonObject> fn) {
             if (index < path.length) {
                 for (JsonObject o : HjsonTools.getRegularObjects(container, path[index])) {
                     forEachContainer(o, index + 1, fn);
@@ -102,13 +348,13 @@ public class FieldHistory {
     public static class RecursiveObjectResolver extends ObjectResolver {
         private final String key;
 
-        private RecursiveObjectResolver(String key) {
+        private RecursiveObjectResolver(final String key) {
             this.key = key;
         }
 
         @Override
-        public void forEach(JsonObject json, Consumer<JsonObject> fn) {
-            for (JsonObject.Member member : json) {
+        public void forEach(final JsonObject json, final Consumer<JsonObject> fn) {
+            for (final JsonObject.Member member : json) {
                 final JsonValue value = member.getValue();
                 if (member.getName().equals(key)) {
                     HjsonTools.getRegularObjects(json, key).forEach(fn);
@@ -121,8 +367,8 @@ public class FieldHistory {
             }
         }
 
-        private void forEachInArray(JsonArray array, Consumer<JsonObject> fn) {
-            for (JsonValue value : array) {
+        private void forEachInArray(final JsonArray array, final Consumer<JsonObject> fn) {
+            for (final JsonValue value : array) {
                 if (value.isObject()) {
                     forEach(value.asObject(), fn);
                 } else if (value.isArray()) {
@@ -133,24 +379,24 @@ public class FieldHistory {
     }
 
     public interface Updater {
-        void update(JsonObject json);
+        void update(final JsonObject json);
     }
 
     public static class RenameHistory implements Updater {
         private final ObjectResolver resolver;
         private final String[] history;
 
-        private RenameHistory(ObjectResolver resolver, String[] history) {
+        private RenameHistory(final ObjectResolver resolver, final String[] history) {
             this.resolver = resolver;
             this.history = history;
         }
 
         @Override
-        public void update(JsonObject json) {
+        public void update(final JsonObject json) {
             resolver.forEach(json, this::renameFields);
         }
 
-        private void renameFields(JsonObject json) {
+        private void renameFields(final JsonObject json) {
             final String current = history[history.length - 1];
             for (int i = 0; i < history.length - 1; i++) {
                 final String key = history[i];
@@ -168,18 +414,18 @@ public class FieldHistory {
         private final String outer;
         private final String inner;
 
-        private PathCollapseHelper(ObjectResolver resolver, String outer, String inner) {
+        private PathCollapseHelper(final ObjectResolver resolver, final String outer, final String inner) {
             this.resolver = resolver;
             this.outer = outer;
             this.inner = inner;
         }
 
         @Override
-        public void update(JsonObject json) {
+        public void update(final JsonObject json) {
             resolver.forEach(json, this::collapse);
         }
 
-        private void collapse(JsonObject json) {
+        private void collapse(final JsonObject json) {
             final JsonValue outerValue = json.get(outer);
             if (outerValue != null && outerValue.isObject()) {
                 final JsonValue innerValue = outerValue.asObject().get(inner);
@@ -199,7 +445,8 @@ public class FieldHistory {
         private final Number maxDefault;
         private final String newKey;
 
-        private RangeConverter(ObjectResolver resolver, String minKey, Number minDefault, String maxKey, Number maxDefault, String newKey) {
+        private RangeConverter(final ObjectResolver resolver, final String minKey, final Number minDefault,
+                               final String maxKey, final Number maxDefault, final String newKey) {
             this.resolver = resolver;
             this.minKey = minKey;
             this.minDefault = minDefault;
@@ -209,19 +456,19 @@ public class FieldHistory {
         }
 
         @Override
-        public void update(JsonObject json) {
+        public void update(final JsonObject json) {
             resolver.forEach(json, this::convert);
         }
 
-        private void convert(JsonObject json) {
+        private void convert(final JsonObject json) {
             if (json.has(minKey) || json.has(maxKey)) {
                 if (minDefault instanceof Double || minDefault instanceof Float) {
-                    final float min = HjsonTools.getFloatOr(json, minKey, minDefault.floatValue());
-                    final float max = HjsonTools.getFloatOr(json, maxKey, maxDefault.floatValue());
+                    final float min = HjsonTools.getFloat(json, minKey).orElse(minDefault.floatValue());
+                    final float max = HjsonTools.getFloat(json, maxKey).orElse(maxDefault.floatValue());
                     json.set(newKey, getRange(min, max));
                 } else {
-                    final int min = HjsonTools.getIntOr(json, minKey, minDefault.intValue());
-                    final int max = HjsonTools.getIntOr(json, maxKey, maxDefault.intValue());
+                    final int min = HjsonTools.getInt(json, minKey).orElse(minDefault.intValue());
+                    final int max = HjsonTools.getInt(json, maxKey).orElse(maxDefault.intValue());
                     json.set(newKey, getRange(min, max));
                 }
                 json.remove(minKey);
@@ -229,14 +476,14 @@ public class FieldHistory {
             }
         }
 
-        private JsonValue getRange(float min, float max) {
+        private JsonValue getRange(final float min, final float max) {
             if (min == max) {
                 return JsonValue.valueOf(min);
             }
             return new JsonArray().add(min).add(max).setCondensed(true);
         }
 
-        private JsonValue getRange(int min, int max) {
+        private JsonValue getRange(final int min, final int max) {
             if (min == max) {
                 return JsonValue.valueOf(min);
             }
@@ -249,7 +496,7 @@ public class FieldHistory {
         private final String key;
         private final String version;
 
-        private RemovedFieldNotifier(ObjectResolver resolver, String key, String version) {
+        private RemovedFieldNotifier(final ObjectResolver resolver, final String key, final String version) {
             this.resolver = resolver;
             this.key = key;
             this.version = version;
@@ -275,7 +522,7 @@ public class FieldHistory {
         private final String from;
         private final String to;
 
-        private FieldRenameHelper(ObjectResolver resolver, String key, String from, String to) {
+        private FieldRenameHelper(final ObjectResolver resolver, final String key, final String from, final String to) {
             this.resolver = resolver;
             this.key = key;
             this.from = from;
@@ -283,11 +530,11 @@ public class FieldHistory {
         }
 
         @Override
-        public void update(JsonObject json) {
+        public void update(final JsonObject json) {
             resolver.forEach(json, this::renameValue);
         }
 
-        private void renameValue(JsonObject json) {
+        private void renameValue(final JsonObject json) {
             final JsonValue value = json.get(key);
             if (value != null && value.isString() && from.equalsIgnoreCase(value.asString())) {
                 json.set(key, to);
@@ -297,7 +544,7 @@ public class FieldHistory {
 
     @FunctionalInterface
     public interface MemberTransformation {
-        Pair<String, JsonValue> transform(String name, JsonValue value);
+        Pair<String, JsonValue> transform(final String name, final JsonValue value);
     }
 
     public static class MemberTransformationHelper implements Updater {
@@ -305,18 +552,19 @@ public class FieldHistory {
         private final String key;
         private final MemberTransformation transformation;
 
-        private MemberTransformationHelper(ObjectResolver resolver, String key, MemberTransformation transformation) {
+        private MemberTransformationHelper(final ObjectResolver resolver, final String key,
+                                           final MemberTransformation transformation) {
             this.resolver = resolver;
             this.key = key;
             this.transformation = transformation;
         }
 
         @Override
-        public void update(JsonObject json) {
+        public void update(final JsonObject json) {
             resolver.forEach(json, this::transform);
         }
 
-        private void transform(JsonObject json) {
+        private void transform(final JsonObject json) {
             final JsonValue value = json.get(key);
             if (value != null) {
                 final Pair<String, JsonValue> updated = transformation.transform(key, value);
