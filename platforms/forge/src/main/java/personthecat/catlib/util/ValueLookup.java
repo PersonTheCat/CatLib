@@ -47,8 +47,7 @@ public class ValueLookup {
         .put("DRAGON_EGG", Material.EGG)
         .build();
 
-
-    /** A map of MCP material names which don't overlap with the originals. */
+    /** A map of MCP sound names which don't overlap with the originals. */
     private static final Map<String, SoundType> MCP_SOUND_MAP = ImmutableMap.<String, SoundType>builder()
         .put("GROUND", SoundType.GRAVEL)
         .put("PLANT", SoundType.GRASS)
