@@ -9,6 +9,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import org.jetbrains.annotations.NotNull;
+import personthecat.catlib.data.FloatRange;
+import personthecat.catlib.data.Range;
 import personthecat.catlib.exception.JsonMappingException;
 import personthecat.fastnoise.FastNoise.CellularDistanceFunction;
 import personthecat.fastnoise.FastNoise.CellularReturnType;

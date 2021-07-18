@@ -1,4 +1,4 @@
-package personthecat.catlib.util;
+package personthecat.catlib.data;
 
 import lombok.EqualsAndHashCode;
 

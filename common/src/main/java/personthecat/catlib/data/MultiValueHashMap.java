@@ -1,11 +1,11 @@
-package personthecat.catlib.util;
+package personthecat.catlib.data;
 
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class MultiValueIdentityMap<K, V> extends IdentityHashMap<K, List<V>> implements MultiValueMap<K, V> {
+public class MultiValueHashMap<K, V> extends HashMap<K, List<V>> implements MultiValueMap<K, V> {
 
     @Override
     public void add(final K k, final V v) {
