@@ -23,17 +23,17 @@ public class HashGenerator {
     /** The scrambled seed to use for hash generation. */
     private final long seed;
 
-    public HashGenerator(long seed) {
+    public HashGenerator(final long seed) {
         this.seed = scramble(seed);
     }
 
     /** Similar to {@link Random}'s scramble method. */
-    private static long scramble(long seed) {
+    private static long scramble(final long seed) {
         long newSeed = (seed ^ GENERAL_MULTIPLE) & MASK;
         return (newSeed * GENERAL_MULTIPLE + ADDEND) & MASK;
     }
 
-    public double getHash(int x, int y, int z) {
+    public double getHash(final int x, final int y, final int z) {
         // Clone the seed to allow for reuse.
         long hash = this.seed;
 
