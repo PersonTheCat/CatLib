@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Either;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.entity.StructureBlockEntity;
@@ -38,7 +39,7 @@ import static personthecat.catlib.util.McTools.getBlockState;
 import static personthecat.catlib.util.PathTools.extension;
 import static personthecat.catlib.util.Shorthand.f;
 import static personthecat.catlib.util.Shorthand.full;
-import static personthecat.catlib.util.Shorthand.getEnumConstant;
+import static personthecat.catlib.util.Shorthand.assertEnumConstant;
 import static personthecat.catlib.util.Shorthand.nullable;
 
 /**
@@ -597,7 +598,7 @@ public class HjsonTools {
     }
 
     public static Optional<BlockState> getState(final JsonObject json, final String field) {
-        return getString(json, field).map(id -> getBlockState(id).orElseThrow(() -> noBlockNamed(id)));
+        return getString(json, field).map(id -> getBlockState(new ResourceLocation(id)).orElseThrow(() -> noBlockNamed(id)));
     }
 
     public static Optional<List<BlockState>> getStateList(final JsonObject json, final String field) {
@@ -605,7 +606,7 @@ public class HjsonTools {
     }
 
     private static List<BlockState> toStateList(final List<String> ids) {
-        return ids.stream().map(id -> getBlockState(id).orElseThrow(() -> noBlockNamed(id)))
+        return ids.stream().map(id -> getBlockState(new ResourceLocation(id)).orElseThrow(() -> noBlockNamed(id)))
             .collect(Collectors.toList());
     }
 
@@ -648,7 +649,7 @@ public class HjsonTools {
         // Get biomes by registry name.
         getArray(json, "names").map(HjsonTools::toStringArray).ifPresent(a -> {
             for (final String s : a) {
-                biomes.add(getBiome(s).orElseThrow(() -> noBiomeNamed(s)));
+                biomes.add(getBiome(new ResourceLocation(s)).orElseThrow(() -> noBiomeNamed(s)));
             }
         });
         // Get biomes by type.
@@ -679,6 +680,6 @@ public class HjsonTools {
     }
 
     public static <T extends Enum<T>> Optional<T> getEnumValue(JsonObject json, String field, Class<T> clazz) {
-        return getString(json, field).map(s -> getEnumConstant(s, clazz));
+        return getString(json, field).map(s -> assertEnumConstant(s, clazz));
     }
 }

@@ -1,10 +1,14 @@
 package personthecat.catlib.util;
 
 import lombok.experimental.UtilityClass;
+import net.minecraft.core.Registry;
+import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.exception.BiomeNotFoundException;
 import personthecat.catlib.exception.BiomeTypeNotFoundException;
 import personthecat.catlib.exception.BlockNotFoundException;
@@ -17,11 +21,13 @@ import personthecat.overwritevalidator.annotations.PlatformMustOverwrite;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static personthecat.catlib.exception.Exceptions.noBiomeNamed;
 import static personthecat.catlib.exception.Exceptions.noBiomeTypeNamed;
 import static personthecat.catlib.exception.Exceptions.noBlockNamed;
 import static personthecat.catlib.exception.Exceptions.noItemNamed;
+import static personthecat.catlib.util.Shorthand.getEnumConstant;
 
 @UtilityClass
 @OverwriteTarget(required = true)
@@ -48,21 +54,40 @@ public class McTools {
     /**
      * @throws BlockNotFoundException If the block does not exist.
      * @param id The name of the block being researched.
-     * @return The given block state, or else throws.
+     * @return The given block, or else throws.
      */
     @NotNull
     @PlatformMustInherit
-    public static BlockState assertBlockState(final String id) {
-        return getBlockState(id).orElseThrow(() -> noBlockNamed(id));
+    public static Block assertBlock(final ResourceLocation id) {
+        return getBlock(id).orElseThrow(() -> noBlockNamed(id.toString()));
     }
 
     /**
      * @param id The name of the block being researched.
-     * @return The given block state, or else {@link Optional#empty}.
+     * @return The given block, or else {@link Optional#empty}.
      */
-    @PlatformMustOverwrite
-    public static Optional<BlockState> getBlockState(final String id) {
-        throw new MissingOverrideException();
+    public static Optional<Block> getBlock(final ResourceLocation id) {
+        return Registry.BLOCK.getOptional(id);
+    }
+
+    /**
+     * @throws BlockNotFoundException If the block does not exist.
+     * @param id The name of the block being researched.
+     * @return The given block's default state, or else throws.
+     */
+    @NotNull
+    @PlatformMustInherit
+    public static BlockState assertBlockState(final ResourceLocation id) {
+        return assertBlock(id).defaultBlockState();
+    }
+
+    /**
+     * @param id The name of the block being researched.
+     * @return The given block's default state, or else {@link Optional#empty}.
+     */
+    @PlatformMustInherit
+    public static Optional<BlockState> getBlockState(final ResourceLocation id) {
+        return getBlock(id).map(Block::defaultBlockState);
     }
 
     /**
@@ -72,17 +97,16 @@ public class McTools {
      */
     @NotNull
     @PlatformMustInherit
-    public static Item assertItem(final String id) {
-        return getItem(id).orElseThrow(() -> noItemNamed(id));
+    public static Item assertItem(final ResourceLocation id) {
+        return getItem(id).orElseThrow(() -> noItemNamed(id.toString()));
     }
 
     /**
      * @param id The name of the item being researched.
      * @return The given item, or else {@link Optional#empty}.
      */
-    @PlatformMustOverwrite
-    public static Optional<Item> getItem(final String id) {
-        throw new MissingOverrideException();
+    public static Optional<Item> getItem(final ResourceLocation id) {
+        return Registry.ITEM.getOptional(id);
     }
 
     /**
@@ -92,17 +116,18 @@ public class McTools {
      */
     @NotNull
     @PlatformMustInherit
-    public static Biome assertBiome(final String id) {
-        return getBiome(id).orElseThrow(() -> noBiomeNamed(id));
+    public static Biome assertBiome(final ResourceLocation id) {
+        return getBiome(id).orElseThrow(() -> noBiomeNamed(id.toString()));
     }
 
     /**
+     * Todo: consider data pack biomes.
+     *
      * @param id The name of the biome being researched.
      * @return The given biome, or else {@link Optional#empty}.
      */
-    @PlatformMustOverwrite
-    public static Optional<Biome> getBiome(final String id) {
-        throw new MissingOverrideException();
+    public static Optional<Biome> getBiome(final ResourceLocation id) {
+        return BuiltinRegistries.BIOME.getOptional(id);
     }
 
     /**
@@ -120,17 +145,19 @@ public class McTools {
      * @param id The name of the biome type being researched.
      * @return The given biome type, or else {@link Optional#empty}.
      */
-    @PlatformMustOverwrite
     public static Optional<Biome.BiomeCategory> getBiomeType(final String id) {
-        throw new MissingOverrideException();
+        return getEnumConstant(id, Biome.BiomeCategory.class);
     }
 
     /**
+     * Todo: consider data pack biomes.
+     *
      * @param type The type of biome being researched.
      * @return A list of biomes for the given category.
      */
-    @PlatformMustOverwrite
     public static List<Biome> getBiomes(final Biome.BiomeCategory type) {
-        throw new MissingOverrideException();
+        return BuiltinRegistries.BIOME.stream()
+            .filter(b -> type.equals(b.getBiomeCategory()))
+            .collect(Collectors.toList());
     }
 }

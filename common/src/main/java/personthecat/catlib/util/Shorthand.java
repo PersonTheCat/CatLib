@@ -305,8 +305,19 @@ public class Shorthand {
      * @return The expected constant.
      */
     @Nonnull
-    public static <T extends Enum<T>> T getEnumConstant(final String s, final Class<T> clazz) {
-        return find(clazz.getEnumConstants(), v -> v.toString().equalsIgnoreCase(s))
-            .orElseThrow(() -> invalidConstant(s, clazz));
+    public static <T extends Enum<T>> T assertEnumConstant(final String s, final Class<T> clazz) {
+        return getEnumConstant(s, clazz).orElseThrow(() -> invalidConstant(s, clazz));
+    }
+
+    /**
+     * Retrieves an enum constant by name.
+     *
+     * @param s The name of the constant being researched.
+     * @param clazz The enum class which contains the expected constant.
+     * @param <T> The type of constant being researched.
+     * @return The expected constant, or else {@link Optional#empty}.
+     */
+    public static <T extends Enum<T>> Optional<T> getEnumConstant(final String s, final Class<T> clazz) {
+        return find(clazz.getEnumConstants(), v -> v.toString().equalsIgnoreCase(s));
     }
 }

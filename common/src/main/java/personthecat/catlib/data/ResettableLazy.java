@@ -14,16 +14,16 @@ import java.util.function.Supplier;
  * @param <T> The type of value being consumed by the wrapper.
  */
 @ThreadSafe
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class ResettableLazy<T> extends Lazy<T> {
 
     /** The primary constructor with instructions for producing the value. */
-    ResettableLazy(@NotNull Supplier<T> supplier) {
+    public ResettableLazy(@NotNull Supplier<T> supplier) {
         super(supplier);
     }
 
     /** To be used in the event that a value already exists. */
-    ResettableLazy(@NotNull T value) {
+    public ResettableLazy(@NotNull T value) {
         super(value);
     }
 

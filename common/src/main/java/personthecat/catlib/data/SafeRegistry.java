@@ -6,7 +6,12 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.exception.MissingElementException;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -161,12 +166,12 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      * @param err A function for generating missing element exceptions.
      * @return A new registry with the updated error info.
      */
-    public SafeRegistry<K, V> respondsWith(final ErrorFunction<K> err) {
+    public SafeRegistry<K, V> respondsWithError(final ErrorFunction<K> err) {
         return new SafeRegistry<>(this.map, err);
     }
 
     /**
-     * Variant of {@link #respondsWith(ErrorFunction)} in which an error message
+     * Variant of {@link #respondsWithError(ErrorFunction)} in which an error message
      * is wrapped in a standard {@link MissingElementException}.
      *
      * @param msg A function for generating error messages.

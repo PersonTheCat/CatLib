@@ -2,8 +2,7 @@ package personthecat.catlib.data;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import java.util.Objects;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -15,7 +14,7 @@ import java.util.function.Supplier;
  * </p>
  * @param <T> The type of value being consumed by the wrapper.
  */
-@NotThreadSafe
+@ThreadSafe
 @SuppressWarnings("unused")
 public class Lazy<T> implements Supplier<T> {
 
@@ -29,13 +28,13 @@ public class Lazy<T> implements Supplier<T> {
     protected volatile boolean set;
 
     /** The primary constructor with instructions for producing the value. */
-    Lazy(@NotNull final Supplier<T> supplier) {
+    public Lazy(@NotNull final Supplier<T> supplier) {
         this.supplier = supplier;
         this.set = false;
     }
 
     /** To be used in the event that a value already exists. */
-    Lazy(@NotNull final T value) {
+    public Lazy(@NotNull final T value) {
         this.value = value;
         this.supplier = () -> value;
         this.set = true;
