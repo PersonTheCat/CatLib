@@ -17,19 +17,14 @@ import java.util.function.Supplier;
 @SuppressWarnings("unused")
 public class ResettableLazy<T> extends Lazy<T> {
 
-    /** Whether the value has been setup. */
-    private volatile boolean set;
-
     /** The primary constructor with instructions for producing the value. */
     ResettableLazy(@NotNull Supplier<T> supplier) {
         super(supplier);
-        this.set = false;
     }
 
     /** To be used in the event that a value already exists. */
     ResettableLazy(@NotNull T value) {
         super(value);
-        this.set = true;
     }
 
     /**
@@ -54,17 +49,17 @@ public class ResettableLazy<T> extends Lazy<T> {
         return new ResettableLazy<>(value);
     }
 
-    /** The primary method for retrieving the underlying value. */
-    @NotNull
-    @Override
-    public T get() {
-        if (!this.set) {
-            synchronized(this) {
-                this.value = this.supplier.get();
-                this.set = true;
-            }
+    /**
+     * Converts this wrapper into a resettable or non-resettable value.
+     *
+     * @param resettable Whether the wrapper should be resettable.
+     * @return Either <code>this</code> or a regular {@link Lazy}.
+     */
+    public Lazy<T> asResettable(final boolean resettable) {
+        if (resettable) {
+            return this;
         }
-        return value;
+        return this.set ? new Lazy<>(this.value) : new Lazy<>(this.supplier);
     }
 
     /** Marks this object as being uninitialized. It will be loaded again on next use. */
@@ -74,8 +69,9 @@ public class ResettableLazy<T> extends Lazy<T> {
         return this;
     }
 
-    /** Returns an up-to-date value without resetting this value's reference. */
-    public T getUpdated() {
-        return this.supplier.get();
+    /** Returns whether the underlying data can be reloaded. */
+    @Override
+    public boolean isResettable() {
+        return true;
     }
 }

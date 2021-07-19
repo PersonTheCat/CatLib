@@ -23,17 +23,22 @@ public class Lazy<T> implements Supplier<T> {
     protected T value = null;
 
     /** A supplier used for producing the value when it is ready. */
-    protected Supplier<T> supplier;
+    protected final Supplier<T> supplier;
+
+    /** Whether the value has been setup. */
+    protected volatile boolean set;
 
     /** The primary constructor with instructions for producing the value. */
     Lazy(@NotNull final Supplier<T> supplier) {
         this.supplier = supplier;
+        this.set = false;
     }
 
     /** To be used in the event that a value already exists. */
     Lazy(@NotNull final T value) {
         this.value = value;
-        this.supplier = null;
+        this.supplier = () -> value;
+        this.set = true;
     }
 
     /**
@@ -59,6 +64,19 @@ public class Lazy<T> implements Supplier<T> {
     }
 
     /**
+     * Converts this wrapper into a resettable or non-resettable value.
+     *
+     * @param resettable Whether the wrapper should be resettable.
+     * @return Either <code>this</code> or a {@link ResettableLazy}.
+     */
+    public Lazy<T> asResettable(final boolean resettable) {
+        if (resettable) {
+            return this.set ? new ResettableLazy<>(this.value) : new ResettableLazy<>(this.supplier);
+        }
+        return this;
+    }
+
+    /**
      * The primary method for retrieving the underlying value.
      *
      * @return The underlying value.
@@ -66,11 +84,13 @@ public class Lazy<T> implements Supplier<T> {
     @NotNull
     @Override
     public T get() {
-        if (this.supplier != null) {
-            this.value = Objects.requireNonNull(this.supplier.get(), "Lazy value");
-            this.supplier = null;
+        if (!this.set) {
+            synchronized(this) {
+                this.value = this.supplier.get();
+                this.set = true;
+            }
         }
-        return this.value;
+        return value;
     }
 
     /** Returns the value only if it has already been computed. */
@@ -80,6 +100,16 @@ public class Lazy<T> implements Supplier<T> {
 
     /** Returns whether the underlying operation has completed. */
     public boolean computed() {
-        return this.value != null;
+        return this.set;
+    }
+
+    /** Returns an up-to-date value without resetting this value's reference. */
+    public T getUpdated() {
+        return this.supplier.get();
+    }
+
+    /** Returns whether the underlying data can be reloaded. */
+    public boolean isResettable() {
+        return false;
     }
 }

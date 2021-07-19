@@ -9,6 +9,8 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import personthecat.catlib.util.Shorthand;
 
+import static personthecat.catlib.util.Shorthand.f;
+
 @Log4j2
 @UtilityClass
 @SuppressWarnings("unused")
@@ -53,7 +55,7 @@ public class Exceptions {
      * @return A new {@link RuntimeException}.
      */
     public static RuntimeException runEx(final String x, final Object... args) {
-        return new RuntimeException(Shorthand.f(x, args));
+        return new RuntimeException(f(x, args));
     }
 
     /**
@@ -83,7 +85,7 @@ public class Exceptions {
      * @return A new {@link ResourceException}.
      */
     public static ResourceException resourceEx(final String x, final Object... args) {
-        return new ResourceException(Shorthand.f(x, args));
+        return new ResourceException(f(x, args));
     }
 
     /**
@@ -104,7 +106,7 @@ public class Exceptions {
      * @return A new {@link JsonFormatException}.
      */
     public static JsonFormatException jsonFormatEx(final String x, final Object... args) {
-        return new JsonFormatException(x);
+        return new JsonFormatException(f(x, args));
     }
 
     /**
@@ -125,7 +127,28 @@ public class Exceptions {
      * @return A new {@link JsonMappingException}.
      */
     public static JsonMappingException mappingEx(final String x, final Object... args) {
-        return new JsonMappingException(x);
+        return new JsonMappingException(f(x, args));
+    }
+
+    /**
+     * Shorthand for a regular {@link MissingElementException}.
+     *
+     * @param x The error message to display.
+     * @return A new {@link MissingElementException}.
+     */
+    public static MissingElementException missingElement(final String x) {
+        return new MissingElementException(x);
+    }
+
+    /**
+     * Shorthand for a regular {@link MissingElementException} using {@link Shorthand#f}.
+     *
+     * @param x The string template being interpolated.
+     * @param args The interpolated arguments replacing <code>{}</code>.
+     * @return A new {@link MissingElementException}.
+     */
+    public static MissingElementException missingElement(final String x, final Object... args) {
+        return new MissingElementException(f(x, args));
     }
 
     /**
