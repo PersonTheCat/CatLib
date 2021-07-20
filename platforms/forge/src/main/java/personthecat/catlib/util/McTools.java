@@ -5,13 +5,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.NotNull;
-import personthecat.catlib.exception.MissingOverrideException;
-import personthecat.overwritevalidator.annotations.Inherit;
+import personthecat.overwritevalidator.annotations.InheritMissingMembers;
 import personthecat.overwritevalidator.annotations.Overwrite;
 import personthecat.overwritevalidator.annotations.OverwriteClass;
 
@@ -23,12 +20,13 @@ import java.util.stream.Stream;
 
 @UtilityClass
 @OverwriteClass
+@InheritMissingMembers
 @SuppressWarnings("unused")
 public class McTools {
 
     @Overwrite
     public static File getConfigDir() {
-        return FMLLoader.getGamePath().resolve("config").toFile();
+        return FMLPaths.CONFIGDIR.get().toFile();
     }
 
     @Overwrite
@@ -57,45 +55,5 @@ public class McTools {
             .flatMap(reg -> reg.getValues().stream())
             .filter(b -> type.equals(b.getBiomeCategory()))
             .collect(Collectors.toList());
-    }
-
-    @NotNull
-    @Inherit
-    public static Block assertBlock(final ResourceLocation id) {
-        throw new MissingOverrideException();
-    }
-
-    @Inherit
-    public static Optional<BlockState> getBlockState(final ResourceLocation id) {
-        throw new MissingOverrideException();
-    }
-
-    @NotNull
-    @Inherit
-    public static BlockState assertBlockState(final ResourceLocation id) {
-        throw new MissingOverrideException();
-    }
-
-    @NotNull
-    @Inherit
-    public static Item assertItem(final ResourceLocation id) {
-        throw new MissingOverrideException();
-    }
-
-    @NotNull
-    @Inherit
-    public static Biome assertBiome(final ResourceLocation id) {
-        throw new MissingOverrideException();
-    }
-
-    @Inherit
-    public static Optional<Biome.BiomeCategory> getBiomeType(final String id) {
-        throw new MissingOverrideException();
-    }
-
-    @NotNull
-    @Inherit
-    public static Biome.BiomeCategory assertBiomeType(final String id) {
-        throw new MissingOverrideException();
     }
 }
