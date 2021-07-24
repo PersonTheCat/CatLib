@@ -52,6 +52,14 @@ public class McTools {
     }
 
     /**
+     * @return Whether the game is currently running on a dedicated server.
+     */
+    @PlatformMustOverwrite
+    public static boolean isDedicatedServer() {
+        throw new MissingOverrideException();
+    }
+
+    /**
      * @throws BlockNotFoundException If the block does not exist.
      * @param id The name of the block being researched.
      * @return The given block, or else throws.

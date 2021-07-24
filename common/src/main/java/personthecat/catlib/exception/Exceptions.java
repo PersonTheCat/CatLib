@@ -158,11 +158,32 @@ public class Exceptions {
      * @param msg The error message to display.
      * @return A new {@link CommandSyntaxException}.
      */
-    public static CommandSyntaxException cmdEx(final StringReader reader, final String msg) {
+    public static CommandSyntaxException cmdSyntax(final StringReader reader, final String msg) {
         final int cursor = reader.getCursor();
         final String input = reader.getString().substring(0, cursor);
         final Message m = new LiteralMessage(msg);
         return new CommandSyntaxException(new SimpleCommandExceptionType(m), m, input, cursor);
+    }
+
+    /**
+     * Shorthand for a regular {@link CommandExecutionException}.
+     *
+     * @param x The string template being interpolated.
+     * @return A new {@link CommandExecutionException}.
+     */
+    public static CommandExecutionException cmdEx(final String x) {
+        return new CommandExecutionException(x);
+    }
+
+    /**
+     * Shorthand for a regular {@link CommandExecutionException} using {@link Shorthand#f}.
+     *
+     * @param x The string template being interpolated.
+     * @param args The interpolated arguments replacing <code>{}</code>.
+     * @return A new {@link CommandExecutionException}.
+     */
+    public static CommandExecutionException cmdEx(final String x, final Object... args) {
+        return new CommandExecutionException(f(x, args));
     }
 
     /**

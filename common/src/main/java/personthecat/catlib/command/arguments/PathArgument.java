@@ -1,22 +1,40 @@
-package personthecat.catlib.command;
+package personthecat.catlib.command.arguments;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.datafixers.util.Either;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.synchronization.ArgumentTypes;
+import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import org.apache.commons.lang3.CharUtils;
+import org.hjson.JsonObject;
+import personthecat.catlib.command.CommandUtils;
+import personthecat.catlib.util.HjsonTools;
+import personthecat.catlib.util.LibReference;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
-import static personthecat.catlib.exception.Exceptions.cmdEx;
+import static personthecat.catlib.exception.Exceptions.cmdSyntax;
 
 @SuppressWarnings("unused")
 public class PathArgument implements ArgumentType<PathArgument.Result> {
 
+    public static void register() {
+        ArgumentTypes.register(LibReference.MOD_ID + ":path_argument", PathArgument.class,
+            new EmptyArgumentSerializer<>(PathArgument::new));
+    }
+
     public static String serialize(final List<Either<String, Integer>> path) {
         final StringBuilder sb = new StringBuilder();
-        for (Either<String, Integer> either : path) {
+        for (final Either<String, Integer> either : path) {
             either.ifLeft(s -> {
                 sb.append('.');
                 sb.append(s);
@@ -29,6 +47,18 @@ public class PathArgument implements ArgumentType<PathArgument.Result> {
         }
         final String s = sb.toString();
         return s.startsWith(".") ? s.substring(1) : s;
+    }
+
+    @Override
+    public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> ctx, final SuggestionsBuilder builder) {
+        final Optional<JsonObject> json = CommandUtils.getLastArg(ctx, HjsonArgument.class, HjsonArgument.Result.class)
+            .map(arg -> arg.json.get());
+        if (!json.isPresent()) {
+            return Suggestions.empty();
+        }
+        final PathArgument.Result path = CommandUtils.getLastArg(ctx, PathArgument.class, Result.class)
+            .orElseGet(() -> new PathArgument.Result(Collections.emptyList()));
+        return SharedSuggestionProvider.suggest(HjsonTools.getPaths(json.get(), path), builder);
     }
 
     @Override
@@ -47,7 +77,7 @@ public class PathArgument implements ArgumentType<PathArgument.Result> {
                 path.add(Either.right(reader.readInt()));
                 reader.expect(']');
             } else {
-                throw cmdEx(reader,"Invalid character");
+                throw cmdSyntax(reader,"Invalid character");
             }
         }
         return new Result(path);
@@ -69,7 +99,7 @@ public class PathArgument implements ArgumentType<PathArgument.Result> {
         final int cursor = reader.getCursor();
         final char last = reader.getString().charAt(cursor - 2);
         if (cursor - 1 == begin || last == '.') {
-            throw cmdEx(reader,"Unexpected accessor");
+            throw cmdSyntax(reader,"Unexpected accessor");
         }
     }
 

@@ -54,6 +54,9 @@ public class SyntaxLinter {
         new Target(KEY, color(ChatFormatting.AQUA))
     };
 
+    /** The default Hjson syntax linter provided by the library. */
+    public static final SyntaxLinter DEFAULT_LINTER = new SyntaxLinter(HJSON_TARGETS);
+
     /** Whichever targets the author has selected for highlighting their text.s */
     final Target[] targets;
 

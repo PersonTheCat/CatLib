@@ -1,21 +1,36 @@
-package personthecat.catlib.command;
+package personthecat.catlib.command.arguments;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.synchronization.ArgumentTypes;
+import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import org.hjson.JsonObject;
+import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.data.Lazy;
+import personthecat.catlib.util.LibReference;
+import personthecat.catlib.util.McTools;
 import personthecat.catlib.util.PathTools;
 
 import java.io.File;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-import static personthecat.catlib.exception.Exceptions.cmdEx;
+import static personthecat.catlib.exception.Exceptions.cmdSyntax;
 import static personthecat.catlib.util.HjsonTools.readJson;
 import static personthecat.catlib.util.PathTools.extension;
 
 @SuppressWarnings("unused")
 public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
+
+    public static void register() {
+        ArgumentTypes.register(LibReference.MOD_ID + ":hjson_argument", HjsonArgument.class,
+            new EmptyArgumentSerializer<>(() -> new HjsonArgument(McTools.getConfigDir())));
+    }
 
     private final FileArgument getter;
     public HjsonArgument(final File dir) {
@@ -26,9 +41,17 @@ public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
     public Result parse(final StringReader reader) throws CommandSyntaxException {
         final File f = getter.parse(reader);
         if (f.exists() && !(f.isDirectory() || extension(f).endsWith("json"))) {
-            throw cmdEx(reader, "Unsupported format");
+            throw cmdSyntax(reader, "Unsupported format");
         }
         return new Result(getter.dir, f);
+    }
+
+    @Override
+    public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> ctx, final SuggestionsBuilder builder) {
+        final Stream<String> neighbors = CommandUtils.getLastArg(ctx, HjsonArgument.class, Result.class)
+            .map(Result::getNeighbors)
+            .orElseGet(() -> PathTools.getSimpleContents(this.getter.dir));
+        return SharedSuggestionProvider.suggest(neighbors, builder);
     }
 
     public static class Result {

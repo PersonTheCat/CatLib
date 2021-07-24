@@ -5,8 +5,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.forgespi.Environment;
 import net.minecraftforge.registries.ForgeRegistries;
 import personthecat.overwritevalidator.annotations.InheritMissingMembers;
 import personthecat.overwritevalidator.annotations.Overwrite;
@@ -37,6 +39,11 @@ public class McTools {
     @Overwrite
     public static Optional<Block> getBlock(final ResourceLocation id) {
         return Optional.ofNullable(ForgeRegistries.BLOCKS.getValue(id));
+    }
+
+    @Overwrite
+    public static boolean isDedicatedServer() {
+        return Dist.DEDICATED_SERVER == Environment.get().getDist();
     }
 
     @Overwrite

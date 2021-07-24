@@ -1,6 +1,7 @@
 package personthecat.catlib.util;
 
 import lombok.experimental.UtilityClass;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import personthecat.overwritevalidator.annotations.InheritMissingMembers;
 import personthecat.overwritevalidator.annotations.Overwrite;
@@ -22,5 +23,10 @@ public class McTools {
     @Overwrite
     public static boolean isModLoaded(final String id) {
         return FabricLoader.getInstance().isModLoaded(id);
+    }
+
+    @Overwrite
+    public static boolean isDedicatedServer() {
+        return EnvType.SERVER == FabricLoader.getInstance().getEnvironmentType();
     }
 }

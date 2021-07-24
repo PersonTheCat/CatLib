@@ -32,8 +32,8 @@ import static personthecat.catlib.util.Shorthand.nullable;
 
 @Log4j2
 @UtilityClass
-@SuppressWarnings("unused")
 @ParametersAreNonnullByDefault
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class FileIO {
 
     /** For outputting the correct new line type. */
@@ -69,15 +69,33 @@ public class FileIO {
     }
 
     /**
-     * Copies a file into the given directory with no explicit options.
+     * Copies a file to the given location with no explicit options. The output is allowed
+     * to be specified either as a directory which will contain the new file or as the actual
+     * file being written.
      *
      * @param f The file being copied.
-     * @param dir The directory being copied into.
+     * @param to The directory or file being copied into.
      * @return The result of this operation, which you may wish to rethrow.
      */
-    public static Result<Path, IOException> copy(final File f, final File dir) {
-        return Result.of(() -> Files.copy(f.toPath(), new File(dir, f.getName()).toPath()))
+    public static Result<Path, IOException> copy(final File f, final File to) {
+        final File output = to.isDirectory() ? new File(to, f.getName()) : to;
+        return Result.of(() -> Files.copy(f.toPath(), output.toPath()))
             .ifErr(e -> log.error("Copying file", e));
+    }
+
+    /**
+     * Moves a file to the given location with no explicit options. The output is allowed
+     * to be specified either as a directory which will contain the new file or as the actual
+     * file being written.
+     *
+     * @param f The file being moved.
+     * @param to The directory or file being moved into.
+     * @return The result of this operation, which you may wish to rethrow.
+     */
+    public static Result<Path, IOException> move(final File f, final File to) {
+        final File output = to.isDirectory() ? new File(to, f.getName()) : to;
+        return Result.of(() -> Files.move(f.toPath(), output.toPath()))
+            .ifErr(e -> log.error("moving file", e));
     }
 
     /**
@@ -103,7 +121,7 @@ public class FileIO {
      */
     @NotNull
     @CheckReturnValue
-    public static File[] safeListFiles(final File dir, final FileFilter filter) {
+    public static File[] listFiles(final File dir, final FileFilter filter) {
         return nullable(dir.listFiles(filter)).orElse(new File[0]);
     }
 
@@ -167,13 +185,28 @@ public class FileIO {
     }
 
     /**
-     * Moves a file to the given backup directory.
+     * Copies a file to the given backup directory.
      *
      * @param dir The directory where this backup will be stored.
      * @param f The file being backed up.
      * @return The number of backups of this file that now exist.
      */
     public static int backup(final File dir, final File f) {
+        return backup(dir, f, true);
+    }
+
+    /**
+     * Copies (or moves) a file to the given backup directory.
+     *
+     * @param dir The directory where this backup will be stored.
+     * @param f The file being backed up.
+     * @param copy Whether to additionally copy the file instead of just moving it.
+     * @return The number of backups of this file that now exist.
+     */
+    public static int backup(final File dir, final File f, final boolean copy) {
+        if (f.getAbsolutePath().startsWith(dir.getAbsolutePath())) {
+            throw resourceEx("Cannot create backup inside backups directory: {}", f.getName());
+        }
         if (!mkdirs(dir)) {
             throw resourceEx("Error creating backup directory: {}", dir);
         }
@@ -183,7 +216,9 @@ public class FileIO {
         if (fileExists(backup)) {
             throw resourceEx("Could not rename backups: {}", f.getName());
         }
-        if (!f.renameTo(backup)) {
+        if (copy) {
+            copy(f, dir).ifErr(Result::THROW);
+        } else if (!f.renameTo(backup)) {
             throw resourceEx("Error moving {} to backups", f.getName());
         }
         return count + 1;
@@ -195,11 +230,12 @@ public class FileIO {
      * @param f The file being renamed.
      * @param name The new name for this file.
      */
-    public static void rename(final File f, final String name) {
+    public static Result<Void, RuntimeException> rename(final File f, final String name) {
         final File path = new File(f.getParentFile(), name);
         if (!f.renameTo(path)) {
-            throw runEx("Cannot rename: {}", path);
+            return Result.err(runEx("Cannot rename: {}", path));
         }
+        return Result.ok();
     }
 
     /**

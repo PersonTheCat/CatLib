@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.hjson.*;
-import personthecat.catlib.command.PathArgument;
+import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.EmptyRange;
 import personthecat.catlib.data.FloatRange;
 import personthecat.catlib.data.Range;
