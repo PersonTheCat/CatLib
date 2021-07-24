@@ -20,8 +20,8 @@ dependencies {
     implementation(project("$common")) {
         transitive = false
     }
-    // Removing this creates a few bizarre
-    // issues in the dev environment.
+    // Add this -> inconsistent class load order.
+    // Remove this -> inconsistent memory addresses.
     developmentForge(project("$common")) {
         transitive = false
     }
