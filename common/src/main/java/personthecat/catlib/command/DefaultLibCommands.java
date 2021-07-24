@@ -16,6 +16,7 @@ import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.io.FileIO;
 import personthecat.catlib.util.HjsonTools;
+import personthecat.catlib.util.JsonCombiner;
 
 import java.io.File;
 import java.util.List;
@@ -32,6 +33,7 @@ import static personthecat.catlib.command.CommandUtils.jsonPathArg;
 public class DefaultLibCommands {
 
     public static final String FILE_ARGUMENT = "file";
+    public static final String TO_ARGUMENT = "to";
     public static final String PATH_ARGUMENT = "path";
     public static final String VALUE_ARGUMENT = "value";
     public static final String DIRECTORY_ARGUMENT = "dir";
@@ -84,7 +86,8 @@ public class DefaultLibCommands {
             createDelete(mod, global),
             createClean(mod, global),
             createRename(mod, global),
-            createOpen(mod, global)
+            createOpen(mod, global),
+            createCombine(mod, global)
         );
     }
 
@@ -127,7 +130,7 @@ public class DefaultLibCommands {
             .wrap(BACKUP_ANY, DefaultLibCommands::executeBackup)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, wrappers) -> builder
-                .then(fileArg(FILE_ARGUMENT)
+                .then(fileArg(FILE_ARGUMENT, mod)
                     .executes(wrappers.get(BACKUP_ANY)))
             );
     }
@@ -140,8 +143,8 @@ public class DefaultLibCommands {
             .wrap(COPY_ANY, DefaultLibCommands::executeCopy)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, wrappers) -> builder
-                .then(fileArg(FILE_ARGUMENT)
-                .then(fileArg(DIRECTORY_ARGUMENT)
+                .then(fileArg(FILE_ARGUMENT, mod)
+                .then(fileArg(DIRECTORY_ARGUMENT, mod)
                     .executes(wrappers.get(COPY_ANY))))
             );
     }
@@ -154,8 +157,8 @@ public class DefaultLibCommands {
             .wrap(MOVE_ANY, DefaultLibCommands::executeMove)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, wrappers) -> builder
-                .then(fileArg(FILE_ARGUMENT)
-                .then(fileArg(DIRECTORY_ARGUMENT)
+                .then(fileArg(FILE_ARGUMENT, mod)
+                .then(fileArg(DIRECTORY_ARGUMENT, mod)
                     .executes(wrappers.get(MOVE_ANY))))
             );
     }
@@ -167,7 +170,7 @@ public class DefaultLibCommands {
             .wrap(DELETE_ANY, DefaultLibCommands::executeDelete)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, wrappers) -> builder
-                .then(fileArg(FILE_ARGUMENT)
+                .then(fileArg(FILE_ARGUMENT, mod)
                     .executes(wrappers.get(DELETE_ANY)))
             );
     }
@@ -181,7 +184,7 @@ public class DefaultLibCommands {
             .wrap(CLEAN_ANY, DefaultLibCommands::executeClean)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, wrappers) -> builder.executes(wrappers.get(CLEAN_ANY))
-                .then(fileArg(DIRECTORY_ARGUMENT)
+                .then(fileArg(DIRECTORY_ARGUMENT, mod)
                     .executes(wrappers.get(CLEAN_ANY)))
             );
     }
@@ -193,7 +196,7 @@ public class DefaultLibCommands {
             .wrap(RENAME_ANY, DefaultLibCommands::executeRename)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, wrappers) -> builder
-                .then(fileArg(FILE_ARGUMENT)
+                .then(fileArg(FILE_ARGUMENT, mod)
                 .then(Commands.argument(NAME_ARGUMENT, StringArgumentType.word())
                     .executes(wrappers.get(RENAME_ANY))))
             );
@@ -206,8 +209,22 @@ public class DefaultLibCommands {
             .wrap(OPEN_ANY, DefaultLibCommands::executeOpen)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, wrappers) -> builder
-                .then(fileArg(FILE_ARGUMENT)
+                .then(fileArg(FILE_ARGUMENT, mod)
                     .executes(wrappers.get(OPEN_ANY)))
+            );
+    }
+
+    public static LibCommandBuilder createCombine(final ModDescriptor mod, final boolean global) {
+        return LibCommandBuilder.named("combine")
+            .arguments("<file> <path> <to>")
+            .append("Copies the given path from the first preset into the second preset.")
+            .wrap(COMBINE_ANY, DefaultLibCommands::executeCombine)
+            .type(global ? CommandType.GLOBAL : CommandType.MOD)
+            .generate((builder, wrappers) -> builder
+                .then(jsonFileArg(FILE_ARGUMENT, mod)
+                .then(jsonPathArg(PATH_ARGUMENT)
+                .then(jsonFileArg(TO_ARGUMENT, mod)
+                    .executes(wrappers.get(COMBINE_ANY)))))
             );
     }
 
@@ -346,7 +363,19 @@ public class DefaultLibCommands {
         wrapper.sendMessage("File renamed successfully.");
     }
 
-    public static void executeOpen(final CommandContextWrapper wrapper) {
+    private static void executeOpen(final CommandContextWrapper wrapper) {
         Util.getPlatform().openFile(wrapper.getFile(FILE_ARGUMENT));
+    }
+
+    private static void executeCombine(final CommandContextWrapper wrapper) {
+        final HjsonArgument.Result from = wrapper.getJsonFile(FILE_ARGUMENT);
+        final PathArgument.Result path = wrapper.getJsonPath(PATH_ARGUMENT);
+        final HjsonArgument.Result to = wrapper.getJsonFile(TO_ARGUMENT);
+
+        if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), to.file, true)) {
+            wrapper.sendError("Created > {} backups. Consider cleaning these out.", BACKUP_COUNT_WARNING);
+        }
+        JsonCombiner.combine(from, to, path);
+        wrapper.sendMessage("Finished combining file. The original was moved to the backups directory.");
     }
 }

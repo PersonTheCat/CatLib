@@ -18,11 +18,9 @@ public class JsonCombiner {
      * @param from The complete path to the value being copied.
      * @param to The name of the preset being written into.
      * @param path The path of the JSON data being merged.
-     * @param backups The directory where backups are stored for this mod.
-     * @return The number of times a backup was created.
      */
-    public static int combine(final HjsonArgument.Result from, final HjsonArgument.Result to,
-                               final PathArgument.Result path, final File backups) {
+    public static void combine(final HjsonArgument.Result from, final HjsonArgument.Result to,
+                               final PathArgument.Result path) {
         JsonValue fromValue = HjsonTools.getLastContainer(from.json.get(), path);
         if (fromValue.isObject()) {
             final String key = path.path.get(path.path.size() - 1).left()
@@ -34,8 +32,6 @@ public class JsonCombiner {
             fromValue = fromValue.asArray().get(index);
         }
         HjsonTools.setValueFromPath(to.json.get(), path, fromValue);
-        final int count = FileIO.backup(backups, to.file, true);
         HjsonTools.writeJson(to.json.get(), to.file);
-        return count;
     }
 }
