@@ -5,6 +5,9 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import lombok.experimental.UtilityClass;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
@@ -20,9 +23,11 @@ import personthecat.catlib.util.JsonCombiner;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static personthecat.catlib.command.CommandSuggestions.ANY_VALUE;
+import static personthecat.catlib.command.CommandUtils.arg;
 import static personthecat.catlib.command.CommandUtils.fileArg;
 import static personthecat.catlib.command.CommandUtils.greedyArg;
 import static personthecat.catlib.command.CommandUtils.jsonFileArg;
@@ -38,6 +43,8 @@ public class DefaultLibCommands {
     public static final String VALUE_ARGUMENT = "value";
     public static final String DIRECTORY_ARGUMENT = "dir";
     public static final String NAME_ARGUMENT = "name";
+    public static final String MAX_ARGUMENT = "max";
+    public static final String SCALE_ARGUMENT = "scale";
 
     /** The header displayed whenever the /display command runs. */
     private static final String DISPLAY_HEADER = "--- {} ---\n";
@@ -75,6 +82,10 @@ public class DefaultLibCommands {
     private static final String RENAME_ANY = "#rename";
     private static final String OPEN_ANY = "#open";
     private static final String COMBINE_ANY = "#combine";
+    private static final String CH_ANY = "#ch";
+    private static final String CH_MAX = "#ch_max";
+    private static final String CW_ANY = "#cw";
+    private static final String CW_MAX = "#cw_max";
 
     public static List<LibCommandBuilder> createAll(final ModDescriptor mod, final boolean global) {
         return Lists.newArrayList(
@@ -87,7 +98,9 @@ public class DefaultLibCommands {
             createClean(mod, global),
             createRename(mod, global),
             createOpen(mod, global),
-            createCombine(mod, global)
+            createCombine(mod, global),
+            createCh(mod, global),
+            createCw(mod, global)
         );
     }
 
@@ -225,6 +238,36 @@ public class DefaultLibCommands {
                 .then(jsonPathArg(PATH_ARGUMENT)
                 .then(jsonFileArg(TO_ARGUMENT, mod)
                     .executes(wrappers.get(COMBINE_ANY)))))
+            );
+    }
+
+    public static LibCommandBuilder createCh(final ModDescriptor mod, final boolean global) {
+        return LibCommandBuilder.named("ch")
+            .arguments("[<scale|max>]")
+            .append("Allows you to expand your chat height beyond the")
+            .append("default limit of 1.0.")
+            .wrap(CH_ANY, wrapper -> executeCh(wrapper, false))
+            .wrap(CH_MAX, wrapper -> executeCh(wrapper, true))
+            .type(global ? CommandType.GLOBAL : CommandType.MOD)
+            .side(CommandSide.CLIENT)
+            .generate((builder, wrappers) -> builder.executes(wrappers.get(CH_ANY))
+                .then(Commands.literal(MAX_ARGUMENT).executes(wrappers.get(CH_MAX)))
+                .then(arg(SCALE_ARGUMENT, 0.25, 5.0).executes(wrappers.get(CH_ANY)))
+            );
+    }
+
+    public static LibCommandBuilder createCw(final ModDescriptor mod, final boolean global) {
+        return LibCommandBuilder.named("cw")
+            .arguments("[<scale|max>]")
+            .append("Allows you to expand your chat width beyond the")
+            .append("default limit of 1.0.")
+            .wrap(CW_ANY, wrapper -> executeCw(wrapper, false))
+            .wrap(CW_MAX, wrapper -> executeCw(wrapper, true))
+            .type(global ? CommandType.GLOBAL : CommandType.MOD)
+            .side(CommandSide.CLIENT)
+            .generate((builder, wrappers) -> builder.executes(wrappers.get(CW_ANY))
+                .then(Commands.literal(MAX_ARGUMENT).executes(wrappers.get(CW_MAX)))
+                .then(arg(SCALE_ARGUMENT, 0.25, 3.0).executes(wrappers.get(CH_ANY)))
             );
     }
 
@@ -377,5 +420,59 @@ public class DefaultLibCommands {
         }
         JsonCombiner.combine(from, to, path);
         wrapper.sendMessage("Finished combining file. The original was moved to the backups directory.");
+    }
+
+    private static void executeCh(final CommandContextWrapper wrapper, final boolean max) {
+        final Minecraft mc = Minecraft.getInstance();
+        final Options cfg = mc.options;
+        final Screen screen = Objects.requireNonNull(mc.screen, "Not running client side");
+        final Optional<Double> scaleArgument = wrapper.getOptional(SCALE_ARGUMENT, Double.class);
+
+        if (!max && !scaleArgument.isPresent()) {
+            wrapper.sendMessage("Current chat height: {}", cfg.chatHeightFocused);
+            return;
+        }
+
+        final double possible = (((double) screen.height / (double) cfg.guiScale) - 20.0) / 180.0;
+        if (max) {
+            cfg.chatHeightFocused = possible;
+        } else {
+            final double height = (scaleArgument.get() * 180.0F + 20.0F) * cfg.guiScale;
+            if (height > screen.height) {
+                wrapper.sendError("Max size is {} with your current window and scale.", possible);
+                return;
+            }
+            cfg.chatHeightFocused = height;
+        }
+        cfg.save();
+
+        wrapper.sendMessage("Updated chat height: {}", cfg.chatHeightFocused);
+    }
+
+    private static void executeCw(final CommandContextWrapper wrapper, final boolean max) {
+        final Minecraft mc = Minecraft.getInstance();
+        final Options cfg = mc.options;
+        final Screen screen = Objects.requireNonNull(mc.screen, "Not running client side");
+        final Optional<Double> scaleArgument = wrapper.getOptional(SCALE_ARGUMENT, Double.class);
+
+        if (!max && !scaleArgument.isPresent()) {
+            wrapper.sendMessage("Current chat width: {}", cfg.chatWidth);
+            return;
+        }
+
+        final double possible = (double) screen.width / (double) cfg.guiScale / 320.0;
+        if (max) {
+            cfg.chatWidth = possible;
+        } else {
+            final double width = scaleArgument.get() * 320.0 * cfg.guiScale;
+            if (width > screen.width) {
+                wrapper.sendError("Max size is {} with your current window and scale.", possible);
+                return;
+            }
+            cfg.chatWidth = width;
+        }
+        cfg.save();
+
+        wrapper.sendMessage("Updated chat height: {}", cfg.chatWidth);
     }
 }
