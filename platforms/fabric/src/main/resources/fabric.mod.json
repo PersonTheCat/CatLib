@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "${mod_authors}"
+  ],
+  "contact": {
+    "homepage": "${mod_download}",
+    "sources": "${mod_sources}"
+  },
+  "license": "GNUv3",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "personthecat.catlib.CatLib"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${mc_version}",
+    "java": ">=8"
+  }
+}

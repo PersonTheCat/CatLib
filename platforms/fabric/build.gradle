@@ -32,6 +32,12 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:$loader_version"
 }
 
+processResources {
+    filesMatching(['**/fabric.mod.json']) {
+        expand project.properties
+    }
+}
+
 remapJar {
     input.set shadowJar.archiveFile
     dependsOn shadowJar
