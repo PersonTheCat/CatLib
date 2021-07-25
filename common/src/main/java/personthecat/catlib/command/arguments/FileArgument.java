@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import static personthecat.catlib.io.FileIO.fileExists;
 import static personthecat.catlib.io.FileIO.listFiles;
+import static personthecat.catlib.util.PathTools.extension;
 import static personthecat.catlib.util.PathTools.noExtension;
 
 /**
@@ -55,25 +56,43 @@ public class FileArgument implements ArgumentType<File> {
             }
             path = reader.getString().substring(start, reader.getCursor());
         }
-        return lazyFile(this.dir, path);
+        return lazyFile(this.dir, path.replace("\\_", " "));
+    }
+
+    public <S> Stream<String> suggestPaths(final CommandContext<S> ctx) {
+        return this.suggestPaths(ctx, this.dir);
+    }
+
+    public <S> Stream<String> suggestPaths(final CommandContext<S> ctx, final File f) {
+        final String input = ctx.getInput();
+        final int space = input.lastIndexOf(" ");
+        final String path = space > 0 ? input.substring(space) : input;
+        final boolean simple = !PathTools.hasExtension(path);
+
+        final Stream<String> paths = PathTools.getContents(this.dir, f, simple);
+        if (path.startsWith("\"")) {
+            return paths.map(s -> "\"" + s + "\"");
+        }
+        return paths.map(s -> s.replace(" ", "\\_"));
     }
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> ctx, final SuggestionsBuilder builder) {
         final Stream<String> neighbors = CommandUtils.getLastArg(ctx, FileArgument.class, File.class)
-            .map(file -> PathTools.getSimpleContents(this.dir, file))
-            .orElseGet(() -> PathTools.getSimpleContents(this.dir));
+            .map(file -> this.suggestPaths(ctx, file))
+            .orElseGet(() -> this.suggestPaths(ctx));
         return SharedSuggestionProvider.suggest(neighbors, builder);
     }
 
     private static boolean inPath(final char c) {
-        return c == '/' || StringReader.isAllowedInUnquotedString(c);
+        return c == '/' || c == '\\' || c == '(' || c == ')' || StringReader.isAllowedInUnquotedString(c);
     }
 
     /** Retrieves files without needing extensions. */
     private static File lazyFile(final File dir, final String path) {
         final File test = new File(dir, path);
-        if (fileExists(test)) {
+        // Prefer files over folders unless extension is provided
+        if (!extension(test).isEmpty() && fileExists(test)) {
             return test;
         }
         for (final File f : listFiles(test.getParentFile())) {

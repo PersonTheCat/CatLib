@@ -97,12 +97,25 @@ public class PathTools {
     }
 
     /**
+     * Determines whether the given file path has an extension.
+     *
+     * @param path The path to a file, complete or incomplete.
+     * @return Whether an extension was queried.
+     */
+    public static boolean hasExtension(final String path) {
+        return path.endsWith(".") || !extension(new File(path)).isEmpty();
+    }
+
+    /**
      * Determines the extension of the input file.
+     *
+     * @param file The file whose name is being formatted.
+     * @return The extension of the given file.
      */
     public static String extension(final File file) {
         final String name = file.getName();
         final int index = name.lastIndexOf(".");
-        return index < 0 ? "" : name.substring(index + 1);
+        return index < 1 ? "" : name.substring(index + 1);
     }
 
     /**
@@ -144,14 +157,14 @@ public class PathTools {
 
     /**
      * Returns a stream of the relative file paths in the given directory.
+     * By default, this method excludes the extensions from the output files.
      *
      * @param root The root directory of the output paths.
      * @param current The current file or directory being examined.
      * @return A stream of the relative file paths contained at this location.
      */
     public static Stream<String> getSimpleContents(final File root, final File current) {
-        final File dir = current.isDirectory() ? current : current.getParentFile();
-        return Stream.of(listFiles(dir)).map(f -> formatContents(root, f));
+        return getContents(root, current, true);
     }
 
     /**
@@ -162,7 +175,34 @@ public class PathTools {
      * @return The relative file paths in this directory.
      */
     public static Stream<String> getSimpleContents(final File current) {
-        return getSimpleContents(current, current);
+        return getContents(current, current, true);
+    }
+
+    /**
+     * Variant of {@link #getContents(File, File, boolean)} in which the current
+     * directory is also the root directory.
+     *
+     * @param current The current directory being examined.
+     * @param simple Whether to exclude extensions.
+     * @return The relative file paths in this directory.
+     */
+    public static Stream<String> getContents(final File current, boolean simple) {
+        return getContents(current, current, simple);
+    }
+
+    /**
+     * Returns a stream of the relative file paths in the given directory.
+     *
+     * @param root The root directory of the output paths.
+     * @param current The current file or directory being examined.
+     * @param simple Whether to exclude extensions.
+     * @return A stream of the relative file paths contained at this location.
+     */
+    public static Stream<String> getContents(final File root, final File current, boolean simple) {
+        final File dir = current.isDirectory() ? current : current.getParentFile();
+        final Stream<File> files = Stream.of(listFiles(dir));
+        return simple ? files.map(f -> noExtension(formatContents(root, f)))
+            : files.map(f -> formatContents(root, f));
     }
 
     /**
@@ -174,10 +214,9 @@ public class PathTools {
      * @return The formatted path.
      */
     private static String formatContents(final File root, final File f) {
-        final String edit = f.getAbsolutePath()
+        return f.getAbsolutePath()
             .substring(root.getAbsolutePath().length())
             .replace("\\", "/")
             .substring(1);
-        return noExtension(edit);
     }
 }

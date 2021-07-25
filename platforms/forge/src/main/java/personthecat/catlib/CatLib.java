@@ -1,7 +1,7 @@
 package personthecat.catlib;
 
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
@@ -17,6 +17,7 @@ import personthecat.catlib.util.LibReference;
 public class CatLib {
 
     public CatLib() {
+        LibConfig.register(ModLoadingContext.get().getActiveContainer());
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::initCommon);
         MinecraftForge.EVENT_BUS.addListener(this::initServer);
     }
@@ -27,7 +28,7 @@ public class CatLib {
         HjsonArgument.register();
         PathArgument.register();
 
-        if (LibConfig.enableGlobalLibCommands.get()) {
+        if (LibConfig.ENABLE_GLOBAL_LIB_COMMANDS.get()) {
             final CommandRegistrationContext ctx = CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR);
             DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true).forEach(ctx::addCommand);
             ctx.registerAll();

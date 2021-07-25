@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 @Config(name = LibReference.MOD_ID)
 public class LibConfig implements ConfigData {
 
-    boolean test = false;
+    General general = new General();
 
     @Excluded
     private static final Lazy<LibConfig> CONFIG =
@@ -23,5 +23,10 @@ public class LibConfig implements ConfigData {
 
     @Excluded
     @Overwrite
-    public static final Supplier<Boolean> enableGlobalLibCommands = () -> true;
+    public static final Supplier<Boolean> ENABLE_GLOBAL_LIB_COMMANDS =
+        () -> CONFIG.get().general.enableGlobalLibCommands;
+
+    private static class General {
+        boolean enableGlobalLibCommands = false;
+    }
 }

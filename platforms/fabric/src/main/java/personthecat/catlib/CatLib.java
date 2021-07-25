@@ -21,7 +21,7 @@ public class CatLib implements ModInitializer {
         HjsonArgument.register();
         PathArgument.register();
 
-        if (LibConfig.enableGlobalLibCommands.get()) {
+        if (LibConfig.ENABLE_GLOBAL_LIB_COMMANDS.get()) {
             final CommandRegistrationContext ctx = CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR);
             DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true).forEach(ctx::addCommand);
             ctx.registerAll();

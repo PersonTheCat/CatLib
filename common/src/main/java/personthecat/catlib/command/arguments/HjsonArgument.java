@@ -49,8 +49,8 @@ public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> ctx, final SuggestionsBuilder builder) {
         final Stream<String> neighbors = CommandUtils.getLastArg(ctx, HjsonArgument.class, Result.class)
-            .map(Result::getNeighbors)
-            .orElseGet(() -> PathTools.getSimpleContents(this.getter.dir));
+            .map(result -> this.getter.suggestPaths(ctx, result.file))
+            .orElseGet(() -> this.getter.suggestPaths(ctx));
         return SharedSuggestionProvider.suggest(neighbors, builder);
     }
 

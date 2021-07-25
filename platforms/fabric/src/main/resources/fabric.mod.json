@@ -23,7 +23,6 @@
     "fabric": "*",
     "minecraft": "${mc_version}",
     "cloth-config2": "${cloth_version}",
-    "modmenu": "${mod_menu_version}",
     "java": ">=8"
   }
 }

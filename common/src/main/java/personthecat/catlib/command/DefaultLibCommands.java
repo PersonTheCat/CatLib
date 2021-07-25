@@ -474,6 +474,6 @@ public class DefaultLibCommands {
         }
         cfg.save();
 
-        wrapper.sendMessage("Updated chat height: {}", cfg.chatWidth);
+        wrapper.sendMessage("Updated chat width: {}", cfg.chatWidth);
     }
 }
