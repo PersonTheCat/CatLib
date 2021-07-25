@@ -16,9 +16,6 @@
   "entrypoints": {
     "main": [
       "personthecat.catlib.CatLib"
-    ],
-    "modmenu": [
-      "personthecat.catlib.config.ModMenuIntegration"
     ]
   },
   "depends": {
@@ -28,15 +25,5 @@
     "cloth-config2": "${cloth_version}",
     "modmenu": "${mod_menu_version}",
     "java": ">=8"
-  },
-  "custom": {
-    "modmenu": {
-      "parent": {
-        "id": "${mod_id}",
-        "name": "${mod_name}",
-        "description": "${mod_description}",
-        "badges": [ "library" ]
-      }
-    }
   }
 }
