@@ -1,5 +1,7 @@
 package personthecat.catlib;
 
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import personthecat.catlib.command.CommandRegistrationContext;
 import personthecat.catlib.command.DefaultLibCommands;
@@ -13,6 +15,8 @@ public class CatLib implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        AutoConfig.register(LibConfig.class, Toml4jConfigSerializer::new);
+
         FileArgument.register();
         HjsonArgument.register();
         PathArgument.register();

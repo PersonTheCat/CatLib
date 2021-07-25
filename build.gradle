@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'com.github.PersonTheCat', name: 'OverwriteValidator', version: '1.7'
+        classpath group: 'com.github.PersonTheCat', name: 'OverwriteValidator', version: '1.8'
         classpath group: 'gradle.plugin.com.github.jengelman.gradle.plugins', name: 'shadow', version: '7.0.0'
     }
 }
@@ -30,8 +30,11 @@ allprojects {
     version = mod_version
 
     repositories {
+        // More convenient access to CF mods.
+        maven { url 'https://www.cursemaven.com' }
+
         // So we can conveniently read dependencies from GH.
-        maven { url = 'https://jitpack.io' }
+        maven { url 'https://jitpack.io' }
         mavenCentral()
     }
 
