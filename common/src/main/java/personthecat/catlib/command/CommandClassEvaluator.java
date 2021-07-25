@@ -99,7 +99,7 @@ public class CommandClassEvaluator {
 
             while (index.get() < entries.size()) {
                 final Pair<Node, ArgumentDescriptor<?>> entry = entries.get(index.get());
-                if (entry.getKey().executes()) {
+                if (entry.getKey().optional()) {
                     lastArg.executes(wrappers.get(""));
                 }
 

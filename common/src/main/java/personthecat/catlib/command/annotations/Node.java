@@ -6,7 +6,7 @@ import personthecat.catlib.command.arguments.ArgumentSupplier;
 
 public @interface Node {
     String name();
-    boolean executes() default false;
+    boolean optional() default false;
 
     Class<? extends ArgumentType<?>>[] type() default {};
     Class<? extends ArgumentSupplier<?>>[] descriptor() default {};
@@ -18,13 +18,13 @@ public @interface Node {
     ListInfo intoList() default @ListInfo(useList = false);
 
     @interface IntRange {
-        int min();
-        int max();
+        int min() default Integer.MIN_VALUE;
+        int max() default Integer.MAX_VALUE;
     }
 
     @interface DoubleRange {
-        double min();
-        double max();
+        double min() default Double.MIN_VALUE;
+        double max() default Double.MAX_VALUE;
     }
 
     @interface StringValue {

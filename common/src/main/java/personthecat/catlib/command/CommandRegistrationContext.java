@@ -7,7 +7,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.LibStringUtils;
@@ -203,11 +202,11 @@ public class CommandRegistrationContext {
 
         for (final LibCommandBuilder command : commands) {
             final HelpCommandInfo info = command.getHelpInfo();
-            if (info.getArguments().isEmpty() && info.getDescription().isEmpty()) {
+            if (info.getDescription().isEmpty()) {
                 continue;
             }
             currentPage.add(info);
-            numLines += 2 + StringUtils.countMatches(info.getDescription(), '\n');
+            numLines += 2 + info.getDescription().length() / this.usageLineLength;
             numCommands++;
             if (numLines >= this.usageLineCount || numCommands >= this.usageCmdCount) {
                 pages.add(currentPage);

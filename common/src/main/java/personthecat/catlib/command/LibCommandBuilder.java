@@ -20,7 +20,6 @@ import java.util.Objects;
 
 @Log4j2
 @AllArgsConstructor
-@SuppressWarnings("unused")
 @ParametersAreNonnullByDefault
 public final class LibCommandBuilder {
     private final LiteralArgumentBuilder<CommandSourceStack> command;
@@ -46,12 +45,6 @@ public final class LibCommandBuilder {
 
     public CommandSide getSide() {
         return this.side;
-    }
-
-    public LibCommandBuilder withType(final CommandType type) {
-        final HelpCommandInfo info =
-            new HelpCommandInfo(this.info.getName(), this.info.getArguments(), this.info.getDescription(), type);
-        return new LibCommandBuilder(this.command, info, type, this.side);
     }
 
     public static class Template {

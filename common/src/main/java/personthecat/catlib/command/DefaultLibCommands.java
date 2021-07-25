@@ -177,7 +177,7 @@ public class DefaultLibCommands {
 
     public static LibCommandBuilder createClean(final ModDescriptor mod, final boolean global) {
         return LibCommandBuilder.named("clean")
-            .arguments("[<directory>]")
+            .arguments("<directory>")
             .append("Moves all files in the given directory to the mod's")
             .append("backup folder. Else, deletes the contents of the")
             .append("mod's backup folder.")
