@@ -1,6 +1,7 @@
 package personthecat.catlib.command;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import lombok.experimental.UtilityClass;
 import net.minecraft.ChatFormatting;
@@ -267,7 +268,7 @@ public class DefaultLibCommands {
             .side(CommandSide.CLIENT)
             .generate((builder, wrappers) -> builder.executes(wrappers.get(CW_ANY))
                 .then(Commands.literal(MAX_ARGUMENT).executes(wrappers.get(CW_MAX)))
-                .then(arg(SCALE_ARGUMENT, 0.25, 3.0).executes(wrappers.get(CH_ANY)))
+                .then(arg(SCALE_ARGUMENT, 0.25, 3.0).executes(wrappers.get(CW_ANY)))
             );
     }
 
@@ -425,7 +426,7 @@ public class DefaultLibCommands {
     private static void executeCh(final CommandContextWrapper wrapper, final boolean max) {
         final Minecraft mc = Minecraft.getInstance();
         final Options cfg = mc.options;
-        final Screen screen = Objects.requireNonNull(mc.screen, "Not running client side");
+        final Window window = Objects.requireNonNull(mc.getWindow(), "Not running client side");
         final Optional<Double> scaleArgument = wrapper.getOptional(SCALE_ARGUMENT, Double.class);
 
         if (!max && !scaleArgument.isPresent()) {
@@ -433,16 +434,16 @@ public class DefaultLibCommands {
             return;
         }
 
-        final double possible = (((double) screen.height / (double) cfg.guiScale) - 20.0) / 180.0;
+        final double possible = (window.getGuiScaledHeight() - 20.0) / 180.0;
         if (max) {
             cfg.chatHeightFocused = possible;
         } else {
-            final double height = (scaleArgument.get() * 180.0F + 20.0F) * cfg.guiScale;
-            if (height > screen.height) {
+            final double height = (scaleArgument.get() * 180.0 + 20.0) * window.getGuiScale();
+            if (height > window.getHeight()) {
                 wrapper.sendError("Max size is {} with your current window and scale.", possible);
                 return;
             }
-            cfg.chatHeightFocused = height;
+            cfg.chatHeightFocused = scaleArgument.get();
         }
         cfg.save();
 
@@ -452,7 +453,7 @@ public class DefaultLibCommands {
     private static void executeCw(final CommandContextWrapper wrapper, final boolean max) {
         final Minecraft mc = Minecraft.getInstance();
         final Options cfg = mc.options;
-        final Screen screen = Objects.requireNonNull(mc.screen, "Not running client side");
+        final Window window = Objects.requireNonNull(mc.getWindow(), "Not running client side");
         final Optional<Double> scaleArgument = wrapper.getOptional(SCALE_ARGUMENT, Double.class);
 
         if (!max && !scaleArgument.isPresent()) {
@@ -460,16 +461,16 @@ public class DefaultLibCommands {
             return;
         }
 
-        final double possible = (double) screen.width / (double) cfg.guiScale / 320.0;
+        final double possible = (double) window.getGuiScaledWidth() / 320.0;
         if (max) {
             cfg.chatWidth = possible;
         } else {
-            final double width = scaleArgument.get() * 320.0 * cfg.guiScale;
-            if (width > screen.width) {
+            final double width = scaleArgument.get() * 320.0 * window.getGuiScale();
+            if (width > window.getWidth()) {
                 wrapper.sendError("Max size is {} with your current window and scale.", possible);
                 return;
             }
-            cfg.chatWidth = width;
+            cfg.chatWidth = scaleArgument.get();
         }
         cfg.save();
 

@@ -41,7 +41,7 @@ public class HjsonFileConfig implements CommentedFileConfig  {
     private final Map<String, String> comments;
 
     /** Data about this config's state for concurrency. */
-    private boolean writing, closed;
+    private volatile boolean writing, closed;
 
     /** Constructs a new instance solely from the path to this config file. */
     public HjsonFileConfig(String path) {
@@ -221,11 +221,11 @@ public class HjsonFileConfig implements CommentedFileConfig  {
     }
 
     @Override
-    public Set<? extends Entry> entrySet() {
+    public Set<? extends CommentedConfig.Entry> entrySet() {
         return new FakeCommentedConfig(this).entrySet();
     }
 
-    /** No proper implementation. Doing so would require me to write an entire library. */
+    /** No proper implementation. Doing so is still too much effort at this time. */
     @Override public ConfigFormat<CommentedFileConfig> configFormat() {
         return null;
     }
