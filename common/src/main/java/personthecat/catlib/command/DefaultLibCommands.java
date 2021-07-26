@@ -8,7 +8,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
@@ -19,7 +18,7 @@ import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.io.FileIO;
-import personthecat.catlib.util.HjsonTools;
+import personthecat.catlib.util.HjsonUtils;
 import personthecat.catlib.util.JsonCombiner;
 
 import java.io.File;
@@ -275,12 +274,12 @@ public class DefaultLibCommands {
     private static void executeDisplay(final CommandContextWrapper wrapper) {
         final HjsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
         final JsonValue json = wrapper.getOptional(PATH_ARGUMENT, PathArgument.Result.class)
-            .flatMap(result -> HjsonTools.getValueFromPath(file.json.get(), result))
+            .flatMap(result -> HjsonUtils.getValueFromPath(file.json.get(), result))
             .orElseGet(file.json);
 
         wrapper.generateMessage("")
             .append(wrapper.createText(DISPLAY_HEADER, file.file.getName()).setStyle(DISPLAY_HEADER_STYLE))
-            .append(wrapper.lintMessage(json.toString(HjsonTools.FORMATTER)))
+            .append(wrapper.lintMessage(json.toString(HjsonUtils.FORMATTER)))
             .sendMessage();
     }
 
@@ -292,14 +291,14 @@ public class DefaultLibCommands {
         final String toEscaped = wrapper.getString(VALUE_ARGUMENT);
         final String toLiteral = unEscape(toEscaped);
         final JsonValue toValue = JsonValue.readHjson(toLiteral);
-        final JsonValue fromValue = HjsonTools.getValueFromPath(file.json.get(), path)
+        final JsonValue fromValue = HjsonUtils.getValueFromPath(file.json.get(), path)
             .orElseGet(() -> JsonValue.valueOf(null));
-        final String fromLiteral = fromValue.toString(HjsonTools.FORMATTER);
+        final String fromLiteral = fromValue.toString(HjsonUtils.FORMATTER);
         final String fromEscaped = escape(fromLiteral);
 
         // Write the new value.
-        HjsonTools.setValueFromPath(file.json.get(), path, toValue);
-        HjsonTools.writeJson(file.json.get(), file.file)
+        HjsonUtils.setValueFromPath(file.json.get(), path, toValue);
+        HjsonUtils.writeJson(file.json.get(), file.file)
             .expect("Error writing to file: {}", file.file.getName());
 
         // Send feedback.

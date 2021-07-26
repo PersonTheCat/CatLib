@@ -13,7 +13,7 @@ import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.LibStringUtils;
-import personthecat.catlib.util.McTools;
+import personthecat.catlib.util.McUtils;
 import personthecat.fresult.Result;
 
 import javax.annotation.CheckReturnValue;
@@ -50,7 +50,7 @@ import static personthecat.catlib.util.Shorthand.f;
  *   processed automatically by calling {@link #addAllCommands(Class[])}.
  * </p><pre>
  *     CommandRegistrationContext.forMod(MOD_DESCRIPTOR)
- *       .addCommands(ModCommands.class, ClientModCommands.class)
+ *       .addAllCommands(ModCommands.class, ClientModCommands.class)
  *       ...
  * </pre><p>
  *   Once all of the builders for the current mod have been passed into the
@@ -345,7 +345,7 @@ public class CommandRegistrationContext {
      * @return Every {@link LibCommandBuilder} applicable for the current context.
      */
     public List<LibCommandBuilder> getCommandsForCurrentSide() {
-        final boolean dedicated = McTools.isDedicatedServer();
+        final boolean dedicated = McUtils.isDedicatedServer();
         return this.commands.stream()
             .filter(builder -> builder.getSide().canRegister(dedicated))
             .collect(Collectors.toList());

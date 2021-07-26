@@ -32,7 +32,7 @@ import static personthecat.catlib.util.Shorthand.getEnumConstant;
 @UtilityClass
 @OverwriteTarget(required = true)
 @SuppressWarnings("unused")
-public class McTools {
+public class McUtils {
 
     /**
      * @return A {@link File} pointing to the game's config directory.

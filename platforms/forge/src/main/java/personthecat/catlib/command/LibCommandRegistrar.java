@@ -4,7 +4,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import personthecat.catlib.util.McTools;
+import personthecat.catlib.util.McUtils;
 import personthecat.overwritevalidator.annotations.InheritMissingMembers;
 import personthecat.overwritevalidator.annotations.Overwrite;
 import personthecat.overwritevalidator.annotations.OverwriteClass;
@@ -26,7 +26,7 @@ public class LibCommandRegistrar {
     }
 
     public static void copyInto(final Commands manager) {
-        final boolean dedicated = McTools.isDedicatedServer();
+        final boolean dedicated = McUtils.isDedicatedServer();
         COMMANDS.forEach((cmd, side) -> {
             if (side.canRegister(dedicated)) manager.getDispatcher().register(cmd);
         });

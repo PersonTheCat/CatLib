@@ -11,8 +11,8 @@ import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.util.LibReference;
-import personthecat.catlib.util.McTools;
-import personthecat.catlib.util.PathTools;
+import personthecat.catlib.util.McUtils;
+import personthecat.catlib.util.PathUtils;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
@@ -20,8 +20,8 @@ import java.util.stream.Stream;
 
 import static personthecat.catlib.io.FileIO.fileExists;
 import static personthecat.catlib.io.FileIO.listFiles;
-import static personthecat.catlib.util.PathTools.extension;
-import static personthecat.catlib.util.PathTools.noExtension;
+import static personthecat.catlib.util.PathUtils.extension;
+import static personthecat.catlib.util.PathUtils.noExtension;
 
 /**
  * Generates references to files on the fly on the command line.
@@ -30,7 +30,7 @@ public class FileArgument implements ArgumentType<File> {
 
     public static void register() {
         ArgumentTypes.register(LibReference.MOD_ID + ":file_argument", FileArgument.class,
-            new EmptyArgumentSerializer<>(() -> new FileArgument(McTools.getConfigDir())));
+            new EmptyArgumentSerializer<>(() -> new FileArgument(McUtils.getConfigDir())));
     }
 
     public final File dir;
@@ -67,9 +67,9 @@ public class FileArgument implements ArgumentType<File> {
         final String input = ctx.getInput();
         final int space = input.lastIndexOf(" ");
         final String path = space > 0 ? input.substring(space) : input;
-        final boolean simple = !PathTools.hasExtension(path);
+        final boolean simple = !PathUtils.hasExtension(path);
 
-        final Stream<String> paths = PathTools.getContents(this.dir, f, simple);
+        final Stream<String> paths = PathUtils.getContents(this.dir, f, simple);
         if (path.startsWith("\"")) {
             return paths.map(s -> "\"" + s + "\"");
         }

@@ -5,7 +5,7 @@ import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.config.ModConfig;
 import personthecat.catlib.util.LibReference;
-import personthecat.catlib.util.McTools;
+import personthecat.catlib.util.McUtils;
 import personthecat.overwritevalidator.annotations.Overwrite;
 import personthecat.overwritevalidator.annotations.OverwriteClass;
 
@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 public class LibConfig {
 
     private static final ForgeConfigSpec.Builder COMMON = new ForgeConfigSpec.Builder();
-    private static final String FILENAME = McTools.getConfigDir() + "/" + LibReference.MOD_ID;
+    private static final String FILENAME = McUtils.getConfigDir() + "/" + LibReference.MOD_ID;
     private static final HjsonFileConfig COMMON_CFG = new HjsonFileConfig(FILENAME + "-common.hjson");
 
     static { COMMON.push("general"); }

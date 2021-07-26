@@ -13,7 +13,7 @@ import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import org.apache.commons.lang3.CharUtils;
 import org.hjson.JsonObject;
 import personthecat.catlib.command.CommandUtils;
-import personthecat.catlib.util.HjsonTools;
+import personthecat.catlib.util.HjsonUtils;
 import personthecat.catlib.util.LibReference;
 
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ public class PathArgument implements ArgumentType<PathArgument.Result> {
         }
         final PathArgument.Result path = CommandUtils.getLastArg(ctx, PathArgument.class, Result.class)
             .orElseGet(() -> new PathArgument.Result(Collections.emptyList()));
-        return SharedSuggestionProvider.suggest(HjsonTools.getPaths(json.get(), path), builder);
+        return SharedSuggestionProvider.suggest(HjsonUtils.getPaths(json.get(), path), builder);
     }
 
     @Override

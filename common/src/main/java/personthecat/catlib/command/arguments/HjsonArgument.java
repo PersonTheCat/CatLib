@@ -13,23 +13,23 @@ import org.hjson.JsonObject;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.data.Lazy;
 import personthecat.catlib.util.LibReference;
-import personthecat.catlib.util.McTools;
-import personthecat.catlib.util.PathTools;
+import personthecat.catlib.util.McUtils;
+import personthecat.catlib.util.PathUtils;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static personthecat.catlib.exception.Exceptions.cmdSyntax;
-import static personthecat.catlib.util.HjsonTools.readJson;
-import static personthecat.catlib.util.PathTools.extension;
+import static personthecat.catlib.util.HjsonUtils.readJson;
+import static personthecat.catlib.util.PathUtils.extension;
 
 @SuppressWarnings("unused")
 public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
 
     public static void register() {
         ArgumentTypes.register(LibReference.MOD_ID + ":hjson_argument", HjsonArgument.class,
-            new EmptyArgumentSerializer<>(() -> new HjsonArgument(McTools.getConfigDir())));
+            new EmptyArgumentSerializer<>(() -> new HjsonArgument(McUtils.getConfigDir())));
     }
 
     private final FileArgument getter;
@@ -71,7 +71,7 @@ public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
         }
 
         public Stream<String> getNeighbors() {
-            return PathTools.getSimpleContents(root, file);
+            return PathUtils.getSimpleContents(root, file);
         }
     }
 }
