@@ -32,6 +32,16 @@ import static personthecat.catlib.command.CommandSuggestions.ANY_DECIMAL;
 @ParametersAreNonnullByDefault
 public class CommandUtils {
 
+    /**
+     * Gets the most recent argument of the given type without needing to search by name.
+     *
+     * @param ctx The standard {@link CommandContext} for the current command.
+     * @param type The type of argument being queried for.
+     * @param t The return type of the argument being queried for.
+     * @param <S> The type of object being wrapped by the command context.
+     * @param <T> The type of value stored in the command context.
+     * @return The requested value, or else {@link Optional#empty}.
+     */
     public static <S, T> Optional<T> getLastArg(final CommandContext<S> ctx, final Class<? extends ArgumentType<? extends T>> type, final Class<? extends T> t) {
         for (int i = ctx.getNodes().size() - 1; i >= 0; i--) {
             final ParsedCommandNode<S> node = ctx.getNodes().get(i);
@@ -45,57 +55,136 @@ public class CommandUtils {
         return Optional.empty();
     }
 
-    /** Shorthand method for creating an integer argument. */
+    /**
+     * Shorthand method for creating a ranged integer argument.
+     *
+     * @param name The name of the argument node.
+     * @param min The minimum allowed value.
+     * @param max The maximum allowed value.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, Integer> arg(final String name, final int min, final int max) {
         return Commands.argument(name, IntegerArgumentType.integer(min, max)).suggests(ANY_INT);
     }
 
-    /** Shorthand method for creating a decimal argument. */
+    /**
+     * Shorthand method for creating a decimal argument
+     *
+     * @param name The name of the argument node.
+     * @param min The minimum allowed value.
+     * @param max The maximum allowed value.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, Double> arg(final String name, final double min, final double max) {
         return Commands.argument(name, DoubleArgumentType.doubleArg(min, max)).suggests(ANY_DECIMAL);
     }
 
-    /** Shorthand method for creating a string argument. */
+    /**
+     * Shorthand method for creating a string argument.
+     *
+     * @param name The name of the argument node.
+     * @param suggests The suggestion provider to be used by the output command node.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, String> arg(final String name, final SuggestionProvider<CommandSourceStack> suggests) {
         return Commands.argument(name, StringArgumentType.string()).suggests(suggests);
     }
 
-    /** Shorthand method for creating a greedy string argument. */
+    /**
+     * Variant of {@link #arg(String, SuggestionProvider)} which returns a greedy string.
+     *
+     * @param name The name of the argument node.
+     * @param suggests The suggestion provider to be used by the output command node.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, String> greedyArg(final String name, final SuggestionProvider<CommandSourceStack> suggests) {
         return Commands.argument(name, StringArgumentType.greedyString()).suggests(suggests);
     }
 
-    /** Shorthand method for creating a block argument. */
+    /**
+     * Shorthand method for creating a block argument.
+     *
+     * @param name The name of the output argument node.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, BlockInput> blkArg(final String name) {
         return Commands.argument(name, BlockStateArgument.block());
     }
 
+    /**
+     * Generates a {@link FileArgument} for the given name. The root folder of this
+     * argument will be provided by the {@link ModDescriptor} stored in the current
+     * {@link CommandRegistrationContext}. If no context is active, the root folder
+     * will default to the main conflg folder.
+     *
+     * @param name The name of the output argument node.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, File> fileArg(final String name) {
         return fileArg(name, getDefaultRoot());
     }
 
+    /**
+     * Variant of {@link #fileArg(String)} which provides an explicit {@link ModDescriptor}.
+     *
+     * @param name The name of the output argument node.
+     * @param mod The descriptor providing the root config folder for the current mod.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, File> fileArg(final String name, final ModDescriptor mod) {
         return fileArg(name, mod.getConfigFolder());
     }
 
+    /**
+     * Variant of {@link #filArg(String)} which directly supplies a root folder.
+     *
+     * @param name The name of the output argument node.
+     * @param root The root folder to be used by the file argument parser.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, File> fileArg(final String name, final File root) {
         return Commands.argument(name, new FileArgument(root));
     }
 
+    /**
+     * Generates a {@link HjsonArgument} when provided a name. As with {@link #fileArg(String)},
+     * the root folder of this argument will be supplied by the active {@link ModDescriptor}.
+     *
+     * @param name The name of the output argument node.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, HjsonArgument.Result> jsonFileArg(final String name) {
         return jsonFileArg(name, getDefaultRoot());
     }
 
-    /** Shorthand method for creating an Hjson file argument. */
+    /**
+     * Variant of {@link #jsonFileArg(String)} which provides an explicit {@link ModDescriptor}.
+     *
+     * @param name The name of the output argument node.
+     * @param mod The descriptor providing the root config folder for the current mod.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, HjsonArgument.Result> jsonFileArg(final String name, final ModDescriptor mod) {
         return jsonFileArg(name, mod.getConfigFolder());
     }
 
+    /**
+     * Variant of {@link #jsonFileArg(String)} which directly supplies the root folder.
+     *
+     * @param name The name of the output argument node.
+     * @param root The root folder to be used by the file argument parser.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, HjsonArgument.Result> jsonFileArg(final String name, final File root) {
         return Commands.argument(name, new HjsonArgument(root));
     }
 
-    /** Shorthand method for creating an Hjson path argument. */
+    /**
+     * Shorthand method for creating an Hjson path argument.
+     *
+     * @param name The name of the output argument node.
+     * @return An argument builder for the given specs.
+     */
     public static RequiredArgumentBuilder<CommandSourceStack, PathArgument.Result> jsonPathArg(final String name) {
         return Commands.argument(name, new PathArgument());
     }
