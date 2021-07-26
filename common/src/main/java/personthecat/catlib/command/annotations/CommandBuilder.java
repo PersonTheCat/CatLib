@@ -21,7 +21,8 @@ import java.lang.annotation.Target;
  *         return LibCommandBuilder.named("command")
  *             .append("Runs a generic command")
  *             .wrap("", wrapper -> wrapper.sendMessage("Hello, world!"))
- *             .generate((builder, wrappers) -> builder.executes(wrappers.get("")));
+ *             .generate((builder, wrappers) ->
+ *                 builder.executes(wrappers.get("")));
  *     }
  * </pre>
  */
