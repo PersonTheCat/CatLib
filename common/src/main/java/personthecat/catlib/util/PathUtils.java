@@ -11,7 +11,7 @@ import static personthecat.catlib.io.FileIO.listFiles;
 /** A collection of tools used for interacting with file paths and {@link ResourceLocation}s. */
 @UtilityClass
 @SuppressWarnings("unused")
-public class PathTools {
+public class PathUtils {
 
     /**
      * Converts the input path into a fully-qualified ResourceLocation.

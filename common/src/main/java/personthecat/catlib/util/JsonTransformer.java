@@ -336,7 +336,7 @@ public class JsonTransformer {
 
         private void forEachContainer(final JsonObject container, final int index, final Consumer<JsonObject> fn) {
             if (index < path.length) {
-                for (JsonObject o : HjsonTools.getRegularObjects(container, path[index])) {
+                for (JsonObject o : HjsonUtils.getRegularObjects(container, path[index])) {
                     forEachContainer(o, index + 1, fn);
                 }
             } else if (index == path.length) {
@@ -357,7 +357,7 @@ public class JsonTransformer {
             for (final JsonObject.Member member : json) {
                 final JsonValue value = member.getValue();
                 if (member.getName().equals(key)) {
-                    HjsonTools.getRegularObjects(json, key).forEach(fn);
+                    HjsonUtils.getRegularObjects(json, key).forEach(fn);
                 }
                 if (value.isObject()) {
                     forEach(value.asObject(), fn);
@@ -463,12 +463,12 @@ public class JsonTransformer {
         private void convert(final JsonObject json) {
             if (json.has(minKey) || json.has(maxKey)) {
                 if (minDefault instanceof Double || minDefault instanceof Float) {
-                    final float min = HjsonTools.getFloat(json, minKey).orElse(minDefault.floatValue());
-                    final float max = HjsonTools.getFloat(json, maxKey).orElse(maxDefault.floatValue());
+                    final float min = HjsonUtils.getFloat(json, minKey).orElse(minDefault.floatValue());
+                    final float max = HjsonUtils.getFloat(json, maxKey).orElse(maxDefault.floatValue());
                     json.set(newKey, getRange(min, max));
                 } else {
-                    final int min = HjsonTools.getInt(json, minKey).orElse(minDefault.intValue());
-                    final int max = HjsonTools.getInt(json, maxKey).orElse(maxDefault.intValue());
+                    final int min = HjsonUtils.getInt(json, minKey).orElse(minDefault.intValue());
+                    final int max = HjsonUtils.getInt(json, maxKey).orElse(maxDefault.intValue());
                     json.set(newKey, getRange(min, max));
                 }
                 json.remove(minKey);

@@ -60,77 +60,77 @@ public class HjsonMapper {
     private final JsonObject json;
 
     public HjsonMapper mapBool(final String field, final Consumer<Boolean> ifPresent) {
-        HjsonTools.getBool(json, field).ifPresent(ifPresent);
+        HjsonUtils.getBool(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredBool(final String field, final Consumer<Boolean> mapper) {
-        mapper.accept(HjsonTools.getBool(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getBool(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapInt(final String field, final Consumer<Integer> ifPresent) {
-        HjsonTools.getInt(json, field).ifPresent(ifPresent);
+        HjsonUtils.getInt(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredInt(final String field, final Consumer<Integer> mapper) {
-        mapper.accept(HjsonTools.getInt(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getInt(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapIntList(final String field, final Consumer<List<Integer>> ifPresent) {
-        HjsonTools.getIntList(json, field).ifPresent(ifPresent);
+        HjsonUtils.getIntList(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredIntList(final String field, final Consumer<List<Integer>> mapper) {
-        mapper.accept(HjsonTools.getIntList(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getIntList(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapFloat(final String field, final Consumer<Float> ifPresent) {
-        HjsonTools.getFloat(json, field).ifPresent(ifPresent);
+        HjsonUtils.getFloat(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredFloat(final String field, final Consumer<Float> mapper) {
-        mapper.accept(HjsonTools.getFloat(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getFloat(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapString(final String field, final Consumer<String> ifPresent) {
-        HjsonTools.getString(json, field).ifPresent(ifPresent);
+        HjsonUtils.getString(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredString(final String field, final Consumer<String> mapper) {
-        mapper.accept(HjsonTools.getString(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getString(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapBiomes(final String field, final Consumer<List<Biome>> ifPresent) {
-        HjsonTools.getBiomeList(json, field).ifPresent(ifPresent);
+        HjsonUtils.getBiomeList(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredBiomes(final String field, final Consumer<List<Biome>> mapper) {
-        mapper.accept(HjsonTools.getBiomeList(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getBiomeList(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapRange(final String field, final Consumer<Range> ifPresent) {
-        HjsonTools.getRange(json, field).ifPresent(ifPresent);
+        HjsonUtils.getRange(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredRange(final String field, final Consumer<Range> mapper) {
-        mapper.accept(HjsonTools.getRange(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getRange(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapRangeOrTry(final String field, final String otherField, final Consumer<Range> ifPresent) {
-        final Optional<Range> range = HjsonTools.getRange(json, field);
+        final Optional<Range> range = HjsonUtils.getRange(json, field);
         range.ifPresent(ifPresent);
         if (!range.isPresent()) {
             return mapRange(otherField, ifPresent);
@@ -139,12 +139,12 @@ public class HjsonMapper {
     }
 
     public HjsonMapper mapFloatRange(final String field, final Consumer<FloatRange> ifPresent) {
-        HjsonTools.getFloatRange(json, field).ifPresent(ifPresent);
+        HjsonUtils.getFloatRange(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredFloatRange(final String field, final Consumer<FloatRange> mapper) {
-        mapper.accept(HjsonTools.getFloatRange(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getFloatRange(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
@@ -189,83 +189,83 @@ public class HjsonMapper {
     }
 
     public <E extends Enum<E>> HjsonMapper mapEnum(final String field, final Class<E> e, final Consumer<E> ifPresent) {
-        HjsonTools.getEnumValue(json, field, e).ifPresent(ifPresent);
+        HjsonUtils.getEnumValue(json, field, e).ifPresent(ifPresent);
         return this;
     }
 
     public <E extends Enum<E>> HjsonMapper mapRequiredEnum(final String field, final Class<E> e, final Consumer<E> mapper) {
-        mapper.accept(HjsonTools.getEnumValue(json, field, e).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getEnumValue(json, field, e).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapState(final String field, final Consumer<BlockState> ifPresent) {
-        HjsonTools.getState(json, field).ifPresent(ifPresent);
+        HjsonUtils.getState(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredState(final String field, final Consumer<BlockState> mapper) {
-        mapper.accept(HjsonTools.getState(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getState(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapStateList(final String field, final Consumer<List<BlockState>> ifPresent) {
-        HjsonTools.getStateList(json, field).ifPresent(ifPresent);
+        HjsonUtils.getStateList(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredStateList(final String field, final Consumer<List<BlockState>> mapper) {
-        mapper.accept(HjsonTools.getStateList(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getStateList(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapBlockPos(final String field, final Consumer<BlockPos> ifPresent) {
-        HjsonTools.getPosition(json, field).ifPresent(ifPresent);
+        HjsonUtils.getPosition(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredBlockPos(final String field, final Consumer<BlockPos> mapper) {
-        mapper.accept(HjsonTools.getPosition(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getPosition(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapBlockPosList(final String field, final Consumer<List<BlockPos>> ifPresent) {
-        HjsonTools.getPositionList(json, field).ifPresent(ifPresent);
+        HjsonUtils.getPositionList(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredBlockPosList(final String field, final Consumer<List<BlockPos>> mapper) {
-        mapper.accept(HjsonTools.getPositionList(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getPositionList(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public HjsonMapper mapPlacementSettings(final Consumer<StructureBlockEntity> mapper) {
-        mapper.accept(HjsonTools.getPlacementSettings(json));
+        mapper.accept(HjsonUtils.getPlacementSettings(json));
         return this;
     }
 
     public HjsonMapper mapObject(final String field, final Consumer<JsonObject> ifPresent) {
-        HjsonTools.getObject(json, field).ifPresent(ifPresent);
+        HjsonUtils.getObject(json, field).ifPresent(ifPresent);
         return this;
     }
 
     public HjsonMapper mapRequiredObject(final String field, final Consumer<JsonObject> mapper) {
-        mapper.accept(HjsonTools.getObject(json, field).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getObject(json, field).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public <M> HjsonMapper mapObject(final String field, final Function<JsonObject, M> f, final Consumer<M> ifPresent) {
-        HjsonTools.getObject(json, field).map(f).ifPresent(ifPresent);
+        HjsonUtils.getObject(json, field).map(f).ifPresent(ifPresent);
         return this;
     }
 
     public <M> HjsonMapper mapRequiredObject(final String field, final Function<JsonObject, M> f, final Consumer<M> mapper) {
-        mapper.accept(HjsonTools.getObject(json, field).map(f).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getObject(json, field).map(f).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
     public <M> HjsonMapper mapArray(final String field, final Function<JsonObject, M> f, final Consumer<List<M>> ifPresent) {
         if (json.has(field)) {
-            ifPresent.accept(map(HjsonTools.getObjectArray(json, field), f));
+            ifPresent.accept(map(HjsonUtils.getObjectArray(json, field), f));
         }
         return this;
     }
@@ -274,17 +274,17 @@ public class HjsonMapper {
         if (!json.has(field)) {
             throw requiredField(field);
         }
-        mapper.accept(map(HjsonTools.getObjectArray(json, field), f));
+        mapper.accept(map(HjsonUtils.getObjectArray(json, field), f));
         return this;
     }
 
     public <M> HjsonMapper mapGeneric(final String field, final Function<JsonValue, M> f, final Consumer<M> ifPresent) {
-        HjsonTools.getValue(json, field).map(f).ifPresent(ifPresent);
+        HjsonUtils.getValue(json, field).map(f).ifPresent(ifPresent);
         return this;
     }
 
     public <M> HjsonMapper mapRequiredGeneric(final String field, final Function<JsonValue, M> f, final Consumer<M> mapper) {
-        mapper.accept(HjsonTools.getValue(json, field).map(f).orElseThrow(() -> requiredField(field)));
+        mapper.accept(HjsonUtils.getValue(json, field).map(f).orElseThrow(() -> requiredField(field)));
         return this;
     }
 
@@ -307,7 +307,7 @@ public class HjsonMapper {
 
     private <M> void mapGenericArrayInternal(@NotNull JsonValue value, final Function<JsonValue, M> f, final Consumer<List<M>> mapper) {
         final List<M> list = new ArrayList<>();
-        for (final JsonValue inner : HjsonTools.asOrToArray(value)) {
+        for (final JsonValue inner : HjsonUtils.asOrToArray(value)) {
             list.add(f.apply(inner));
         }
         mapper.accept(list);

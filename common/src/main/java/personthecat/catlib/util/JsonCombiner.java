@@ -3,9 +3,6 @@ package personthecat.catlib.util;
 import org.hjson.JsonValue;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
-import personthecat.catlib.io.FileIO;
-
-import java.io.File;
 
 import static personthecat.catlib.exception.Exceptions.runEx;
 
@@ -21,7 +18,7 @@ public class JsonCombiner {
      */
     public static void combine(final HjsonArgument.Result from, final HjsonArgument.Result to,
                                final PathArgument.Result path) {
-        JsonValue fromValue = HjsonTools.getLastContainer(from.json.get(), path);
+        JsonValue fromValue = HjsonUtils.getLastContainer(from.json.get(), path);
         if (fromValue.isObject()) {
             final String key = path.path.get(path.path.size() - 1).left()
                 .orElseThrow(() -> runEx("Expected an object at end of path."));
@@ -31,7 +28,7 @@ public class JsonCombiner {
                 .orElseThrow(() -> runEx("Expected an array at end of path."));
             fromValue = fromValue.asArray().get(index);
         }
-        HjsonTools.setValueFromPath(to.json.get(), path, fromValue);
-        HjsonTools.writeJson(to.json.get(), to.file);
+        HjsonUtils.setValueFromPath(to.json.get(), path, fromValue);
+        HjsonUtils.writeJson(to.json.get(), to.file);
     }
 }

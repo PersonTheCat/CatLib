@@ -13,7 +13,7 @@ import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.LibStringUtils;
-import personthecat.catlib.util.McTools;
+import personthecat.catlib.util.McUtils;
 import personthecat.fresult.Result;
 
 import javax.annotation.CheckReturnValue;
@@ -345,7 +345,7 @@ public class CommandRegistrationContext {
      * @return Every {@link LibCommandBuilder} applicable for the current context.
      */
     public List<LibCommandBuilder> getCommandsForCurrentSide() {
-        final boolean dedicated = McTools.isDedicatedServer();
+        final boolean dedicated = McUtils.isDedicatedServer();
         return this.commands.stream()
             .filter(builder -> builder.getSide().canRegister(dedicated))
             .collect(Collectors.toList());

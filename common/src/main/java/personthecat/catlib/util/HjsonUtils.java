@@ -32,11 +32,11 @@ import static personthecat.catlib.exception.Exceptions.noBiomeTypeNamed;
 import static personthecat.catlib.exception.Exceptions.noBlockNamed;
 import static personthecat.catlib.exception.Exceptions.runEx;
 import static personthecat.catlib.exception.Exceptions.unreachable;
-import static personthecat.catlib.util.McTools.getBiome;
-import static personthecat.catlib.util.McTools.getBiomes;
-import static personthecat.catlib.util.McTools.getBiomeType;
-import static personthecat.catlib.util.McTools.getBlockState;
-import static personthecat.catlib.util.PathTools.extension;
+import static personthecat.catlib.util.McUtils.getBiome;
+import static personthecat.catlib.util.McUtils.getBiomes;
+import static personthecat.catlib.util.McUtils.getBiomeType;
+import static personthecat.catlib.util.McUtils.getBlockState;
+import static personthecat.catlib.util.PathUtils.extension;
 import static personthecat.catlib.util.Shorthand.f;
 import static personthecat.catlib.util.Shorthand.full;
 import static personthecat.catlib.util.Shorthand.assertEnumConstant;
@@ -57,7 +57,7 @@ import static personthecat.catlib.util.Shorthand.nullable;
 @UtilityClass
 @SuppressWarnings("unused")
 @ParametersAreNonnullByDefault
-public class HjsonTools {
+public class HjsonUtils {
 
     /**
      * The settings to be used when outputting JsonObjects to the disk.
@@ -410,7 +410,7 @@ public class HjsonTools {
      */
     public static List<JsonObject> getObjectArray(final JsonObject json, final String field) {
         final List<JsonObject> array = new ArrayList<>();
-        getValue(json, field).map(HjsonTools::asOrToArray)
+        getValue(json, field).map(HjsonUtils::asOrToArray)
             .ifPresent(a -> flatten(array, a));
         return array;
     }
@@ -455,8 +455,8 @@ public class HjsonTools {
      */
     public static List<JsonObject> getRegularObjects(final JsonObject json, final String field) {
         final List<JsonObject> list = new ArrayList<>();
-        final JsonArray array = HjsonTools.getValue(json, field)
-            .map(HjsonTools::asOrToArray)
+        final JsonArray array = HjsonUtils.getValue(json, field)
+            .map(HjsonUtils::asOrToArray)
             .orElseGet(JsonArray::new);
         flattenRegularObjects(list, array);
         return list;
@@ -488,10 +488,10 @@ public class HjsonTools {
 
     public static Optional<Range> getRange(final JsonObject json, final String field) {
         return getValue(json, field)
-            .map(HjsonTools::asOrToArray)
-            .map(HjsonTools::toIntArray)
+            .map(HjsonUtils::asOrToArray)
+            .map(HjsonUtils::toIntArray)
             .map(Shorthand::sort)
-            .map(HjsonTools::toRange);
+            .map(HjsonUtils::toRange);
     }
 
     private static Range toRange(final int[] range) {
@@ -503,10 +503,10 @@ public class HjsonTools {
 
     public static Optional<FloatRange> getFloatRange(final JsonObject json, final String field) {
         return getValue(json, field)
-            .map(HjsonTools::asOrToArray)
-            .map(HjsonTools::toFloatArray)
+            .map(HjsonUtils::asOrToArray)
+            .map(HjsonUtils::toFloatArray)
             .map(Shorthand::sort)
-            .map(HjsonTools::toFloatRange);
+            .map(HjsonUtils::toFloatRange);
     }
 
     private static FloatRange toFloatRange(float[] range) {
@@ -525,7 +525,7 @@ public class HjsonTools {
     }
 
     public static Optional<JsonArray> getArray(final JsonObject json, final String field) {
-        return getValue(json, field).map(HjsonTools::asOrToArray);
+        return getValue(json, field).map(HjsonUtils::asOrToArray);
     }
 
     public static JsonArray getArrayOrNew(final JsonObject json, final String field) {
@@ -555,7 +555,7 @@ public class HjsonTools {
     }
 
     public static Optional<List<Integer>> getIntList(final JsonObject json, final String field) {
-        return getArray(json, field).map(HjsonTools::toIntList);
+        return getArray(json, field).map(HjsonUtils::toIntList);
     }
 
     private static List<Integer> toIntList(final JsonArray array) {
@@ -602,7 +602,7 @@ public class HjsonTools {
     }
 
     public static Optional<List<BlockState>> getStateList(final JsonObject json, final String field) {
-        return getStringArray(json, field).map(HjsonTools::toStateList);
+        return getStringArray(json, field).map(HjsonUtils::toStateList);
     }
 
     private static List<BlockState> toStateList(final List<String> ids) {
@@ -611,11 +611,11 @@ public class HjsonTools {
     }
 
     public static Optional<BlockPos> getPosition(JsonObject json, String field) {
-        return getArray(json, field).map(HjsonTools::toPosition);
+        return getArray(json, field).map(HjsonUtils::toPosition);
     }
 
     public static Optional<List<BlockPos>> getPositionList(JsonObject json, String field) {
-        return getArray(json, field).map(HjsonTools::toPositionList);
+        return getArray(json, field).map(HjsonUtils::toPositionList);
     }
 
     public static BlockPos toPosition(final JsonArray coordinates) {
@@ -641,19 +641,19 @@ public class HjsonTools {
     }
 
     public static Optional<List<Biome>> getBiomeList(final JsonObject json, final String field) {
-        return getObject(json, field).map(HjsonTools::toBiomes);
+        return getObject(json, field).map(HjsonUtils::toBiomes);
     }
 
     private static List<Biome> toBiomes(final JsonObject json) {
         final List<Biome> biomes = new ArrayList<>();
         // Get biomes by registry name.
-        getArray(json, "names").map(HjsonTools::toStringArray).ifPresent(a -> {
+        getArray(json, "names").map(HjsonUtils::toStringArray).ifPresent(a -> {
             for (final String s : a) {
                 biomes.add(getBiome(new ResourceLocation(s)).orElseThrow(() -> noBiomeNamed(s)));
             }
         });
         // Get biomes by type.
-        getArray(json, "types").map(HjsonTools::toBiomeTypes).ifPresent(a -> {
+        getArray(json, "types").map(HjsonUtils::toBiomeTypes).ifPresent(a -> {
             for (final Biome.BiomeCategory t : a) {
                 biomes.addAll(getBiomes(t));
             }

@@ -18,7 +18,7 @@ import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.ModDescriptor;
-import personthecat.catlib.util.McTools;
+import personthecat.catlib.util.McUtils;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.File;
@@ -191,6 +191,6 @@ public class CommandUtils {
 
     private static File getDefaultRoot() {
         final ModDescriptor activeMod = CommandRegistrationContext.getActiveMod();
-        return activeMod != null ? activeMod.getConfigFolder() : McTools.getConfigDir();
+        return activeMod != null ? activeMod.getConfigFolder() : McUtils.getConfigDir();
     }
 }

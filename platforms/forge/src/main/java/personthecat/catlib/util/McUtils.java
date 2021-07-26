@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 @OverwriteClass
 @InheritMissingMembers
 @SuppressWarnings("unused")
-public class McTools {
+public class McUtils {
 
     @Overwrite
     public static File getConfigDir() {
