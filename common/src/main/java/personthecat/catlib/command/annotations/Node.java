@@ -69,6 +69,9 @@ public @interface Node {
      * A <b>single</b> argument type which will parse the value for this node. This type
      * <b>must have a no-argument constructor</b> to be valid. Otherwise, you must create
      * a new {@link ArgumentSupplier} class.
+     * <pre>
+     *     branch = @Node(name = "a", type = ItemArgument.class)
+     * </pre>
      */
     Class<? extends ArgumentType<?>>[] type() default {};
 
@@ -76,6 +79,9 @@ public @interface Node {
      * A <b>single</b> argument supplier which provides information about argument type
      * and suggestions needed for this node. Note that this type <b>must provide a
      * no-argument constructor</b> to be valid.
+     * <pre>
+     *     branch = @Node(name = "b", descriptor = ArgumentSuppliers.HjsonFile.class)
+     * </pre>
      */
     Class<? extends ArgumentSupplier<?>>[] descriptor() default {};
 
@@ -118,9 +124,9 @@ public @interface Node {
      * required argument type.
      * <pre>
      *     branches = {
-     *         &copy;Node(name = "numbers", intVal = @IntRange(max = 100)),
+     *         &copy;Node(name = "numbers", intVal = @IntRange(max = 100), intoList = @ListInfo),
      *         &copy;Node(name = "in"),
-     *         &coyp;Node(name = "format", descriptor = MyArgumentSupplier.class)
+     *         &copy;Node(name = "format", descriptor = MyArgumentSupplier.class)
      *     }
      * </pre>
      */
