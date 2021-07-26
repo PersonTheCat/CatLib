@@ -140,8 +140,7 @@ public final class LibCommandBuilder {
         private int wrapCommand(final CommandContextWrapper wrapper, final ThrowingConsumer<CommandContextWrapper, Throwable> fn) {
             return Result.suppress(() -> fn.accept(wrapper))
                 .ifErr(e -> this.handleException(wrapper, e))
-                .map(v -> 1)
-                .orElse(-1);
+                .fold(v -> 1, e -> -1);
         }
 
         private void handleException(final CommandContextWrapper wrapper, final Throwable e) {

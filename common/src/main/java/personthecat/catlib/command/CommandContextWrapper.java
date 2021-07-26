@@ -1,6 +1,7 @@
 package personthecat.catlib.command;
 
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.context.ParsedCommandNode;
 import lombok.AllArgsConstructor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -83,6 +84,19 @@ public class CommandContextWrapper {
 
     public <T> T get(final String key, final Class<T> type) {
         return this.ctx.getArgument(key, type);
+    }
+
+    public String getActual(final String key) {
+        return this.tryGetActual(key).orElseThrow(() -> cmdEx("No such argument: {}", key));
+    }
+
+    public Optional<String> tryGetActual(final String key) {
+        for (final ParsedCommandNode<CommandSourceStack> node : this.ctx.getNodes()) {
+            if (key.equals(node.getNode().getName())) {
+                return Optional.of(node.getRange().get(this.getInput()));
+            }
+        }
+        return Optional.empty();
     }
 
     public void sendMessage(final String msg) {

@@ -57,7 +57,7 @@ public class CommandClassEvaluator {
 
     private static void addModCommands(final List<LibCommandBuilder> builders, final Class<?> c) {
         forEachAnnotated(c, ModCommand.class, (m, a) -> {
-            if (m.getParameterCount() > 1) {
+            if (m.getParameterCount() != 1) {
                 throw new CommandClassEvaluationException("{} must have exactly 1 parameter", m.getName());
             }
             if (!CommandContextWrapper.class.equals(m.getParameterTypes()[0])) {
@@ -193,7 +193,7 @@ public class CommandClassEvaluator {
             }
             final Pair<Node, ArgumentDescriptor<?>> followingEntry = entries.get(index + 2);
             final ArgumentBuilder<CommandSourceStack, ?> termination =
-                    Commands.argument(followingEntry.getKey().name(), followingEntry.getValue().getType());
+                Commands.argument(followingEntry.getKey().name(), followingEntry.getValue().getType());
 
             return listBuilder.terminatedBy(nextEntry.getKey().name(), termination).build();
         } else {

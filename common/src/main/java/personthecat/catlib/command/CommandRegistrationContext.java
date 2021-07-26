@@ -389,8 +389,7 @@ public class CommandRegistrationContext {
      */
     private int getHelpPage(final CommandContext<CommandSourceStack> ctx) {
         return Result.suppress(() -> ctx.getArgument(PAGE_ARGUMENT, Integer.class))
-            .resolve(e -> 1)
-            .expose();
+            .orElseGet(e -> 1);
     }
 
     /**
