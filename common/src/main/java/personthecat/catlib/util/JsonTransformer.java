@@ -36,7 +36,7 @@ import static personthecat.catlib.util.Shorthand.f;
  *   And the following history:
  * </p>
  * <pre>
- *   FieldHistory.withPath("a", "b")
+ *   JsonTransformer.withPath("a", "b")
  *     .history("old", "other", "new")
  *     .updateAll(json);
  * </pre>
@@ -75,7 +75,7 @@ import static personthecat.catlib.util.Shorthand.f;
  *   And the following history:
  * </p>
  * <pre>
- *   FieldHistory.recursive("container")
+ *   JsonTransformer.recursive("container")
  *     .markRemoved("removed", "1.0')
  *     .updateAll(json);
  * </pre>
@@ -105,7 +105,7 @@ import static personthecat.catlib.util.Shorthand.f;
  * </p>
  */
 @SuppressWarnings("unused")
-public class FieldHistory {
+public class JsonTransformer {
 
     public static ObjectResolver withPath(final String... path) {
         return new StaticObjectResolver(path);
@@ -157,7 +157,7 @@ public class FieldHistory {
          *   And the following history:
          * </p>
          * <pre>
-         *   FieldHistory.withPath()
+         *   JsonTransformer.withPath()
          *     .collapse("outer", "inner")
          *     .updateAll(json);
          * </pre>
@@ -237,7 +237,7 @@ public class FieldHistory {
          *   And the following history:
          * </p>
          * <pre>
-         *   FieldHistory.withPath("a")
+         *   JsonTransformer.withPath("a")
          *     .renameValue("b", "old1", "new1")
          *     .renameValue("b", "old2", "new2")
          *     .updateAll(json);
@@ -280,7 +280,7 @@ public class FieldHistory {
          *   And the following history:
          * </p>
          * <pre>
-         *   FieldHistory.withPath("a")
+         *   JsonTransformer.withPath("a")
          *     .transform((k, v) -> Pair.of("new1", JsonValue.valueOf("new2")))
          *     .updateAll(json)
          * </pre>
