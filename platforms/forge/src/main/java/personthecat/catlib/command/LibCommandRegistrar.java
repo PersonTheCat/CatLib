@@ -1,6 +1,7 @@
 package personthecat.catlib.command;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import personthecat.catlib.util.McTools;
@@ -11,6 +12,7 @@ import personthecat.overwritevalidator.annotations.OverwriteClass;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@UtilityClass
 @OverwriteClass
 @InheritMissingMembers
 public class LibCommandRegistrar {
