@@ -50,7 +50,7 @@ import static personthecat.catlib.util.Shorthand.f;
  *   processed automatically by calling {@link #addAllCommands(Class[])}.
  * </p><pre>
  *     CommandRegistrationContext.forMod(MOD_DESCRIPTOR)
- *       .addCommands(ModCommands.class, ClientModCommands.class)
+ *       .addAllCommands(ModCommands.class, ClientModCommands.class)
  *       ...
  * </pre><p>
  *   Once all of the builders for the current mod have been passed into the
