@@ -18,7 +18,6 @@ import personthecat.catlib.util.SyntaxLinter;
 import personthecat.fresult.functions.ThrowingConsumer;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -27,6 +26,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.util.unsafe.CachingReflectionHelper.tryInstantiate;
 
 @UtilityClass
 public class CommandClassEvaluator {
@@ -209,21 +209,6 @@ public class CommandClassEvaluator {
         } catch (final IllegalAccessException | InvocationTargetException ignored) {
             throw new CommandClassEvaluationException("Could not invoke: {}", m.getName());
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T tryInstantiate(final Class<T> t) {
-        for (final Constructor<?> constructor : t.getConstructors()) {
-            if (constructor.getParameterCount() == 0) {
-                constructor.setAccessible(true);
-                try {
-                    return (T) constructor.newInstance();
-                } catch (final IllegalAccessException | InvocationTargetException | InstantiationException ignored) {
-                    throw new CommandClassEvaluationException("Could not instantiate: {}", t.getSimpleName());
-                }
-            }
-        }
-        throw new CommandClassEvaluationException("No single arg constructor for {}", t.getSimpleName());
     }
 
     private static ThrowingConsumer<CommandContextWrapper, Throwable> createConsumer(final Method m) {
