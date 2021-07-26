@@ -115,7 +115,7 @@ public @interface Node {
      *     branch = @Node(name = "text", stringVal = @StringValue(type = Type.GREEDY))
      * </pre>
      */
-    StringValue[] stringVal() default {};
+    StringValue[] stringValue() default {};
 
     /**
      * Converts the given node into a list argument which can be repeated up to a

@@ -7,10 +7,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.blocks.BlockInput;
+import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import personthecat.catlib.command.arguments.HjsonArgument;
@@ -52,6 +54,10 @@ public class CommandContextWrapper {
 
     public BlockState getBlock(final String key) {
         return this.get(key, BlockInput.class).getState();
+    }
+
+    public Item getItem(final String key) {
+        return this.get(key, ItemInput.class).getItem();
     }
 
     public File getFile(final String key) {

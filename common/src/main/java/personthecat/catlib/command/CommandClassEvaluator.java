@@ -143,7 +143,7 @@ public class CommandClassEvaluator {
             return new ArgumentDescriptor<>(DoubleArgumentType.doubleArg(range.min(), range.max()));
         } else if (node.isBoolean()) {
             return new ArgumentDescriptor<>(BoolArgumentType.bool());
-        } else if (node.stringVal().length > 0) {
+        } else if (node.stringValue().length > 0) {
             return new ArgumentDescriptor<>(createStringArgumentType(node));
         } else {
             return ArgumentDescriptor.LITERAL;
@@ -151,7 +151,7 @@ public class CommandClassEvaluator {
     }
 
     private static ArgumentType<?> createStringArgumentType(final Node node) {
-        final Node.StringValue value = node.stringVal()[0];
+        final Node.StringValue value = node.stringValue()[0];
         if (value.value() == Node.StringValue.Type.GREEDY) {
             return StringArgumentType.greedyString();
         } else if (value.value() == Node.StringValue.Type.STRING) {
