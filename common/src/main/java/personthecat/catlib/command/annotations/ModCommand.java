@@ -86,7 +86,7 @@ public @interface ModCommand {
     String name();
 
     /**
-     * Optional subtext to display in the help page.
+     * Optional subtext to display on the help page.
      */
     String arguments() default "";
 
