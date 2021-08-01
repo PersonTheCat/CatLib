@@ -112,22 +112,12 @@ public class Exceptions {
     /**
      * Shorthand for a regular {@link JsonMappingException}.
      *
-     * @param x The error message to display.
+     * @param parent The name of the object being deserialized.
+     * @param field The field which failed to map.
      * @return A new {@link JsonMappingException}.
      */
-    public static JsonMappingException mappingEx(final String x) {
-        return new JsonMappingException(x);
-    }
-
-    /**
-     * Shorthand for a regular {@link JsonMappingException} using {@link Shorthand#f}.
-     *
-     * @param x The string template being interpolated.
-     * @param args The interpolated arguments replacing <code>{}</code>.
-     * @return A new {@link JsonMappingException}.
-     */
-    public static JsonMappingException mappingEx(final String x, final Object... args) {
-        return new JsonMappingException(f(x, args));
+    public static JsonMappingException mappingEx(final String parent, final String field) {
+        return new JsonMappingException(parent, field);
     }
 
     /**

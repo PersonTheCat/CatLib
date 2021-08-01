@@ -1,6 +1,5 @@
 package personthecat.catlib.util;
 
-
 import lombok.AllArgsConstructor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.biome.Biome;
@@ -8,7 +7,6 @@ import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
-import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.data.FloatRange;
 import personthecat.catlib.data.Range;
 import personthecat.catlib.exception.JsonMappingException;
@@ -17,15 +15,14 @@ import personthecat.fastnoise.FastNoise.CellularReturnType;
 import personthecat.fastnoise.FastNoise.FractalType;
 import personthecat.fastnoise.FastNoise.Interp;
 import personthecat.fastnoise.FastNoise.NoiseType;
+import personthecat.fresult.Result;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-import static personthecat.catlib.exception.Exceptions.mappingEx;
 import static personthecat.catlib.util.Shorthand.map;
 
 /**
@@ -35,13 +32,22 @@ import static personthecat.catlib.util.Shorthand.map;
  *     e.g.
  * </p>
  * <pre>
+ *   // Declare a reusable mapper.
+ *   final HjsonMapper&lt;MyClassBuilder, MyClass&gt; MAPPER =
+ *     new HjsonMapper&lt;&gt;("objectName", MyClassBuilder::build)
+ *       .mapBool(Fields.enabled, MyClassBuilder::enabled)
+ *       .mapInt(Fields.time, MyClassBuilder::time);
+ *
  *   // Standard from Json style syntax.
  *   public static MyObject from(final JsonObject json) {
- *     final MyObjectBuilder builder = builder();
- *     return new HjsonMapper(OBJECT_NAME, json)
- *       .mapBool(Fields.enabled, builder::enabled)
- *       .mapInt(Fields.time, builder::time)
- *       .release(builder::build);
+ *     return MAPPER.create(json, builder());
+ *   }
+ *
+ *   // Handle errors with a Result wrapper.
+ *   public static MyObject from2(final JsonObject json) {
+ *     return MAPPER.tryCreate(json, builder())
+ *       .ifOk(o -> log.info("You did it!))
+ *       .orElseGet(MyObject::new);
  *   }
  * </pre>
  * <p>
@@ -54,275 +60,263 @@ import static personthecat.catlib.util.Shorthand.map;
  */
 @AllArgsConstructor
 @SuppressWarnings("unused")
-public class HjsonMapper {
+public class HjsonMapper<B, R> {
 
-    private final String parent;
-    private final JsonObject json;
+    final List<BiConsumer<JsonObject, B>> mappers = new ArrayList<>();
+    final String parent;
+    final Function<B, R> buildFunction;
 
-    public HjsonMapper mapBool(final String field, final Consumer<Boolean> ifPresent) {
-        HjsonUtils.getBool(json, field).ifPresent(ifPresent);
-        return this;
+    public HjsonMapper<B, R> mapBool(final String field, final BiConsumer<B, Boolean> ifPresent) {
+        return this.add(j -> HjsonUtils.getBool(j, field), ifPresent);
     }
 
-    public HjsonMapper mapRequiredBool(final String field, final Consumer<Boolean> mapper) {
-        mapper.accept(HjsonUtils.getBool(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
+    public HjsonMapper<B, R> mapRequiredBool(final String field, final BiConsumer<B, Boolean> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getBool(j, field), mapper);
     }
 
-    public HjsonMapper mapInt(final String field, final Consumer<Integer> ifPresent) {
-        HjsonUtils.getInt(json, field).ifPresent(ifPresent);
-        return this;
+    public HjsonMapper<B, R> mapInt(final String field, final BiConsumer<B, Integer> ifPresent) {
+        return this.add(j -> HjsonUtils.getInt(j, field), ifPresent);
     }
 
-    public HjsonMapper mapRequiredInt(final String field, final Consumer<Integer> mapper) {
-        mapper.accept(HjsonUtils.getInt(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
+    public HjsonMapper<B, R> mapRequiredInt(final String field, final BiConsumer<B, Integer> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getInt(j, field), mapper);
     }
 
-    public HjsonMapper mapIntList(final String field, final Consumer<List<Integer>> ifPresent) {
-        HjsonUtils.getIntList(json, field).ifPresent(ifPresent);
-        return this;
+    public HjsonMapper<B, R> mapIntList(final String field, final BiConsumer<B, List<Integer>> ifPresent) {
+        return this.add(j -> HjsonUtils.getIntList(j, field), ifPresent);
     }
 
-    public HjsonMapper mapRequiredIntList(final String field, final Consumer<List<Integer>> mapper) {
-        mapper.accept(HjsonUtils.getIntList(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
+    public HjsonMapper<B, R> mapRequiredIntList(final String field, final BiConsumer<B, List<Integer>> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getIntList(j, field), mapper);
     }
 
-    public HjsonMapper mapFloat(final String field, final Consumer<Float> ifPresent) {
-        HjsonUtils.getFloat(json, field).ifPresent(ifPresent);
-        return this;
+    public HjsonMapper<B, R> mapFloat(final String field, final BiConsumer<B, Float> ifPresent) {
+        return this.add(j -> HjsonUtils.getFloat(j, field), ifPresent);
     }
 
-    public HjsonMapper mapRequiredFloat(final String field, final Consumer<Float> mapper) {
-        mapper.accept(HjsonUtils.getFloat(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
+    public HjsonMapper<B, R> mapRequiredFloat(final String field, final BiConsumer<B, Float> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getFloat(j, field), mapper);
     }
 
-    public HjsonMapper mapString(final String field, final Consumer<String> ifPresent) {
-        HjsonUtils.getString(json, field).ifPresent(ifPresent);
-        return this;
+    public HjsonMapper<B, R> mapString(final String field, final BiConsumer<B, String> ifPresent) {
+        return this.add(j -> HjsonUtils.getString(j, field), ifPresent);
     }
 
-    public HjsonMapper mapRequiredString(final String field, final Consumer<String> mapper) {
-        mapper.accept(HjsonUtils.getString(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
+    public HjsonMapper<B, R> mapRequiredString(final String field, final BiConsumer<B, String> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getString(j, field), mapper);
     }
 
-    public HjsonMapper mapBiomes(final String field, final Consumer<List<Biome>> ifPresent) {
-        HjsonUtils.getBiomeList(json, field).ifPresent(ifPresent);
-        return this;
+    public HjsonMapper<B, R> mapBiomes(final String field, final BiConsumer<B, List<Biome>> ifPresent) {
+        return this.add(j -> HjsonUtils.getBiomeList(j, field), ifPresent);
     }
 
-    public HjsonMapper mapRequiredBiomes(final String field, final Consumer<List<Biome>> mapper) {
-        mapper.accept(HjsonUtils.getBiomeList(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
+    public HjsonMapper<B, R> mapRequiredBiomes(final String field, final BiConsumer<B, List<Biome>> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getBiomeList(j, field), mapper);
     }
 
-    public HjsonMapper mapRange(final String field, final Consumer<Range> ifPresent) {
-        HjsonUtils.getRange(json, field).ifPresent(ifPresent);
-        return this;
+    public HjsonMapper<B, R> mapRange(final String field, final BiConsumer<B, Range> ifPresent) {
+        return this.add(j -> HjsonUtils.getRange(j, field), ifPresent);
     }
 
-    public HjsonMapper mapRequiredRange(final String field, final Consumer<Range> mapper) {
-        mapper.accept(HjsonUtils.getRange(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
+    public HjsonMapper<B, R> mapRequiredRange(final String field, final BiConsumer<B, Range> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getRange(j, field), mapper);
     }
 
-    public HjsonMapper mapRangeOrTry(final String field, final String otherField, final Consumer<Range> ifPresent) {
-        final Optional<Range> range = HjsonUtils.getRange(json, field);
-        range.ifPresent(ifPresent);
-        if (!range.isPresent()) {
-            return mapRange(otherField, ifPresent);
-        }
-        return this;
+    public HjsonMapper<B, R> mapRangeOrTry(final String field, final String otherField, final BiConsumer<B, Range> ifPresent) {
+        final JsonFunction<Range> f = j -> {
+            final Optional<Range> range = HjsonUtils.getRange(j, field);
+            return range.isPresent() ? range : HjsonUtils.getRange(j, otherField);
+        };
+        return this.add(f, ifPresent);
     }
 
-    public HjsonMapper mapFloatRange(final String field, final Consumer<FloatRange> ifPresent) {
-        HjsonUtils.getFloatRange(json, field).ifPresent(ifPresent);
-        return this;
+    public HjsonMapper<B, R> mapFloatRange(final String field, final BiConsumer<B, FloatRange> ifPresent) {
+        return this.add(j -> HjsonUtils.getFloatRange(j, field), ifPresent);
     }
 
-    public HjsonMapper mapRequiredFloatRange(final String field, final Consumer<FloatRange> mapper) {
-        mapper.accept(HjsonUtils.getFloatRange(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
+    public HjsonMapper<B, R> mapRequiredFloatRange(final String field, final BiConsumer<B, FloatRange> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getFloatRange(j, field), mapper);
     }
 
-    public HjsonMapper mapDistFunc(final String field, final Consumer<CellularDistanceFunction> ifPresent) {
+    public HjsonMapper<B, R> mapDistFunc(final String field, final BiConsumer<B, CellularDistanceFunction> ifPresent) {
         return mapEnum(field, CellularDistanceFunction.class, ifPresent);
     }
 
-    public HjsonMapper mapRequiredDistFunc(final String field, final Consumer<CellularDistanceFunction> mapper) {
+    public HjsonMapper<B, R> mapRequiredDistFunc(final String field, final BiConsumer<B, CellularDistanceFunction> mapper) {
         return mapRequiredEnum(field, CellularDistanceFunction.class, mapper);
     }
 
-    public HjsonMapper mapReturnType(final String field, final Consumer<CellularReturnType> ifPresent) {
+    public HjsonMapper<B, R> mapReturnType(final String field, final BiConsumer<B, CellularReturnType> ifPresent) {
         return mapEnum(field, CellularReturnType.class, ifPresent);
     }
 
-    public HjsonMapper mapRequiredReturnType(final String field, final Consumer<CellularReturnType> mapper) {
+    public HjsonMapper<B, R> mapRequiredReturnType(final String field, final BiConsumer<B, CellularReturnType> mapper) {
         return mapRequiredEnum(field, CellularReturnType.class, mapper);
     }
 
-    public HjsonMapper mapFractalType(final String field, final Consumer<FractalType> ifPresent) {
+    public HjsonMapper<B, R> mapFractalType(final String field, final BiConsumer<B, FractalType> ifPresent) {
         return mapEnum(field, FractalType.class, ifPresent);
     }
 
-    public HjsonMapper mapRequiredFractalType(final String field, final Consumer<FractalType> mapper) {
+    public HjsonMapper<B, R> mapRequiredFractalType(final String field, final BiConsumer<B, FractalType> mapper) {
         return mapRequiredEnum(field, FractalType.class, mapper);
     }
 
-    public HjsonMapper mapInterp(final String field, final Consumer<Interp> ifPresent) {
+    public HjsonMapper<B, R> mapInterp(final String field, final BiConsumer<B, Interp> ifPresent) {
         return mapEnum(field, Interp.class, ifPresent);
     }
 
-    public HjsonMapper mapRequiredInterp(final String field, final Consumer<Interp> mapper) {
+    public HjsonMapper<B, R> mapRequiredInterp(final String field, final BiConsumer<B, Interp> mapper) {
         return mapRequiredEnum(field, Interp.class, mapper);
     }
 
-    public HjsonMapper mapNoiseType(final String field, final Consumer<NoiseType> ifPresent) {
+    public HjsonMapper<B, R> mapNoiseType(final String field, final BiConsumer<B, NoiseType> ifPresent) {
         return mapEnum(field, NoiseType.class, ifPresent);
     }
 
-    public HjsonMapper mapRequiredNoiseType(final String field, final Consumer<NoiseType> mapper) {
+    public HjsonMapper<B, R> mapRequiredNoiseType(final String field, final BiConsumer<B, NoiseType> mapper) {
         return mapRequiredEnum(field, NoiseType.class, mapper);
     }
 
-    public <E extends Enum<E>> HjsonMapper mapEnum(final String field, final Class<E> e, final Consumer<E> ifPresent) {
-        HjsonUtils.getEnumValue(json, field, e).ifPresent(ifPresent);
+    public <E extends Enum<E>> HjsonMapper<B, R> mapEnum(final String field, final Class<E> e, final BiConsumer<B, E> ifPresent) {
+        return this.add(j -> HjsonUtils.getEnumValue(j, field, e), ifPresent);
+    }
+
+    public <E extends Enum<E>> HjsonMapper<B, R> mapRequiredEnum(final String field, final Class<E> e, final BiConsumer<B, E> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getEnumValue(j, field, e), mapper);
+    }
+
+    public HjsonMapper<B, R> mapState(final String field, final BiConsumer<B, BlockState> ifPresent) {
+        return this.add(j -> HjsonUtils.getState(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredState(final String field, final BiConsumer<B, BlockState> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getState(j, field), mapper);
+    }
+
+    public HjsonMapper<B, R> mapStateList(final String field, final BiConsumer<B, List<BlockState>> ifPresent) {
+        return this.add(j -> HjsonUtils.getStateList(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredStateList(final String field, final BiConsumer<B, List<BlockState>> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getStateList(j, field), mapper);
+    }
+
+    public HjsonMapper<B, R> mapBlockPos(final String field, final BiConsumer<B, BlockPos> ifPresent) {
+        return this.add(j -> HjsonUtils.getPosition(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredBlockPos(final String field, final BiConsumer<B, BlockPos> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getPosition(j, field), mapper);
+    }
+
+    public HjsonMapper<B, R> mapBlockPosList(final String field, final BiConsumer<B, List<BlockPos>> ifPresent) {
+        return this.add(j -> HjsonUtils.getPositionList(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredBlockPosList(final String field, final BiConsumer<B, List<BlockPos>> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getPositionList(j, field), mapper);
+    }
+
+    public HjsonMapper<B, R> mapPlacementSettings(final BiConsumer<B, StructureBlockEntity> mapper) {
+        return this.add(j -> Optional.of(HjsonUtils.getPlacementSettings(j)), mapper);
+    }
+
+    public HjsonMapper<B, R> mapObject(final String field, final BiConsumer<B, JsonObject> ifPresent) {
+        return this.add(j -> HjsonUtils.getObject(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredObject(final String field, final BiConsumer<B, JsonObject> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getObject(j, field), mapper);
+    }
+
+    public <M> HjsonMapper<B, R> mapObject(final String field, final Function<JsonObject, M> f, final BiConsumer<B, M> ifPresent) {
+        return this.add(j -> HjsonUtils.getObject(j, field).map(f), ifPresent);
+    }
+
+    public <M> HjsonMapper<B, R> mapRequiredObject(final String field, final Function<JsonObject, M> f, final BiConsumer<B, M> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getObject(j, field).map(f), mapper);
+    }
+
+    public <M> HjsonMapper<B, R> mapArray(final String field, final Function<JsonObject, M> f, final BiConsumer<B, List<M>> ifPresent) {
+        return this.add(this.createArrayGetter(field, f), ifPresent);
+    }
+
+    public <M> HjsonMapper<B, R> mapRequiredArray(final String field, final Function<JsonObject, M> f, final BiConsumer<B, List<M>> mapper) {
+        return this.addRequired(field, this.createArrayGetter(field, f), mapper);
+    }
+
+    private <M> JsonFunction<List<M>> createArrayGetter(final String field, final Function<JsonObject, M> f) {
+        return j -> {
+            if (j.has(field)) {
+                return Optional.of(map(HjsonUtils.getObjectArray(j, field), f));
+            }
+            return Optional.empty();
+        };
+    }
+
+    public <M> HjsonMapper<B, R> mapGeneric(final String field, final Function<JsonValue, M> f, final BiConsumer<B, M> ifPresent) {
+        return this.add(j -> HjsonUtils.getValue(j, field).map(f), ifPresent);
+    }
+
+    public <M> HjsonMapper<B, R> mapRequiredGeneric(final String field, final Function<JsonValue, M> f, final BiConsumer<B, M> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getValue(j, field).map(f), mapper);
+    }
+
+    public <M> HjsonMapper<B, R> mapGenericArray(final String field, final Function<JsonValue, M> f, final BiConsumer<B, List<M>> ifPresent) {
+        return this.add(this.createListGetter(field, f), ifPresent);
+    }
+
+    public <M> HjsonMapper<B, R> mapRequiredGenericArray(final String field, final Function<JsonValue, M> f, final BiConsumer<B, List<M>> mapper) {
+        return this.addRequired(field, this.createListGetter(field, f), mapper);
+    }
+
+    private <M> JsonFunction<List<M>> createListGetter(final String field, final Function<JsonValue, M> f) {
+        return j -> {
+            final JsonValue value = j.get(field);
+            if (value != null) {
+                final List<M> list = new ArrayList<>();
+                for (final JsonValue inner : HjsonUtils.asOrToArray(value)) {
+                    list.add(f.apply(inner));
+                }
+                return Optional.of(list);
+            }
+            return Optional.empty();
+        };
+    }
+
+    public HjsonMapper<B, R> mapSelf(final BiConsumer<B, JsonObject> mapper) {
+        this.mappers.add((j, b) -> mapper.accept(b, j));
         return this;
     }
 
-    public <E extends Enum<E>> HjsonMapper mapRequiredEnum(final String field, final Class<E> e, final Consumer<E> mapper) {
-        mapper.accept(HjsonUtils.getEnumValue(json, field, e).orElseThrow(() -> requiredField(field)));
+    public <T> HjsonMapper<B, R> add(final JsonFunction<T> getter, final BiConsumer<B, T> ifPresent) {
+        this.mappers.add((j, b) -> getter.apply(j).ifPresent(v -> ifPresent.accept(b, v)));
         return this;
     }
 
-    public HjsonMapper mapState(final String field, final Consumer<BlockState> ifPresent) {
-        HjsonUtils.getState(json, field).ifPresent(ifPresent);
+    public <T> HjsonMapper<B, R> addRequired(final String field, final JsonFunction<T> getter, final BiConsumer<B, T> mapper) {
+        this.mappers.add((j, b) -> mapper.accept(b, getter.apply(j).orElseThrow(() -> requiredField(field))));
         return this;
     }
 
-    public HjsonMapper mapRequiredState(final String field, final Consumer<BlockState> mapper) {
-        mapper.accept(HjsonUtils.getState(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
-    }
-
-    public HjsonMapper mapStateList(final String field, final Consumer<List<BlockState>> ifPresent) {
-        HjsonUtils.getStateList(json, field).ifPresent(ifPresent);
-        return this;
-    }
-
-    public HjsonMapper mapRequiredStateList(final String field, final Consumer<List<BlockState>> mapper) {
-        mapper.accept(HjsonUtils.getStateList(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
-    }
-
-    public HjsonMapper mapBlockPos(final String field, final Consumer<BlockPos> ifPresent) {
-        HjsonUtils.getPosition(json, field).ifPresent(ifPresent);
-        return this;
-    }
-
-    public HjsonMapper mapRequiredBlockPos(final String field, final Consumer<BlockPos> mapper) {
-        mapper.accept(HjsonUtils.getPosition(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
-    }
-
-    public HjsonMapper mapBlockPosList(final String field, final Consumer<List<BlockPos>> ifPresent) {
-        HjsonUtils.getPositionList(json, field).ifPresent(ifPresent);
-        return this;
-    }
-
-    public HjsonMapper mapRequiredBlockPosList(final String field, final Consumer<List<BlockPos>> mapper) {
-        mapper.accept(HjsonUtils.getPositionList(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
-    }
-
-    public HjsonMapper mapPlacementSettings(final Consumer<StructureBlockEntity> mapper) {
-        mapper.accept(HjsonUtils.getPlacementSettings(json));
-        return this;
-    }
-
-    public HjsonMapper mapObject(final String field, final Consumer<JsonObject> ifPresent) {
-        HjsonUtils.getObject(json, field).ifPresent(ifPresent);
-        return this;
-    }
-
-    public HjsonMapper mapRequiredObject(final String field, final Consumer<JsonObject> mapper) {
-        mapper.accept(HjsonUtils.getObject(json, field).orElseThrow(() -> requiredField(field)));
-        return this;
-    }
-
-    public <M> HjsonMapper mapObject(final String field, final Function<JsonObject, M> f, final Consumer<M> ifPresent) {
-        HjsonUtils.getObject(json, field).map(f).ifPresent(ifPresent);
-        return this;
-    }
-
-    public <M> HjsonMapper mapRequiredObject(final String field, final Function<JsonObject, M> f, final Consumer<M> mapper) {
-        mapper.accept(HjsonUtils.getObject(json, field).map(f).orElseThrow(() -> requiredField(field)));
-        return this;
-    }
-
-    public <M> HjsonMapper mapArray(final String field, final Function<JsonObject, M> f, final Consumer<List<M>> ifPresent) {
-        if (json.has(field)) {
-            ifPresent.accept(map(HjsonUtils.getObjectArray(json, field), f));
+    public R create(final JsonObject json, final B builder) {
+        for (final BiConsumer<JsonObject, B> f : this.mappers) {
+            f.accept(json, builder);
         }
-        return this;
+        return this.buildFunction.apply(builder);
     }
 
-    public <M> HjsonMapper mapRequiredArray(final String field, final Function<JsonObject, M> f, final Consumer<List<M>> mapper) {
-        if (!json.has(field)) {
-            throw requiredField(field);
-        }
-        mapper.accept(map(HjsonUtils.getObjectArray(json, field), f));
-        return this;
-    }
-
-    public <M> HjsonMapper mapGeneric(final String field, final Function<JsonValue, M> f, final Consumer<M> ifPresent) {
-        HjsonUtils.getValue(json, field).map(f).ifPresent(ifPresent);
-        return this;
-    }
-
-    public <M> HjsonMapper mapRequiredGeneric(final String field, final Function<JsonValue, M> f, final Consumer<M> mapper) {
-        mapper.accept(HjsonUtils.getValue(json, field).map(f).orElseThrow(() -> requiredField(field)));
-        return this;
-    }
-
-    public <M> HjsonMapper mapGenericArray(final String field, final Function<JsonValue, M> f, final Consumer<List<M>> ifPresent) {
-        final JsonValue value = json.get(field);
-        if (value != null) {
-            mapGenericArrayInternal(value, f, ifPresent);
-        }
-        return this;
-    }
-
-    public <M> HjsonMapper mapRequiredGenericArray(final String field, final Function<JsonValue, M> f, final Consumer<List<M>> mapper) {
-        final JsonValue value = json.get(field);
-        if (value == null) {
-            throw requiredField(field);
-        }
-        mapGenericArrayInternal(value, f, mapper);
-        return this;
-    }
-
-    private <M> void mapGenericArrayInternal(@NotNull JsonValue value, final Function<JsonValue, M> f, final Consumer<List<M>> mapper) {
-        final List<M> list = new ArrayList<>();
-        for (final JsonValue inner : HjsonUtils.asOrToArray(value)) {
-            list.add(f.apply(inner));
-        }
-        mapper.accept(list);
-    }
-
-    public HjsonMapper mapSelf(final Consumer<JsonObject> mapper) {
-        mapper.accept(this.json);
-        return this;
-    }
-
-    public <T> T release(final Supplier<T> supplier) {
-        return supplier.get();
+    public Result<R, JsonMappingException> tryCreate(final JsonObject json, final B builder) {
+        return Result.<R, JsonMappingException>of(() -> this.create(json, builder)).ifErr(Result::IGNORE);
     }
 
     protected JsonMappingException requiredField(final String field) {
-        return mappingEx("{}.{} is required", this.parent, field);
+        return new JsonMappingException(this.parent, field);
+    }
+
+    @FunctionalInterface
+    public interface JsonFunction<T> {
+        Optional<T> apply(final JsonObject json);
     }
 }
