@@ -10,11 +10,10 @@ import org.hjson.JsonValue;
 import personthecat.catlib.data.FloatRange;
 import personthecat.catlib.data.Range;
 import personthecat.catlib.exception.JsonMappingException;
-import personthecat.fastnoise.FastNoise.CellularDistanceFunction;
-import personthecat.fastnoise.FastNoise.CellularReturnType;
-import personthecat.fastnoise.FastNoise.FractalType;
-import personthecat.fastnoise.FastNoise.Interp;
-import personthecat.fastnoise.FastNoise.NoiseType;
+import personthecat.fastnoise.data.CellularDistanceType;
+import personthecat.fastnoise.data.CellularReturnType;
+import personthecat.fastnoise.data.FractalType;
+import personthecat.fastnoise.data.NoiseType;
 import personthecat.fresult.Result;
 
 import java.util.ArrayList;
@@ -138,12 +137,12 @@ public class HjsonMapper<B, R> {
         return this.addRequired(field, j -> HjsonUtils.getFloatRange(j, field), mapper);
     }
 
-    public HjsonMapper<B, R> mapDistFunc(final String field, final BiConsumer<B, CellularDistanceFunction> ifPresent) {
-        return mapEnum(field, CellularDistanceFunction.class, ifPresent);
+    public HjsonMapper<B, R> mapDistFunc(final String field, final BiConsumer<B, CellularDistanceType> ifPresent) {
+        return mapEnum(field, CellularDistanceType.class, ifPresent);
     }
 
-    public HjsonMapper<B, R> mapRequiredDistFunc(final String field, final BiConsumer<B, CellularDistanceFunction> mapper) {
-        return mapRequiredEnum(field, CellularDistanceFunction.class, mapper);
+    public HjsonMapper<B, R> mapRequiredDistFunc(final String field, final BiConsumer<B, CellularDistanceType> mapper) {
+        return mapRequiredEnum(field, CellularDistanceType.class, mapper);
     }
 
     public HjsonMapper<B, R> mapReturnType(final String field, final BiConsumer<B, CellularReturnType> ifPresent) {
@@ -160,14 +159,6 @@ public class HjsonMapper<B, R> {
 
     public HjsonMapper<B, R> mapRequiredFractalType(final String field, final BiConsumer<B, FractalType> mapper) {
         return mapRequiredEnum(field, FractalType.class, mapper);
-    }
-
-    public HjsonMapper<B, R> mapInterp(final String field, final BiConsumer<B, Interp> ifPresent) {
-        return mapEnum(field, Interp.class, ifPresent);
-    }
-
-    public HjsonMapper<B, R> mapRequiredInterp(final String field, final BiConsumer<B, Interp> mapper) {
-        return mapRequiredEnum(field, Interp.class, mapper);
     }
 
     public HjsonMapper<B, R> mapNoiseType(final String field, final BiConsumer<B, NoiseType> ifPresent) {
