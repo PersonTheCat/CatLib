@@ -44,8 +44,9 @@ allprojects {
     }
 
     dependencies {
-        bundle group: 'com.github.PersonTheCat', name: 'hjson-java', version: '3.0.0-C2'
+        bundle group: 'com.github.PersonTheCat', name: 'FastNoise', version: '0.1'
         bundle group: 'com.github.PersonTheCat', name: 'FResult', version: '2.0-BETA-4'
+        bundle group: 'com.github.PersonTheCat', name: 'hjson-java', version: '3.0.0-C2'
 
         compileOnly group: 'com.github.PersonTheCat', name: 'OverwriteValidatorAnnotations', version: '1.4'
         compileOnly group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
