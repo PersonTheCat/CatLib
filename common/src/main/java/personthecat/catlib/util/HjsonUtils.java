@@ -32,6 +32,7 @@ import static personthecat.catlib.exception.Exceptions.noBiomeTypeNamed;
 import static personthecat.catlib.exception.Exceptions.noBlockNamed;
 import static personthecat.catlib.exception.Exceptions.runEx;
 import static personthecat.catlib.exception.Exceptions.unreachable;
+import static personthecat.catlib.util.LibReference.JSON_EXTENSIONS;
 import static personthecat.catlib.util.McUtils.getBiome;
 import static personthecat.catlib.util.McUtils.getBiomes;
 import static personthecat.catlib.util.McUtils.getBiomeType;
@@ -123,7 +124,7 @@ public class HjsonUtils {
      */
     public static Result<Void, IOException> writeJson(final JsonObject json, final File file) {
         return Result.with(() -> new FileWriter(file), writer -> {
-            if (extension(file).equals("json")) { // Write as json.
+            if (JSON_EXTENSIONS.contains(extension(file))) { // Write as json.
                 json.writeTo(writer, Stringify.FORMATTED);
             } else { // Write as hjson.
                 json.writeTo(writer, FORMATTER);

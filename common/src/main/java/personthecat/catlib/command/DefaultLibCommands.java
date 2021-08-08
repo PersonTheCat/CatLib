@@ -13,6 +13,7 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
+import org.hjson.HjsonOptions;
 import org.hjson.JsonValue;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
@@ -68,6 +69,9 @@ public class DefaultLibCommands {
         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("Click to undo.")))
         .withUnderlined(true)
         .withBold(true);
+
+    /** Require braces for objects when executing the update command. */
+    private static final HjsonOptions NO_EMIT_BRACES = new HjsonOptions().setParseLegacyRoot(false);
 
     /** The number of backups before a warning is displayed. */
     private static final int BACKUP_COUNT_WARNING = 10;
@@ -290,7 +294,7 @@ public class DefaultLibCommands {
         // Read the old and new values.
         final String toEscaped = wrapper.getString(VALUE_ARGUMENT);
         final String toLiteral = unEscape(toEscaped);
-        final JsonValue toValue = JsonValue.readHjson(toLiteral);
+        final JsonValue toValue = JsonValue.readHjson(toLiteral, NO_EMIT_BRACES);
         final JsonValue fromValue = HjsonUtils.getValueFromPath(file.json.get(), path)
             .orElseGet(() -> JsonValue.valueOf(null));
         final String fromLiteral = fromValue.toString(HjsonUtils.FORMATTER);

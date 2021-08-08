@@ -10,7 +10,6 @@ import com.mojang.datafixers.util.Either;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
-import org.apache.commons.lang3.CharUtils;
 import org.hjson.JsonObject;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.util.HjsonUtils;
@@ -70,7 +69,7 @@ public class PathArgument implements ArgumentType<PathArgument.Result> {
             final char c = reader.read();
             if (c == '.') {
                 checkDot(reader, begin);
-            } else if (CharUtils.isAsciiAlphanumeric(c)) {
+            } else if (inKey(c)) {
                 path.add(Either.left(c + readKey(reader)));
             } else if (c == '[') {
                 checkDot(reader, begin);
@@ -92,7 +91,7 @@ public class PathArgument implements ArgumentType<PathArgument.Result> {
     }
 
     private static boolean inKey(final char c) {
-        return c != '.' && CharUtils.isAsciiAlphanumeric(c);
+        return c != '.' && c != ' ' && c != '[';
     }
 
     private static void checkDot(final StringReader reader, final int begin) throws CommandSyntaxException {

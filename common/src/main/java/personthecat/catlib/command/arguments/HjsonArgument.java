@@ -21,6 +21,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static personthecat.catlib.exception.Exceptions.cmdSyntax;
+import static personthecat.catlib.util.LibReference.HJSON_EXTENSIONS;
+import static personthecat.catlib.util.LibReference.JSON_EXTENSIONS;
 import static personthecat.catlib.util.HjsonUtils.readJson;
 import static personthecat.catlib.util.PathUtils.extension;
 
@@ -40,7 +42,8 @@ public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
     @Override
     public Result parse(final StringReader reader) throws CommandSyntaxException {
         final File f = getter.parse(reader);
-        if (f.exists() && !(f.isDirectory() || extension(f).endsWith("json"))) {
+        final String ext = extension(f);
+        if (f.exists() && !(f.isDirectory() || HJSON_EXTENSIONS.contains(ext) || JSON_EXTENSIONS.contains(ext))) {
             throw cmdSyntax(reader, "Unsupported format");
         }
         return new Result(getter.dir, f);
