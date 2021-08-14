@@ -3,7 +3,6 @@ package personthecat.catlib.config;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
-import me.shedaniel.autoconfig.annotation.ConfigEntry.Gui.Excluded;
 import personthecat.catlib.data.Lazy;
 import personthecat.catlib.util.LibReference;
 import personthecat.overwritevalidator.annotations.Overwrite;
@@ -17,11 +16,9 @@ public class LibConfig implements ConfigData {
 
     General general = new General();
 
-    @Excluded
     private static final Lazy<LibConfig> CONFIG =
         Lazy.of(() -> AutoConfig.getConfigHolder(LibConfig.class).getConfig());
 
-    @Excluded
     @Overwrite
     public static final Supplier<Boolean> ENABLE_GLOBAL_LIB_COMMANDS =
         () -> CONFIG.get().general.enableGlobalLibCommands;
