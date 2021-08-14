@@ -77,6 +77,23 @@ public class Shorthand {
     }
 
     /**
+     * Returns 1 / x, or else {@link Integer#MAX_VALUE} if x == 0.
+     * <p>
+     *   This may be useful in cases where a random number is being generated
+     *   in the following pattern, but a double is provided:
+     * </p><pre>{@code
+     *   // return true on 1 / x chance
+     *   rand.nextInt(i) == 0
+     * }</pre>
+     *
+     * @param value Any decimal value.
+     * @return The inversion of the input, which never divides by 0.
+     */
+    public static int invert(final double value) {
+        return value == 0 ? Integer.MAX_VALUE : (int) (1 / value);
+    }
+
+    /**
      * Interpolates strings by replacing instances of <code>{}</code> in order.
      *
      * @param s The template string being formatted.
@@ -106,7 +123,7 @@ public class Shorthand {
      * the predicate `by`. Shorthand for Stream#findFirst.
      *
      * <p>Example:</p>
-     * <pre>
+     * <pre>{@code
      *    // Find x by x.name
      *    Object[] vars = getObjectsWithNames();
      *    Optional<Object> var = find(vars, (x) -> x.name.equals("Cat"));
@@ -114,7 +131,7 @@ public class Shorthand {
      *    Object result = var.get()
      *    // Or use an alternative. Standard java.util.Optional. -> no NPE
      *    Object result = var.orElse(new Object("Cat"))
-     * </pre>
+     * }</pre>
      *
      * @param <T> The type of array being passed in.
      * @param values The actual array containing the value.

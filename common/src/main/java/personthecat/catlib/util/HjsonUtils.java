@@ -9,6 +9,10 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.structure.templatesystem.BlockRotProcessor;
+import net.minecraft.world.level.levelgen.structure.templatesystem.GravityProcessor;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import org.hjson.*;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.EmptyRange;
@@ -671,16 +675,30 @@ public class HjsonUtils {
         return types;
     }
 
-    public static StructureBlockEntity getPlacementSettings(final JsonObject json) {
-        final StructureBlockEntity settings = new StructureBlockEntity();
-        getFloat(json, "integrity").ifPresent(settings::setIntegrity);
+    public static StructurePlaceSettings getPlacementSettings(final JsonObject json) {
+        final StructurePlaceSettings settings = new StructurePlaceSettings();
+        getFloat(json, "integrity").ifPresent(i -> settings.addProcessor(new BlockRotProcessor(i)));
         getEnumValue(json, "mirror", Mirror.class).ifPresent(settings::setMirror);
         getBool(json, "ignoreEntities").ifPresent(settings::setIgnoreEntities);
+        getBool(json, "hasGravity").ifPresent(b ->
+            settings.addProcessor(new GravityProcessor(Heightmap.Types.MOTION_BLOCKING, 1)));
 
         return settings;
     }
 
-    public static <T extends Enum<T>> Optional<T> getEnumValue(JsonObject json, String field, Class<T> clazz) {
+    public static <T extends Enum<T>> Optional<T> getEnumValue(final JsonObject json, final String field, final Class<T> clazz) {
         return getString(json, field).map(s -> assertEnumConstant(s, clazz));
+    }
+
+    public static <T extends Enum<T>> Optional<List<T>> getEnumList(final JsonObject json, final String field, final Class<T> clazz) {
+        return getValue(json, field).map(v -> toEnumArray(asOrToArray(v), clazz));
+    }
+
+    private static <T extends Enum<T>> List<T> toEnumArray(final JsonArray array, final Class<T> clazz) {
+        final List<T> list = new ArrayList<>();
+        for (final JsonValue value : array) {
+            list.add(assertEnumConstant(value.asString(), clazz));
+        }
+        return list;
     }
 }

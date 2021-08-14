@@ -3,8 +3,8 @@ package personthecat.catlib.util;
 import lombok.AllArgsConstructor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import personthecat.catlib.data.FloatRange;
@@ -30,7 +30,8 @@ import static personthecat.catlib.util.Shorthand.map;
  * <p>
  *     e.g.
  * </p>
- * <pre>
+ * <pre>{@code
+ *
  *   // Declare a reusable mapper.
  *   final HjsonMapper&lt;MyClassBuilder, MyClass&gt; MAPPER =
  *     new HjsonMapper&lt;&gt;("objectName", MyClassBuilder::build)
@@ -39,16 +40,22 @@ import static personthecat.catlib.util.Shorthand.map;
  *
  *   // Standard from Json style syntax.
  *   public static MyObject from(final JsonObject json) {
- *     return MAPPER.create(json, builder());
+ *     return MAPPER.create(builder(), json);
  *   }
  *
  *   // Handle errors with a Result wrapper.
  *   public static MyObject from2(final JsonObject json) {
- *     return MAPPER.tryCreate(json, builder())
+ *     return MAPPER.tryCreate(builder(), json)
  *       .ifOk(o -> log.info("You did it!))
  *       .orElseGet(MyObject::new);
  *   }
- * </pre>
+ *
+ *   // Accept backup JSONs in case of missing values.
+ *   public static MyObject from3(final JsonObject json, final JsonObject defaults) {
+ *       return MAPPER.create(builder(), json, defaults);
+ *   }
+ *
+ * }</pre>
  * <p>
  *   Notice that all default mappers are considered <b>optional</b>. If a given field is
  *   required (i.e. should crash if absent), use the <code>required</code> mappers instead.
@@ -61,7 +68,7 @@ import static personthecat.catlib.util.Shorthand.map;
 @SuppressWarnings("unused")
 public class HjsonMapper<B, R> {
 
-    final List<BiConsumer<JsonObject, B>> mappers = new ArrayList<>();
+    final List<JsonMapper<B>> mappers = new ArrayList<>();
     final String parent;
     final Function<B, R> buildFunction;
 
@@ -177,6 +184,14 @@ public class HjsonMapper<B, R> {
         return this.addRequired(field, j -> HjsonUtils.getEnumValue(j, field, e), mapper);
     }
 
+    public <E extends Enum<E>> HjsonMapper<B, R> mapEnumList(final String field, final Class<E> e, final BiConsumer<B, List<E>> ifPresent) {
+        return this.add(j -> HjsonUtils.getEnumList(j, field, e), ifPresent);
+    }
+
+    public <E extends Enum<E>> HjsonMapper<B, R> mapRequiredEnumList(final String field, final Class<E> e, final BiConsumer<B, List<E>> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getEnumList(j, field, e), mapper);
+    }
+
     public HjsonMapper<B, R> mapState(final String field, final BiConsumer<B, BlockState> ifPresent) {
         return this.add(j -> HjsonUtils.getState(j, field), ifPresent);
     }
@@ -209,7 +224,7 @@ public class HjsonMapper<B, R> {
         return this.addRequired(field, j -> HjsonUtils.getPositionList(j, field), mapper);
     }
 
-    public HjsonMapper<B, R> mapPlacementSettings(final BiConsumer<B, StructureBlockEntity> mapper) {
+    public HjsonMapper<B, R> mapPlacementSettings(final BiConsumer<B, StructurePlaceSettings> mapper) {
         return this.add(j -> Optional.of(HjsonUtils.getPlacementSettings(j)), mapper);
     }
 
@@ -277,29 +292,58 @@ public class HjsonMapper<B, R> {
     }
 
     public HjsonMapper<B, R> mapSelf(final BiConsumer<B, JsonObject> mapper) {
-        this.mappers.add((j, b) -> mapper.accept(b, j));
+        this.mappers.add((j, b) -> {
+            mapper.accept(b, j);
+            return true;
+        });
         return this;
     }
 
     public <T> HjsonMapper<B, R> add(final JsonFunction<T> getter, final BiConsumer<B, T> ifPresent) {
-        this.mappers.add((j, b) -> getter.apply(j).ifPresent(v -> ifPresent.accept(b, v)));
+        this.mappers.add((j, b) -> {
+            final Optional<T> t = getter.apply(j);
+            t.ifPresent(v -> ifPresent.accept(b, v));
+            return t.isPresent();
+        });
         return this;
     }
 
     public <T> HjsonMapper<B, R> addRequired(final String field, final JsonFunction<T> getter, final BiConsumer<B, T> mapper) {
-        this.mappers.add((j, b) -> mapper.accept(b, getter.apply(j).orElseThrow(() -> requiredField(field))));
+        this.mappers.add((j, b) -> {
+            mapper.accept(b, getter.apply(j).orElseThrow(() -> requiredField(field)));
+            return true;
+        });
         return this;
     }
 
-    public R create(final JsonObject json, final B builder) {
-        for (final BiConsumer<JsonObject, B> f : this.mappers) {
-            f.accept(json, builder);
+    /**
+     * Applies all of the mappers to a given builder and JSON object(s). Note that
+     * an array of backup JSONs may be provided for any <b>optional</b> value.
+     *
+     * @throws JsonMappingException If any required fields are absent from the primary json.
+     * @param builder  The builder object being written into.
+     * @param json     The primary source of data for this builder.
+     * @param defaults Any additional, backup JSON data sources.
+     * @return The main object returned by the builder.
+     */
+    public R create(final B builder, final JsonObject json, final JsonObject... defaults) {
+        for (final JsonMapper<B> f : this.mappers) {
+            f.map(json, builder);
         }
         return this.buildFunction.apply(builder);
     }
 
-    public Result<R, JsonMappingException> tryCreate(final JsonObject json, final B builder) {
-        return Result.<R, JsonMappingException>of(() -> this.create(json, builder)).ifErr(Result::IGNORE);
+    /**
+     * Variant of {@link HjsonMapper#create} which <b>does not throw</b> any exceptions.
+     * Instead, exceptions will be returned in the form of a {@link Result}.
+     *
+     * @param builder  The builder object being written into.
+     * @param json     The primary source of data for this builder.
+     * @param defaults Any additional, backup JSON data sources.
+     * @return The main object returned by the builder, or else {@link Result#err}.
+     */
+    public Result<R, JsonMappingException> tryCreate(final B builder, final JsonObject json, final JsonObject... defaults) {
+        return Result.<R, JsonMappingException>of(() -> this.create(builder, json, defaults)).ifErr(Result::IGNORE);
     }
 
     protected JsonMappingException requiredField(final String field) {
@@ -309,5 +353,10 @@ public class HjsonMapper<B, R> {
     @FunctionalInterface
     public interface JsonFunction<T> {
         Optional<T> apply(final JsonObject json);
+    }
+
+    @FunctionalInterface
+    public interface JsonMapper<T> {
+        boolean map(final JsonObject json, final T t);
     }
 }

@@ -26,8 +26,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Optional.empty;
 import static personthecat.catlib.exception.Exceptions.runEx;
 import static personthecat.catlib.exception.Exceptions.resourceEx;
+import static personthecat.catlib.util.Shorthand.full;
 import static personthecat.catlib.util.Shorthand.nullable;
 
 @Log4j2
@@ -160,6 +162,31 @@ public class FileIO {
                 }
             }
         }
+    }
+
+    /**
+     * Recursively searches through the given directory until the first matching file is found.
+     *
+     * @param dir    The root directory which may contain the expected file.
+     * @param filter A predicate used to match the expected file.
+     * @return The requested file, or else {@link Optional#empty}.
+     */
+    @CheckReturnValue
+    public static Optional<File> locateFileRecursive(final File dir, final FileFilter filter) {
+        final File[] inDir = dir.listFiles();
+        if (inDir != null) {
+            for (final File f : inDir) {
+                if (f.isDirectory()) {
+                    final Optional<File> found = locateFileRecursive(f, filter);
+                    if (found.isPresent()) {
+                        return found;
+                    }
+                } else if (filter.accept(f)) {
+                    return full(f);
+                }
+            }
+        }
+        return empty();
     }
 
     /**
