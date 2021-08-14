@@ -9,13 +9,13 @@ import net.minecraft.commands.Commands;
 import org.apache.commons.lang3.tuple.Pair;
 import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.annotations.ModCommand;
-import personthecat.catlib.command.LibCommandBuilder.CommandFunction;
+import personthecat.catlib.command.LibCommandBuilder.CommanBuilder;
 import personthecat.catlib.command.annotations.Node;
 import personthecat.catlib.command.arguments.ArgumentDescriptor;
 import personthecat.catlib.command.arguments.ListArgumentBuilder;
+import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.IntRef;
 import personthecat.catlib.util.SyntaxLinter;
-import personthecat.fresult.functions.ThrowingConsumer;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -66,7 +66,7 @@ public class CommandClassEvaluator {
             if (!Modifier.isStatic(m.getModifiers())) {
                 throw new CommandClassEvaluationException("{} must be static", m.getName());
             }
-            builders.add(createBuilder(createConsumer(m), a));
+            builders.add(createBuilder(createConsumer(m), m, a));
         });
     }
 
@@ -79,8 +79,8 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static LibCommandBuilder createBuilder(final ThrowingConsumer<CommandContextWrapper, Throwable> cmd, final ModCommand a) {
-        return LibCommandBuilder.named(a.name())
+    private static LibCommandBuilder createBuilder(final CommandFunction cmd, final Method m, final ModCommand a) {
+        return LibCommandBuilder.named(a.name().isEmpty() ? m.getName() : a.name())
             .arguments(a.arguments())
             .description(String.join(" ", a.description()))
             .linter(a.linter().length == 0 ? SyntaxLinter.DEFAULT_LINTER : tryInstantiate(a.linter()[0]))
@@ -90,7 +90,7 @@ public class CommandClassEvaluator {
             .generate(createBranch(a));
     }
 
-    private static CommandFunction<CommandSourceStack> createBranch(final ModCommand a) {
+    private static CommanBuilder<CommandSourceStack> createBranch(final ModCommand a) {
         return (builder, wrappers) -> {
             final List<Pair<Node, ArgumentDescriptor<?>>> entries = createEntries(a.branch());
             final List<ArgumentBuilder<CommandSourceStack, ?>> arguments = new ArrayList<>();
@@ -211,7 +211,7 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static ThrowingConsumer<CommandContextWrapper, Throwable> createConsumer(final Method m) {
+    private static CommandFunction createConsumer(final Method m) {
         m.setAccessible(true);
         return wrapper -> m.invoke(null, wrapper);
     }

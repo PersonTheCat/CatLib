@@ -81,9 +81,10 @@ import java.lang.annotation.Target;
 public @interface ModCommand {
 
     /**
-     * The first literal argument used to run this command.
+     * The first literal argument used to run this command. If absent, this will
+     * default to the name of the declaring method.
      */
-    String name();
+    String name() default "";
 
     /**
      * Optional subtext to display on the help page.

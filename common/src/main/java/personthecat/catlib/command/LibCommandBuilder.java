@@ -9,10 +9,10 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.annotations.CommandBuilder;
+import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.SyntaxLinter;
 import personthecat.fresult.Result;
-import personthecat.fresult.functions.ThrowingConsumer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.InvocationTargetException;
@@ -220,7 +220,7 @@ public final class LibCommandBuilder {
          * @param endpoint The actual method being executed by the command.
          * @return <code>this</code>, for method chaining.
          */
-        public Template wrap(final String key, final ThrowingConsumer<CommandContextWrapper, Throwable> endpoint) {
+        public Template wrap(final String key, final CommandFunction endpoint) {
             this.wrappers.put(key, endpoint);
             return this;
         }
@@ -233,7 +233,7 @@ public final class LibCommandBuilder {
          *                  and wrapped command functions.
          * @return A fully-constructed command builder.
          */
-        public LibCommandBuilder generate(final CommandFunction<CommandSourceStack> generator) {
+        public LibCommandBuilder generate(final CommanBuilder<CommandSourceStack> generator) {
             if (this.mod == null) this.mod = CommandRegistrationContext.getActiveModOrThrow();
 
             final LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal(this.name);
@@ -245,24 +245,24 @@ public final class LibCommandBuilder {
         }
     }
 
-    private static class CommandMapBuilder extends HashMap<String, ThrowingConsumer<CommandContextWrapper, Throwable>> {}
+    private static class CommandMapBuilder extends HashMap<String, CommandFunction> {}
 
     @AllArgsConstructor
     public static class CommandMap {
 
-        private final Map<String, ThrowingConsumer<CommandContextWrapper, Throwable>> map;
+        private final Map<String, CommandFunction> map;
         private final SyntaxLinter linter;
         private final ModDescriptor mod;
 
         public Command<CommandSourceStack> get(final String key) {
-            final ThrowingConsumer<CommandContextWrapper, Throwable> fn = this.map.get(key);
+            final CommandFunction fn = this.map.get(key);
             Objects.requireNonNull(fn, "No command function for key: " + key);
 
             return ctx -> this.wrapCommand(new CommandContextWrapper(ctx, this.linter, this.mod), fn);
         }
 
-        private int wrapCommand(final CommandContextWrapper wrapper, final ThrowingConsumer<CommandContextWrapper, Throwable> fn) {
-            return Result.suppress(() -> fn.accept(wrapper))
+        private int wrapCommand(final CommandContextWrapper wrapper, final CommandFunction fn) {
+            return Result.suppress(() -> fn.execute(wrapper))
                 .ifErr(e -> this.handleException(wrapper, e))
                 .fold(v -> 1, e -> -1);
         }
@@ -285,7 +285,7 @@ public final class LibCommandBuilder {
     }
 
     @FunctionalInterface
-    public interface CommandFunction<S> {
+    public interface CommanBuilder<S> {
         LiteralArgumentBuilder<S> apply(final LiteralArgumentBuilder<S> builder, final CommandMap wrappers);
     }
 }
