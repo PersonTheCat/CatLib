@@ -1,6 +1,7 @@
 package personthecat.catlib.io;
 
 import org.jetbrains.annotations.NotNull;
+import personthecat.catlib.exception.DirectoryNotCreatedException;
 import personthecat.catlib.exception.ResourceException;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.Optional.empty;
+import static personthecat.catlib.exception.Exceptions.directoryNotCreated;
 import static personthecat.catlib.exception.Exceptions.runEx;
 import static personthecat.catlib.exception.Exceptions.resourceEx;
 import static personthecat.catlib.util.Shorthand.full;
@@ -55,6 +57,23 @@ public class FileIO {
     @CheckReturnValue
     public static boolean mkdirs(final File f) {
         return Result.suppress(() -> f.exists() || f.mkdirs()).orElse(false);
+    }
+
+    /**
+     * Variant of {@link #mkdirs(File)} which accepts multiple files. Note that this method does
+     * not return whether the file exists or has been created and instead will throw an exception
+     * if the operation fails.
+     *
+     * @param files All of the directories being created.
+     * @throws DirectoryNotCreatedException If any error occurs when creating the directory.
+     */
+    public static void mkdirsOrThrow(final File... files) {
+        for (final File f : files) {
+            Result.suppress(() -> f.exists() || f.mkdirs())
+                .mapErr(e -> directoryNotCreated(f, e))
+                .filter(b -> b, () -> directoryNotCreated(f))
+                .throwIfErr();
+        }
     }
 
     /**
@@ -320,7 +339,7 @@ public class FileIO {
     @CheckReturnValue
     public static Optional<InputStream> getResource(final String path) {
         final String file = path.startsWith("/") ? path : "/" + path;
-        return nullable(FileIO.class.getResourceAsStream(path));
+        return nullable(FileIO.class.getResourceAsStream(file));
     }
 
     /**

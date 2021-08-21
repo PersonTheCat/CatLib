@@ -14,6 +14,9 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.blocks.BlockStateArgument;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.TextComponent;
 import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
@@ -136,7 +139,7 @@ public class CommandUtils {
     }
 
     /**
-     * Variant of {@link #filArg(String)} which directly supplies a root folder.
+     * Variant of {@link #fileArg(String)} which directly supplies a root folder.
      *
      * @param name The name of the output argument node.
      * @param root The root folder to be used by the file argument parser.
@@ -187,6 +190,76 @@ public class CommandUtils {
      */
     public static RequiredArgumentBuilder<CommandSourceStack, PathArgument.Result> jsonPathArg(final String name) {
         return Commands.argument(name, new PathArgument());
+    }
+
+    /**
+     * Shorthand method for creating a {@link HoverEvent} which displays some text.
+     *
+     * @param txt The text to display on hover.
+     * @return A {@link HoverEvent} to display the given text.
+     */
+    public static HoverEvent displayOnHover(final String txt) {
+        return displayOnHover(new TextComponent(txt));
+    }
+
+    /**
+     * Shorthand method for creating a {@link HoverEvent} which displays a text component.
+     *
+     * @param txt The text component to display on hover.
+     * @return A {@link HoverEvent} to display the given component.
+     */
+    public static HoverEvent displayOnHover(final TextComponent txt) {
+        return new HoverEvent(HoverEvent.Action.SHOW_TEXT, txt);
+    }
+
+    /**
+     * Shorthand method for creating a {@link ClickEvent} which runs the given command.
+     *
+     * @param cmd The raw command text to be executed by the command manager.
+     * @return A {@link ClickEvent} to run the given command.
+     */
+    public static ClickEvent clickToRun(final String cmd) {
+        return new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd);
+    }
+
+    /**
+     * Shorthand method for creating a {@link ClickEvent} which opens the given file.
+     *
+     * @param file The file to be opened when this event runs.
+     * @return A {@link ClickEvent} to open the given file.
+     */
+    public static ClickEvent clickToOpen(final File file) {
+        return new ClickEvent(ClickEvent.Action.OPEN_URL, file.getPath());
+    }
+
+    /**
+     * Shorthand method for creating a {@link ClickEvent} which opens the given URL.
+     *
+     * @param url The url to be opened when this event runs.
+     * @return A {@link ClickEvent} to open the given URL.
+     */
+    public static ClickEvent clickToGo(final String url) {
+        return new ClickEvent(ClickEvent.Action.OPEN_URL, url);
+    }
+
+    /**
+     * Shorthand method for creating a {@link ClickEvent} which suggests the given command.
+     *
+     * @param cmd The command to be suggested when this event runs.
+     * @return A {@link ClickEvent} to suggest the given command.
+     */
+    public static ClickEvent clickToSuggest(final String cmd) {
+        return new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, cmd);
+    }
+
+    /**
+     * Shorthand method for creating a {@link ClickEvent} which copies the given text.
+     *
+     * @param txt The text to be copied into the clipboard.
+     * @return A {@link ClickEvent} to copy the given text.
+     */
+    public static ClickEvent clickToCopy(final String txt) {
+        return new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, txt);
     }
 
     private static File getDefaultRoot() {

@@ -9,6 +9,8 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import personthecat.catlib.util.Shorthand;
 
+import java.io.File;
+
 import static personthecat.catlib.util.Shorthand.f;
 
 @Log4j2
@@ -86,6 +88,48 @@ public class Exceptions {
      */
     public static ResourceException resourceEx(final String x, final Object... args) {
         return new ResourceException(f(x, args));
+    }
+
+    /**
+     * Shorthand for a regular {@link ModSetupException}.
+     *
+     * @param x The error message to display.
+     * @return A new {@link ModSetupException}.
+     */
+    public static ModSetupException modSetup(final String x) {
+        return new ModSetupException(x);
+    }
+
+    /**
+     * Shorthand for a {@link ModSetupException} using {@link Shorthand#f}.
+     *
+     * @param x The string template being interpolated.
+     * @param args The interpolated arguments replacing <code>{}</code>.
+     * @return A new {@link ModSetupException}.
+     */
+    public static ModSetupException modSetup(final String x, final Object... args) {
+        return new ModSetupException(f(x, args));
+    }
+
+    /**
+     * Creates a {@link DirectoryNotCreatedException} for the given file.
+     *
+     * @param f The file which could not be created.
+     * @return A new {@link DirectoryNotCreatedException}.
+     */
+    public static DirectoryNotCreatedException directoryNotCreated(final File f) {
+        return new DirectoryNotCreatedException(f);
+    }
+
+    /**
+     * Creates a {@link DirectoryNotCreatedException} when given a file <em>and</em> a cause.
+     *
+     * @param f The file which could not be created.
+     * @param cause The original exception thrown when creating the directory.
+     * @return A new {@link DirectoryNotCreatedException}.
+     */
+    public static DirectoryNotCreatedException directoryNotCreated(final File f, final Throwable cause) {
+        return new DirectoryNotCreatedException(f, cause);
     }
 
     /**

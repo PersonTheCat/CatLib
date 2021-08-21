@@ -14,7 +14,7 @@ loom {
 }
 
 dependencies {
-    bundle(project("$common")) {
+    bundle(project(path: "$common", configuration: 'transformProductionForge')) {
         transitive = false
     }
     implementation(project("$common")) {

@@ -12,6 +12,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,8 +21,11 @@ import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.exception.CommandExecutionException;
+import personthecat.catlib.util.PathUtils;
 import personthecat.catlib.util.SyntaxLinter;
 import personthecat.fresult.Result;
+
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +55,10 @@ public class CommandContextWrapper {
 
     public double getDouble(final String key) {
         return this.get(key, Double.class);
+    }
+
+    public boolean getBoolean(final String key) {
+        return this.get(key, Boolean.class);
     }
 
     public BlockState getBlock(final String key) {
@@ -173,6 +182,17 @@ public class CommandContextWrapper {
         return this.linter.lint(f(msg, args));
     }
 
+    @Nullable
+    public Entity getEntity() {
+        return this.ctx.getSource().getEntity();
+    }
+
+    @Nullable
+    public Player getPlayer() {
+        final Entity entity = this.getEntity();
+        return entity instanceof Player ? (Player) entity : null;
+    }
+
     public Level getLevel() {
         return this.ctx.getSource().getLevel();
     }
@@ -187,6 +207,10 @@ public class CommandContextWrapper {
 
     public void execute(final String command) {
         this.tryExecute(command).throwIfErr();
+    }
+
+    public void execute(final String command, final Object... args) {
+        this.execute(f(command, args));
     }
 
     public Result<Integer, CommandExecutionException> tryExecute(final String command) {
@@ -210,6 +234,18 @@ public class CommandContextWrapper {
 
     public File getModConfigFolder() {
         return this.mod.getConfigFolder();
+    }
+
+    public File getModFile(final String path) {
+        return new File(this.mod.getConfigFolder(), path);
+    }
+
+    public String getModPath(final String path) {
+        return this.getModPath(new File(path));
+    }
+
+    public String getModPath(final File file) {
+        return PathUtils.getRelativePath(this.mod.getConfigFolder(), file);
     }
 
     public CommandContext<CommandSourceStack> getCtx() {

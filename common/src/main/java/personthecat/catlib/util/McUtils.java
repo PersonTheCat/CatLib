@@ -79,6 +79,15 @@ public class McUtils {
     }
 
     /**
+     * @apiNote The implementation of this method may differ on each platform.
+     * @return A set of all registered blocks which can be iterated though.
+     */
+    @NotNull
+    public static Iterable<Block> getAllBlocks() {
+        return Registry.BLOCK;
+    }
+
+    /**
      * @throws BlockNotFoundException If the block does not exist.
      * @param id The name of the block being researched.
      * @return The given block's default state, or else throws.
@@ -118,6 +127,15 @@ public class McUtils {
     }
 
     /**
+     * @apiNote The implementation of this method may differ on each platform.
+     * @return A set of all registered items which can be iterated though.
+     */
+    @NotNull
+    public static Iterable<Item> getAllItems() {
+        return Registry.ITEM;
+    }
+
+    /**
      * @throws BiomeNotFoundException If the biome does not exist.
      * @param id The name of the biome being researched.
      * @return The given biome, or else throws.
@@ -136,6 +154,16 @@ public class McUtils {
      */
     public static Optional<Biome> getBiome(final ResourceLocation id) {
         return BuiltinRegistries.BIOME.getOptional(id);
+    }
+
+    /**
+     * Todo: consider data pack biomes.
+     *
+     * @apiNote The implementation of this method may differ on each platform.
+     * @return A set of all registered biomes which can be iterated though.
+     */
+    public static Iterable<Biome> getAllBiomes() {
+        return BuiltinRegistries.BIOME;
     }
 
     /**

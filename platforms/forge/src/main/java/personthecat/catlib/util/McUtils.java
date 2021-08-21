@@ -42,6 +42,11 @@ public class McUtils {
     }
 
     @Overwrite
+    public static Iterable<Block> getAllBlocks() {
+        return ForgeRegistries.BLOCKS;
+    }
+
+    @Overwrite
     public static boolean isDedicatedServer() {
         return Dist.DEDICATED_SERVER == Environment.get().getDist();
     }
@@ -52,8 +57,18 @@ public class McUtils {
     }
 
     @Overwrite
+    public static Iterable<Item> getAllItems() {
+        return ForgeRegistries.ITEMS;
+    }
+
+    @Overwrite
     public static Optional<Biome> getBiome(final ResourceLocation id) {
         return Optional.ofNullable(ForgeRegistries.BIOMES.getValue(id));
+    }
+
+    @Overwrite
+    public static Iterable<Biome> getAllBiomes() {
+        return ForgeRegistries.BIOMES;
     }
 
     @Overwrite

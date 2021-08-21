@@ -113,9 +113,18 @@ public class PathUtils {
      * @return The extension of the given file.
      */
     public static String extension(final File file) {
-        final String name = file.getName();
-        final int index = name.lastIndexOf(".");
-        return index < 1 ? "" : name.substring(index + 1);
+        return extension(file.getName());
+    }
+
+    /**
+     * Variant of {@link #extension(File)} which accepts a string.
+     *
+     * @param s The name of the file or path being operated on.
+     * @return The extension of the given file or path.
+     */
+    public static String extension(final String s) {
+        final int index = s.lastIndexOf(".");
+        return index < 1 ? "" : s.substring(index + 1);
     }
 
     /**
@@ -137,6 +146,37 @@ public class PathUtils {
     public static String noExtension(final String s) {
         final int index = s.lastIndexOf(".");
         return index < 0 ? s : s.substring(0, index);
+    }
+
+    /**
+     * Gets the relative path of the given file up to a root folder.
+     *
+     * <p>
+     *   For example, when given the following root folder:
+     * </p><pre>
+     *   /home/user/.minecraft/config
+     * </pre><p>
+     *   And the following file:
+     * </p><pre>
+     *   /home/user/.minecraft/config/backups/demo.txt
+     * </pre><p>
+     *   The following path will be output:
+     * </p><pre>
+     *   backups/demo.txt
+     * </pre>
+     *
+     * @param root The root directory for the output path.
+     * @param f The file which the path is generated from.
+     * @return A relative path from <code>root</code> to <code>f</code>.
+     */
+    public static String getRelativePath(final File root, final File f) {
+        final String rootPath = root.getPath();
+        final String filePath = f.getPath();
+
+        if (rootPath.length() + 1 > filePath.length()) {
+            return filePath;
+        }
+        return filePath.substring(rootPath.length() + 1);
     }
 
     /**
