@@ -187,10 +187,22 @@ public class CommandContextWrapper {
         return this.ctx.getSource().getEntity();
     }
 
+    public Entity assertEntity() {
+        final Entity entity = this.getEntity();
+        if (entity == null) throw new CommandExecutionException("Expected an entity");
+        return entity;
+    }
+
     @Nullable
     public Player getPlayer() {
         final Entity entity = this.getEntity();
         return entity instanceof Player ? (Player) entity : null;
+    }
+
+    public Player assertPlayer() {
+        final Player player = this.getPlayer();
+        if (player == null) throw new CommandExecutionException("Expected a player");
+        return player;
     }
 
     public Level getLevel() {

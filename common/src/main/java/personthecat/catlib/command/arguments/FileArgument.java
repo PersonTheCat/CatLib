@@ -10,6 +10,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import personthecat.catlib.command.CommandUtils;
+import personthecat.catlib.io.FileIO;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.PathUtils;
@@ -34,14 +35,20 @@ public class FileArgument implements ArgumentType<File> {
     }
 
     public final File dir;
+    public final boolean recursive;
 
     public FileArgument(final File dir) {
+        this(dir, true);
+    }
+
+    public FileArgument(final File dir, final boolean recursive) {
         if (!(dir.exists() || dir.mkdirs())) {
             throw new IllegalStateException("Creating directory: " + dir.getAbsolutePath());
         } else if (!dir.isDirectory()) {
             throw new IllegalArgumentException("FileArgument must be a directory: " + dir.getAbsolutePath());
         }
         this.dir = dir;
+        this.recursive = recursive;
     }
 
     @Override
@@ -56,7 +63,8 @@ public class FileArgument implements ArgumentType<File> {
             }
             path = reader.getString().substring(start, reader.getCursor());
         }
-        return lazyFile(this.dir, path.replace("\\_", " "));
+        // Todo: recursive search is expensive. Maybe return a FileResult.
+        return this.lazyFile(path.replace("\\_", " "));
     }
 
     public <S> Stream<String> suggestPaths(final CommandContext<S> ctx) {
@@ -89,8 +97,8 @@ public class FileArgument implements ArgumentType<File> {
     }
 
     /** Retrieves files without needing extensions. */
-    private static File lazyFile(final File dir, final String path) {
-        final File test = new File(dir, path);
+    private File lazyFile(final String path) {
+        final File test = new File(this.dir, path);
         // Prefer files over folders unless extension is provided
         if (!extension(test).isEmpty() && fileExists(test)) {
             return test;
@@ -99,6 +107,9 @@ public class FileArgument implements ArgumentType<File> {
             if (test.getName().equals(noExtension(f))) {
                 return f;
             }
+        }
+        if (this.recursive && !path.contains("/")) {
+            return FileIO.locateFileRecursive(this.dir, f -> test.getName().equals(noExtension(f))).orElse(null);
         }
         return test;
     }

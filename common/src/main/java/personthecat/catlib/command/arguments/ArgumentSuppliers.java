@@ -32,11 +32,29 @@ public class ArgumentSuppliers {
     }
 
     /**
+     * Provides a {@link FileArgument} which does not search recursively.
+     */
+    public static class SimpleFile implements ArgumentSupplier<java.io.File> {
+        public ArgumentDescriptor<java.io.File> get() {
+            return new ArgumentDescriptor<>(new FileArgument(getModConfigFolderOrThrow(), false));
+        }
+    }
+
+    /**
      * Provides an {@link HjsonArgument} with the current mod's config folder as the root.
      */
     public static class HjsonFile implements ArgumentSupplier<HjsonArgument.Result> {
         public ArgumentDescriptor<HjsonArgument.Result> get() {
             return new ArgumentDescriptor<>(new HjsonArgument(getModConfigFolderOrThrow()));
+        }
+    }
+
+    /**
+     * Provides an {@link HjsonArgument} which does not search recursively.
+     */
+    public static class SimpleHjsonFile implements ArgumentSupplier<HjsonArgument.Result> {
+        public ArgumentDescriptor<HjsonArgument.Result> get() {
+            return new ArgumentDescriptor<>(new HjsonArgument(getModConfigFolderOrThrow(), false));
         }
     }
 

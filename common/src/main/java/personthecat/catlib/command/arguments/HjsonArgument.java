@@ -35,8 +35,13 @@ public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
     }
 
     private final FileArgument getter;
+
     public HjsonArgument(final File dir) {
-        this.getter = new FileArgument(dir);
+        this(dir, true);
+    }
+
+    public HjsonArgument(final File dir, final boolean recursive) {
+        this.getter = new FileArgument(dir, recursive);
     }
 
     @Override

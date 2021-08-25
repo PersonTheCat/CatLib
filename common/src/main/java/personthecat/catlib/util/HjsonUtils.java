@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.templatesystem.BlockRotProcessor;
@@ -107,6 +106,17 @@ public class HjsonUtils {
             .get();
     }
 
+    /**
+     * Variant of {@link #readJson(File)} which ignores syntax errors
+     * and simply returns {@link Optional#empty} if any error occurs.
+     *
+     * @param file The file containing the serialized JSON object.
+     * @return The deserialized object, or else {@link Optional#empty}.
+     */
+    public static Optional<JsonObject> readSuppressing(final File file) {
+        return Result.of(() -> JsonObject.readHjson(new FileReader(file), FORMATTER).asObject())
+            .get(Result::WARN);
+    }
 
     /**
      * Writes a regular {@link JsonObject} to the disk. The format of this output file
@@ -117,7 +127,7 @@ public class HjsonUtils {
      * </p>
      * <p>
      *   No {@link IOException}s will be thrown by this method. Instead, they will be
-     *   logged and simply returned for the caller to optionally throw.
+     *   logged and simply returned for the calsler to optionally throw.
      * </p>
      * <p>
      *   All other exceptions <b>will be thrown</b> by this method.

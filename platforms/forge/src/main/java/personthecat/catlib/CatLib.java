@@ -35,7 +35,6 @@ public class CatLib {
         }
     }
 
-    @SuppressWarnings("unused")
     private void initServer(final FMLServerStartingEvent event) {
         LibCommandRegistrar.copyInto(event.getServer().getCommands());
     }
