@@ -20,7 +20,10 @@ public class RandomChunkSelector {
     private final HashGenerator noise;
 
     /** Reflects the probability of selection for any given chunk. */
-    private static final double SELECTION_THRESHOLD = 91.0; // Highest possible value.
+    private static final double MAX_THRESHOLD = 91.0; // Highest possible value.
+
+    /** The default threshold to use when none is provided. */
+    private static final double DEFAULT_THRESHOLD = MAX_THRESHOLD * 0.75;
 
     /** Highest possible probability out of 1 in selected chunks. */
     private static final double MAX_PROBABILITY = 0.8;
@@ -45,7 +48,21 @@ public class RandomChunkSelector {
      * @return whether this chunk has been selected.
      */
     public boolean testCoordinates(final int ID, final int x, final int y) {
-        return this.noise.getHash(x, y, ID) > SELECTION_THRESHOLD;
+        return this.noise.getHash(x, y, ID) > DEFAULT_THRESHOLD;
+    }
+
+    /**
+     * Variant of {@link #testCoordinates(int, int, int)} accepting a
+     * custom threshold.
+     *
+     * @param ID A unique identifier to further scramble the output.
+     * @param x The chunk's x-coordinate.
+     * @param y The chunk's y-coordinate.
+     * @param threshold The minimum accepted output from the hasher.
+     * @return whether this chunk has been selected.
+     */
+    public boolean testCoordinates(final int ID, final int x, final int y, final double threshold) {
+        return this.noise.getHash(x, y, ID) > threshold;
     }
 
     /**
@@ -55,14 +72,29 @@ public class RandomChunkSelector {
      * @param ID A unique identifier to further scramble the output.
      * @param x The chunk's x-coordinate.
      * @param y The chunk's y-coordinate.
+     * @param threshold The minimum accepted output from the hasher.
      * @return A 0-1 probability representing a spawn chance for this chunk.
      */
     public double getProbability(final int ID, final int x, final int y) {
-        if (testCoordinates(ID, x, y)) {
+        return getProbability(ID, x, y, DEFAULT_THRESHOLD);
+    }
+
+    /**
+     * Variant of {@link #getProbability(int, int, int)} accepting a
+     * custom threshold.
+     *
+     * @param ID A unique identifier to further scramble the output.
+     * @param x The chunk's x-coordinate.
+     * @param y The chunk's y-coordinate.
+     * @param threshold The minimum accepted output from the hasher.
+     * @return A 0-1 probability representing a spawn chance for this chunk.
+     */
+    public double getProbability(final int ID, final int x, final int y, final double threshold) {
+        if (testCoordinates(ID, x, y, threshold)) {
             return MAX_PROBABILITY;
         }
         for (int i = 1; i <= DISTANCE; i++) {
-            if (testDistance(ID, x, y, i)) {
+            if (testDistance(ID, x, y, i, threshold)) {
                 // (0.8) -> 0.4 -> 0.2 -> etc.
                 return (double) ((int) (MAX_PROBABILITY * 100) >> i) / 100.0;
             }
@@ -77,9 +109,10 @@ public class RandomChunkSelector {
      * @param x The chunk's x-coordinate.
      * @param y The chunk's y-coordinate.
      * @param radius The radius outward to scan.
+     * @param threshold The minimum accepted output from the hasher.
      * @return Whether an matches were found.
      */
-    private boolean testDistance(final int ID, final int x, final int y, final int radius) {
+    private boolean testDistance(final int ID, final int x, final int y, final int radius, final double threshold) {
         final int diameter = (radius * 2) + 1;
         final int innerLength = diameter - 2;
         final int shift = -(radius - 1);
@@ -93,10 +126,10 @@ public class RandomChunkSelector {
         }
         // Test the sides.
         for (int i = shift; i < innerLength + shift; i++) {
-            if (testCoordinates(ID, x + radius, y + i)
-                || testCoordinates(ID, x + i, y + radius)
-                || testCoordinates(ID, x - radius, y + i)
-                || testCoordinates(ID, x + i, y - radius)) {
+            if (testCoordinates(ID, x + radius, y + i, threshold)
+                || testCoordinates(ID, x + i, y + radius, threshold)
+                || testCoordinates(ID, x - radius, y + i, threshold)
+                || testCoordinates(ID, x + i, y - radius, threshold)) {
                 return true;
             }
         }

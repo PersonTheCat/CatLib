@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 import static personthecat.catlib.exception.Exceptions.cmdSyntax;
 import static personthecat.catlib.util.LibReference.HJSON_EXTENSIONS;
 import static personthecat.catlib.util.LibReference.JSON_EXTENSIONS;
-import static personthecat.catlib.util.HjsonUtils.readJson;
+import static personthecat.catlib.util.HjsonUtils.readSuppressing;
 import static personthecat.catlib.util.PathUtils.extension;
 
 @SuppressWarnings("unused")
@@ -73,7 +73,7 @@ public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
             this.file = file;
             this.json = Lazy.of(() -> {
                 synchronized(this) {
-                    return readJson(file).orElseGet(JsonObject::new);
+                    return readSuppressing(file).orElseGet(JsonObject::new);
                 }
             });
         }
