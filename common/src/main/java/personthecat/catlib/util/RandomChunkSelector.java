@@ -72,7 +72,6 @@ public class RandomChunkSelector {
      * @param ID A unique identifier to further scramble the output.
      * @param x The chunk's x-coordinate.
      * @param y The chunk's y-coordinate.
-     * @param threshold The minimum accepted output from the hasher.
      * @return A 0-1 probability representing a spawn chance for this chunk.
      */
     public double getProbability(final int ID, final int x, final int y) {

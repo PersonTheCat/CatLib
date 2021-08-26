@@ -283,7 +283,7 @@ public class DefaultLibCommands {
 
         wrapper.generateMessage("")
             .append(wrapper.createText(DISPLAY_HEADER, file.file.getName()).setStyle(DISPLAY_HEADER_STYLE))
-            .append(wrapper.lintMessage(json.toString(HjsonUtils.FORMATTER)))
+            .append(wrapper.lintMessage(json.toString(HjsonUtils.NO_CR)))
             .sendMessage();
     }
 
@@ -297,7 +297,7 @@ public class DefaultLibCommands {
         final JsonValue toValue = JsonValue.readHjson(toLiteral, NO_EMIT_BRACES);
         final JsonValue fromValue = HjsonUtils.getValueFromPath(file.json.get(), path)
             .orElseGet(() -> JsonValue.valueOf(null));
-        final String fromLiteral = fromValue.toString(HjsonUtils.FORMATTER);
+        final String fromLiteral = fromValue.toString(HjsonUtils.NO_CR);
         final String fromEscaped = escape(fromLiteral);
 
         // Write the new value.

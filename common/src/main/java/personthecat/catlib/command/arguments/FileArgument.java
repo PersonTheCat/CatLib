@@ -109,7 +109,7 @@ public class FileArgument implements ArgumentType<File> {
             }
         }
         if (this.recursive && !path.contains("/")) {
-            return FileIO.locateFileRecursive(this.dir, f -> test.getName().equals(noExtension(f))).orElse(null);
+            return FileIO.locateFileRecursive(this.dir, f -> test.getName().equals(noExtension(f))).orElse(test);
         }
         return test;
     }

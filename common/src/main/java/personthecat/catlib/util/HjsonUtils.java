@@ -79,6 +79,23 @@ public class HjsonUtils {
         .setOutputComments(true);
 
     /**
+     * A second formatter and otherwise identical variant of {@link #FORMATTER} which
+     * does not output <code>\r</code> characters.
+     *
+     * <p>
+     *   This formatter is <b>ideal for use with commands</b> for a cleaner chat output.
+     * </p>
+     */
+    public static final HjsonOptions NO_CR = new HjsonOptions()
+        .setAllowCondense(true)
+        .setAllowMultiVal(true)
+        .setCommentSpace(0)
+        .setSpace(2)
+        .setBracesSameLine(true)
+        .setOutputComments(true)
+        .setNewLine("\n");
+
+    /**
      * Reads a {@link JsonObject} from the given file.
      *
      * @param file The file containing the serialized JSON object.
