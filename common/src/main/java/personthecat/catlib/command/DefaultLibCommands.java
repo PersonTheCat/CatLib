@@ -281,8 +281,9 @@ public class DefaultLibCommands {
             .flatMap(result -> HjsonUtils.getValueFromPath(file.json.get(), result))
             .orElseGet(file.json);
 
+        final String header = file.file.getParentFile().getName() + "/" + file.file.getName();
         wrapper.generateMessage("")
-            .append(wrapper.createText(DISPLAY_HEADER, file.file.getName()).setStyle(DISPLAY_HEADER_STYLE))
+            .append(wrapper.createText(DISPLAY_HEADER, header).setStyle(DISPLAY_HEADER_STYLE))
             .append(wrapper.lintMessage(json.toString(HjsonUtils.NO_CR)))
             .sendMessage();
     }
