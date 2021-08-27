@@ -24,16 +24,15 @@ import static personthecat.catlib.exception.Exceptions.missingElement;
  * A non-redundant set of objects which can only be written to the first time it is referenced.
  * In OSV 6.2, this type was modified to support registry keys and be resettable. Resetting this
  * registry is expected to be thread-safe, but may need further testing.
- * <p>
- *   This is the primary type of registry used in this mod. This registry is lazily initialized
+ *
+ * <p>This is the primary type of registry used in this mod. This registry is lazily initialized
  * and cannot be modified. It is constructed with a data supplier which is then treated as an
  * event. This event will fire at the first time any of this class' methods are called. It is
- * equipped with all of the necessary overrides to be treated as a regular {@link Set}.
- * </p>
- * <p>
- *   Many of these methods are simply stubs which will throw an {@link UnsupportedOperationException}
- * when called. They are not intended for use by external implementors.
- * </p>
+ * equipped with all of the necessary overrides to be treated as a regular {@link Set}.</p>
+ *
+ * <p>Many of these methods are simply stubs which will throw an {@link UnsupportedOperationException}
+ * when called. They are not intended for use by external implementors.</p>
+ *
  * @param <K> The type of key in the registry.
  * @param <V> The type of value in the registry.
  */
@@ -55,7 +54,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
     /**
      * The underlying map whose contents will be filled on first use.
      */
-    private final Lazy<ImmutableMap<K, V>> map;
+    private final Lazy<Map<K, V>> map;
 
     /**
      * Constructs Lazy ImmutableSet of objects which will be filled upon first use.
@@ -63,7 +62,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      * @param map The underlying, lazily-initialized contents of this registry.
      * @param err A function for generating missing element exceptions.
      */
-    private SafeRegistry(final Lazy<ImmutableMap<K, V>> map, final ErrorFunction<K> err) {
+    private SafeRegistry(final Lazy<Map<K, V>> map, final ErrorFunction<K> err) {
         this.map = map;
         this.err = err;
     }
@@ -90,7 +89,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      * @return An immutable registry which cannot be refreshed.
      */
     public static <K, V> SafeRegistry<K, V> of(final Map<K, V> map) {
-        return new SafeRegistry<>(new Lazy<>(ImmutableMap.copyOf(map)), DEFAULT_ERROR::apply);
+        return new SafeRegistry<>(new Lazy<>(map), DEFAULT_ERROR::apply);
     }
 
     /**
@@ -104,7 +103,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      * @return An immutable registry which cannot be refreshed.
      */
     public static <K, V> SafeRegistry<K, V> of(final Supplier<Map<K, V>> event, final ErrorFunction<K> err) {
-        return new SafeRegistry<>(new Lazy<>(() -> ImmutableMap.copyOf(event.get())), err);
+        return new SafeRegistry<>(new Lazy<>(event), err);
     }
 
     /**
@@ -275,16 +274,59 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
     }
 
     /**
+     * Loads the underlying hash table immediately. This can be called after
+     * constructing the registry to have it load on construction instead of
+     * lazily.
+     *
+     * <p>For example,</p>
+     * <pre>{@code
+     *   final SafeRegistry<Key, Item> ITEMS =
+     *     SafeRegistry.of(ItemInit::loadItems)
+     *       .canBeReset(true)
+     *       .load();
+     * }</pre>
+     *
+     * @return <code>this</code>, for method chaining.
+     */
+    public SafeRegistry<K, V> load() {
+        this.map.get();
+        return this;
+    }
+
+    /**
      * Attempts to reset the underlying map contained within the registry. If
      * the map cannot be reset, nothing will happen.
      *
      * @return <code>this</code>, for method chaining.
      */
-    public SafeRegistry<K, V> tryReload() {
+    public SafeRegistry<K, V> tryReset() {
         if (this.map.isResettable()) {
-            ((ResettableLazy<ImmutableMap<K, V>>) this.map).reset();
+            ((ResettableLazy<Map<K, V>>) this.map).reset();
         }
         return this;
+    }
+
+    /**
+     * Variant of {@link #tryReset} which asserts that the registry can be reset.
+     *
+     * @throws UnsupportedOperationException If the registry is not resettable.
+     * @return <code>this</code>, for method chaining.
+     */
+    public SafeRegistry<K, V> reset() {
+        if (this.map.isResettable()) {
+            ((ResettableLazy<Map<K, V>>) this.map).reset();
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Attempts to reload all of the data in the registry If the underlying map
+     * cannot be reset, nothing will happen.
+     *
+     * @return <code>this</code>, for method chaining.
+     */
+    public SafeRegistry<K, V> tryReload() {
+        return this.tryReset().load();
     }
 
     /**
@@ -294,11 +336,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      * @return <code>this</code>, for method chaining.
      */
     public SafeRegistry<K, V> reload() {
-        if (this.map.isResettable()) {
-            ((ResettableLazy<ImmutableMap<K, V>>) this.map).reset();
-            return this;
-        }
-        throw new UnsupportedOperationException();
+        return this.reset().load();
     }
 
     /**
@@ -306,7 +344,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      *
      * @return The recalculated data corresponding to this registry.
      */
-    public ImmutableMap<K, V> getUpdated() {
+    public Map<K, V> getUpdated() {
         return this.map.getUpdated();
     }
 
