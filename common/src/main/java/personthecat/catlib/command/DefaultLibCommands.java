@@ -301,7 +301,7 @@ public class DefaultLibCommands {
         final String fromEscaped = escape(fromLiteral);
 
         // Write the new value.
-        HjsonUtils.setValueFromPath(file.json.get(), path, toValue);
+        HjsonUtils.setValueFromPath(file.json.get(), path, toValue.isNull() ? null : toValue);
         HjsonUtils.writeJson(file.json.get(), file.file)
             .expect("Error writing to file: {}", file.file.getName());
 

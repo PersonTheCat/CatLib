@@ -13,6 +13,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.BlockRotProce
 import net.minecraft.world.level.levelgen.structure.templatesystem.GravityProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import org.hjson.*;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.EmptyRange;
 import personthecat.catlib.data.FloatRange;
@@ -200,7 +201,7 @@ public class HjsonUtils {
      * @param path The output of a {@link PathArgument}.
      * @param value The updated value to set at this path.
      */
-    public static void setValueFromPath(final JsonObject json, final PathArgument.Result path, final JsonValue value) {
+    public static void setValueFromPath(final JsonObject json, final PathArgument.Result path, @Nullable final JsonValue value) {
         if (path.path.isEmpty()) {
             return;
         }
@@ -378,11 +379,19 @@ public class HjsonUtils {
      * @param either The accessor for this value, either a key or an index.
      * @param value The value to set at this location.
      */
-    private static void setEither(final JsonValue container, final Either<String, Integer> either, final JsonValue value) {
+    private static void setEither(final JsonValue container, final Either<String, Integer> either, @Nullable final JsonValue value) {
         if (either.left().isPresent()) {
-            container.asObject().set(either.left().get(), value);
+            if (value == null) {
+                container.asObject().remove(either.left().get());
+            } else {
+                container.asObject().set(either.left().get(), value);
+            }
         } else if (either.right().isPresent()) { // Just to stop the linting.
-            container.asArray().set(either.right().get(), value);
+            if (value == null) {
+                container.asArray().remove(either.right().get());
+            } else {
+                container.asArray().set(either.right().get(), value);
+            }
         }
     }
 

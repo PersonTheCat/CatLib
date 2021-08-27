@@ -320,7 +320,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
     }
 
     /**
-     * Attempts to reload all of the data in the registry If the underlying map
+     * Attempts to reload all of the data in the registry. If the underlying map
      * cannot be reset, nothing will happen.
      *
      * @return <code>this</code>, for method chaining.
