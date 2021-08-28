@@ -7,6 +7,7 @@ import org.hjson.JsonValue;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static personthecat.catlib.util.Shorthand.f;
@@ -20,7 +21,7 @@ import static personthecat.catlib.util.Shorthand.f;
  * <p>
  *   For example, when given the following JSON data:
  * </p>
- * <pre>
+ * <pre>{@code
  *   a: {
  *     b: [
  *       {
@@ -31,19 +32,19 @@ import static personthecat.catlib.util.Shorthand.f;
  *       }
  *     ]
  *   }
- * </pre>
+ * }</pre>
  * <p>
  *   And the following history:
  * </p>
- * <pre>
+ * <pre>{@code
  *   JsonTransformer.withPath("a", "b")
  *     .history("old", "other", "new")
  *     .updateAll(json);
- * </pre>
+ * }</pre>
  * <p>
  *   The object will be transformed as follows:
  * </p>
- * <pre>
+ * <pre>{@code
  *   a: {
  *     b: [
  *       {
@@ -54,12 +55,12 @@ import static personthecat.catlib.util.Shorthand.f;
  *       }
  *     ]
  *   }
- * </pre>
+ * }</pre>
  * <h3>Marking Fields as Removed</h3>
  * <p>
  *   For another example, when given the following JSON data:
  * </p>
- * <pre>
+ * <pre>{@code
  *   a: {
  *     container: {
  *       removed: value
@@ -70,19 +71,19 @@ import static personthecat.catlib.util.Shorthand.f;
  *       removed: value
  *     }
  *   }
- * </pre>
+ * }</pre>
  * <p>
  *   And the following history:
  * </p>
- * <pre>
+ * <pre>{@code
  *   JsonTransformer.recursive("container")
  *     .markRemoved("removed", "1.0')
  *     .updateAll(json);
- * </pre>
+ * }</pre>
  * <p>
  *   The object will be transformed as follows:
  * </p>
- * <pre>
+ * <pre>{@code
  *   a: {
  *     container: {
  *       # Removed in 1.0. You can delete this field.
@@ -95,7 +96,7 @@ import static personthecat.catlib.util.Shorthand.f;
  *       removed: value
  *     }
  *   }
- * </pre>
+ * }</pre>
  * <h3>Author's Note:</h3>
  * <p>
  *   I am especially fond of this class. If you would like additional transformations
@@ -132,6 +133,7 @@ public class JsonTransformer {
          *   Will be transformed to <code>name3</code> regardless of which name it has in
          *   the current file.
          * </p>
+         *
          * @param names A list of names for the given field over time.
          * @return This, for method chaining.
          */
@@ -145,31 +147,31 @@ public class JsonTransformer {
          * <p>
          *   For example, given the following JSON:
          * </p>
-         * <pre>
+         * <pre>{@code
          *   outer: {
          *     inner: {
          *       a: value
          *       b: value
          *     }
          *   }
-         * </pre>
+         * }</pre>
          * <p>
          *   And the following history:
          * </p>
-         * <pre>
+         * <pre>{@code
          *   JsonTransformer.withPath()
          *     .collapse("outer", "inner")
          *     .updateAll(json);
-         * </pre>
+         * }</pre>
          * <p>
          *   The object will be transformed as follows:
          * </p>
-         * <pre>
+         * <pre>{@code
          *   outer: {
          *     a: value
          *     b: value
          *   }
-         * </pre>
+         * }</pre>
          *
          * @param outer The name of the outer object.
          * @param inner The name of the inner object.
@@ -182,16 +184,17 @@ public class JsonTransformer {
 
         /**
          * Converts a JSON value in the following format:
-         * <pre>
+         * <pre>{@code
          *   minValue: 0
          *   maxValue: 1
-         * </pre>
+         * }</pre>
          * <p>
          *   Into an array as follows:
          * </p>
-         * <pre>
+         * <pre>{@code
          *   value: [ 0, 1 ]
-         * </pre>
+         * }</pre>
+         *
          * @param minKey The name of the original key for the minimum value.
          * @param minDefault The default value minimum value.
          * @param maxKey The name of the original key for the maximum value.
@@ -223,7 +226,7 @@ public class JsonTransformer {
          * <p>
          *   For example, when given the following JSON data:
          * </p>
-         * <pre>
+         * <pre>{@code
          *   a: [
          *     {
          *       b: old1
@@ -232,20 +235,20 @@ public class JsonTransformer {
          *       b: old2
          *     }
          *   ]
-         * </pre>
+         * }</pre>
          * <p>
          *   And the following history:
          * </p>
-         * <pre>
+         * <pre>{@code
          *   JsonTransformer.withPath("a")
          *     .renameValue("b", "old1", "new1")
          *     .renameValue("b", "old2", "new2")
          *     .updateAll(json);
-         * </pre>
+         * }</pre>
          * <p>
          *   The object will be transformed as follows:
          * </p>
-         * <pre>
+         * <pre>{@code
          *   a: [
          *     {
          *       b: new1
@@ -254,7 +257,7 @@ public class JsonTransformer {
          *       b: new2
          *     }
          *   ]
-         * </pre>
+         * }</pre>
          *
          * @param key The key of the value being renamed
          * @param from The original name which has been changed
@@ -271,33 +274,150 @@ public class JsonTransformer {
          * <p>
          *   For example, when given the following JSON data:
          * </p>
-         * <pre>
+         * <pre>{@code
          *   a: {
          *     old1: old2
          *   }
-         * </pre>
+         * }</pre>
          * <p>
          *   And the following history:
          * </p>
-         * <pre>
+         * <pre>{@code
          *   JsonTransformer.withPath("a")
          *     .transform((k, v) -> Pair.of("new1", JsonValue.valueOf("new2")))
          *     .updateAll(json)
-         * </pre>
+         * }</pre>
          * <p>
          *   The object will be transformed as follows:
          * </p>
-         * <pre>
+         * <pre>{@code
          *   a: {
          *     new1: new2
          *   }
-         * </pre>
+         * }</pre>
+         *
          * @param key The name of the field being transformed.
          * @param transformation A functional interface for updating the field programatically.
          * @return This, for method chaining.
          */
         public final ObjectResolver transform(final String key, final MemberTransformation transformation) {
             updates.add(new MemberTransformationHelper(this, key, transformation));
+            return this;
+        }
+
+        /**
+         * Exposes the parent object and value in the presence of a given key. This
+         * allows for manual transformation of various JSON members.
+         * <p>
+         *   For example, when given the following JSON data.
+         * </p>
+         * <pre>{@code
+         *   a: {
+         *     k1: v1
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.withPath("a")
+         *     .ifPresent("k1", (j, v) -> j.add("k2", v))
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   a: {
+         *     k1: v1
+         *     k2: v1
+         *   }
+         * }</pre>
+         *
+         * @param key The name of the field being transformed.
+         * @param f An event to fire for manual transformations in the presence of <code>key</code>.
+         * @return Thisd, for method chaining.
+         */
+        public final ObjectResolver ifPresent(final String key, final BiConsumer<JsonObject, JsonValue> f) {
+            updates.add(new MemberPredicateHelper(this, key, f));
+            return this;
+        }
+
+        /**
+         * Variant of {@link #ifPresent(String, BiConsumer)} which ignores the present value.
+         * <p>
+         *   For example, when given the following JSON data.
+         * </p>
+         * <pre>{@code
+         *   a: {
+         *     k1: v1
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.withPath("a")
+         *     .ifPresent("k1", j -> j.add("k2", "v2"))
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   a: {
+         *     k1: v1
+         *     k2: v2
+         *   }
+         * }</pre>
+         *
+         * @param key The name of the field being transformed.
+         * @param f An event to fire for manual transformations in the presence of <code>key</code>.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver ifPresent(final String key, final Consumer<JsonObject> f) {
+            updates.add(new MemberPredicateHelper(this, key, (j, v) -> f.accept(j)));
+            return this;
+        }
+
+        /**
+         * Transfers the contents of an expected array, if present, into a different array,
+         * regardless of whether it is present.
+         * <p>
+         *   For example, when given the following JSON data.
+         * </p>
+         * <pre>{@code
+         *   a: {
+         *     a1: [ 1, 2, 3 ]
+         *     o1: [ 4, 5, 6 ]
+         *     o2: [ 7, 8, 9 ]
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.withPath("a")
+         *     .moveArray("o1", "a1")
+         *     .moveArray("o2", "a2")
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   a: {
+         *     a1: [ 1, 2, 3, 4, 5, 6 ]
+         *     a2: [ 7, 8, 9 ]
+         *   }
+         * }</pre>
+         *
+         * @param from The name of the source array.
+         * @param to The name of the destination array.
+         * @return This,
+         */
+        public final ObjectResolver moveArray(final String from, final String to) {
+            updates.add(new ArrayCopyHelper(this, from, to));
             return this;
         }
 
@@ -570,6 +690,59 @@ public class JsonTransformer {
                 final Pair<String, JsonValue> updated = transformation.transform(key, value);
                 json.remove(key);
                 json.set(updated.getKey(), updated.getValue());
+            }
+        }
+    }
+
+    public static class MemberPredicateHelper implements Updater {
+        private final ObjectResolver resolver;
+        private final String key;
+        private final BiConsumer<JsonObject, JsonValue> ifPresent;
+
+        private MemberPredicateHelper(final ObjectResolver resolver, final String key,
+                                      final BiConsumer<JsonObject, JsonValue> ifPresent) {
+            this.resolver = resolver;
+            this.key = key;
+            this.ifPresent = ifPresent;
+        }
+
+        @Override
+        public void update(final JsonObject json) {
+            resolver.forEach(json, this::test);
+        }
+
+        private void test(final JsonObject json) {
+            final JsonValue value = json.get(key);
+            if (value != null) {
+                ifPresent.accept(json, value);
+            }
+        }
+    }
+
+    public static class ArrayCopyHelper implements Updater {
+        private final ObjectResolver resolver;
+        private final String from;
+        private final String to;
+
+        private ArrayCopyHelper(final ObjectResolver resolver, final String from, final String to) {
+            this.resolver = resolver;
+            this.from = from;
+            this.to = to;
+        }
+
+        @Override
+        public void update(JsonObject json) {
+            resolver.forEach(json, this::copy);
+        }
+
+        private void copy(final JsonObject json) {
+            final JsonValue source = json.get(from);
+            if (source != null) {
+                final JsonArray array = HjsonUtils.getArrayOrNew(json, to);
+                for (final JsonValue value : HjsonUtils.asOrToArray(source)) {
+                    array.add(value);
+                }
+                json.remove(from);
             }
         }
     }
