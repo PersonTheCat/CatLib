@@ -159,6 +159,43 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
     }
 
     /**
+     * A static utility for loading a series of multiple {@link SafeRegistry registries}.
+     *
+     * @param registries All of the registries being initialized at this time.
+     */
+    public static void loadAll(final SafeRegistry<?, ?>... registries) {
+        for (final SafeRegistry<?, ?> registry : registries) {
+            registry.load();
+        }
+    }
+
+    /**
+     * A static utility for unloading a series of multiple {@link SafeRegistry registries}.
+     *
+     * <p>Note that non-resettable registries will neither unload nor throw exceptions.</p>
+     *
+     * @param registries All of the registries being unloaded at this time.
+     */
+    public static void resetAll(final SafeRegistry<?, ?>... registries) {
+        for (final SafeRegistry<?, ?> registry : registries) {
+            registry.tryReset();
+        }
+    }
+
+    /**
+     * A static utility for reloading a series of multiple {@link SafeRegistry registries}.
+     *
+     * <p>Note that non-resettable registries will neither reload nor throw exceptions.</p>
+     *
+     * @param registries All of the registries being reloaded at this time.
+     */
+    public static void reloadAll(final SafeRegistry<?, ?>... registries) {
+        for (final SafeRegistry<?, ?> registry : registries) {
+            registry.tryReload();
+        }
+    }
+
+    /**
      * Generates a new registry containing the same data. The new registry will
      * respond with this message when calling {@link #getAsserted(K)}.
      *
@@ -315,6 +352,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
     public SafeRegistry<K, V> reset() {
         if (this.map.isResettable()) {
             ((ResettableLazy<Map<K, V>>) this.map).reset();
+            return this;
         }
         throw new UnsupportedOperationException();
     }
