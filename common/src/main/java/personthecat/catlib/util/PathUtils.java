@@ -149,6 +149,17 @@ public class PathUtils {
     }
 
     /**
+     * Determines whether the given file is in a specific folder.
+     *
+     * @param root The root file which is the expected parent directory.
+     * @param f The file being tested.
+     * @return Whether <code>root</code> contains <code>f</code>.
+     */
+    public static boolean isIn(final File root, final File f) {
+        return f.getAbsolutePath().startsWith(root.getAbsolutePath());
+    }
+
+    /**
      * Gets the relative path of the given file up to a root folder.
      *
      * <p>

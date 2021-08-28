@@ -91,6 +91,17 @@ public class Exceptions {
     }
 
     /**
+     * Shorthand for a regular {@link ResourceException} with cause.
+     *
+     * @param x The error message to display.
+     * @param cause The caught exception responsible for this error.
+     * @return A new {@link ResourceException}.
+     */
+    public static ResourceException resourceEx(final String x, final Throwable cause) {
+        return new ResourceException(x, cause);
+    }
+
+    /**
      * Shorthand for a regular {@link ModSetupException}.
      *
      * @param x The error message to display.

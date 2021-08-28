@@ -22,10 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Optional.empty;
 import static personthecat.catlib.exception.Exceptions.directoryNotCreated;
@@ -268,6 +265,28 @@ public class FileIO {
             throw resourceEx("Error moving {} to backups", f.getName());
         }
         return count + 1;
+    }
+
+    /**
+     * Deletes the given file. If this file is a directory, its contents will be
+     * deleted recursively.
+     *
+     * @param f The file or directory being deleted.
+     */
+    public static void delete(final File f) {
+        if (f.isFile() && !f.delete()) {
+            throw resourceEx("Error deleting file {}.", f.getName());
+        } else {
+            try {
+                Files.walk(f.toPath()).sorted(Comparator.reverseOrder()).forEach(p -> {
+                    if (!p.toFile().delete()) {
+                        log.error("Error deleting {}", p.toFile().getName());
+                    }
+                });
+            } catch (final IOException e) {
+                throw resourceEx("Error deleting directory", e);
+            }
+        }
     }
 
     /**

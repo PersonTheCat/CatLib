@@ -14,6 +14,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import org.hjson.HjsonOptions;
+import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
@@ -21,6 +22,7 @@ import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.io.FileIO;
 import personthecat.catlib.util.HjsonUtils;
 import personthecat.catlib.util.JsonCombiner;
+import personthecat.catlib.util.PathUtils;
 
 import java.io.File;
 import java.util.List;
@@ -33,6 +35,8 @@ import static personthecat.catlib.command.CommandUtils.fileArg;
 import static personthecat.catlib.command.CommandUtils.greedyArg;
 import static personthecat.catlib.command.CommandUtils.jsonFileArg;
 import static personthecat.catlib.command.CommandUtils.jsonPathArg;
+import static personthecat.catlib.util.PathUtils.extension;
+import static personthecat.catlib.util.PathUtils.noExtension;
 
 @UtilityClass
 @SuppressWarnings("unused")
@@ -90,6 +94,8 @@ public class DefaultLibCommands {
     private static final String CH_MAX = "#ch_max";
     private static final String CW_ANY = "#cw";
     private static final String CW_MAX = "#cw_max";
+    private static final String TO_JSON_ANY = "#to_json";
+    private static final String TO_HJSON_ANY = "#to_hjson";
 
     public static List<LibCommandBuilder> createAll(final ModDescriptor mod, final boolean global) {
         return Lists.newArrayList(
@@ -104,7 +110,9 @@ public class DefaultLibCommands {
             createOpen(mod, global),
             createCombine(mod, global),
             createCh(mod, global),
-            createCw(mod, global)
+            createCw(mod, global),
+            createToJson(mod, global),
+            createToHjson(mod, global)
         );
     }
 
@@ -275,6 +283,28 @@ public class DefaultLibCommands {
             );
     }
 
+    public static LibCommandBuilder createToJson(final ModDescriptor mod, final boolean global) {
+        return LibCommandBuilder.named("tojson")
+            .arguments("<file>")
+            .append("Converts an Hjson file to a regular JSON file.")
+            .wrap(TO_JSON_ANY, wrapper -> convert(wrapper, true))
+            .type(global ? CommandType.GLOBAL : CommandType.MOD)
+            .generate((builder, wrappers) -> builder
+                .then(fileArg(FILE_ARGUMENT, mod)
+                    .executes(wrappers.get(TO_JSON_ANY))));
+    }
+
+    public static LibCommandBuilder createToHjson(final ModDescriptor mod, final boolean global) {
+        return LibCommandBuilder.named("tohjson")
+            .arguments("<file>")
+            .append("Converts an Hjson file to a regular JSON file.")
+            .wrap(TO_HJSON_ANY, wrapper -> convert(wrapper, false))
+            .type(global ? CommandType.GLOBAL : CommandType.MOD)
+            .generate((builder, wrappers) -> builder
+                .then(fileArg(FILE_ARGUMENT, mod)
+                    .executes(wrappers.get(TO_HJSON_ANY))));
+    }
+
     private static void executeDisplay(final CommandContextWrapper wrapper) {
         final HjsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
         final JsonValue json = wrapper.getOptional(PATH_ARGUMENT, PathArgument.Result.class)
@@ -340,13 +370,6 @@ public class DefaultLibCommands {
         wrapper.sendMessage("Backup created successfully.");
     }
 
-    private static void executeTest(final CommandContextWrapper wrapper) {
-        if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), wrapper.getFile(FILE_ARGUMENT), true)) {
-            wrapper.sendError("{} backups detected. Consider cleaning these out.", BACKUP_COUNT_WARNING);
-        }
-        wrapper.sendMessage("Backup created successfully.");
-    }
-
     private static void executeCopy(final CommandContextWrapper wrapper) {
         FileIO.copy(wrapper.getFile(FILE_ARGUMENT), wrapper.getFile(DIRECTORY_ARGUMENT))
             .expect("The file could not be copied.");
@@ -360,7 +383,11 @@ public class DefaultLibCommands {
     }
 
     private static void executeDelete(final CommandContextWrapper wrapper) {
-        if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), wrapper.getFile(FILE_ARGUMENT), false)) {
+        final File file = wrapper.getFile(FILE_ARGUMENT);
+        if (PathUtils.isIn(wrapper.getMod().getBackupFolder(), file)) {
+            FileIO.delete(file);
+            wrapper.sendMessage("File deleted successfully.");
+        } else if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), wrapper.getFile(FILE_ARGUMENT), false)) {
             wrapper.sendError("{} backups have been created. Consider cleaning these out.", BACKUP_COUNT_WARNING);
         }
         wrapper.sendMessage("File moved to backups.");
@@ -479,5 +506,32 @@ public class DefaultLibCommands {
         cfg.save();
 
         wrapper.sendMessage("Updated chat width: {}", cfg.chatWidth);
+    }
+
+    private static void convert(final CommandContextWrapper wrapper, final boolean toJson) {
+        final File source = wrapper.getFile(FILE_ARGUMENT);
+        if (!source.exists()) {
+            wrapper.sendError("Found not found.");
+            return;
+        }
+        if (toJson == "json".equals(extension(source))) {
+            wrapper.sendError("File is already in the desired format.");
+            return;
+        }
+        final Optional<JsonObject> json = HjsonUtils.readJson(source);
+        if (!json.isPresent()) {
+            wrapper.sendError("The file could not be read.");
+            return;
+        }
+        final String extension = toJson ? "json" : "hjson";
+        final File converted = new File(source.getParentFile(), noExtension(source) + extension);
+        HjsonUtils.writeJson(json.get(), converted).expect("Error writing file.");
+
+        if (!PathUtils.isIn(wrapper.getBackupsFolder(), source)) {
+            FileIO.backup(wrapper.getBackupsFolder(), source, false);
+            wrapper.sendMessage("File converted successfully. The original was moved to the backups directory.");
+        } else {
+            wrapper.sendMessage("File converted successfully. The original could not be backed up.");
+        }
     }
 }
