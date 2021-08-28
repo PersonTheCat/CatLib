@@ -15,7 +15,7 @@ import personthecat.catlib.command.arguments.ArgumentDescriptor;
 import personthecat.catlib.command.arguments.ListArgumentBuilder;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.IntRef;
-import personthecat.catlib.util.SyntaxLinter;
+import personthecat.catlib.data.ModDescriptor;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -31,11 +31,11 @@ import static personthecat.catlib.util.unsafe.CachingReflectionHelper.tryInstant
 @UtilityClass
 public class CommandClassEvaluator {
 
-    public static List<LibCommandBuilder> getBuilders(final Class<?>... classes) {
+    public static List<LibCommandBuilder> getBuilders(final ModDescriptor mod, final Class<?>... classes) {
         final List<LibCommandBuilder> builders = new ArrayList<>();
         for (final Class<?> c : classes) {
             addCommandBuilders(builders, c);
-            addModCommands(builders, c);
+            addModCommands(mod, builders, c);
         }
         return builders;
     }
@@ -55,7 +55,7 @@ public class CommandClassEvaluator {
         });
     }
 
-    private static void addModCommands(final List<LibCommandBuilder> builders, final Class<?> c) {
+    private static void addModCommands(final ModDescriptor mod, final List<LibCommandBuilder> builders, final Class<?> c) {
         forEachAnnotated(c, ModCommand.class, (m, a) -> {
             if (m.getParameterCount() != 1) {
                 throw new CommandClassEvaluationException("{} must have exactly 1 parameter", m.getName());
@@ -66,7 +66,7 @@ public class CommandClassEvaluator {
             if (!Modifier.isStatic(m.getModifiers())) {
                 throw new CommandClassEvaluationException("{} must be static", m.getName());
             }
-            builders.add(createBuilder(createConsumer(m), m, a));
+            builders.add(createBuilder(mod, createConsumer(m), m, a));
         });
     }
 
@@ -79,11 +79,11 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static LibCommandBuilder createBuilder(final CommandFunction cmd, final Method m, final ModCommand a) {
+    private static LibCommandBuilder createBuilder(final ModDescriptor mod, final CommandFunction cmd, final Method m, final ModCommand a) {
         return LibCommandBuilder.named(a.name().isEmpty() ? m.getName() : a.name())
             .arguments(a.arguments())
             .description(String.join(" ", a.description()))
-            .linter(a.linter().length == 0 ? SyntaxLinter.DEFAULT_LINTER : tryInstantiate(a.linter()[0]))
+            .linter(a.linter().length == 0 ? mod.getDefaultLinter() : tryInstantiate(a.linter()[0]))
             .wrap("", cmd)
             .type(a.type())
             .side(a.side())

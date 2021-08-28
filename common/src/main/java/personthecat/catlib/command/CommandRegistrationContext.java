@@ -251,7 +251,7 @@ public class CommandRegistrationContext {
      * @return <code>this</code>, for method chaining.
      */
     public CommandRegistrationContext addAllCommands(final Class<?>... classes) {
-        this.commands.addAll(CommandClassEvaluator.getBuilders(classes));
+        this.commands.addAll(CommandClassEvaluator.getBuilders(this.mod, classes));
         return this;
     }
 

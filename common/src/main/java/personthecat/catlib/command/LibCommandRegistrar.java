@@ -31,7 +31,7 @@ public class LibCommandRegistrar {
     @PlatformMustInherit
     public static void registerCommands(final ModDescriptor mod, final boolean libCommands, final Class<?>... types) {
         final CommandRegistrationContext ctx = CommandRegistrationContext.forMod(mod);
-        CommandClassEvaluator.getBuilders(types).forEach(ctx::addCommand);
+        CommandClassEvaluator.getBuilders(mod, types).forEach(ctx::addCommand);
         if (libCommands) ctx.addLibCommands();
         ctx.registerAll();
     }
