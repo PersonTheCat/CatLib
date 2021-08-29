@@ -1,6 +1,9 @@
 package personthecat.catlib.util;
 
+import com.mojang.brigadier.StringReader;
 import lombok.experimental.UtilityClass;
+import net.minecraft.commands.arguments.blocks.BlockStateParser;
+import net.minecraft.commands.arguments.item.ItemParser;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -14,6 +17,7 @@ import personthecat.catlib.exception.BiomeTypeNotFoundException;
 import personthecat.catlib.exception.BlockNotFoundException;
 import personthecat.catlib.exception.ItemNotFoundException;
 import personthecat.catlib.exception.MissingOverrideException;
+import personthecat.fresult.Result;
 import personthecat.overwritevalidator.annotations.OverwriteTarget;
 import personthecat.overwritevalidator.annotations.PlatformMustInherit;
 import personthecat.overwritevalidator.annotations.PlatformMustOverwrite;
@@ -108,6 +112,33 @@ public class McUtils {
     }
 
     /**
+     * @throws BlockNotFoundException If the block does not exist or the format is invalid.
+     * @param state The raw block state input.
+     * @return The expected state.
+     */
+    @NotNull
+    public static BlockState assertParseBlockState(final String state) {
+        return parseBlockState(state).orElseThrow(() -> noBlockNamed(state));
+    }
+
+    /**
+     * Parses a block state in the format expected by <code>/setblock</code>.
+     *
+     * <p>For example,</p>
+     * <ul>
+     *   <li>minecraft:stone</li>
+     *   <li>oak_log[axis=x]</li>
+     * </ul>
+     *
+     * @param state The raw block state text.
+     * @return The expected state, or else {@link Optional#empty}.
+     */
+    public static Optional<BlockState> parseBlockState(final String state) {
+        final BlockStateParser parser = new BlockStateParser(new StringReader(state), true);
+        return Result.suppress(() -> parser.parse(false).getState()).get(Result::IGNORE);
+    }
+
+    /**
      * @throws ItemNotFoundException If the item does not exist.
      * @param id The name of the item being researched.
      * @return The given item, or else throws.
@@ -133,6 +164,33 @@ public class McUtils {
     @NotNull
     public static Iterable<Item> getAllItems() {
         return Registry.ITEM;
+    }
+
+    /**
+     * @throws ItemNotFoundException If the item does not exist or the format is invalid.
+     * @param item The raw item input being parsed.
+     * @return The expected item.
+     */
+    @NotNull
+    public static Item assertParseItem(final String item) {
+        return parseItem(item).orElseThrow(() -> noItemNamed(item));
+    }
+
+    /**
+     * Parses an item in the format expected by <code>/give</code>.
+     *
+     * <p>For example,</p>
+     * <ul>
+     *   <li>minecraft:stone</li>
+     *   <li>minecraft:chest{...}</li>
+     * </ul>
+     *
+     * @param item The raw item input being parsed.
+     * @return The expected item, or else {@link Optional#empty}.
+     */
+    public static Optional<Item> parseItem(final String item) {
+        final ItemParser parser = new ItemParser(new StringReader(item), true);
+        return Result.suppress(() -> parser.parse().getItem()).get(Result::IGNORE);
     }
 
     /**
