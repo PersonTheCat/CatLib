@@ -181,8 +181,11 @@ public class PathUtils {
      * @return A relative path from <code>root</code> to <code>f</code>.
      */
     public static String getRelativePath(final File root, final File f) {
-        final String rootPath = root.getPath();
-        final String filePath = f.getPath();
+        if (root.equals(f)) {
+            return "/";
+        }
+        final String rootPath = root.getAbsolutePath();
+        final String filePath = f.getAbsolutePath();
 
         if (rootPath.length() + 1 > filePath.length()) {
             return filePath;

@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static personthecat.catlib.command.CommandSuggestions.ANY_VALUE;
+import static personthecat.catlib.command.CommandSuggestions.CURRENT_JSON;
 import static personthecat.catlib.command.CommandUtils.arg;
 import static personthecat.catlib.command.CommandUtils.fileArg;
 import static personthecat.catlib.command.CommandUtils.greedyArg;
@@ -143,7 +143,7 @@ public class DefaultLibCommands {
                     .executes(wrappers.get(DISPLAY_ANY))
                 .then(jsonPathArg(PATH_ARGUMENT)
                     .executes(wrappers.get(DISPLAY_ANY))
-                .then(greedyArg(VALUE_ARGUMENT, ANY_VALUE)
+                .then(greedyArg(VALUE_ARGUMENT, CURRENT_JSON)
                     .executes(wrappers.get(UPDATE_ANY)))))
             );
     }

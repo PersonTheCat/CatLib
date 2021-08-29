@@ -106,6 +106,8 @@ public final class LibCommandBuilder {
         private String description;
         private CommandType type;
         private CommandSide side;
+
+        @Nullable
         private SyntaxLinter linter;
 
         @Nullable
@@ -118,7 +120,6 @@ public final class LibCommandBuilder {
             this.description = "";
             this.type = CommandType.MOD;
             this.side = CommandSide.EITHER;
-            this.linter = SyntaxLinter.DEFAULT_LINTER;
         }
 
         /**
@@ -235,6 +236,7 @@ public final class LibCommandBuilder {
          */
         public LibCommandBuilder generate(final CommanBuilder<CommandSourceStack> generator) {
             if (this.mod == null) this.mod = CommandRegistrationContext.getActiveModOrThrow();
+            if (this.linter == null) this.linter = this.mod.getDefaultLinter();
 
             final LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal(this.name);
             final CommandMap commandMap = new CommandMap(this.wrappers, this.linter, this.mod);

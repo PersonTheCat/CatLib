@@ -331,10 +331,24 @@ public class Shorthand {
      *
      * @param s The name of the constant being researched.
      * @param clazz The enum class which contains the expected constant.
-     * @param <T> The type of constant being researched.
+     * @param <E> The type of constant being researched.
      * @return The expected constant, or else {@link Optional#empty}.
      */
-    public static <T extends Enum<T>> Optional<T> getEnumConstant(final String s, final Class<T> clazz) {
-        return find(clazz.getEnumConstants(), v -> v.toString().equalsIgnoreCase(s));
+    public static <E extends Enum<E>> Optional<E> getEnumConstant(final String s, final Class<E> clazz) {
+        return find(clazz.getEnumConstants(), e -> isFormatted(e, s));
+    }
+
+    /**
+     * Determines whether a string matches the given enum constant's name, ignoring
+     * case and underscores (<code>_</code>).
+     *
+     * @param e The enum constant being compared.
+     * @param s The string identifier for this constant.
+     * @param <E> The type of enum value.
+     * @return Whether this string is a valid identifier for the constant.
+     */
+    public static <E extends Enum<E>> boolean isFormatted(final E e, final String s) {
+        final String id = e.name().replace("_", "");
+        return id.equalsIgnoreCase(s.replace("_", ""));
     }
 }
