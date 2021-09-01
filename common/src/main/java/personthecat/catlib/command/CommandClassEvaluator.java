@@ -169,6 +169,8 @@ public class CommandClassEvaluator {
         if (entry.getKey().intoList().useList()) {
             argument = createList(entries, index.get());
             index.add(2);
+        } else if (entry.getValue().isLiteral()) {
+            argument = Commands.literal(entry.getKey().name());
         } else {
             argument = Commands.argument(entry.getKey().name(), entry.getValue().getType());
         }
