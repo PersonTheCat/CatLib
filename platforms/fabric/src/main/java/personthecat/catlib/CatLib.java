@@ -22,9 +22,9 @@ public class CatLib implements ModInitializer {
         PathArgument.register();
 
         if (LibConfig.ENABLE_GLOBAL_LIB_COMMANDS.get()) {
-            final CommandRegistrationContext ctx = CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR);
-            DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true).forEach(ctx::addCommand);
-            ctx.registerAll();
+            CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR)
+                .addAllCommands(DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true))
+                .registerAll();
         }
     }
 }
