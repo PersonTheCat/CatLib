@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "personthecat.catlib.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "BiomeModificationContextAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

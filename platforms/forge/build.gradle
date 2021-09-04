@@ -11,6 +11,7 @@ architectury {
 
 loom {
     silentMojangMappingsLicense()
+    mixinConfig 'catlib.forge.mixins.json'
 }
 
 dependencies {
@@ -40,7 +41,8 @@ jar {
             "Implementation-Title": mod_id,
             "Implementation-Version": mod_version,
             "Implementation-Vendor": mod_vendor,
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "MixinConfigs": "catlib.forge.mixins.json"
         ])
     }
 }

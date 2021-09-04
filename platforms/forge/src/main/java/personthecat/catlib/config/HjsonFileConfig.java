@@ -28,7 +28,6 @@ import static personthecat.catlib.util.HjsonUtils.writeJson;
  *   to the older config formats used prior to MC 1.13.
  * </p>
  */
-@SuppressWarnings("unused")
 public class HjsonFileConfig implements CommentedFileConfig  {
 
     /** The main file which stores all data represented by this config. */

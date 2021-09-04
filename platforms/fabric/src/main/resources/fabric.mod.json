@@ -18,6 +18,9 @@
       "personthecat.catlib.CatLib"
     ]
   },
+  "mixins": [
+    "catlib.fabric.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
