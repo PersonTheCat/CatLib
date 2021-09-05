@@ -16,7 +16,7 @@ public class LibConfig {
 
     private static final ForgeConfigSpec.Builder COMMON = new ForgeConfigSpec.Builder();
     private static final String FILENAME = McUtils.getConfigDir() + "/" + LibReference.MOD_ID;
-    private static final HjsonFileConfig COMMON_CFG = new HjsonFileConfig(FILENAME + "-common.hjson");
+    private static final HjsonFileConfig COMMON_CFG = new HjsonFileConfig(FILENAME + ".hjson");
 
     static { COMMON.push("general"); }
 

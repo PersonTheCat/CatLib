@@ -1,7 +1,6 @@
 package personthecat.catlib;
 
 import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.ModificationPhase;
@@ -11,6 +10,7 @@ import personthecat.catlib.command.DefaultLibCommands;
 import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
+import personthecat.catlib.config.HjsonConfigSerializer;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.event.world.FeatureModificationContext;
 import personthecat.catlib.event.world.FeatureModificationEvent;
@@ -22,7 +22,7 @@ public class CatLib implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        AutoConfig.register(LibConfig.class, GsonConfigSerializer::new);
+        AutoConfig.register(LibConfig.class, HjsonConfigSerializer::new);
 
         FileArgument.register();
         HjsonArgument.register();

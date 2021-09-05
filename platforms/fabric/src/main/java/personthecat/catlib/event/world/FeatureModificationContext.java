@@ -5,7 +5,6 @@ import net.fabricmc.fabric.mixin.biome.modification.GenerationSettingsAccessor;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.levelgen.GenerationStep.Carving;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
@@ -15,6 +14,7 @@ import personthecat.overwritevalidator.annotations.InheritMissingMembers;
 import personthecat.overwritevalidator.annotations.Overwrite;
 import personthecat.overwritevalidator.annotations.OverwriteClass;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -69,6 +69,10 @@ public class FeatureModificationContext {
 
     @Overwrite
     public List<Supplier<ConfiguredFeature<?, ?>>> getFeatures(final Decoration step) {
+        final List<List<Supplier<ConfiguredFeature<?, ?>>>> features = this.generation.fabric_getFeatures();
+        while (features.size() <= step.ordinal()) {
+            features.add(new ArrayList<>());
+        }
         return this.generation.fabric_getFeatures().get(step.ordinal());
     }
 
