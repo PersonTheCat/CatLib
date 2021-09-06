@@ -8,6 +8,7 @@ import lombok.experimental.UtilityClass;
 import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.CommandRegistrationContext;
 import personthecat.catlib.command.CommandSuggestions;
+import personthecat.catlib.data.ModDescriptor;
 
 /**
  * A few convenience {@link ArgumentSupplier} classes to be used as <code>descriptor</code>s
@@ -27,7 +28,8 @@ public class ArgumentSuppliers {
      */
     public static class File implements ArgumentSupplier<java.io.File> {
         public ArgumentDescriptor<java.io.File> get() {
-            return new ArgumentDescriptor<>(new FileArgument(getModConfigFolderOrThrow()));
+            final ModDescriptor descriptor = getModDescriptorOrThrow();
+            return new ArgumentDescriptor<>(new FileArgument(descriptor.getConfigFolder(), descriptor.getPreferredDirectory()));
         }
     }
 
@@ -87,5 +89,9 @@ public class ArgumentSuppliers {
 
     private static java.io.File getModConfigFolderOrThrow() {
         return CommandRegistrationContext.getActiveModOrThrow().getConfigFolder();
+    }
+
+    private static ModDescriptor getModDescriptorOrThrow() {
+        return CommandRegistrationContext.getActiveModOrThrow();
     }
 }

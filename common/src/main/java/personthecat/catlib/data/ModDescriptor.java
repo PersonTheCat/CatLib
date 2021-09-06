@@ -2,6 +2,7 @@ package personthecat.catlib.data;
 
 import lombok.Builder;
 import lombok.Value;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.SyntaxLinter;
 
@@ -42,6 +43,8 @@ public class ModDescriptor {
     String commandPrefix;
     File configFolder;
     File backupFolder;
+    @Nullable File preferredDirectory;
+
     SyntaxLinter defaultLinter;
 
     public static class ModDescriptorBuilder {
@@ -53,7 +56,7 @@ public class ModDescriptor {
             if (this.backupFolder == null) this.backupFolder = new File(this.configFolder, "backups");
             if (this.defaultLinter == null) this.defaultLinter = SyntaxLinter.DEFAULT_LINTER;
 
-            return new ModDescriptor(name, modId, commandPrefix, configFolder, backupFolder, defaultLinter);
+            return new ModDescriptor(name, modId, commandPrefix, configFolder, backupFolder, preferredDirectory, defaultLinter);
         }
     }
 }

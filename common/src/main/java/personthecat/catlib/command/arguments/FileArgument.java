@@ -9,6 +9,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.io.FileIO;
 import personthecat.catlib.util.LibReference;
@@ -35,19 +36,29 @@ public class FileArgument implements ArgumentType<File> {
     }
 
     public final File dir;
+    @Nullable public final File preferred;
     public final boolean recursive;
 
     public FileArgument(final File dir) {
-        this(dir, true);
+        this(dir, null, true);
+    }
+
+    public FileArgument(final File dir, final File preferred) {
+        this(dir, preferred, true);
     }
 
     public FileArgument(final File dir, final boolean recursive) {
+        this(dir, null, recursive);
+    }
+
+    public FileArgument(final File dir, @Nullable final File preferred, final boolean recursive) {
         if (!(dir.exists() || dir.mkdirs())) {
             throw new IllegalStateException("Creating directory: " + dir.getAbsolutePath());
         } else if (!dir.isDirectory()) {
             throw new IllegalArgumentException("FileArgument must be a directory: " + dir.getAbsolutePath());
         }
         this.dir = dir;
+        this.preferred = preferred;
         this.recursive = recursive;
     }
 
@@ -109,7 +120,8 @@ public class FileArgument implements ArgumentType<File> {
             }
         }
         if (this.recursive && !path.contains("/")) {
-            return FileIO.locateFileRecursive(this.dir, f -> test.getName().equals(noExtension(f))).orElse(test);
+            return FileIO.locateFileRecursive(this.dir, this.preferred,
+                f -> test.getName().equals(noExtension(f))).orElse(test);
         }
         return test;
     }

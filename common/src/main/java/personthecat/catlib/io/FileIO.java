@@ -1,6 +1,7 @@
 package personthecat.catlib.io;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.exception.DirectoryNotCreatedException;
 import personthecat.catlib.exception.ResourceException;
 import lombok.experimental.UtilityClass;
@@ -194,6 +195,49 @@ public class FileIO {
             for (final File f : inDir) {
                 if (f.isDirectory()) {
                     final Optional<File> found = locateFileRecursive(f, filter);
+                    if (found.isPresent()) {
+                        return found;
+                    }
+                } else if (filter.accept(f)) {
+                    return full(f);
+                }
+            }
+        }
+        return empty();
+    }
+
+    /**
+     * Variant of {@link #locateFileRecursive(File, FileFilter)} which first looks in a
+     * preferred directory.
+     *
+     * @param dir       The root directory which may contain the expected file.
+     * @param preferred The first directory to search through.
+     * @param filter    A predicate used to match the expected file.
+     * @return The requested file, or else {@link Optional#empty}.
+     */
+    @CheckReturnValue
+    public static Optional<File> locateFileRecursive(final File dir, @Nullable final File preferred, final FileFilter filter) {
+        if (preferred == null) return locateFileRecursive(dir, filter);
+        final Optional<File> inPreferred = locateFileRecursive(preferred, filter);
+        return inPreferred.isPresent() ? inPreferred : locateFileRecursiveInternal(dir, preferred, filter);
+    }
+
+    /**
+     * Internal variant of {@link #locateFileRecursive(File, File, FileFilter)} which has
+     * already searched through the preferred directory.
+     *
+     * @param dir       The root directory which may contain the expected file.
+     * @param preferred The first directory to search through.
+     * @param filter    A predicate used to match the expected file.
+     * @return The requested file, or else {@link Optional#empty}.
+     */
+    @CheckReturnValue
+    private static Optional<File> locateFileRecursiveInternal(final File dir, final File preferred, final FileFilter filter) {
+        final File[] inDir = dir.listFiles(f -> !f.equals(preferred));
+        if (inDir != null) {
+            for (final File f : inDir) {
+                if (f.isDirectory()) {
+                    final Optional<File> found = locateFileRecursiveInternal(f, preferred, filter);
                     if (found.isPresent()) {
                         return found;
                     }
