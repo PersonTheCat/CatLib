@@ -1,5 +1,10 @@
 package personthecat.catlib;
 
+import com.mojang.serialization.Lifecycle;
+import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.Registry;
+import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -11,6 +16,9 @@ import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.config.LibConfig;
+import personthecat.catlib.event.registry.DynamicRegistries;
+import personthecat.catlib.event.registry.RegistryAccessEvent;
+import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.util.LibReference;
 
 @Mod(LibReference.MOD_ID)
@@ -27,6 +35,11 @@ public class CatLib {
         FileArgument.register();
         HjsonArgument.register();
         PathArgument.register();
+
+        RegistryAccessEvent.EVENT.register(access -> {
+            DynamicRegistries.updateRegistries(access);
+            RegistryAddedEvent.onRegistryAccess(access);
+        });
 
         if (LibConfig.ENABLE_GLOBAL_LIB_COMMANDS.get()) {
             CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR)

@@ -21,8 +21,18 @@ public class LibEvent<T> {
     }
 
     public LibEvent<T> register(final T listener) {
-        this.listeners.add(listener);
+        if (!this.listeners.contains(listener)) {
+            this.listeners.add(listener);
+        }
         return this;
+    }
+
+    public boolean isRegistered(final T listener) {
+        return this.listeners.contains(listener);
+    }
+
+    public boolean deregister(final T listener) {
+        return this.listeners.remove(listener);
     }
 
     public T invoker() {

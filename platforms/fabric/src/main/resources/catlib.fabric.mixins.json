@@ -3,7 +3,9 @@
   "package": "personthecat.catlib.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "BiomeModificationContextAccessor"
+    "BiomeModificationContextAccessor",
+    "MojangRegistryMixin",
+    "RegistryReadOpsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

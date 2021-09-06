@@ -4,7 +4,6 @@ import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.serializer.ConfigSerializer;
 import me.shedaniel.autoconfig.util.Utils;
-import org.hjson.ParseException;
 import personthecat.catlib.exception.NonSerializableObjectException;
 
 import java.io.IOException;

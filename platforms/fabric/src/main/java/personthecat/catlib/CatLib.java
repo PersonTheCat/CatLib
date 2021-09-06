@@ -12,6 +12,9 @@ import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.config.HjsonConfigSerializer;
 import personthecat.catlib.config.LibConfig;
+import personthecat.catlib.event.registry.DynamicRegistries;
+import personthecat.catlib.event.registry.RegistryAccessEvent;
+import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.FeatureModificationContext;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.event.world.RegistrySet;
@@ -29,6 +32,11 @@ public class CatLib implements ModInitializer {
         PathArgument.register();
 
         this.setupBiomeModificationHook();
+
+        RegistryAccessEvent.EVENT.register(access -> {
+            DynamicRegistries.updateRegistries(access);
+            RegistryAddedEvent.onRegistryAccess(access);
+        });
 
         if (LibConfig.ENABLE_GLOBAL_LIB_COMMANDS.get()) {
             CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR)

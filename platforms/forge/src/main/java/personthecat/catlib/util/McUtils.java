@@ -60,22 +60,4 @@ public class McUtils {
     public static Iterable<Item> getAllItems() {
         return ForgeRegistries.ITEMS;
     }
-
-    @Overwrite
-    public static Optional<Biome> getBiome(final ResourceLocation id) {
-        return Optional.ofNullable(ForgeRegistries.BIOMES.getValue(id));
-    }
-
-    @Overwrite
-    public static Iterable<Biome> getAllBiomes() {
-        return ForgeRegistries.BIOMES;
-    }
-
-    @Overwrite
-    public static List<Biome> getBiomes(final Biome.BiomeCategory type) {
-        return Stream.of(ForgeRegistries.BIOMES)
-            .flatMap(reg -> reg.getValues().stream())
-            .filter(b -> type.equals(b.getBiomeCategory()))
-            .collect(Collectors.toList());
-    }
 }

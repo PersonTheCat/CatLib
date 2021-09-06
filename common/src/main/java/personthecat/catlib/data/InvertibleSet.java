@@ -1,5 +1,7 @@
 package personthecat.catlib.data;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 import java.util.Collection;
@@ -44,6 +46,21 @@ public class InvertibleSet<T> implements Set<T> {
         return this.blacklist != this.set.stream().map(mapper).anyMatch(u1 -> u1.equals(u2));
     }
 
+    public Set<T> optimize(final Collection<T> all) {
+        if (this.isEmpty()) {
+            return this.blacklist ? new InfinitySet<>(all) : Collections.emptySet();
+        } else if (this.size() == 1) {
+            final T one = this.set.iterator().next();
+            return this.blacklist ? new AllButOneSet<>(all, one) : Collections.singleton(one);
+        } else if (this.size() == 2) {
+            final Iterator<T> iterator = this.set.iterator();
+            final T one = iterator.next();
+            final T two = iterator.next();
+            return this.blacklist ? new AllButTwoSet<>(all, one, two) : new SetOfTwo<>(one, two);
+        }
+        return this.blacklist ? this : this.set;
+    }
+
     @Override
     public int size() {
         return this.set.size();
@@ -56,14 +73,15 @@ public class InvertibleSet<T> implements Set<T> {
 
     @Override
     public boolean contains(final Object o) {
-        return this.set.contains(o);
+        return this.blacklist != this.set.contains(o);
     }
 
     @Override
     public boolean containsAll(final Collection<?> c) {
-        return this.set.containsAll(c);
+        return this.blacklist != this.set.containsAll(c);
     }
 
+    @NotNull
     @Override
     public Iterator<T> iterator() {
         return this.set.iterator();

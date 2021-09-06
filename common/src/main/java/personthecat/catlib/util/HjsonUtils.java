@@ -1,6 +1,10 @@
 package personthecat.catlib.util;
 
 import com.mojang.datafixers.util.Either;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.floats.FloatList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.BlockPos;
@@ -15,6 +19,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlac
 import org.hjson.*;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
+import personthecat.catlib.data.BiomePredicate;
 import personthecat.catlib.data.EmptyRange;
 import personthecat.catlib.data.FloatRange;
 import personthecat.catlib.data.Range;
@@ -40,7 +45,7 @@ import static personthecat.catlib.util.LibReference.JSON_EXTENSIONS;
 import static personthecat.catlib.util.McUtils.getBiome;
 import static personthecat.catlib.util.McUtils.getBiomes;
 import static personthecat.catlib.util.McUtils.getBiomeType;
-import static personthecat.catlib.util.McUtils.getBlockState;
+import static personthecat.catlib.util.McUtils.parseBlockState;
 import static personthecat.catlib.util.PathUtils.extension;
 import static personthecat.catlib.util.Shorthand.f;
 import static personthecat.catlib.util.Shorthand.full;
@@ -595,16 +600,13 @@ public class HjsonUtils {
         return Optional.ofNullable(json.get(field));
     }
 
-    public static Optional<List<Integer>> getIntList(final JsonObject json, final String field) {
+    public static Optional<IntList> getIntList(final JsonObject json, final String field) {
         return getArray(json, field).map(HjsonUtils::toIntList);
     }
 
-    private static List<Integer> toIntList(final JsonArray array) {
-        final List<Integer> ints = new ArrayList<>();
+    private static IntList toIntList(final JsonArray array) {
+        final IntList ints = new IntArrayList();
         for (final JsonValue value : array) {
-            if (!value.isNumber()) {
-                throw runEx("Expected an numeric value: {}", value);
-            }
             ints.add(value.asInt());
         }
         return ints;
@@ -616,6 +618,18 @@ public class HjsonUtils {
             ints[i] = array.get(i).asInt();
         }
         return ints;
+    }
+
+    public static Optional<FloatList> getFloatList(final JsonObject json, final String field) {
+        return getArray(json, field).map(HjsonUtils::toFloatList);
+    }
+
+    private static FloatList toFloatList(final JsonArray array) {
+        final FloatList floats = new FloatArrayList();
+        for (final JsonValue value : array) {
+            floats.add(value.asFloat());
+        }
+        return floats;
     }
 
     public static float[] toFloatArray(final JsonArray array) {
@@ -638,8 +652,24 @@ public class HjsonUtils {
         return strings;
     }
 
+    public static Optional<ResourceLocation> getId(final JsonObject json, final String field) {
+        return getString(json, field).map(ResourceLocation::new);
+    }
+
+    public static Optional<List<ResourceLocation>> getIds(final JsonObject json, final String field) {
+        return getArray(json, field).map(HjsonUtils::toIds);
+    }
+
+    public static List<ResourceLocation> toIds(final JsonArray array) {
+        final List<ResourceLocation> ids = new ArrayList<>();
+        for (final JsonValue value : array) {
+            ids.add(new ResourceLocation(value.asString()));
+        }
+        return ids;
+    }
+
     public static Optional<BlockState> getState(final JsonObject json, final String field) {
-        return getString(json, field).map(id -> getBlockState(new ResourceLocation(id)).orElseThrow(() -> noBlockNamed(id)));
+        return getString(json, field).map(id -> parseBlockState(id).orElseThrow(() -> noBlockNamed(id)));
     }
 
     public static Optional<List<BlockState>> getStateList(final JsonObject json, final String field) {
@@ -647,7 +677,7 @@ public class HjsonUtils {
     }
 
     private static List<BlockState> toStateList(final List<String> ids) {
-        return ids.stream().map(id -> getBlockState(new ResourceLocation(id)).orElseThrow(() -> noBlockNamed(id)))
+        return ids.stream().map(id -> parseBlockState(id).orElseThrow(() -> noBlockNamed(id)))
             .collect(Collectors.toList());
     }
 
@@ -681,25 +711,41 @@ public class HjsonUtils {
         return list;
     }
 
+    public static Optional<BiomePredicate> getBiomePredicate(final JsonObject json, final String field) {
+        return getObject(json, field).map(HjsonUtils::toBiomePredicate);
+    }
+
+    public static BiomePredicate toBiomePredicate(final JsonObject json) {
+        final BiomePredicate.BiomePredicateBuilder builder = BiomePredicate.builder();
+        getIds(json, "names").ifPresent(builder::names);
+        getBiomeTypes(json, "types").ifPresent(builder::types);
+        getBool(json, "blacklist").ifPresent(builder::blacklist);
+        return builder.build();
+    }
+
     public static Optional<List<Biome>> getBiomeList(final JsonObject json, final String field) {
         return getObject(json, field).map(HjsonUtils::toBiomes);
     }
 
-    private static List<Biome> toBiomes(final JsonObject json) {
+    public static List<Biome> toBiomes(final JsonObject json) {
         final List<Biome> biomes = new ArrayList<>();
         // Get biomes by registry name.
-        getArray(json, "names").map(HjsonUtils::toStringArray).ifPresent(a -> {
-            for (final String s : a) {
-                biomes.add(getBiome(new ResourceLocation(s)).orElseThrow(() -> noBiomeNamed(s)));
+        getIds(json, "names").ifPresent(a -> {
+            for (final ResourceLocation id : a) {
+                biomes.add(getBiome(id).orElseThrow(() -> noBiomeNamed(id.toString())));
             }
         });
         // Get biomes by type.
-        getArray(json, "types").map(HjsonUtils::toBiomeTypes).ifPresent(a -> {
+        getBiomeTypes(json, "types").ifPresent(a -> {
             for (final Biome.BiomeCategory t : a) {
                 biomes.addAll(getBiomes(t));
             }
         });
         return biomes;
+    }
+
+    public static Optional<List<Biome.BiomeCategory>> getBiomeTypes(final JsonObject json, final String field) {
+        return getArray(json, field).map(HjsonUtils::toBiomeTypes);
     }
 
     public static List<Biome.BiomeCategory> toBiomeTypes(final JsonArray array) {

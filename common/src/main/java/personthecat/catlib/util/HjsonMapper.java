@@ -1,12 +1,16 @@
 package personthecat.catlib.util;
 
+import it.unimi.dsi.fastutil.floats.FloatList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.AllArgsConstructor;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
+import personthecat.catlib.data.BiomePredicate;
 import personthecat.catlib.data.FloatRange;
 import personthecat.catlib.data.Range;
 import personthecat.catlib.exception.JsonMappingException;
@@ -88,11 +92,11 @@ public class HjsonMapper<B, R> {
         return this.addRequired(field, j -> HjsonUtils.getInt(j, field), mapper);
     }
 
-    public HjsonMapper<B, R> mapIntList(final String field, final BiConsumer<B, List<Integer>> ifPresent) {
+    public HjsonMapper<B, R> mapIntList(final String field, final BiConsumer<B, IntList> ifPresent) {
         return this.add(j -> HjsonUtils.getIntList(j, field), ifPresent);
     }
 
-    public HjsonMapper<B, R> mapRequiredIntList(final String field, final BiConsumer<B, List<Integer>> mapper) {
+    public HjsonMapper<B, R> mapRequiredIntList(final String field, final BiConsumer<B, IntList> mapper) {
         return this.addRequired(field, j -> HjsonUtils.getIntList(j, field), mapper);
     }
 
@@ -104,6 +108,14 @@ public class HjsonMapper<B, R> {
         return this.addRequired(field, j -> HjsonUtils.getFloat(j, field), mapper);
     }
 
+    public HjsonMapper<B, R> mapFloatList(final String field, final BiConsumer<B, FloatList> ifPresent) {
+        return this.add(j -> HjsonUtils.getFloatList(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredFloatList(final String field, final BiConsumer<B, FloatList> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getFloatList(j, field), mapper);
+    }
+
     public HjsonMapper<B, R> mapString(final String field, final BiConsumer<B, String> ifPresent) {
         return this.add(j -> HjsonUtils.getString(j, field), ifPresent);
     }
@@ -112,12 +124,44 @@ public class HjsonMapper<B, R> {
         return this.addRequired(field, j -> HjsonUtils.getString(j, field), mapper);
     }
 
+    public HjsonMapper<B, R> mapStringList(final String field, final BiConsumer<B, List<String>> ifPresent) {
+        return this.add(j -> HjsonUtils.getStringArray(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredStringList(final String field, final BiConsumer<B, List<String>> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getStringArray(j, field), mapper);
+    }
+
+    public HjsonMapper<B, R> mapId(final String field, final BiConsumer<B, ResourceLocation> ifPresent) {
+        return this.add(j -> HjsonUtils.getId(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredId(final String field, final BiConsumer<B, ResourceLocation> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getId(j, field), mapper);
+    }
+
+    public HjsonMapper<B, R> mapIds(final String field, final BiConsumer<B, List<ResourceLocation>> ifPresent) {
+        return this.add(j -> HjsonUtils.getIds(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredIds(final String field, final BiConsumer<B, List<ResourceLocation>> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getIds(j, field), mapper);
+    }
+
     public HjsonMapper<B, R> mapBiomes(final String field, final BiConsumer<B, List<Biome>> ifPresent) {
         return this.add(j -> HjsonUtils.getBiomeList(j, field), ifPresent);
     }
 
     public HjsonMapper<B, R> mapRequiredBiomes(final String field, final BiConsumer<B, List<Biome>> mapper) {
         return this.addRequired(field, j -> HjsonUtils.getBiomeList(j, field), mapper);
+    }
+
+    public HjsonMapper<B, R> mapBiomePredicate(final String field, final BiConsumer<B, BiomePredicate> ifPresent) {
+        return this.add(j -> HjsonUtils.getBiomePredicate(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredBiomePredicate(final String field, final BiConsumer<B, BiomePredicate> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getBiomePredicate(j, field), mapper);
     }
 
     public HjsonMapper<B, R> mapRange(final String field, final BiConsumer<B, Range> ifPresent) {

@@ -17,14 +17,18 @@ import personthecat.catlib.event.registry.RegistryAddedCallback;
 import personthecat.catlib.event.registry.RegistryEventAccessor;
 import personthecat.catlib.event.registry.RegistryHandle;
 
-@Mixin({MappedRegistry.class})
+import java.util.Iterator;
+import java.util.Map;
+import java.util.function.BiConsumer;
+
+@Mixin(MappedRegistry.class)
 public abstract class MojangRegistryMixin<T> extends Registry<T> implements RegistryHandle<T>, RegistryEventAccessor<T> {
 
     @Nullable
     private LibEvent<RegistryAddedCallback<T>> registryAddedEvent = null;
 
-    protected MojangRegistryMixin(ResourceKey<? extends Registry<T>> registryKey, Lifecycle lifecycle) {
-        super(registryKey, lifecycle);
+    protected MojangRegistryMixin(final ResourceKey<? extends Registry<T>> key, final Lifecycle lifecycle) {
+        super(key, lifecycle);
     }
 
     @Inject(method = "register", at = @At("RETURN"))
@@ -44,9 +48,14 @@ public abstract class MojangRegistryMixin<T> extends Registry<T> implements Regi
         return this.registryAddedEvent;
     }
 
+    @Shadow
     @Nullable
     @Override
-    public T lookup(ResourceLocation id) {
+    public abstract ResourceLocation getKey(final T t);
+
+    @Nullable
+    @Override
+    public T lookup(final ResourceLocation id) {
         return this.get(id);
     }
 
@@ -55,6 +64,19 @@ public abstract class MojangRegistryMixin<T> extends Registry<T> implements Regi
         this.register(ResourceKey.create(this.key(), id), t, Lifecycle.stable());
     }
 
+    @Override
+    public void forEach(final BiConsumer<ResourceLocation, T> f) {
+        for (final Map.Entry<ResourceKey<T>, T> entry : this.entrySet()) {
+            f.accept(entry.getKey().location(), entry.getValue());
+        }
+    }
+
     @Shadow
-    public abstract <V extends T> V register(ResourceKey<T> key, V v, Lifecycle lifecycle);
+    @NotNull
+    @Override
+    public abstract Iterator<T> iterator();
+
+    @Shadow
+    public abstract <V extends T> V register(final ResourceKey<T> key, final V v, final Lifecycle lifecycle);
 }
+

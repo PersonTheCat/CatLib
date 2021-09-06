@@ -5,13 +5,14 @@ import lombok.experimental.UtilityClass;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.commands.arguments.item.ItemParser;
 import net.minecraft.core.Registry;
-import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
+import personthecat.catlib.event.registry.DynamicRegistries;
+import personthecat.catlib.event.registry.RegistryHandle;
 import personthecat.catlib.exception.BiomeNotFoundException;
 import personthecat.catlib.exception.BiomeTypeNotFoundException;
 import personthecat.catlib.exception.BlockNotFoundException;
@@ -26,6 +27,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static personthecat.catlib.exception.Exceptions.noBiomeNamed;
 import static personthecat.catlib.exception.Exceptions.noBiomeTypeNamed;
@@ -205,23 +207,19 @@ public class McUtils {
     }
 
     /**
-     * Todo: consider data pack biomes.
-     *
      * @param id The name of the biome being researched.
      * @return The given biome, or else {@link Optional#empty}.
      */
     public static Optional<Biome> getBiome(final ResourceLocation id) {
-        return BuiltinRegistries.BIOME.getOptional(id);
+        return Optional.ofNullable(DynamicRegistries.BIOMES.lookup(id));
     }
 
     /**
-     * Todo: consider data pack biomes.
-     *
      * @apiNote The implementation of this method may differ on each platform.
      * @return A set of all registered biomes which can be iterated though.
      */
-    public static Iterable<Biome> getAllBiomes() {
-        return BuiltinRegistries.BIOME;
+    public static RegistryHandle<Biome> getAllBiomes() {
+        return DynamicRegistries.BIOMES;
     }
 
     /**
@@ -244,14 +242,12 @@ public class McUtils {
     }
 
     /**
-     * Todo: consider data pack biomes.
-     *
      * @param type The type of biome being researched.
      * @return A list of biomes for the given category.
      */
     public static List<Biome> getBiomes(final Biome.BiomeCategory type) {
-        return BuiltinRegistries.BIOME.stream()
-            .filter(b -> type.equals(b.getBiomeCategory()))
+        return StreamSupport.stream(DynamicRegistries.BIOMES.spliterator(), false)
+            .filter(biome -> biome.getBiomeCategory().equals(type))
             .collect(Collectors.toList());
     }
 }

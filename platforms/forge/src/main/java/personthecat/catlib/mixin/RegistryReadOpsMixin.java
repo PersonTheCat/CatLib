@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.world.FeatureModificationContext;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.event.world.RegistryAccessTracker;
@@ -29,6 +30,9 @@ public class RegistryReadOpsMixin {
     @SuppressWarnings("ConstantConditions")
     @Inject(method = "create(Lcom/mojang/serialization/DynamicOps;Lnet/minecraft/resources/RegistryReadOps$ResourceAccess;Lnet/minecraft/core/RegistryAccess$RegistryHolder;)Lnet/minecraft/resources/RegistryReadOps;", at = @At("RETURN"))
     private static <T> void afterCreation(DynamicOps<T> ops, ResourceAccess access, RegistryHolder holder, CallbackInfoReturnable<RegistryReadOps<T>> ci) {
+        if (!RegistryAccessEvent.EVENT.isEmpty()) {
+            RegistryAccessEvent.EVENT.invoker().accept(holder);
+        }
         if (!FeatureModificationEvent.EVENT.isEmpty()) {
             final Consumer<FeatureModificationContext> event = FeatureModificationEvent.EVENT.invoker();
             final RegistrySet registries = new RegistrySet(holder);

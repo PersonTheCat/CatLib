@@ -5,10 +5,6 @@ public class NonSerializableObjectException extends Exception {
         super(msg);
     }
 
-    public static NonSerializableObjectException unsupportedType(final Object o) {
-        return new NonSerializableObjectException("Cannot serialize object of type: " + o.getClass());
-    }
-
     public static NonSerializableObjectException unsupportedKey(final Object key) {
         return new NonSerializableObjectException("Cannot serialize map of type " + key.getClass() + ". Keys must be strings.");
     }
@@ -16,5 +12,4 @@ public class NonSerializableObjectException extends Exception {
     public static NonSerializableObjectException defaultRequired() {
         return new NonSerializableObjectException("Cannot serialize object. Generic types must have defaults.");
     }
-
 }
