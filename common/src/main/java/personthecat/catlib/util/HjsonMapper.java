@@ -11,6 +11,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlac
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import personthecat.catlib.data.BiomePredicate;
+import personthecat.catlib.data.DimensionPredicate;
 import personthecat.catlib.data.FloatRange;
 import personthecat.catlib.data.Range;
 import personthecat.catlib.exception.JsonMappingException;
@@ -162,6 +163,14 @@ public class HjsonMapper<B, R> {
 
     public HjsonMapper<B, R> mapRequiredBiomePredicate(final String field, final BiConsumer<B, BiomePredicate> mapper) {
         return this.addRequired(field, j -> HjsonUtils.getBiomePredicate(j, field), mapper);
+    }
+
+    public HjsonMapper<B, R> mapDimensionPredicate(final String field, final BiConsumer<B, DimensionPredicate> ifPresent) {
+        return this.add(j -> HjsonUtils.getDimensionPredicate(j, field), ifPresent);
+    }
+
+    public HjsonMapper<B, R> mapRequiredDimensionPredicate(final String field, final BiConsumer<B, DimensionPredicate> mapper) {
+        return this.addRequired(field, j -> HjsonUtils.getDimensionPredicate(j, field), mapper);
     }
 
     public HjsonMapper<B, R> mapRange(final String field, final BiConsumer<B, Range> ifPresent) {

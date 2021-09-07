@@ -57,7 +57,7 @@ public class RegistryAddedEvent {
     private static <T> LibEvent<RegistryAddedCallback<T>> create(final ResourceKey<Registry<T>> key) {
         final RegistryHandle<T> handle = RegistryUtils.getHandle(key);
         final LibEvent<RegistryAddedCallback<T>> event = newEvent();
-        RegistryEntryAddedCallback.event((Registry<T>) handle).register((i, id, t) ->
+        RegistryEntryAddedCallback.event(((MojangRegistryHandle<T>) handle).getRegistry()).register((i, id, t) ->
             event.invoker().onRegistryAdded(handle, id, t));
         return event;
     }

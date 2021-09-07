@@ -15,8 +15,6 @@ public class RegistryReadOpsMixin {
 
     @Inject(method = "create(Lcom/mojang/serialization/DynamicOps;Lnet/minecraft/resources/RegistryReadOps$ResourceAccess;Lnet/minecraft/core/RegistryAccess$RegistryHolder;)Lnet/minecraft/resources/RegistryReadOps;", at = @At("RETURN"))
     private static <T> void afterCreation(DynamicOps<T> ops, RegistryReadOps.ResourceAccess access, RegistryAccess.RegistryHolder holder, CallbackInfoReturnable<RegistryReadOps<T>> ci) {
-        if (!RegistryAccessEvent.EVENT.isEmpty()) {
-            RegistryAccessEvent.EVENT.invoker().accept(holder);
-        }
+        RegistryAccessEvent.EVENT.invoker().accept(holder);
     }
 }

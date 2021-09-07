@@ -42,7 +42,16 @@ public class SyntaxLinter {
     public static final Pattern LINE_COMMENT = Pattern.compile("(?:#|//).*$", Pattern.MULTILINE);
 
     /** Identifies all other Hjson / Yaml keys to be highlighted. */
-    public static final Pattern KEY = Pattern.compile("(\"[\\w\\s]*\"|\\w+)\\s*:|[-_\\w./]+\\s*::\\s*\\w+|.*\\s[aA][sS]\\s+\\w+", Pattern.MULTILINE);
+    public static final Pattern KEY = Pattern.compile("(\"[\\w\\s]*\"|\\w+)\\s*(?=:)|[-_\\w./]+\\s*(?:::|[aA][sS])\\s*\\w+(.*\\s[aA][sS]\\s+\\w+)?", Pattern.MULTILINE);
+
+    /** Identifies all boolean values to be highlighted. */
+    public static final Pattern BOOLEAN_VALUE = Pattern.compile("(true|false)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
+
+    /** Identifies all numeric values to be highlighted. */
+    public static final Pattern NUMERIC_VALUE = Pattern.compile("(\\d+(\\.\\d+)?)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
+
+    /** Identifies all null values to be highlighted. */
+    public static final Pattern NULL_VALUE = Pattern.compile("(null)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
 
     /** A list of every target needed for highlighting basic Hjson data. */
     public static final Target[] HJSON_TARGETS = {
@@ -51,7 +60,10 @@ public class SyntaxLinter {
         new Target(LINE_DOC, color(ChatFormatting.DARK_GREEN).withItalic(true)),
         new Target(MULTILINE_COMMENT, color(ChatFormatting.GRAY)),
         new Target(LINE_COMMENT, color(ChatFormatting.GRAY)),
-        new Target(KEY, color(ChatFormatting.AQUA))
+        new Target(KEY, color(ChatFormatting.AQUA)),
+        new Target(BOOLEAN_VALUE, color(ChatFormatting.GOLD)),
+        new Target(NUMERIC_VALUE, color(ChatFormatting.LIGHT_PURPLE)),
+        new Target(NULL_VALUE, color(ChatFormatting.RED))
     };
 
     /** The default Hjson syntax linter provided by the library. */

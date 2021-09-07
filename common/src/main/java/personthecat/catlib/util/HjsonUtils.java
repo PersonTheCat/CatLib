@@ -19,10 +19,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlac
 import org.hjson.*;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
-import personthecat.catlib.data.BiomePredicate;
-import personthecat.catlib.data.EmptyRange;
-import personthecat.catlib.data.FloatRange;
-import personthecat.catlib.data.Range;
+import personthecat.catlib.data.*;
 import personthecat.catlib.exception.UnreachableException;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
@@ -715,32 +712,48 @@ public class HjsonUtils {
         return getObject(json, field).map(HjsonUtils::toBiomePredicate);
     }
 
-    public static BiomePredicate toBiomePredicate(final JsonObject json) {
+    public static BiomePredicate toBiomePredicate(final JsonValue json) {
         final BiomePredicate.BiomePredicateBuilder builder = BiomePredicate.builder();
-        getIds(json, "names").ifPresent(builder::names);
-        getBiomeTypes(json, "types").ifPresent(builder::types);
-        getBool(json, "blacklist").ifPresent(builder::blacklist);
+
+        if (json.isObject()) {
+            final JsonObject o = json.asObject();
+            getIds(o, "names").ifPresent(builder::names);
+            getBiomeTypes(o, "types").ifPresent(builder::types);
+            getStringArray(o, "mods").ifPresent(builder::mods);
+            getBool(o, "blacklist").ifPresent(builder::blacklist);
+        } else {
+            builder.names(toIds(asOrToArray(json)));
+        }
+
         return builder.build();
     }
 
     public static Optional<List<Biome>> getBiomeList(final JsonObject json, final String field) {
-        return getObject(json, field).map(HjsonUtils::toBiomes);
+        return getValue(json, field).map(HjsonUtils::toBiomes);
     }
 
-    public static List<Biome> toBiomes(final JsonObject json) {
+    public static List<Biome> toBiomes(final JsonValue json) {
         final List<Biome> biomes = new ArrayList<>();
-        // Get biomes by registry name.
-        getIds(json, "names").ifPresent(a -> {
-            for (final ResourceLocation id : a) {
+
+        if (json.isObject()) {
+            final JsonObject o = json.asObject();
+            // Get biomes by registry name.
+            getIds(o, "names").ifPresent(a -> {
+                for (final ResourceLocation id : a) {
+                    biomes.add(getBiome(id).orElseThrow(() -> noBiomeNamed(id.toString())));
+                }
+            });
+            // Get biomes by type.
+            getBiomeTypes(o, "types").ifPresent(a -> {
+                for (final Biome.BiomeCategory t : a) {
+                    biomes.addAll(getBiomes(t));
+                }
+            });
+        } else {
+            for (final ResourceLocation id : toIds(asOrToArray(json))) {
                 biomes.add(getBiome(id).orElseThrow(() -> noBiomeNamed(id.toString())));
             }
-        });
-        // Get biomes by type.
-        getBiomeTypes(json, "types").ifPresent(a -> {
-            for (final Biome.BiomeCategory t : a) {
-                biomes.addAll(getBiomes(t));
-            }
-        });
+        }
         return biomes;
     }
 
@@ -755,6 +768,23 @@ public class HjsonUtils {
             types.add(getBiomeType(s).orElseThrow(() -> noBiomeTypeNamed(s)));
         }
         return types;
+    }
+
+    public static Optional<DimensionPredicate> getDimensionPredicate(final JsonObject json, final String field) {
+        return getValue(json, field).map(HjsonUtils::toDimensions);
+    }
+
+    public static DimensionPredicate toDimensions(final JsonValue json) {
+        final DimensionPredicate.DimensionPredicateBuilder builder = DimensionPredicate.builder();
+
+        if (json.isObject()) {
+            final JsonObject o = json.asObject();
+            getIds(o, "names").ifPresent(builder::names);
+            getStringArray(o, "mods").ifPresent(builder::mods);
+        } else {
+            builder.names(toIds(asOrToArray(json)));
+        }
+        return builder.build();
     }
 
     public static StructurePlaceSettings getPlacementSettings(final JsonObject json) {

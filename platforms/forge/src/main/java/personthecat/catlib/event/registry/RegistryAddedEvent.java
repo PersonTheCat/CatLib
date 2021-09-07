@@ -22,7 +22,10 @@ public class RegistryAddedEvent {
     @SuppressWarnings("unchecked")
     public static <T> LibEvent<RegistryAddedCallback<T>> get(final ResourceKey<Registry<T>> key) {
         final RegistryHandle<T> handle = RegistryUtils.getHandle(key);
-        return ((RegistryEventAccessor<T>) handle).getRegistryAddedEvent();
+        final RegistryEventAccessor<T> accessor = handle instanceof ForgeRegistryHandle
+            ? (RegistryEventAccessor<T>) ((ForgeRegistryHandle<?>) handle).getRegistry()
+            : (RegistryEventAccessor<T>) ((MojangRegistryHandle<?>) handle).getRegistry();
+        return accessor.getRegistryAddedEvent();
     }
 
     @Overwrite
@@ -47,7 +50,7 @@ public class RegistryAddedEvent {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void onRegistryAccess(final RegistryAccess registries) {
         DYNAMIC_EVENT_MAP.forEach((key, event) -> {
-            final RegistryHandle<Object> registry = (RegistryHandle<Object>) registries.registryOrThrow((ResourceKey) key);
+            final RegistryHandle<Object> registry = new MojangRegistryHandle(registries.registryOrThrow((ResourceKey) key));
             registry.forEach((id, t) -> ((LibEvent<RegistryAddedCallback<Object>>) (Object) event).invoker()
                 .onRegistryAdded(registry, id, t));
         });
@@ -55,7 +58,10 @@ public class RegistryAddedEvent {
 
     private static <T> void runRetroactively(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         final RegistryHandle<T> handle = RegistryUtils.getHandle(key);
+        final boolean locked = handle instanceof ForgeRegistryHandle && ((ForgeRegistryHandle<?>) handle).getRegistry().isLocked();
+        if (locked) ((ForgeRegistryHandle<?>) handle).getRegistry().unfreeze();
         handle.forEach((id, t) -> f.onRegistryAdded(handle, id, t));
+        if (locked) ((ForgeRegistryHandle<?>) handle).getRegistry().freeze();
     }
 
     @SuppressWarnings("unchecked")

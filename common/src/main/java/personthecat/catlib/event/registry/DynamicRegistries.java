@@ -11,7 +11,7 @@ public class DynamicRegistries {
 
     @SuppressWarnings("unchecked")
     public static void updateRegistries(final RegistryAccess registries) {
-        ((DynamicRegistryHandle<Biome>) BIOMES).updateRegistry((RegistryHandle<Biome>) registries.registryOrThrow(Registry.BIOME_REGISTRY));
-        ((DynamicRegistryHandle<DimensionType>) DIMENSION_TYPES).updateRegistry((RegistryHandle<DimensionType>) registries.registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY));
+        ((DynamicRegistryHandle<Biome>) BIOMES).updateRegistry(new MojangRegistryHandle<>(registries.registryOrThrow(Registry.BIOME_REGISTRY)));
+        ((DynamicRegistryHandle<DimensionType>) DIMENSION_TYPES).updateRegistry(new MojangRegistryHandle<>(registries.registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY)));
     }
 }

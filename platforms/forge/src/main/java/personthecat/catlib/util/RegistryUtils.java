@@ -4,8 +4,11 @@ import lombok.experimental.UtilityClass;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
+import personthecat.catlib.event.registry.ForgeRegistryHandle;
+import personthecat.catlib.event.registry.MojangRegistryHandle;
 import personthecat.catlib.event.registry.RegistryHandle;
 import personthecat.catlib.exception.MissingOverrideException;
 import personthecat.overwritevalidator.annotations.Inherit;
@@ -26,19 +29,19 @@ public class RegistryUtils {
     }
 
     @Overwrite
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<Registry<T>> key) {
         final IForgeRegistry<?> forgeRegistry = RegistryManager.ACTIVE.getRegistry(key.location());
         if (forgeRegistry != null) {
-            return Optional.of((RegistryHandle<T>) forgeRegistry);
+            return Optional.of(new ForgeRegistryHandle<>((ForgeRegistry) forgeRegistry));
         }
         final Registry<T> mojangRegistry = (Registry<T>) Registry.REGISTRY.get(key.location());
         if (mojangRegistry != null) {
-            return Optional.of((RegistryHandle<T>) mojangRegistry);
+            return Optional.of(new MojangRegistryHandle<>(mojangRegistry));
         }
         final Registry<T> builtinRegistry = (Registry<T>) BuiltinRegistries.REGISTRY.get(key.location());
         if (builtinRegistry != null) {
-            return Optional.of((RegistryHandle<T>) builtinRegistry);
+            return Optional.of(new MojangRegistryHandle<>(builtinRegistry));
         }
         return Optional.empty();
     }

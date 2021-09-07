@@ -43,6 +43,10 @@ public class RegistryAddedEvent {
      * Unlike {@link #get}, <b>this method will also fire the callback for every object already
      * contained within the registry</b>.
      *
+     * <p>On the Forge platform, this means the registry will be forcibly unfrozen temporarily.
+     * Realistically speaking, this is a safe operation unless the Forge registry events have
+     * already fired. In that case, additional registry entries will simply have no effect.
+     *
      * <p>Note that dynamic registries are not covered by this event.
      *
      * @throws RegistryLookupException If no registry is found.
