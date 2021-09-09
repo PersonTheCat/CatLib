@@ -15,6 +15,6 @@ public class RegistryReadOpsMixin {
 
     @Inject(method = "create(Lcom/mojang/serialization/DynamicOps;Lnet/minecraft/resources/RegistryReadOps$ResourceAccess;Lnet/minecraft/core/RegistryAccess$RegistryHolder;)Lnet/minecraft/resources/RegistryReadOps;", at = @At("RETURN"))
     private static <T> void afterCreation(DynamicOps<T> ops, RegistryReadOps.ResourceAccess access, RegistryAccess.RegistryHolder holder, CallbackInfoReturnable<RegistryReadOps<T>> ci) {
-        RegistryAccessEvent.EVENT.invoker().accept(holder);
+        if (!Thread.currentThread().getName().contains("Netty")) RegistryAccessEvent.EVENT.invoker().accept(holder);
     }
 }
