@@ -5,6 +5,7 @@ import lombok.Value;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.SyntaxLinter;
+import personthecat.catlib.versioning.Version;
 
 import java.io.File;
 import java.util.Objects;
@@ -40,6 +41,7 @@ import java.util.Objects;
 public class ModDescriptor {
     String name;
     String modId;
+    Version version;
     String commandPrefix;
     File configFolder;
     File backupFolder;
@@ -51,12 +53,13 @@ public class ModDescriptor {
         public ModDescriptor build() {
             Objects.requireNonNull(this.name, "name must not be null");
             Objects.requireNonNull(this.modId, "modId must not be null");
+            if (this.version == null) this.version = Version.ZERO;
             if (this.commandPrefix == null) this.commandPrefix = this.modId;
             if (this.configFolder == null) this.configFolder = new File(McUtils.getConfigDir(), this.modId);
             if (this.backupFolder == null) this.backupFolder = new File(this.configFolder, "backups");
             if (this.defaultLinter == null) this.defaultLinter = SyntaxLinter.DEFAULT_LINTER;
 
-            return new ModDescriptor(name, modId, commandPrefix, configFolder, backupFolder, preferredDirectory, defaultLinter);
+            return new ModDescriptor(name, modId, version, commandPrefix, configFolder, backupFolder, preferredDirectory, defaultLinter);
         }
     }
 }
