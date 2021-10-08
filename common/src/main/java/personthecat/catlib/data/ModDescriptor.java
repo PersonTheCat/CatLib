@@ -31,7 +31,7 @@ import java.util.Objects;
  *           .modId("mod_id")
  *           .build();
  * </pre><p>
- *   Note that <code>name</code> and <code>modId</code> are the only\
+ *   Note that <code>name</code> and <code>modId</code> are the only
  *   required parameters. The others can be inferred if needed.
  * </p>
  */

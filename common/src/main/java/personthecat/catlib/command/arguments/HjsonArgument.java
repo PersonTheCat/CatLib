@@ -11,6 +11,7 @@ import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import org.hjson.JsonObject;
 import personthecat.catlib.command.CommandUtils;
+import personthecat.catlib.data.JsonType;
 import personthecat.catlib.data.Lazy;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
@@ -21,8 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static personthecat.catlib.exception.Exceptions.cmdSyntax;
-import static personthecat.catlib.util.LibReference.HJSON_EXTENSIONS;
-import static personthecat.catlib.util.LibReference.JSON_EXTENSIONS;
 import static personthecat.catlib.util.HjsonUtils.readSuppressing;
 import static personthecat.catlib.util.PathUtils.extension;
 
@@ -48,7 +47,7 @@ public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
     public Result parse(final StringReader reader) throws CommandSyntaxException {
         final File f = getter.parse(reader);
         final String ext = extension(f);
-        if (f.exists() && !(f.isDirectory() || HJSON_EXTENSIONS.contains(ext) || JSON_EXTENSIONS.contains(ext))) {
+        if (f.exists() && !(f.isDirectory() || JsonType.isSupported(ext))) {
             throw cmdSyntax(reader, "Unsupported format");
         }
         return new Result(getter.dir, f);

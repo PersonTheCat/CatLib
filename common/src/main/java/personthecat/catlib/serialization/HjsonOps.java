@@ -151,7 +151,7 @@ public class HjsonOps implements DynamicOps<JsonValue> {
     public DataResult<JsonValue> mergeToMap(final JsonValue map, final JsonValue key, final JsonValue value) {
         if (!(map == null || map.isObject() || map.isNull())) {
             return DataResult.error("mergeToMap called with not a map: " + map, map);
-        } else if (!(key.isString() || (this.compressed && isPrimitiveLiKe(key)))) {
+        } else if (!(key.isString() || (this.compressed && isPrimitiveLike(key)))) {
             final String msg = "key is not a string: " + key;
             return map != null ? DataResult.error(msg, map) : DataResult.error(msg);
         }
@@ -173,7 +173,7 @@ public class HjsonOps implements DynamicOps<JsonValue> {
         final List<JsonValue> missed = new ArrayList<>();
         values.entries().forEach(entry -> {
             final JsonValue key = entry.getFirst();
-            if (key.isString() || (this.compressed && isPrimitiveLiKe(key))) {
+            if (key.isString() || (this.compressed && isPrimitiveLike(key))) {
                 output.add(asPrimitiveString(key), entry.getSecond());
             } else {
                 missed.add(key);
@@ -322,7 +322,7 @@ public class HjsonOps implements DynamicOps<JsonValue> {
         }
     }
 
-    private static boolean isPrimitiveLiKe(final JsonValue value) {
+    private static boolean isPrimitiveLike(final JsonValue value) {
         return value.isBoolean() || value.isString() || value.isNumber();
     }
 

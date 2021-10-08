@@ -20,6 +20,7 @@ import org.hjson.*;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.*;
+import personthecat.catlib.data.JsonType;
 import personthecat.catlib.exception.UnreachableException;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
@@ -38,12 +39,10 @@ import static personthecat.catlib.exception.Exceptions.noBiomeTypeNamed;
 import static personthecat.catlib.exception.Exceptions.noBlockNamed;
 import static personthecat.catlib.exception.Exceptions.runEx;
 import static personthecat.catlib.exception.Exceptions.unreachable;
-import static personthecat.catlib.util.LibReference.JSON_EXTENSIONS;
 import static personthecat.catlib.util.McUtils.getBiome;
 import static personthecat.catlib.util.McUtils.getBiomes;
 import static personthecat.catlib.util.McUtils.getBiomeType;
 import static personthecat.catlib.util.McUtils.parseBlockState;
-import static personthecat.catlib.util.PathUtils.extension;
 import static personthecat.catlib.util.Shorthand.f;
 import static personthecat.catlib.util.Shorthand.full;
 import static personthecat.catlib.util.Shorthand.assertEnumConstant;
@@ -158,7 +157,7 @@ public class HjsonUtils {
      */
     public static Result<Void, IOException> writeJson(final JsonObject json, final File file) {
         return Result.with(() -> new FileWriter(file), writer -> {
-            if (JSON_EXTENSIONS.contains(extension(file))) { // Write as json.
+            if (JsonType.isJson(file)) { // Write as json.
                 json.writeTo(writer, Stringify.FORMATTED);
             } else { // Write as hjson.
                 json.writeTo(writer, FORMATTER);
