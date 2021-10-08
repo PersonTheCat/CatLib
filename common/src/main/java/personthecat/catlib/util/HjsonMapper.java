@@ -15,6 +15,7 @@ import personthecat.catlib.data.DimensionPredicate;
 import personthecat.catlib.data.FloatRange;
 import personthecat.catlib.data.Range;
 import personthecat.catlib.exception.JsonMappingException;
+import personthecat.catlib.serialization.CodecUtils;
 import personthecat.fastnoise.data.CellularDistanceType;
 import personthecat.fastnoise.data.CellularReturnType;
 import personthecat.fastnoise.data.FractalType;
@@ -68,7 +69,10 @@ import static personthecat.catlib.util.Shorthand.map;
  * <p>
  *   e.g. {@link #mapRequiredState}
  * </p>
+ *
+ * @deprecated Use {@link CodecUtils} for bidirectional, format agnostic codecs.
  */
+@Deprecated
 @AllArgsConstructor
 @SuppressWarnings("unused")
 public class HjsonMapper<B, R> {
