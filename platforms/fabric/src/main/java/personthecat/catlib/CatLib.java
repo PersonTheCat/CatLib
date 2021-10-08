@@ -38,7 +38,7 @@ public class CatLib implements ModInitializer {
             RegistryAddedEvent.onRegistryAccess(access);
         });
 
-        if (LibConfig.ENABLE_GLOBAL_LIB_COMMANDS.get()) {
+        if (LibConfig.enableGlobalLibCommands()) {
             CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR)
                 .addAllCommands(DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true))
                 .registerAll();

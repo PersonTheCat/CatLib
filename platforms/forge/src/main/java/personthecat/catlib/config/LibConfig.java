@@ -25,7 +25,9 @@ public class LibConfig {
         .define("enableGlobalLibCommands", false);
 
     @Overwrite
-    public static final Supplier<Boolean> ENABLE_GLOBAL_LIB_COMMANDS = ENABLE_LIB_COMMANDS_VALUE::get;
+    public static boolean enableGlobalLibCommands() {
+        return ENABLE_LIB_COMMANDS_VALUE.get();
+    }
 
     public static void register(final ModContainer ctx) {
         ctx.addConfig(new CustomModConfig(ModConfig.Type.COMMON, COMMON.build(), ctx, COMMON_CFG));

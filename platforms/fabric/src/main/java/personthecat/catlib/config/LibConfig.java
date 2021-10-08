@@ -25,8 +25,9 @@ public class LibConfig implements ConfigData {
         Lazy.of(() -> AutoConfig.getConfigHolder(LibConfig.class).getConfig());
 
     @Overwrite
-    public static final Supplier<Boolean> ENABLE_GLOBAL_LIB_COMMANDS =
-        () -> CONFIG.get().general.enableGlobalLibCommands;
+    public static boolean enableGlobalLibCommands() {
+        return CONFIG.get().general.enableGlobalLibCommands;
+    }
 
     private static class General {
         @Comment("Whether to enable this library's provided commands as regular commands.")

@@ -6,8 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import lombok.experimental.UtilityClass;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.Material;
-import personthecat.catlib.exception.MissingOverrideException;
 import personthecat.overwritevalidator.annotations.Inherit;
+import personthecat.overwritevalidator.annotations.InheritMissingMembers;
 import personthecat.overwritevalidator.annotations.Overwrite;
 import personthecat.overwritevalidator.annotations.OverwriteClass;
 
@@ -19,6 +19,7 @@ import static personthecat.catlib.util.Shorthand.nullable;
 
 @UtilityClass
 @OverwriteClass
+@InheritMissingMembers
 @SuppressWarnings("unused")
 public class ValueLookup {
 
@@ -86,15 +87,5 @@ public class ValueLookup {
         final String caps = key.toUpperCase();
         final SoundType moj = SOUND_MAP.get(caps);
         return moj != null ? full(moj) : nullable(MCP_SOUND_MAP.get(caps));
-    }
-
-    @Inherit
-    public static Optional<String> serialize(final Material value) {
-        throw new MissingOverrideException();
-    }
-
-    @Inherit
-    public static Optional<String> serialize(final SoundType value) {
-        throw new MissingOverrideException();
     }
 }
