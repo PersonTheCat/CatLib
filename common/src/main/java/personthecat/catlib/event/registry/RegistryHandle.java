@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 public interface RegistryHandle<T> extends Iterable<T> {
     @Nullable ResourceLocation getKey(final T t);
     @Nullable T lookup(final ResourceLocation id);
-    void register(final ResourceLocation id, T t);
+    T register(final ResourceLocation id, T t);
     void forEach(final BiConsumer<ResourceLocation, T> f);
 
     default boolean isRegistered(final ResourceLocation id) {

@@ -1,5 +1,6 @@
 package personthecat.catlib.io;
 
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.exception.DirectoryNotCreatedException;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -250,6 +252,20 @@ public class FileIO {
     }
 
     /**
+     * Attempts to read the contents of a file. Returns an error if any exception occurs.
+     *
+     * @param f The file being read.
+     * @return The contents of the file, or else {@link Result#err}.
+     */
+    public static Result<String, IOException> readFile(final File f) {
+        try {
+            return Result.ok(FileUtils.readFileToString(f, Charset.defaultCharset()));
+        } catch (final IOException e) {
+            return Result.err(e);
+        }
+    }
+
+    /**
      * Attempts to retrieve the contents of the input file, or else {@link Optional#empty}.
      *
      * @param f The file being read from.
@@ -268,7 +284,7 @@ public class FileIO {
      */
     @CheckReturnValue
     public Optional<String> contents(final File f) {
-        return readLines(f).map(l -> String.join("\n", l));
+        return readFile(f).get();
     }
 
     /**

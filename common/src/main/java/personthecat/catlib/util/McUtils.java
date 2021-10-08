@@ -66,6 +66,14 @@ public class McUtils {
     }
 
     /**
+     * @return Whether the game is currently running on the client side.
+     */
+    @PlatformMustInherit
+    public static boolean isClientSide() {
+        return !isDedicatedServer();
+    }
+
+    /**
      * @throws BlockNotFoundException If the block does not exist.
      * @param id The name of the block being researched.
      * @return The given block, or else throws.

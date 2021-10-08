@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Contains any utilities needed by the library for manipulating miscellaneous
@@ -13,6 +14,8 @@ import java.util.List;
  */
 @UtilityClass
 public class LibStringUtils {
+
+    private static final Random RAND = new Random();
 
     /**
      * Wraps the given text onto multiple lines when given a line length.
@@ -52,5 +55,19 @@ public class LibStringUtils {
             lines.add(line.toString());
         }
         return lines;
+    }
+
+    /**
+     * Generates a random string of characters (a ~ z) of the given length.
+     *
+     * @param length The number of characters in the string.
+     * @return A new string random characters.
+     */
+    public static String randId(final int length) {
+        final char[] chars = new char[length];
+        for (int i = 0; i < length; i++) {
+            chars[i] = (char) (RAND.nextInt(26) + 'a');
+        }
+        return new String(chars);
     }
 }

@@ -1,18 +1,13 @@
 package personthecat.catlib.util;
 
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.exception.InvalidEnumConstantException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -35,7 +30,7 @@ public class Shorthand {
      * @param <T> The type of value being wrapped.
      * @return <code>val</code>, wrapped in {@link Optional}.
      */
-    @Nonnull
+    @NotNull
     public static <T> Optional<T> full(final T val) {
         return Optional.of(val);
     }
@@ -47,7 +42,7 @@ public class Shorthand {
      * @param <T> The type of value being wrapped.
      * @return <code>val</code>, wrapped in {@link Optional}.
      */
-    @Nonnull
+    @NotNull
     public static <T> Optional<T> nullable(@Nullable final T val) {
         return Optional.ofNullable(val);
     }
@@ -100,7 +95,7 @@ public class Shorthand {
      * @param args A list of arguments to interpolate into this string.
      * @return A formatted, interpolated string.
      */
-    @Nonnull
+    @NotNull
     public static String f(final String s, final Object... args) {
         int begin = 0, si = 0, oi = 0;
         final StringBuilder sb = new StringBuilder();
@@ -138,7 +133,7 @@ public class Shorthand {
      * @param by A predicate which determines which value to return.
      * @return The value, or else {@link Optional#empty}.
      */
-    @Nonnull
+    @NotNull
     public static <T> Optional<T> find(final T[] values, final Predicate<T> by) {
         for (final T val : values) {
             if (by.test(val)) {
@@ -157,7 +152,7 @@ public class Shorthand {
      * @param by A predicate which determines which value to return.
      * @return The value, or else {@link Optional#empty}.
      */
-    @Nonnull
+    @NotNull
     public static <T> Optional<T> find(final Iterable<T> values, final Predicate<T> by) {
         for (final T val : values) {
             if (by.test(val)) {
@@ -177,7 +172,7 @@ public class Shorthand {
      * @param by A predicate which determines which value to return.
      * @return The value, or else {@link Optional#empty}.
      */
-    @Nonnull
+    @NotNull
     public static <K, V> Optional<V> find(final Map<K, V> map, final Predicate<V> by) {
         return find(map.values(), by);
     }
@@ -191,7 +186,7 @@ public class Shorthand {
      * @param by A predicate which determines which value to return.
      * @return The value, or else an empty list.
      */
-    @Nonnull
+    @NotNull
     public static <T> List<T> findAll(final Iterable<T> values, final Predicate<T> by) {
         final List<T> all = new ArrayList<>();
         for (T val : values) {
@@ -211,7 +206,7 @@ public class Shorthand {
      * @param by A predicate which determines which value to return.
      * @return The value, or else an empty list.
      */
-    @Nonnull
+    @NotNull
     public static <K, V> List<V> findAll(final Map<K, V> map, final Predicate<V> by) {
         return findAll(map.values(), by);
     }
@@ -259,7 +254,7 @@ public class Shorthand {
      * @param key The key being researched in the map.
      * @return The mapped value, or else {@link Optional#empty}.
      */
-    @Nonnull
+    @NotNull
     public static <K, V> Optional<V> getOptional(final Map<K, V> map, final K key) {
         return Optional.ofNullable(map.get(key));
     }
@@ -271,7 +266,7 @@ public class Shorthand {
      * @param index The index of the value being returned.
      * @return The value at the given index, or else {@link Optional#empty}.
      */
-    @Nonnull
+    @NotNull
     public static <T> Optional<T> getOptional(final T[] array, final int index) {
         return index >= 0 && index < array.length ? nullable(array[index]) : empty();
     }
@@ -307,9 +302,72 @@ public class Shorthand {
      * @param mapper A function which converts the individual values.
      * @return A transformed list containing the new type.
      */
-    @Nonnull
+    @NotNull
     public static <T, U> List<U> map(final List<T> list, final Function<T, U> mapper) {
         return list.stream().map(mapper).collect(Collectors.toList());
+    }
+
+    /**
+     * Maps the given set to an {@link HashSet} of a new type.
+     *
+     * @param <T> The original type of the map being converted.
+     * @param <U> The new type of value in the map.
+     * @param set The set being converted.
+     * @param mapper A function which converts the individual values.
+     * @return A transformed list containing the new type.
+     */
+    @NotNull
+    public static <T, U> Set<U> map(final Set<T> set, final Function<T, U> mapper) {
+        return set.stream().map(mapper).collect(Collectors.toSet());
+    }
+
+    /**
+     * Variant of {@link Collection#removeIf} which returns the data removed.
+     *
+     * @param source The original data source being copied out of.
+     * @param filter The filter for which files to remove from the collection.
+     * @param <T> The type of data in the collection.
+     * @return A new collection containing the removed data.
+     */
+    @NotNull
+    public static <T> Set<T> drain(final Set<T> source, final Predicate<T> filter) {
+        return drain(source, new HashSet<>(), filter);
+    }
+
+    /**
+     * Variant of {@link Collection#removeIf} which returns the data removed.
+     *
+     * @param source The original data source being copied out of.
+     * @param filter The filter for which files to remove from the collection.
+     * @param <T> The type of data in the collection.
+     * @return A new collection containing the removed data.
+     */
+    @NotNull
+    public static <T> List<T> drain(final List<T> source, final Predicate<T> filter) {
+        return drain(source, new ArrayList<>(), filter);
+    }
+
+    /**
+     * Variant of {@link Collection#removeIf} which returns the data removed.
+     *
+     * @param source The original data source being copied out of.
+     * @param into The collection being copied into.
+     * @param filter The filter for which files to remove from the collection.
+     * @param <T> The type of data in the collection.
+     * @param <R> The type of collection being returned.
+     * @return A new collection containing the removed data.
+     */
+    @NotNull
+    public static <T, R extends Collection<T>> R drain(final Collection<T> source, final R into, final Predicate<T> filter) {
+        final Iterator<T> iterator = source.iterator();
+        while (iterator.hasNext()) {
+            final T item = iterator.next();
+            if (filter.test(item)) {
+                iterator.remove();
+                into.add(item);
+            }
+        }
+        return into;
     }
 
     /**
@@ -321,7 +379,7 @@ public class Shorthand {
      * @param <T> The type of constant being researched.
      * @return The expected constant.
      */
-    @Nonnull
+    @NotNull
     public static <T extends Enum<T>> T assertEnumConstant(final String s, final Class<T> clazz) {
         return getEnumConstant(s, clazz).orElseThrow(() -> invalidConstant(s, clazz));
     }

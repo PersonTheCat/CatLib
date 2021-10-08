@@ -38,8 +38,8 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public void register(final ResourceLocation id, final T t) {
-        ((WritableRegistry<T>) this.registry).register(ResourceKey.create(this.registry.key(), id), t, Lifecycle.stable());
+    public T register(final ResourceLocation id, final T t) {
+        return ((WritableRegistry<T>) this.registry).register(ResourceKey.create(this.registry.key(), id), t, Lifecycle.stable());
     }
 
     @Override

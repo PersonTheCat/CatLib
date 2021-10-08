@@ -22,7 +22,7 @@ public class SequentialDualHashMap<K1, K2, V> implements DualMap<K1, K2, V> {
         this.values = values;
     }
 
-    public Builder<K1, K2, V> builder() {
+    public static <K1, K2, V> Builder<K1, K2, V> builder() {
         return new Builder<>();
     }
 
@@ -110,7 +110,7 @@ public class SequentialDualHashMap<K1, K2, V> implements DualMap<K1, K2, V> {
         @Override
         @SuppressWarnings("deprecation")
         public DualMap<K1, K2, V> put(final K1 k1, final K2 k2, final V v) {
-            this.map.putIfAbsent(k1, new HashMap<>());
+            this.map.computeIfAbsent(k1, k -> new HashMap<>()).put(k2, v);
             this.values.add(v);
             this.reverseLookup.put(v, Pair.of(k1, k2));
             return this;
@@ -126,12 +126,12 @@ public class SequentialDualHashMap<K1, K2, V> implements DualMap<K1, K2, V> {
         @Override
         @SuppressWarnings("deprecation")
         public boolean remove(final K1 k1, final K2 k2) {
-            final Map<K2, V> k2Get = this.map.get(k1);
-            if (k2Get == null) {
+            final Map<K2, V> lookup = this.map.get(k1);
+            if (lookup == null) {
                 return false;
             }
-            final V v = k2Get.remove(k2);
-            return v != null && this.values.remove(v);
+            final V v = lookup.remove(k2);
+            return v != null && this.values.remove(v) && this.reverseLookup.remove(v) != null;
         }
 
         @Override

@@ -5,9 +5,11 @@ import com.google.common.collect.ImmutableBiMap;
 import lombok.experimental.UtilityClass;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
 import personthecat.overwritevalidator.annotations.OverwriteTarget;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static personthecat.catlib.util.Shorthand.nullable;
 
@@ -37,7 +39,7 @@ public class ValueLookup {
         .put("WATER", Material.WATER)
         .put("BUBBLE_COLUMN", Material.BUBBLE_COLUMN)
         .put("LAVA", Material.LAVA)
-        .put("SNOW", Material.TOP_SNOW)
+        .put("TOP_SNOW", Material.TOP_SNOW)
         .put("FIRE", Material.FIRE)
         .put("DECORATION", Material.DECORATION)
         .put("WEB", Material.WEB)
@@ -121,14 +123,82 @@ public class ValueLookup {
         .put("GILDED_BLACKSTONE", SoundType.GILDED_BLACKSTONE)
         .build();
 
+    /** A map of every vanilla material color to its name. */
+    private static final BiMap<String, MaterialColor> COLOR_MAP = ImmutableBiMap.<String, MaterialColor>builder()
+        .put("NONE", MaterialColor.NONE)
+        .put("GRASS", MaterialColor.GRASS)
+        .put("SAND", MaterialColor.SAND)
+        .put("WOOL", MaterialColor.WOOL)
+        .put("FIRE", MaterialColor.FIRE)
+        .put("ICE", MaterialColor.ICE)
+        .put("METAL", MaterialColor.METAL)
+        .put("PLANT", MaterialColor.PLANT)
+        .put("SNOW", MaterialColor.SNOW)
+        .put("CLAY", MaterialColor.CLAY)
+        .put("DIRT", MaterialColor.DIRT)
+        .put("STONE", MaterialColor.STONE)
+        .put("WATER", MaterialColor.WATER)
+        .put("WOOD", MaterialColor.WOOD)
+        .put("QUARTZ", MaterialColor.QUARTZ)
+        .put("COLOR_ORANGE", MaterialColor.COLOR_ORANGE)
+        .put("COLOR_MAGENTA", MaterialColor.COLOR_MAGENTA)
+        .put("COLOR_LIGHT_BLUE", MaterialColor.COLOR_LIGHT_BLUE)
+        .put("COLOR_YELLOW", MaterialColor.COLOR_YELLOW)
+        .put("COLOR_LIGHT_GREEN", MaterialColor.COLOR_LIGHT_GREEN)
+        .put("COLOR_PINK", MaterialColor.COLOR_PINK)
+        .put("COLOR_GRAY", MaterialColor.COLOR_GRAY)
+        .put("COLOR_LIGHT_GRAY", MaterialColor.COLOR_LIGHT_GRAY)
+        .put("COLOR_CYAN", MaterialColor.COLOR_CYAN)
+        .put("COLOR_PURPLE", MaterialColor.COLOR_PURPLE)
+        .put("COLOR_BLUE", MaterialColor.COLOR_BLUE)
+        .put("COLOR_BROWN", MaterialColor.COLOR_BROWN)
+        .put("COLOR_GREEN", MaterialColor.COLOR_GREEN)
+        .put("COLOR_RED", MaterialColor.COLOR_RED)
+        .put("COLOR_BLACK", MaterialColor.COLOR_BLACK)
+        .put("GOLD", MaterialColor.GOLD)
+        .put("DIAMOND", MaterialColor.DIAMOND)
+        .put("LAPIS", MaterialColor.LAPIS)
+        .put("EMERALD", MaterialColor.EMERALD)
+        .put("PODZOL", MaterialColor.PODZOL)
+        .put("NETHER", MaterialColor.NETHER)
+        .put("TERRACOTTA_WHITE", MaterialColor.TERRACOTTA_WHITE)
+        .put("TERRACOTTA_ORANGE", MaterialColor.TERRACOTTA_ORANGE)
+        .put("TERRACOTTA_MAGENTA", MaterialColor.TERRACOTTA_MAGENTA)
+        .put("TERRACOTTA_LIGHT_BLUE", MaterialColor.TERRACOTTA_LIGHT_BLUE)
+        .put("TERRACOTTA_YELLOW", MaterialColor.TERRACOTTA_YELLOW)
+        .put("TERRACOTTA_LIGHT_GREEN", MaterialColor.TERRACOTTA_LIGHT_GREEN)
+        .put("TERRACOTTA_PINK", MaterialColor.TERRACOTTA_PINK)
+        .put("TERRACOTTA_GRAY", MaterialColor.TERRACOTTA_GRAY)
+        .put("TERRACOTTA_LIGHT_GRAY", MaterialColor.TERRACOTTA_LIGHT_GRAY)
+        .put("TERRACOTTA_CYAN", MaterialColor.TERRACOTTA_CYAN)
+        .put("TERRACOTTA_PURPLE", MaterialColor.TERRACOTTA_PURPLE)
+        .put("TERRACOTTA_BLUE", MaterialColor.TERRACOTTA_BLUE)
+        .put("TERRACOTTA_BROWN", MaterialColor.TERRACOTTA_BROWN)
+        .put("TERRACOTTA_GREEN", MaterialColor.TERRACOTTA_GREEN)
+        .put("TERRACOTTA_RED", MaterialColor.TERRACOTTA_RED)
+        .put("TERRACOTTA_BLACK", MaterialColor.TERRACOTTA_BLACK)
+        .put("CRIMSON_NYLIUM", MaterialColor.CRIMSON_NYLIUM)
+        .put("CRIMSON_STEM", MaterialColor.CRIMSON_STEM)
+        .put("CRIMSON_HYPHAE", MaterialColor.CRIMSON_HYPHAE)
+        .put("WARPED_NYLIUM", MaterialColor.WARPED_NYLIUM)
+        .put("WARPED_STEM", MaterialColor.WARPED_STEM)
+        .put("WARPED_HYPHAE", MaterialColor.WARPED_HYPHAE)
+        .put("WARPED_WART_BLOCK", MaterialColor.WARPED_WART_BLOCK)
+        .build();
+
     /** Attempts to retrieve a material from the map. */
     public static Optional<Material> getMaterial(final String key) {
         return nullable(MATERIAL_MAP.get(key.toUpperCase()));
     }
 
-    /** Attempts to retrieve a sound type from the map. */
-    public static Optional<SoundType> getSoundType(final String key) {
-        return nullable(SOUND_MAP.get(key.toUpperCase()));
+    /** Returns every material name in the registry. */
+    public static Set<String> getMaterialNames() {
+        return MATERIAL_MAP.keySet();
+    }
+
+    /** Returns every material object in the registry. */
+    public static Set<Material> getMaterialValues() {
+        return MATERIAL_MAP.values();
     }
 
     /** Converts the input material to a string. */
@@ -136,8 +206,43 @@ public class ValueLookup {
         return nullable(MATERIAL_MAP.inverse().get(value));
     }
 
+    /** Attempts to retrieve a sound type from the map. */
+    public static Optional<SoundType> getSoundType(final String key) {
+        return nullable(SOUND_MAP.get(key.toUpperCase()));
+    }
+
+    /** Returns every sound name in the registry. */
+    public static Set<String> getSoundNames() {
+        return SOUND_MAP.keySet();
+    }
+
+    /** Returns every sound object in the registry. */
+    public static Set<SoundType> getSoundValues() {
+        return SOUND_MAP.values();
+    }
+
     /** Converts the input sound type to a string. */
     public static Optional<String> serialize(final SoundType value) {
         return nullable(SOUND_MAP.inverse().get(value));
+    }
+
+    /** Attempts to retrieve a material color from the map. */
+    public static Optional<MaterialColor> getColor(final String key) {
+        return nullable(COLOR_MAP.get(key.toUpperCase()));
+    }
+
+    /** Returns every color name in the registry. */
+    public static Set<String> getColorNames() {
+        return COLOR_MAP.keySet();
+    }
+
+    /** Returns every color object in the registry. */
+    public static Set<MaterialColor> getColorValues() {
+        return COLOR_MAP.values();
+    }
+
+    /** Converts the input color type to a string. */
+    public static Optional<String> serialize(final MaterialColor value) {
+        return nullable(COLOR_MAP.inverse().get(value));
     }
 }
