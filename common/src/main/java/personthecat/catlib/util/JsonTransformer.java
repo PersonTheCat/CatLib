@@ -4,6 +4,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hjson.JsonArray;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -309,7 +311,7 @@ public class JsonTransformer {
          * Exposes the parent object and value in the presence of a given key. This
          * allows for manual transformation of various JSON members.
          * <p>
-         *   For example, when given the following JSON data.
+         *   For example, when given the following JSON data:
          * </p>
          * <pre>{@code
          *   a: {
@@ -336,7 +338,7 @@ public class JsonTransformer {
          *
          * @param key The name of the field being transformed.
          * @param f An event to fire for manual transformations in the presence of <code>key</code>.
-         * @return Thisd, for method chaining.
+         * @return This, for method chaining.
          */
         public final ObjectResolver ifPresent(final String key, final BiConsumer<JsonObject, JsonValue> f) {
             updates.add(new MemberPredicateHelper(this, key, f));
@@ -346,7 +348,7 @@ public class JsonTransformer {
         /**
          * Variant of {@link #ifPresent(String, BiConsumer)} which ignores the present value.
          * <p>
-         *   For example, when given the following JSON data.
+         *   For example, when given the following JSON data:
          * </p>
          * <pre>{@code
          *   a: {
@@ -384,7 +386,7 @@ public class JsonTransformer {
          * Transfers the contents of an expected array, if present, into a different array,
          * regardless of whether it is present.
          * <p>
-         *   For example, when given the following JSON data.
+         *   For example, when given the following JSON data:
          * </p>
          * <pre>{@code
          *   a: {
@@ -414,7 +416,7 @@ public class JsonTransformer {
          *
          * @param from The name of the source array.
          * @param to The name of the destination array.
-         * @return This,
+         * @return This, for method chaining.
          */
         public final ObjectResolver moveArray(final String from, final String to) {
             updates.add(new ArrayCopyHelper(this, from, to));
@@ -422,7 +424,155 @@ public class JsonTransformer {
         }
 
         /**
-         * Runs all of the transformations defined on the given JSON object.
+         * Relocates fields to entirely different object paths. This transformer is <b>only valid for
+         * regular object paths.</b> If any arrays are present in the given path, the first object in
+         * the flattened array path will be used and <b>any other objects will be silently ignored</b>.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     path: {
+         *       to: {
+         *         value: 24
+         *       }
+         *     }
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.withPath()
+         *     .relocate("path.to.value", "whole.new.path")
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     whole: {
+         *       new: {
+         *         path: 24
+         *       }
+         *     }
+         *   }
+         * }</pre>
+         * <p>
+         *   Note that when any object arrays are present on the <code>from</code> path, only the
+         *   first object in the array will copied into. <b>The remaining data will be ignored and
+         *   the following transformation will occur</b>:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     path: {
+         *       to: {
+         *         value: 24
+         *       }
+         *     }
+         *     whole: {
+         *       new: [
+         *         {
+         *           other: 48
+         *         }
+         *         {
+         *           other: 49
+         *         }
+         *       ]
+         *     }
+         *   }
+         * }</pre>
+         * <p>
+         *   Will be transformed into:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     whole: {
+         *       new: [
+         *         {
+         *           other: 48
+         *           path: 24
+         *         }
+         *         {
+         *           other: 49
+         *         }
+         *       ]
+         *     }
+         *   }
+         * }</pre>
+         * <p>
+         *   Note that when any object arrays are present on the <code>from</code> path, only the
+         *   first object in the array will be copied out of. <b>This is considered an error condition
+         *   and the remaining data will be left behind</b>.
+         * </p>
+         *
+         * @param from The fully-qualified, dotted path to the original value.
+         * @param to The fully-qualified, dotted path to the new value.
+         * @return This, for method, chaining.
+         */
+        public final ObjectResolver relocate(final String from, final String to) {
+            return relocate(from, to, true);
+        }
+
+        /**
+         * Variant of {@link #relocate(String, String)} which is designed to cover the condition where
+         * an object or array is being moved and another container already exists at the destination.
+         * Setting the third parameter (<code>merge</code>) to <code>true</code> will merge containers
+         * instead of overwriting them.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     simple: {
+         *       path: {
+         *         a: 1
+         *         b: 2
+         *       }
+         *     }
+         *     other: {
+         *       path: {
+         *         c: 3
+         *       }
+         *     }
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.withPath()
+         *     .relocate("simple.path", "other.path", true)
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     other: {
+         *       path: {
+         *         a: 1
+         *         b: 2
+         *         c: 3
+         *       }
+         *     }
+         *   }
+         * }</pre>
+         *
+         * @param from The fully-qualified, dotted path to the original value.
+         * @param to The fully-qualified, dotted path to the new value.
+         * @param merge Whether to write into any existing containers at the end of the path.
+         * @return This, for method, chaining.
+         */
+        public final ObjectResolver relocate(final String from, final String to, final boolean merge) {
+            updates.add(new FieldRelocator(this, from, to, merge));
+            return this;
+        }
+
+        /**
+         * Runs every transformation defined on the given JSON object.
          *
          * @param json The JSON object target for these transformations.
          */
@@ -744,6 +894,92 @@ public class JsonTransformer {
                 }
                 json.remove(from);
             }
+        }
+    }
+
+    public static class FieldRelocator implements Updater {
+
+        private final ObjectResolver resolver;
+        private final String[] from;
+        private final String[] to;
+        private final boolean merge;
+
+        private FieldRelocator(final ObjectResolver resolver, final String from, final String to, final boolean merge) {
+            this.resolver = resolver;
+            this.from = from.split("\\.");
+            this.to = to.split("\\.");
+            this.merge = merge;
+        }
+
+        @Override
+        public void update(final JsonObject json) {
+            resolver.forEach(json, this::relocate);
+        }
+
+        private void relocate(final JsonObject json) {
+            final JsonValue toMove = this.resolve(json);
+            if (toMove != null) {
+                final JsonObject container = this.getContainer(json);
+                final String key = to[to.length - 1];
+                final JsonValue get = container.get(key);
+                if (get == null) {
+                    container.add(key, toMove);
+                } else if (merge) {
+                    if (get.isObject() && toMove.isObject()) {
+                        toMove.asObject().forEach(m -> get.asObject().set(m.getName(), m.getValue()));
+                    } else if (get.isArray() && toMove.isArray()) {
+                        toMove.asArray().forEach(v -> get.asArray().add(v));
+                    } else {
+                        container.set(key, toMove);
+                    }
+                } else {
+                    container.set(key, toMove);
+                }
+            }
+        }
+
+        @Nullable
+        private JsonValue resolve(final JsonObject json) {
+            JsonObject parent = json;
+            for (int i = 0; i < from.length - 1; i++) {
+                // Only use the first object. All others are ambiguous.
+                final JsonObject object = this.getFirstObject(parent.get(from[i]));
+                if (object == null) return null;
+                parent = object;
+            }
+            final String key = from[from.length - 1];
+            final JsonValue get = parent.get(key);
+            if (get != null) parent.remove(key);
+            return get;
+        }
+
+        @NotNull
+        private JsonObject getContainer(final JsonObject json) {
+            JsonObject parent = json;
+            for (int i = 0; i < to.length - 1; i++) {
+                final JsonObject object = this.getFirstObject(parent.get(to[i]));
+                if (object == null) {
+                    final JsonObject newObject = new JsonObject();
+                    parent.set(to[i], newObject);
+                    parent = newObject;
+                } else {
+                    parent = object;
+                }
+            }
+            return parent;
+        }
+
+        @Nullable
+        private JsonObject getFirstObject(final JsonValue value) {
+            if (value.isObject()) {
+                return value.asObject();
+            } else if (value.isArray()) {
+                final JsonArray array = value.asArray();
+                if (!array.isEmpty()) {
+                    return getFirstObject(array.get(0));
+                }
+            }
+            return null;
         }
     }
 

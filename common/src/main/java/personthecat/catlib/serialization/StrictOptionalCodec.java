@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public class StrictOptionalCodec<A> extends MapCodec<Optional<A>> {
-
     private final Codec<A> codec;
     private final MapCodec<A> map;
     private final String key;

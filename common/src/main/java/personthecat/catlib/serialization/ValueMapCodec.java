@@ -33,8 +33,8 @@ public class ValueMapCodec<A> implements Codec<Map<String, A>> {
 
         for (final Map.Entry<String, A> entry : input.entrySet()) {
             this.codec.encodeStart(ops, entry.getValue())
-                    .resultOrPartial(e -> errors.add(ops.createString(e)))
-                    .ifPresent(t -> map.put(ops.createString(entry.getKey()), t));
+                .resultOrPartial(e -> errors.add(ops.createString(e)))
+                .ifPresent(t -> map.put(ops.createString(entry.getKey()), t));
         }
         if (!errors.isEmpty()) {
             return DataResult.error("Error encoding map", ops.createList(errors.stream()));

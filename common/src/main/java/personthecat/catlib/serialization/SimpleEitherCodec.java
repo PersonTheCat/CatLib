@@ -10,7 +10,6 @@ import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public class SimpleEitherCodec<A> implements Codec<A> {
-
     private final Codec<A> first;
     private final Codec<A> second;
     private final Function<A, Encoder<A>> encoder;

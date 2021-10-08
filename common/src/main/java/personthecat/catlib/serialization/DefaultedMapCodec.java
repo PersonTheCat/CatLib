@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public class DefaultedMapCodec<A> extends MapCodec<A> {
-
     private final Codec<A> codec;
     private final MapCodec<A> map;
     private final String key;
