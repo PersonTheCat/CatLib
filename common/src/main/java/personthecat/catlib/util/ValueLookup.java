@@ -2,6 +2,8 @@ package personthecat.catlib.util;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import lombok.experimental.UtilityClass;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.Material;
@@ -185,6 +187,24 @@ public class ValueLookup {
         .put("WARPED_HYPHAE", MaterialColor.WARPED_HYPHAE)
         .put("WARPED_WART_BLOCK", MaterialColor.WARPED_WART_BLOCK)
         .build();
+
+    /** A regular codec used for serializing material colors in config files. */
+    public static Codec<MaterialColor> COLOR_CODEC = Codec.STRING.flatXmap(
+        key -> getColor(key).map(DataResult::success).orElse(DataResult.error("No such color: " + key)),
+        color -> serialize(color).map(DataResult::success).orElse(DataResult.error("Unknown color: " + color))
+    );
+
+    /** A regular codec used for serializing material names in config files. */
+    public static Codec<Material> MATERIAL_CODEC = Codec.STRING.flatXmap(
+        key -> getMaterial(key).map(DataResult::success).orElse(DataResult.error("No such material: " + key)),
+        material -> serialize(material).map(DataResult::success).orElse(DataResult.error("Unknown material: " + material))
+    );
+
+    /** A regular codec used for serializing sound types in config files. */
+    public static Codec<SoundType> SOUND_CODEC = Codec.STRING.flatXmap(
+        key -> getSoundType(key).map(DataResult::success).orElse(DataResult.error("No such sound type: " + key)),
+        sound -> serialize(sound).map(DataResult::success).orElse(DataResult.error("Unknown sound type: " + sound))
+    );
 
     /** Attempts to retrieve a material from the map. */
     public static Optional<Material> getMaterial(final String key) {

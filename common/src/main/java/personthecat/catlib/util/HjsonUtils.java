@@ -1,6 +1,7 @@
 package personthecat.catlib.util;
 
 import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -21,7 +22,9 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.*;
 import personthecat.catlib.data.JsonType;
+import personthecat.catlib.exception.JsonFormatException;
 import personthecat.catlib.exception.UnreachableException;
+import personthecat.catlib.serialization.HjsonOps;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 
@@ -30,6 +33,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.empty;
@@ -135,6 +139,42 @@ public class HjsonUtils {
     public static Optional<JsonObject> readSuppressing(final File file) {
         return Result.of(() -> JsonObject.readHjson(new FileReader(file), FORMATTER).asObject())
             .get(Result::WARN);
+    }
+
+    /**
+     * Reads <b>any</b> JSON data from the given string contents.
+     *
+     * @param contents The raw JSON data being parsed.
+     * @return The parsed JSON data, or else {@link Result#err} containing the exception.
+     */
+    public static Result<JsonValue, ParseException> readValue(final String contents) {
+        return Result.<JsonValue, ParseException>of(() -> JsonObject.readHjson(contents)).ifErr(Result::IGNORE);
+    }
+
+    /**
+     * Reads an object from the given data when provided a codec.
+     *
+     * @param codec Instructions for deserializing the data.
+     * @param value The actual data being deserialized.
+     * @param <T> The type of object being returned.
+     * @return The deserialized object, or else {@link Optional#empty}.
+     */
+    public static <T> Optional<T> readOptional(final Codec<T> codec, final JsonValue value) {
+        return codec.parse(HjsonOps.INSTANCE, value).result();
+    }
+
+    /**
+     * Reads an object from the given data, or else throws an exception.
+     *
+     * @param codec Instructions for deserializing the data.
+     * @param value The actual data being deserialized.
+     * @param <T> The type of object being returned.
+     * @return The deserialized object.
+     */
+    public static <T> T readThrowing(final Codec<T> codec, final JsonValue value) {
+        return codec.parse(HjsonOps.INSTANCE, value).get().map(Function.identity(), partial -> {
+            throw new JsonFormatException(partial.message());
+        });
     }
 
     /**

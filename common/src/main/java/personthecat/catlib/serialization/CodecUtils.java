@@ -23,9 +23,11 @@ public class CodecUtils {
 
     public static final ValueMapCodec<String> STRING_MAP = mapOf(Codec.STRING);
     public static final ValueMapCodec<Boolean> BOOLEAN_MAP = mapOf(Codec.BOOL);
-    public static final ValueMapCodec<Integer> INTEGER_MAP = mapOf(Codec.INT);
+    public static final ValueMapCodec<Integer> INT_MAP = mapOf(Codec.INT);
+    public static final ValueMapCodec<Float> FLOAT_MAP = mapOf(Codec.FLOAT);
     public static final Codec<List<String>> STRING_LIST = easyList(Codec.STRING);
     public static final Codec<List<Integer>> INT_LIST = easyList(Codec.INT);
+    public static final Codec<List<Float>> FLOAT_LIST = easyList(Codec.FLOAT);
     public static final Codec<List<ResourceLocation>> ID_LIST = easyList(ResourceLocation.CODEC);
     public static final Codec<List<Biome.BiomeCategory>> CATEGORY_LIST = easyList(ofEnum(Biome.BiomeCategory.class));
 

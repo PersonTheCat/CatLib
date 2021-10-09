@@ -1,21 +1,35 @@
 package personthecat.catlib.data;
 
+import com.mojang.serialization.Codec;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.With;
+import lombok.experimental.FieldNameConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.dimension.DimensionType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.event.registry.DynamicRegistries;
+import personthecat.catlib.serialization.CodecUtils;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import static personthecat.catlib.serialization.CodecUtils.codecOf;
+import static personthecat.catlib.serialization.CodecUtils.simpleEither;
+import static personthecat.catlib.serialization.FieldDescriptor.defaulted;
+import static personthecat.catlib.serialization.FieldDescriptor.defaultGet;
+
+@Getter
 @Builder
 @NotThreadSafe
+@FieldNameConstants
+@RequiredArgsConstructor
 public class DimensionPredicate implements Predicate<DimensionType> {
 
     @With private final boolean blacklist;
@@ -25,6 +39,21 @@ public class DimensionPredicate implements Predicate<DimensionType> {
     private final List<String> mods;
 
     @Nullable private Set<DimensionType> compiled;
+
+    public static final DimensionPredicate ALL_DIMENSIONS = builder().build();
+
+    private static final Codec<DimensionPredicate> OBJECT_CODEC = codecOf(
+        defaulted(Codec.BOOL, Fields.blacklist, false, DimensionPredicate::isBlacklist),
+        defaultGet(CodecUtils.ID_LIST, Fields.names, Collections::emptyList, DimensionPredicate::getNames),
+        defaultGet(CodecUtils.STRING_LIST, Fields.mods, Collections::emptyList, DimensionPredicate::getMods),
+        DimensionPredicate::new
+    );
+
+    private static final Codec<DimensionPredicate> ID_CODEC =
+        CodecUtils.ID_LIST.xmap(ids -> builder().names(ids).build(), DimensionPredicate::getNames);
+
+    public static final Codec<DimensionPredicate> CODEC = simpleEither(ID_CODEC, OBJECT_CODEC)
+        .withEncoder(dp -> dp.isNamesOnly() ? ID_CODEC : OBJECT_CODEC);
 
     @Override
     public boolean test(final DimensionType type) {
@@ -63,5 +92,9 @@ public class DimensionPredicate implements Predicate<DimensionType> {
 
     public boolean matchesMod(final ResourceLocation id) {
         return this.mods.isEmpty() || this.mods.contains(id.getNamespace());
+    }
+
+    public boolean isNamesOnly() {
+        return !this.blacklist && this.mods.isEmpty();
     }
 }

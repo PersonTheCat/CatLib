@@ -1,10 +1,14 @@
 package personthecat.catlib.data;
 
+import com.mojang.serialization.Codec;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
+import personthecat.catlib.serialization.CodecUtils;
 
-import java.util.Iterator;
-import java.util.Random;
+import java.util.*;
 
 import static personthecat.catlib.util.Shorthand.f;
 import static personthecat.catlib.util.Shorthand.numBetween;
@@ -12,6 +16,10 @@ import static personthecat.catlib.util.Shorthand.numBetween;
 @EqualsAndHashCode
 @SuppressWarnings("unused")
 public class Range implements Iterable<Integer> {
+
+    public static final Codec<Range> CODEC =
+        CodecUtils.INT_LIST.xmap(Range::fromList, Range::toList);
+
     public final int min, max;
 
     public Range(int min, int max) {
@@ -39,6 +47,16 @@ public class Range implements Iterable<Integer> {
         return new FloatRange(a);
     }
 
+    public static Range fromList(final List<Integer> ints) {
+        final IntRef min = new IntRef(0);
+        final IntRef max = new IntRef(0);
+        ints.forEach(i -> {
+            min.set(Math.min(min.get(), i));
+            max.set(Math.max(max.get(), i));
+        });
+        return new Range(min.get(), max.get());
+    }
+
     public static Range checkedOrEmpty(int min, int max) {
         return max > min ? new Range(min, max) : EmptyRange.get();
     }
@@ -61,6 +79,10 @@ public class Range implements Iterable<Integer> {
 
     public boolean isEmpty() {
         return false;
+    }
+
+    public IntList toList() {
+        return this.min == this.max ? IntLists.singleton(this.min) : IntArrayList.wrap(new int[] {this.min, this.max});
     }
 
     @NotNull
