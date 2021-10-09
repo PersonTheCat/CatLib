@@ -4,11 +4,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hjson.JsonArray;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -110,16 +108,158 @@ import static personthecat.catlib.util.Shorthand.f;
 @SuppressWarnings("unused")
 public class JsonTransformer {
 
+    private JsonTransformer() {}
+
+    /**
+     * This resolver is intended for all transformations that occur directly on the object
+     * being passed into the transformer. Its {@link RootObjectResolver#forEach forEach}
+     * method is non-recursive and designed for transformers that house additional nested
+     * object updates.
+     * <p>
+     *   The following code is an assertion of this behavior:
+     * </p>
+     * <pre>{@code
+     *   final JsonObject json = parse("{inner:{}}")
+     *   final List<JsonObject> resolved = JsonTransformer.root().collect(json);
+     *
+     *   assert resolved != null;
+     *   assert resolved.size == 1;
+     *   assert resolved.get(0) == json;
+     * }</pre>
+     *
+     * @return A new root object resolver to house any global JSON transformations.
+     */
+    public static ObjectResolver root() {
+        return new RootObjectResolver();
+    }
+
+    /**
+     * This resolver is intended for any constant object paths nested within the root
+     * JSON object. It accepts an array of keys which refer <b>objects</b> by name.
+     * It is capable of resolving all objects that are nested arbitrarily within arrays.
+     * <p>
+     *   The following code is an assertion of this behavior:
+     * </p>
+     * <pre>{@code
+     *   final JsonObject json = parse("{inner:[[[{}],{},{}],{},{}]}");
+     *   final List<JsonObject> resolved = JsonTransformer.withPath("inner").collect(json);
+     *
+     *   assert resolved != null;
+     *   assert resolved.size() == 5;
+     * }</pre>
+     *
+     * @param path Every key leading up to the objects being transformed.
+     * @return A new static object resolver for transformations on this path.
+     */
     public static ObjectResolver withPath(final String... path) {
         return new StaticObjectResolver(path);
     }
 
+    /**
+     * This resolver is intended for any objects whatsoever that are paired with the given
+     * key. It can resolve data at any arbitrary depth nested within the root object.
+     * <p>
+     *   The following code is an assertion of this behavior:
+     * </p>
+     * <pre>{@code
+     *   final JsonObject json = parse("{a:{x:{x:{}}},b:{x:[{},{}]}}");
+     *   final List<JsonObject> resolved = JsonTransformer.recursive("x").collect(json);
+     *
+     *   assert resolved != null;
+     *   assert resolved.size() == 4;
+     * }</pre>
+     *
+     * @param key The name of every object being resolved.
+     * @return A new recursive object resolver for all transformations of this kind.
+     */
     public static ObjectResolver recursive(final String key) {
         return new RecursiveObjectResolver(key);
     }
 
     public static abstract class ObjectResolver {
-        private final List<Updater> updates = new LinkedList<>();
+        private final List<Updater> updates;
+
+        private ObjectResolver() {
+            this.updates = new LinkedList<>();
+        }
+
+        private ObjectResolver(final List<Updater> updates) {
+            this.updates = updates;
+        }
+
+        /**
+         * Bundles an additional transformer into this object. All of its updates will
+         * be applied in the order in which they are provided.
+         * <p>
+         *   The following code demonstrates the expected use case for this:
+         * </p>
+         * <pre>{@code
+         *   static final ObjectResolver OBJECT_A =
+         *     JsonTransformer.withPath("a")
+         *       .history("x", "y", "z")
+         *       .freeze();
+         *
+         *   static final ObjectResolver OBJECT_B =
+         *     JsonTransformer.withPath("b")
+         *       .history("1", "2", "3")
+         *       .freeze();
+         *
+         *   static final ObjectResolver TRANSFORMER =
+         *     JsonTransformer.root()
+         *       .include(OBJECT_A)
+         *       .include(OBJECT_B)
+         *       .freeze();
+         *
+         *   public static void transform(final JsonObject json) {
+         *     TRANSFORMER.updateAll(json);
+         *   }
+         * }</pre>
+         *
+         * @param transformer The nested transformer to include
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver include(final ObjectResolver transformer) {
+            updates.add(new NestedTransformer(transformer));
+            return this;
+        }
+
+        /**
+         * Bundles an additional transformer at the given path. This is intended for nesting
+         * additional transformations while preserving reuse of the original transformations
+         * and allowing them to be applied directly to the nested objects.
+         * <p>
+         *   The following code demonstrates the expected use case for this:
+         * </p>
+         * <pre>{@code
+         *   static final ObjectResolver OBJECT_A =
+         *     JsonTransformer.root()
+         *       .history("x", "y", "z")
+         *       .freeze();
+         *
+         *   static final ObjectResolver OBJECT_B =
+         *     JsonTransformer.root()
+         *       .history("1", "2", "3")
+         *       .freeze();
+         *
+         *   static final ObjectResolver TRANSFORMER =
+         *     JsonTransformer.root()
+         *       .include("a", OBJECT_A)
+         *       .include("b", OBJECT_B)
+         *       .freeze();
+         *
+         *   public static void transform(final JsonObject json) {
+         *     TRANSFORMER.updateAll(json);
+         *   }
+         * }</pre>
+         *
+         * @param path The path to the object being transformed.
+         * @param transformer The nested transformer to include
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver include(final String path, final ObjectResolver transformer) {
+            updates.add(new NestedTransformer(withPath(path).include(transformer)));
+            return this;
+        }
 
         /**
          * A series of names for any given field over time.
@@ -145,7 +285,7 @@ public class JsonTransformer {
         }
 
         /**
-         * Collapses the fields inside of a nested object into its parent.
+         * Collapses the fields from a nested object into its parent.
          * <p>
          *   For example, given the following JSON:
          * </p>
@@ -161,7 +301,7 @@ public class JsonTransformer {
          *   And the following history:
          * </p>
          * <pre>{@code
-         *   JsonTransformer.withPath()
+         *   JsonTransformer.root()
          *     .collapse("outer", "inner")
          *     .updateAll(json);
          * }</pre>
@@ -299,7 +439,7 @@ public class JsonTransformer {
          * }</pre>
          *
          * @param key The name of the field being transformed.
-         * @param transformation A functional interface for updating the field programatically.
+         * @param transformation A functional interface for updating the field programmatically.
          * @return This, for method chaining.
          */
         public final ObjectResolver transform(final String key, final MemberTransformation transformation) {
@@ -443,7 +583,7 @@ public class JsonTransformer {
          *   And the following history:
          * </p>
          * <pre>{@code
-         *   JsonTransformer.withPath()
+         *   JsonTransformer.root()
          *     .relocate("path.to.value", "whole.new.path")
          *     .updateAll(json)
          * }</pre>
@@ -460,7 +600,7 @@ public class JsonTransformer {
          *   }
          * }</pre>
          * <p>
-         *   Note that when any object arrays are present on the <code>from</code> path, only the
+         *   Note that when any object arrays are present on the <code>to</code> path, only the
          *   first object in the array will copied into. <b>The remaining data will be ignored and
          *   the following transformation will occur</b>:
          * </p>
@@ -542,7 +682,7 @@ public class JsonTransformer {
          *   And the following history:
          * </p>
          * <pre>{@code
-         *   JsonTransformer.withPath()
+         *   JsonTransformer.root()
          *     .relocate("simple.path", "other.path", true)
          *     .updateAll(json)
          * }</pre>
@@ -571,6 +711,10 @@ public class JsonTransformer {
             return this;
         }
 
+        public final ObjectResolver freeze() {
+            return new FrozenObjectResolver(this);
+        }
+
         /**
          * Runs every transformation defined on the given JSON object.
          *
@@ -583,6 +727,17 @@ public class JsonTransformer {
         }
 
         /**
+         * Runs every transformation on multiple JSON objects in order.
+         *
+         * @param objects The JSON object targets for these transformations.
+         */
+        public final void updateAll(final JsonObject... objects) {
+            for (final JsonObject json : objects) {
+                this.updateAll(json);
+            }
+        }
+
+        /**
          * Executes an operation for each last container when given a path. Each path element
          * is treated as <em>either</em> an object <em>or</em> an array.
          *
@@ -590,6 +745,39 @@ public class JsonTransformer {
          * @param fn What to do for each element at <code>path[path.length - 1]</code>
          */
         public abstract void forEach(JsonObject json, Consumer<JsonObject> fn);
+
+        /**
+         * Collects every matching object within the given root into an array.
+         *
+         * @param json The root JSON object containing the expected data.
+         * @return A list of every matching object.
+         */
+        public final List<JsonObject> collect(final JsonObject json) {
+            return this.collect(json, new ArrayList<>());
+        }
+
+        /**
+         * Collects every matching object within the given root into a collection of any type.
+         *
+         * @param json The root JSON object containing the expected data.
+         * @param collection The collection being written into.
+         * @param <T> The type of collection being written into.
+         * @return A collection of every matching object.
+         */
+        public final <T extends Collection<JsonObject>> T collect(final JsonObject json, final T collection) {
+            this.forEach(json, collection::add);
+            return collection;
+        }
+    }
+
+    public static class RootObjectResolver extends ObjectResolver {
+
+        private RootObjectResolver() {}
+
+        @Override
+        public void forEach(final JsonObject json, final Consumer<JsonObject> fn) {
+            fn.accept(json);
+        }
     }
 
     public static class StaticObjectResolver extends ObjectResolver {
@@ -648,8 +836,35 @@ public class JsonTransformer {
         }
     }
 
+    public static class FrozenObjectResolver extends ObjectResolver {
+        private final ObjectResolver wrapped;
+
+        private FrozenObjectResolver(final ObjectResolver wrapped) {
+            super(Collections.unmodifiableList(wrapped.updates));
+            this.wrapped = wrapped;
+        }
+
+        @Override
+        public void forEach(final JsonObject json, final Consumer<JsonObject> fn) {
+            wrapped.forEach(json, fn);
+        }
+    }
+
     public interface Updater {
         void update(final JsonObject json);
+    }
+
+    public static class NestedTransformer implements Updater {
+        private final ObjectResolver resolver;
+
+        private NestedTransformer(final ObjectResolver resolver) {
+            this.resolver = resolver;
+        }
+
+        @Override
+        public void update(final JsonObject json) {
+            resolver.updateAll(json);
+        }
     }
 
     public static class RenameHistory implements Updater {
@@ -918,8 +1133,9 @@ public class JsonTransformer {
 
         private void relocate(final JsonObject json) {
             final JsonValue toMove = this.resolve(json);
-            if (toMove != null) {
-                final JsonObject container = this.getContainer(json);
+            if (toMove == null) return;
+
+            for (final JsonObject container : this.getContainers(json)) {
                 final String key = to[to.length - 1];
                 final JsonValue get = container.get(key);
                 if (get == null) {
@@ -953,22 +1169,6 @@ public class JsonTransformer {
             return get;
         }
 
-        @NotNull
-        private JsonObject getContainer(final JsonObject json) {
-            JsonObject parent = json;
-            for (int i = 0; i < to.length - 1; i++) {
-                final JsonObject object = this.getFirstObject(parent.get(to[i]));
-                if (object == null) {
-                    final JsonObject newObject = new JsonObject();
-                    parent.set(to[i], newObject);
-                    parent = newObject;
-                } else {
-                    parent = object;
-                }
-            }
-            return parent;
-        }
-
         @Nullable
         private JsonObject getFirstObject(final JsonValue value) {
             if (value.isObject()) {
@@ -980,6 +1180,47 @@ public class JsonTransformer {
                 }
             }
             return null;
+        }
+
+        private List<JsonObject> getContainers(final JsonObject json) {
+            final List<JsonObject> containers = new ArrayList<>();
+            this.addContainers(containers, json, 0);
+            return containers;
+        }
+
+        private void addContainers(final List<JsonObject> containers, final JsonObject root, final int index) {
+            if (index < to.length - 1) {
+                final String key = to[index];
+                final JsonValue value = root.get(key);
+
+                if (value != null && value.isObject()) {
+                    this.addContainers(containers, value.asObject(), index + 1);
+                } else if (value != null && value.isArray()) {
+                    this.addToArray(containers, value.asArray(), index);
+                } else {
+                    final JsonObject object = new JsonObject();
+                    root.add(key, object);
+                    this.addContainers(containers, object, index + 1);
+                }
+            } else if (index == to.length - 1) {
+                containers.add(root);
+            }
+        }
+
+        private void addToArray(final List<JsonObject> containers, final JsonArray array, final int index) {
+            if (array.isEmpty()) {
+                final JsonObject object = new JsonObject();
+                array.add(object);
+                this.addContainers(containers, object, index + 1);
+            } else {
+                for (final JsonValue value : array) {
+                    if (value != null && value.isObject()) {
+                        this.addContainers(containers, value.asObject(), index + 1);
+                    } else if (value != null && value.isArray()) {
+                        this.addToArray(containers, value.asArray(), index);
+                    }
+                }
+            }
         }
     }
 
