@@ -16,6 +16,11 @@ public class CachingReflectionHelper {
         return (T) INSTANCE_MAP.computeIfAbsent(c, k -> constructWithoutArgs(c));
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> T dispose(final Class<T> type) {
+        return (T) INSTANCE_MAP.remove(type);
+    }
+
     private static <T> T constructWithoutArgs(final Class<T> c) {
         for (final Constructor<?> constructor : c.getConstructors()) {
             if (constructor.getParameterCount() == 0) {
