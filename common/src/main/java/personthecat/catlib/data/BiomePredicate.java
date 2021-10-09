@@ -1,10 +1,7 @@
 package personthecat.catlib.data;
 
 import com.mojang.serialization.Codec;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.With;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
@@ -29,6 +26,7 @@ import static personthecat.catlib.serialization.FieldDescriptor.defaulted;
 @Builder
 @NotThreadSafe
 @FieldNameConstants
+@AllArgsConstructor
 @RequiredArgsConstructor
 public class BiomePredicate implements Predicate<Biome> {
 
