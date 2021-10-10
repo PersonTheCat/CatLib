@@ -111,4 +111,9 @@ public class Lazy<T> implements Supplier<T> {
     public boolean isResettable() {
         return false;
     }
+
+    @Override
+    public String toString() {
+        return this.set ? this.value.toString() : "<unavailable>";
+    }
 }
