@@ -39,8 +39,8 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public T register(final ResourceLocation id, final T t) {
-        return this.wrapped.register(id, t);
+    public <V extends T> V register(final ResourceLocation id, final V v) {
+        return this.wrapped.register(id, v);
     }
 
     @Override

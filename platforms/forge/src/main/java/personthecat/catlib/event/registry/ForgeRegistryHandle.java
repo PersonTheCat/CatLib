@@ -37,9 +37,9 @@ public class ForgeRegistryHandle<T extends IForgeRegistryEntry<T>> implements Re
     }
 
     @Override
-    public T register(final ResourceLocation id, final T t) {
-        this.registry.register(t.setRegistryName(id));
-        return t;
+    public <V extends T> V register(final ResourceLocation id, final V v) {
+        this.registry.register(v.setRegistryName(id));
+        return v;
     }
 
     @Override

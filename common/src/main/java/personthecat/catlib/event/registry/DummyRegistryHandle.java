@@ -34,9 +34,9 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public T register(final ResourceLocation id, T t) {
+    public <V extends T> V register(final ResourceLocation id, V v) {
         log.error("Attempted to register through dummy handle. This will have no effect.");
-        return t;
+        return v;
     }
 
     @Override
