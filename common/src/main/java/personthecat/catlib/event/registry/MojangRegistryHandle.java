@@ -49,6 +49,11 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
         }
     }
 
+    @Override
+    public boolean isRegistered(final ResourceLocation id) {
+        return this.registry.containsKey(id);
+    }
+
     @NotNull
     @Override
     public Iterator<T> iterator() {

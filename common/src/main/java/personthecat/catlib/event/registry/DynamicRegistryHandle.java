@@ -48,6 +48,11 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
         this.wrapped.forEach(f);
     }
 
+    @Override
+    public boolean isRegistered(final ResourceLocation id) {
+        return this.wrapped.isRegistered(id);
+    }
+
     @NotNull
     @Override
     public Iterator<T> iterator() {

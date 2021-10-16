@@ -42,6 +42,11 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public void forEach(final BiConsumer<ResourceLocation, T> f) {}
 
+    @Override
+    public boolean isRegistered(final ResourceLocation id) {
+        return false;
+    }
+
     @NotNull
     @Override
     public Iterator<T> iterator() {

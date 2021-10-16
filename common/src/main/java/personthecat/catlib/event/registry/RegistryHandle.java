@@ -11,10 +11,7 @@ public interface RegistryHandle<T> extends Iterable<T> {
     @Nullable T lookup(final ResourceLocation id);
     <V extends T> V register(final ResourceLocation id, V v);
     void forEach(final BiConsumer<ResourceLocation, T> f);
-
-    default boolean isRegistered(final ResourceLocation id) {
-        return this.lookup(id) != null;
-    }
+    boolean isRegistered(final ResourceLocation id);
 
     default void forEachValue(final Consumer<T> f) {
         this.forEach((id, t) -> f.accept(t));
