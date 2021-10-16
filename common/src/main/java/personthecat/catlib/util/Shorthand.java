@@ -1,10 +1,12 @@
 package personthecat.catlib.util;
 
 import lombok.experimental.UtilityClass;
+import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.exception.InvalidEnumConstantException;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -368,6 +370,86 @@ public class Shorthand {
             }
         }
         return into;
+    }
+
+    /**
+     * Zips two iterators together and iterates through them <b>concurrently</b>.
+     *
+     * <p>For example, given the following iterators:
+     *
+     * <ul>
+     *   <li><code>['a', 'b', 'c']</code></li>
+     *   <li><code>[1, 2, 3]</code></li>
+     * </ul>
+     *
+     * <p>The following tuples will be consumed:
+     *
+     * <ul>
+     *   <li><code>('a', 1)</code></li>
+     *   <li><code>('b', 2)</code></li>
+     *   <li><code>('c', 3)</code></li>
+     * </ul>
+     *
+     * <p>In the event where either iterator yields more values than the other,
+     * <b>the remaining data will be ignored</b>.
+     *
+     * @param t   The first iterator.
+     * @param u   The second iterator.
+     * @param fn  The consumer accepting both values.
+     * @param <T> The type of the first iterator.
+     * @param <U> The type of the second iterator.
+     */
+    public static <T, U> void biConsume(final Iterable<T> t, final Iterable<U> u, final BiConsumer<T, U> fn) {
+        final Iterator<T> tIterator = t.iterator();
+        final Iterator<U> uIterator = u.iterator();
+
+        while (tIterator.hasNext() && uIterator.hasNext()) {
+            fn.accept(tIterator.next(), uIterator.next());
+        }
+    }
+
+    /**
+     * Chains two iterators and iterates through every possible tuple, in order.
+     *
+     * <p>For example, when given the following iterators:</p>
+     *
+     * <ul>
+     *   <li><code>['a']</code></li>
+     *   <li><code>[1, 2, 3]</code></li>
+     * </ul>
+     *
+     * <p>The following tuples will be consumed:
+     *
+     * <ul>
+     *   <code>('a', 1)</code>
+     *   <code>('a', 2)</code>
+     *   <code>('a', 3)</code>
+     * </ul>
+     *
+     * @param t   The first iterator.
+     * @param u   The second iterator.
+     * @param fn  The consumer accepting both values.
+     * @param <T> The type of the first iterator.
+     * @param <U> The type of the second iterator.
+     */
+    public static <T, U> void forEachNested(final Iterable<T> t, final Iterable<U> u, final BiConsumer<T, U> fn) {
+        for (final T t1 : t) for (final U u1 : u) fn.accept(t1, u1);
+    }
+
+    /**
+     * Chains three iterators and iterates through every possible tuple, in order.
+     *
+     * @param t   The first iterator.
+     * @param u   The second iterator.
+     * @param v   The third iterator.
+     * @param fn  The consumer accepting both values.
+     * @param <T> The type of the first iterator.
+     * @param <U> The type of the second iterator.
+     * @param <V> The type of the third iterator.
+     */
+    public static <T, U, V> void forEachNested(
+            final Iterable<T> t, final Iterable<U> u, final Iterable<V> v, final TriConsumer<T, U, V> fn) {
+        for (final T t1 : t) for (final U u1 : u) for (final V v1: v) fn.accept(t1, u1, v1);
     }
 
     /**

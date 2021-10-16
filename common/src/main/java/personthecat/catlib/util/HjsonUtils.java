@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.*;
 import personthecat.catlib.data.JsonType;
+import personthecat.catlib.exception.Exceptions;
 import personthecat.catlib.exception.JsonFormatException;
 import personthecat.catlib.exception.UnreachableException;
 import personthecat.catlib.serialization.HjsonOps;
@@ -41,7 +42,6 @@ import static personthecat.catlib.exception.Exceptions.jsonFormatEx;
 import static personthecat.catlib.exception.Exceptions.noBiomeNamed;
 import static personthecat.catlib.exception.Exceptions.noBiomeTypeNamed;
 import static personthecat.catlib.exception.Exceptions.noBlockNamed;
-import static personthecat.catlib.exception.Exceptions.runEx;
 import static personthecat.catlib.exception.Exceptions.unreachable;
 import static personthecat.catlib.util.McUtils.getBiome;
 import static personthecat.catlib.util.McUtils.getBiomes;
@@ -110,7 +110,7 @@ public class HjsonUtils {
     public static Optional<JsonObject> readJson(final File file) {
         return Result
             .define(FileNotFoundException.class, Result::WARN)
-            .and(ParseException.class, e -> { throw runEx(file.getPath(), e); })
+            .and(ParseException.class, e -> { throw jsonFormatEx(file.getPath(), e); })
             .suppress(() -> JsonObject.readHjson(new FileReader(file), FORMATTER).asObject())
             .get();
     }
@@ -124,7 +124,7 @@ public class HjsonUtils {
     public static Optional<JsonObject> readJson(final InputStream is) {
         return Result
             .define(IOException.class, Result::WARN)
-            .and(ParseException.class, Result::THROW)
+            .and(ParseException.class, r -> { throw jsonFormatEx("Reading data"); })
             .suppress(() -> JsonObject.readHjson(new InputStreamReader(is), FORMATTER).asObject())
             .get();
     }
@@ -137,7 +137,19 @@ public class HjsonUtils {
      * @return The deserialized object, or else {@link Optional#empty}.
      */
     public static Optional<JsonObject> readSuppressing(final File file) {
-        return Result.of(() -> JsonObject.readHjson(new FileReader(file), FORMATTER).asObject())
+        return Result.suppress(() -> JsonObject.readHjson(new FileReader(file), FORMATTER).asObject())
+            .get(Result::WARN);
+    }
+
+    /**
+     * Variant of {@link #readSuppressing(File)} which reads directly
+     * from an {@link InputStream}.
+     *
+     * @param is The data containing the serialized JSON object.
+     * @return The deserialized object, or else {@link Optional#empty}.
+     */
+    public static Optional<JsonObject> readSuppressing(final InputStream is) {
+        return Result.suppress(() -> JsonObject.readHjson(new InputStreamReader(is), FORMATTER).asObject())
             .get(Result::WARN);
     }
 
@@ -629,7 +641,7 @@ public class HjsonUtils {
         if (!json.has(field)) {
             json.set(field, new JsonObject());
         }
-        return getObject(json, field).orElseThrow(() -> runEx("Unreachable."));
+        return getObject(json, field).orElseThrow(Exceptions::unreachable);
     }
 
     public static Optional<JsonValue> getValue(final JsonObject json, final String field) {
@@ -740,7 +752,7 @@ public class HjsonUtils {
             if (position.isNumber()) {
                 return Collections.singletonList(toPosition(positions));
             } else if (!position.isArray()) {
-                throw runEx("Expected a list of positions, e.g. [[0, 0, 0], [1, 1, 1]].");
+                throw jsonFormatEx("Expected a list of positions, e.g. [[0, 0, 0], [1, 1, 1]].");
             }
             list.add(toPosition(position.asArray()));
         }
