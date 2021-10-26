@@ -327,6 +327,6 @@ public class HjsonOps implements DynamicOps<JsonValue> {
     }
 
     private static String asPrimitiveString(final JsonValue value) {
-        return value.isNumber() ? String.valueOf(value.asDouble()) : value.toString();
+        return value.isNumber() ? String.valueOf(value.asDouble()) : value.asString();
     }
 }

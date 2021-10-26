@@ -9,12 +9,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.event.registry.DynamicRegistries;
 import personthecat.catlib.serialization.CodecUtils;
+import personthecat.catlib.util.McUtils;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static personthecat.catlib.serialization.CodecUtils.codecOf;
@@ -39,8 +37,7 @@ public class BiomePredicate implements Predicate<Biome> {
 
     @Nullable private Set<Biome> compiled;
 
-    public static final BiomePredicate ALL_BIOMES =
-        builder().names(Collections.emptyList()).mods(Collections.emptyList()).types(Collections.emptyList()).build();
+    public static final BiomePredicate ALL_BIOMES = builder().build();
 
     private static final Codec<BiomePredicate> OBJECT_CODEC = codecOf(
         defaulted(Codec.BOOL, Fields.blacklist, false, BiomePredicate::isBlacklist),
@@ -104,5 +101,54 @@ public class BiomePredicate implements Predicate<Biome> {
 
     public boolean isNamesOnly() {
         return !this.blacklist && this.mods.isEmpty() && this.types.isEmpty();
+    }
+
+    public BiomePredicate simplify() {
+        final InvertibleSet<Biome> biomes = this.reconstruct();
+        final MultiValueMap<Biome.BiomeCategory, Biome> categories = categorize(biomes);
+        final List<ResourceLocation> names = new ArrayList<>();
+        final List<Biome.BiomeCategory> types = new ArrayList<>();
+
+        for (final Map.Entry<Biome.BiomeCategory, List<Biome>> entry : categories.entrySet()) {
+            final List<Biome> possible = McUtils.getBiomes(entry.getKey());
+            if (possible.size() == entry.getValue().size()) {
+                types.add(entry.getKey());
+            } else {
+                for (final Biome biome : entry.getValue()) {
+                    names.add(DynamicRegistries.BIOMES.getKey(biome));
+                }
+            }
+        }
+        return new BiomePredicate(biomes.isBlacklist(), names, Collections.emptyList(), types);
+    }
+
+    private InvertibleSet<Biome> reconstruct() {
+        final Set<Biome> compiled = this.compiled != null ? this.compiled : this.compile();
+        final Set<Biome> all = new HashSet<>();
+        DynamicRegistries.BIOMES.forEach(all::add);
+        if (compiled.size() > all.size() / 2) {
+            final Set<Biome> inverted = new HashSet<>(all);
+            inverted.removeAll(compiled);
+            return InvertibleSet.wrap(inverted).blacklist(true);
+        }
+        return InvertibleSet.wrap(compiled);
+    }
+
+    private static MultiValueMap<Biome.BiomeCategory, Biome> categorize(final Collection<Biome> biomes) {
+        final MultiValueMap<Biome.BiomeCategory, Biome> categories = new MultiValueHashMap<>();
+        for (final Biome biome : biomes) {
+            categories.add(biome.getBiomeCategory(), biome);
+        }
+        return categories;
+    }
+
+    public static class BiomePredicateBuilder {
+        @SuppressWarnings("ConstantConditions")
+        public BiomePredicate build() {
+            if (this.names == null) this.names = Collections.emptyList();
+            if (this.mods == null) this.mods = Collections.emptyList();
+            if (this.types == null) this.types = Collections.emptyList();
+            return new BiomePredicate(this.blacklist, this.names, this.mods, this.types, this.compiled);
+        }
     }
 }

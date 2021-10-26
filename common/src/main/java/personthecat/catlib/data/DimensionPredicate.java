@@ -38,8 +38,7 @@ public class DimensionPredicate implements Predicate<DimensionType> {
 
     @Nullable private Set<DimensionType> compiled;
 
-    public static final DimensionPredicate ALL_DIMENSIONS =
-        builder().names(Collections.emptyList()).mods(Collections.emptyList()).build();
+    public static final DimensionPredicate ALL_DIMENSIONS = builder().build();
 
     private static final Codec<DimensionPredicate> OBJECT_CODEC = codecOf(
         defaulted(Codec.BOOL, Fields.blacklist, false, DimensionPredicate::isBlacklist),
@@ -95,5 +94,14 @@ public class DimensionPredicate implements Predicate<DimensionType> {
 
     public boolean isNamesOnly() {
         return !this.blacklist && this.mods.isEmpty();
+    }
+
+    public static class DimensionPredicateBuilder {
+        @SuppressWarnings("ConstantConditions")
+        public DimensionPredicate build() {
+            if (this.names == null) this.names = Collections.emptyList();
+            if (this.mods == null) this.mods = Collections.emptyList();
+            return new DimensionPredicate(this.blacklist, this.names, this.mods);
+        }
     }
 }
