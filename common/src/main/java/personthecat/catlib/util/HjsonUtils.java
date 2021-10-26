@@ -239,9 +239,9 @@ public class HjsonUtils {
      * @param <A> The type of data being serialized.
      * @return The serialized data.
      */
-    public static <A> JsonValue writeOrThrow(final Codec<A> codec, final A a) {
+    public static <A> JsonValue writeThrowing(final Codec<A> codec, final A a) {
         return codec.encodeStart(HjsonOps.INSTANCE, a).result()
-                .orElseThrow(() -> new JsonFormatException("Writing object: " + a));
+            .orElseThrow(() -> new JsonFormatException("Writing object: " + a));
     }
 
     /**
