@@ -33,12 +33,13 @@ public class DimensionPredicate implements Predicate<DimensionType> {
     @With private final boolean blacklist;
 
     // Todo: additional conditions
-    private final List<ResourceLocation> names;
-    private final List<String> mods;
+    @NotNull private final List<ResourceLocation> names;
+    @NotNull private final List<String> mods;
 
     @Nullable private Set<DimensionType> compiled;
 
-    public static final DimensionPredicate ALL_DIMENSIONS = builder().build();
+    public static final DimensionPredicate ALL_DIMENSIONS =
+        builder().names(Collections.emptyList()).mods(Collections.emptyList()).build();
 
     private static final Codec<DimensionPredicate> OBJECT_CODEC = codecOf(
         defaulted(Codec.BOOL, Fields.blacklist, false, DimensionPredicate::isBlacklist),

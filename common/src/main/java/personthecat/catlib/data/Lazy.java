@@ -1,6 +1,7 @@
 package personthecat.catlib.data;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Optional;
@@ -10,7 +11,7 @@ import java.util.function.Supplier;
  * Creates a sort of lazily initialized value.
  * <p>
  *   Values wrapped in this class will not exist until the first time they are used.
- *   Note that this implementation is <b>not thread safe</b>.
+ *   Note that this implementation is thread safe.
  * </p>
  * @param <T> The type of value being consumed by the wrapper.
  */
@@ -110,6 +111,12 @@ public class Lazy<T> implements Supplier<T> {
     /** Returns whether the underlying data can be reloaded. */
     public boolean isResettable() {
         return false;
+    }
+
+    /** Exposes the data directly without wrapping them in {@link Optional}. */
+    @Nullable
+    public T expose() {
+        return this.value;
     }
 
     @Override

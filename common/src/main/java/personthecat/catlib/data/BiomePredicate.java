@@ -33,13 +33,14 @@ public class BiomePredicate implements Predicate<Biome> {
     @With private final boolean blacklist;
 
     // Todo: additional conditions
-    private final List<ResourceLocation> names;
-    private final List<String> mods;
-    private final List<Biome.BiomeCategory> types;
+    @NotNull private final List<ResourceLocation> names;
+    @NotNull private final List<String> mods;
+    @NotNull private final List<Biome.BiomeCategory> types;
 
     @Nullable private Set<Biome> compiled;
 
-    public static final BiomePredicate ALL_BIOMES = builder().build();
+    public static final BiomePredicate ALL_BIOMES =
+        builder().names(Collections.emptyList()).mods(Collections.emptyList()).types(Collections.emptyList()).build();
 
     private static final Codec<BiomePredicate> OBJECT_CODEC = codecOf(
         defaulted(Codec.BOOL, Fields.blacklist, false, BiomePredicate::isBlacklist),

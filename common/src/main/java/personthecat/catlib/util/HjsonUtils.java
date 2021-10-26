@@ -218,6 +218,33 @@ public class HjsonUtils {
     }
 
     /**
+     * Writes the input value as JSON, returning {@link Optional#empty} if any errors
+     * occur in the process.
+     *
+     * @param codec The codec responsible for the serialization.
+     * @param a The data being serialized.
+     * @param <A> The type of data being serialized.
+     * @return The serialized data, or else {@link Optional#empty}.
+     */
+    public static <A> Optional<JsonValue> writeOptional(final Codec<A> codec, final A a) {
+        return codec.encodeStart(HjsonOps.INSTANCE, a).result();
+    }
+
+    /**
+     * Writes the input value as JSON, or else throwing an exception if any errors
+     * occur in the process.
+     *
+     * @param codec The codec responsible for the serialization.
+     * @param a The data being serialized.
+     * @param <A> The type of data being serialized.
+     * @return The serialized data.
+     */
+    public static <A> JsonValue writeOrThrow(final Codec<A> codec, final A a) {
+        return codec.encodeStart(HjsonOps.INSTANCE, a).result()
+                .orElseThrow(() -> new JsonFormatException("Writing object: " + a));
+    }
+
+    /**
      * Reads a file from the disk <em>and</em> updates it.
      * <p>
      *   For example,
@@ -316,6 +343,80 @@ public class HjsonUtils {
             }
         }
         return current;
+    }
+
+    /**
+     * Returns a "shallow" clone of the given value. In other words, if this
+     * value is an object or array, a new container will be constructed. If
+     * it is any other value, the <em>reference</em> will be copied, meaning
+     * the original comments will share the same address in memory.
+     *
+     * @param value The value being copied.
+     * @return A shallow copy of the original value.
+     */
+    public static JsonValue shallowCopy(final JsonValue value) {
+        if (value.isArray()) {
+            final JsonArray copy = new JsonArray();
+            for (final JsonValue v2 : value.asArray()) {
+                copy.add(shallowCopy(v2));
+            }
+            return copy;
+        } else if (value.isObject()) {
+            final JsonObject copy = new JsonObject();
+            for (final JsonObject.Member member : value.asObject()) {
+                copy.add(member.getName(), shallowCopy(member.getValue()));
+            }
+            return copy;
+        }
+        return value;
+    }
+
+    /**
+     * Updates every value in the given JSON with values from <code>toSet</code>. Any
+     * value not present in the original JSON will be copied from <code>toSet</code>.
+     * <p>
+     *   For example, when given the following JSON inputs:
+     * </p><pre>
+     *   {
+     *     "a": 1,
+     *     "b": {}
+     *   }
+     * </pre><p>
+     *   and
+     * </p><pre>
+     *   {
+     *     "a": 2,
+     *     "b": {
+     *        "c": 3
+     *     },
+     *     "d": 4
+     *   }
+     * </pre><p>
+     *   The <b>original JSON</b> will be updated as follows:
+     * </p><pre>
+     *   {
+     *     "a": 1,
+     *     "b": {
+     *       "c": 3
+     *     }
+     *     "d": 4
+     *   }
+     * </pre>
+     *
+     * @param json The target JSON being modified.
+     * @param toSet The data being copied into the target.
+     */
+    public static void setRecursivelyIfAbsent(final JsonObject json, final JsonObject toSet) {
+        for (final JsonObject.Member member : toSet) {
+            final JsonValue get = json.get(member.getName());
+            if (get != null) {
+                if (get.isObject() && member.getValue().isObject()) {
+                    setRecursivelyIfAbsent(get.asObject(), member.getValue().asObject());
+                }
+            } else if (!member.getValue().isNull()) {
+                json.set(member.getName(), member.getValue());
+            }
+        }
     }
 
     /**

@@ -196,6 +196,27 @@ public class PathUtils {
     }
 
     /**
+     * Appends a string of text before the extension on the given path. If this
+     * path contains no extension, the strings are simply concatenated.
+     * <p>
+     *   For example, appending <code>_bar</code> onto <code>foo.baz</code> will
+     *   output <code>foo_bar.baz</code>
+     * </p>
+     *
+     * @param path the fully-qualified file path.
+     * @param affix The string to append onto the filename.
+     * @return A new file path where the filename ends with the given affix.
+     */
+    public static String appendFilename(final String path, final String affix) {
+        final String extension = PathUtils.extension(path);
+        if (extension.isEmpty()) {
+            return path + affix;
+        }
+        final int index = path.lastIndexOf(extension);
+        return path.substring(0, index - 1) + affix + "." + extension;
+    }
+
+    /**
      * Prepends a new string of text before the last part of a file path.
      * <p>
      *   For example, prepending <code>bar_</code> onto <code>foo/baz</code>
@@ -206,6 +227,7 @@ public class PathUtils {
      * </p>
      * @param path The fully-qualified file path.
      * @param prefix The string to prepend to the filename.
+     * @return A new file path where the filename begins with the given prefix.
      */
     public static String prependFilename(final String path, final String prefix) {
         return path.replaceFirst("^(.*[/\\\\])*([^/\\\\]+)$", "$1" + prefix + "$2");

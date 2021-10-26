@@ -38,7 +38,10 @@ public class CodecUtils {
     public static <T> Codec<List<T>> easyList(final @NotNull Codec<T> codec) {
         return Codec.either(codec, codec.listOf()).xmap(
             either -> either.map(Collections::singletonList, Function.identity()),
-            list -> list.size() == 1 ? Either.left(list.get(0)) : Either.right(list)
+            list -> {
+                if (list == null) return Either.right(Collections.emptyList());
+                return list.size() == 1 ? Either.left(list.get(0)) : Either.right(list);
+            }
         );
     }
 
