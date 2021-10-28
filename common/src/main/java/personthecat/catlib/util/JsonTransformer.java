@@ -1159,7 +1159,9 @@ public class JsonTransformer {
             JsonObject parent = json;
             for (int i = 0; i < from.length - 1; i++) {
                 // Only use the first object. All others are ambiguous.
-                final JsonObject object = this.getFirstObject(parent.get(from[i]));
+                final JsonValue next = parent.get(from[i]);
+                if (next == null) return null;
+                final JsonObject object = this.getFirstObject(next);
                 if (object == null) return null;
                 parent = object;
             }
