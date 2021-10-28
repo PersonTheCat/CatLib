@@ -14,6 +14,7 @@ import personthecat.catlib.util.Shorthand;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -31,16 +32,30 @@ public class CodecUtils {
     public static final Codec<List<ResourceLocation>> ID_LIST = easyList(ResourceLocation.CODEC);
     public static final Codec<List<Biome.BiomeCategory>> CATEGORY_LIST = easyList(ofEnum(Biome.BiomeCategory.class));
 
-    public static <T> ValueMapCodec<T> mapOf(final Codec<T> codec) {
+    public static <A> ValueMapCodec<A> mapOf(final Codec<A> codec) {
         return new ValueMapCodec<>(codec);
     }
 
-    public static <T> Codec<List<T>> easyList(final @NotNull Codec<T> codec) {
+    public static <A> Codec<List<A>> easyList(final @NotNull Codec<A> codec) {
         return Codec.either(codec, codec.listOf()).xmap(
             either -> either.map(Collections::singletonList, Function.identity()),
             list -> {
                 if (list == null) return Either.right(Collections.emptyList());
                 return list.size() == 1 ? Either.left(list.get(0)) : Either.right(list);
+            }
+        );
+    }
+
+    public static <A> SetCodec<A> setOf(final @NotNull Codec<A> codec) {
+        return new SetCodec<>(codec);
+    }
+
+    public static <A> Codec<Set<A>> easySet(final @NotNull Codec<A> codec) {
+        return Codec.either(codec, setOf(codec)).xmap(
+            either -> either.map(Collections::singleton, Function.identity()),
+            set -> {
+                if (set == null) return Either.right(Collections.emptySet());
+                return set.size() == 1 ? Either.left(set.iterator().next()) : Either.right(set);
             }
         );
     }
