@@ -171,6 +171,14 @@ public final class JsonTransformerTest {
     }
 
     @Test
+    public void relocate_ignoresIncompletePaths() {
+        final JsonObject transformed = parse("a:{b:1}");
+        JsonTransformer.root().relocate("a.b.c.d", "e").updateAll(transformed);
+
+        assertEquals(parse("a:{b:1}"), transformed);
+    }
+
+    @Test
     public void parentTransformer_appliesNestedTransformations() {
         final JsonObject transformed = parse("a:1");
         final ObjectResolver nested = JsonTransformer.root().history("a", "b");
