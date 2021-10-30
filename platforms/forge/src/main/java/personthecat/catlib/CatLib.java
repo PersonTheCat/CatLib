@@ -1,6 +1,5 @@
 package personthecat.catlib;
 
-import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -22,8 +21,6 @@ import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.FeatureModificationHook;
 import personthecat.catlib.util.LibReference;
-
-import java.util.UUID;
 
 @Mod(LibReference.MOD_ID)
 public class CatLib {
