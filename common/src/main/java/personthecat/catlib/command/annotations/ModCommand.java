@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
  *   This token will become the literal argument required for using the
  *   command. Here's an example of a basic command using this setup:
  * </p><pre>
- *     &copy;ModCommand(name = "command")
+ *     &#064;ModCommand(name = "command")
  *     private static void myCommand(final CommandContextWrapper wrapper) {
  *         wrapper.sendMessage("Hello, world!");
  *     }
@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  *   In addition, CatLib will take care of generating a help command for your
  *   mod. You can enable this feature per command by providing a description.
  * </p><pre>
- *     &copy;ModCommand(
+ *     &#064;ModCommand(
  *         name = "command",
  *         description = {
  *             "Runs the demo command. You can provide additional lines,",
@@ -41,12 +41,12 @@ import java.lang.annotation.Target;
  *   You can begin adding additional arguments to your command by providing a
  *   branch of {@link Node}s.
  * </p><pre>
- *     &copy;ModCommand(
+ *     &#064;ModCommand(
  *         name = "command",
  *         description = "Runs the demo command.",
  *         branch = {
- *             &copy;Node(name = "arg1", type = BlockStateArgument.class),
- *             &copy;Node(name = "arg2", type = ItemInput.class, optional = true)
+ *             &#064;Node(name = "arg1", type = BlockStateArgument.class),
+ *             &#064;Node(name = "arg2", type = ItemInput.class, optional = true)
  *         }
  *     )
  *     private static void myCommand(final CommandContextWrapper wrapper) {
@@ -60,12 +60,12 @@ import java.lang.annotation.Target;
  *   annotated methods with the same <code>name</code>. Brigadier will take care
  *   of resolving duplicate arguments into a single tree.
  * </p><pre>
- *     &copy;ModCommand(name = "sayHello")
+ *     &#064;ModCommand(name = "sayHello")
  *     private static void sayHello(final CommandContextWrapper wrapper) {
  *         wrapper.sendMessage("Hello!")
  *     }
  *
- *     &copy;ModCommand(
+ *     &#064;ModCommand(
  *         name = "sayHello"
  *         branch = @Node(name = "name", stringValue = @StringValue(type = Type.WORD))
  *     )

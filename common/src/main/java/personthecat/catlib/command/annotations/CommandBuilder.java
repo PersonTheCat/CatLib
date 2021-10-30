@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  * </p><p>
  *   For example:
  * </p><pre>
- *     &copy;CommandBuilder
+ *     &#064;CommandBuilder
  *     private static LibCommandBuilder myCommand() {
  *         return LibCommandBuilder.named("command")
  *             .append("Runs a generic command")

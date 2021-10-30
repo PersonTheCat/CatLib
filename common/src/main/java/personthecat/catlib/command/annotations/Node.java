@@ -38,13 +38,13 @@ import personthecat.catlib.command.CommandContextWrapper;
  *   <b>and then</b> another regular argument.
  * </p><pre>
  *     branch = {
- *       &copy;Node(
+ *       &#064;Node(
  *           name = "numbers",
  *           descriptor = ArgumentSuppliers.AnyInt.class,
  *           intoList = @ListInfo
  *       ),
- *       &copy;Node(name = "in"),
- *       &copy;Node(name = "format", type = MyArgumentType.class)
+ *       &#064;Node(name = "in"),
+ *       &#064;Node(name = "format", type = MyArgumentType.class)
  *     }
  * </pre>
  */
@@ -124,9 +124,9 @@ public @interface Node {
      * required argument type.
      * <pre>
      *     branches = {
-     *         &copy;Node(name = "numbers", intVal = @IntRange(max = 100), intoList = @ListInfo),
-     *         &copy;Node(name = "in"),
-     *         &copy;Node(name = "format", descriptor = MyArgumentSupplier.class)
+     *         &#064;Node(name = "numbers", intVal = @IntRange(max = 100), intoList = @ListInfo),
+     *         &#064;Node(name = "in"),
+     *         &#064;Node(name = "format", descriptor = MyArgumentSupplier.class)
      *     }
      * </pre>
      */
