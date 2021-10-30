@@ -4,6 +4,7 @@ import me.shedaniel.autoconfig.AutoConfig;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.ModificationPhase;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.resources.ResourceLocation;
 import personthecat.catlib.command.CommandRegistrationContext;
 import personthecat.catlib.command.DefaultLibCommands;
@@ -16,6 +17,7 @@ import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.event.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
+import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.FeatureModificationContext;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.event.world.RegistrySet;
@@ -45,6 +47,9 @@ public class CatLib implements ModInitializer {
                 .addAllCommands(DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true))
                 .registerAll();
         }
+
+        ServerWorldEvents.LOAD.register((s, l) -> CommonWorldEvent.LOAD.invoker().accept(l));
+        ServerWorldEvents.UNLOAD.register((s, l) -> CommonWorldEvent.UNLOAD.invoker().accept(l));
     }
 
     @SuppressWarnings("deprecation")

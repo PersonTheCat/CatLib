@@ -1,6 +1,7 @@
 package personthecat.catlib;
 
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -15,6 +16,7 @@ import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.event.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
+import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.FeatureModificationHook;
 import personthecat.catlib.util.LibReference;
 
@@ -45,6 +47,9 @@ public class CatLib {
                 .addAllCommands(DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true))
                 .registerAll();
         }
+
+        MinecraftForge.EVENT_BUS.addListener((WorldEvent.Load l) -> CommonWorldEvent.LOAD.invoker().accept(l.getWorld()));
+        MinecraftForge.EVENT_BUS.addListener((WorldEvent.Unload l) -> CommonWorldEvent.UNLOAD.invoker().accept(l.getWorld()));
     }
 
     private void initServer(final FMLServerStartingEvent event) {
