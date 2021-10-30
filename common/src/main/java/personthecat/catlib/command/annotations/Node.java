@@ -53,7 +53,7 @@ public @interface Node {
     /**
      * The key used to retrieve this argument in-code
      */
-    String name();
+    String name() default "";
 
     /**
      * Optional alias for <code>name</code> used for declaring literal argument types.
