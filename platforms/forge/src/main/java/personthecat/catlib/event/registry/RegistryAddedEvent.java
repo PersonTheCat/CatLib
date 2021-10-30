@@ -70,6 +70,6 @@ public class RegistryAddedEvent {
     }
 
     private static <T> LibEvent<RegistryAddedCallback<T>> newEvent() {
-        return LibEvent.create(callbacks -> (h, id, t) -> callbacks.forEach(c -> c.onRegistryAdded(h, id, t)));
+        return LibEvent.nonRecursive(callbacks -> (h, id, t) -> callbacks.forEach(c -> c.onRegistryAdded(h, id, t)));
     }
 }

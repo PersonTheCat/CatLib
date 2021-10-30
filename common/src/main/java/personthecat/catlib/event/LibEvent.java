@@ -1,23 +1,29 @@
 package personthecat.catlib.event;
 
+import personthecat.catlib.data.NonRecursiveIterable;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Function;
 
 public class LibEvent<T> {
-    private final Function<List<T>, T> event;
-    private final List<T> listeners;
+    private final Function<Collection<T>, T> event;
+    private final Collection<T> listeners;
     private volatile T invoker;
 
-    private LibEvent(final Function<List<T>, T> event) {
+    private LibEvent(final Function<Collection<T>, T> event, final Collection<T> listeners) {
         this.event = event;
-        this.listeners = Collections.synchronizedList(new ArrayList<>());
+        this.listeners = listeners;
         this.invoker = null;
     }
 
-    public static <T> LibEvent<T> create(final Function<List<T>, T> event) {
-        return new LibEvent<>(event);
+    public static <T> LibEvent<T> create(final Function<Collection<T>, T> event) {
+        return new LibEvent<>(event, Collections.synchronizedList(new ArrayList<>()));
+    }
+
+    public static <T> LibEvent<T> nonRecursive(final Function<Collection<T>, T> event) {
+        return new LibEvent<>(event, Collections.synchronizedCollection(new NonRecursiveIterable<>(new ArrayList<>())));
     }
 
     public LibEvent<T> register(final T listener) {
@@ -44,7 +50,7 @@ public class LibEvent<T> {
 
     private synchronized LibEvent<T> update() {
         if (this.listeners.size() == 1) {
-            this.invoker = listeners.get(0);
+            this.invoker = this.listeners.iterator().next();
         } else {
             this.invoker = this.event.apply(this.listeners);
         }
