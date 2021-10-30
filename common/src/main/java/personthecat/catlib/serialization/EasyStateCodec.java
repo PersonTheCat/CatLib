@@ -25,8 +25,8 @@ public class EasyStateCodec implements Codec<BlockState> {
     public <T> DataResult<Pair<BlockState, T>> decode(final DynamicOps<T> ops, final T input) {
         return ops.getStringValue(input).flatMap(id -> {
             try {
-                final BlockState state = BlockStateArgument.block().parse(new StringReader(id)).getState();
-                return DataResult.success(Pair.of(state, input));
+                final BlockStateParser parser = new BlockStateParser(new StringReader(id), false).parse(false);
+                return DataResult.success(Pair.of(parser.getState(), input));
             } catch (final CommandSyntaxException e) {
                 return DataResult.error(e.getMessage());
             }
