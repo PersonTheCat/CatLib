@@ -3,6 +3,7 @@ package personthecat.catlib.event.world;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
 import net.fabricmc.fabric.mixin.biome.modification.GenerationSettingsAccessor;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep.Carving;
@@ -28,6 +29,7 @@ public class FeatureModificationContext {
     private final Registry<ConfiguredWorldCarver<?>> carvers;
     private final Registry<ConfiguredFeature<?, ?>> features;
     private final Registry<ConfiguredStructureFeature<?, ?>> structures;
+    private final RegistryAccess registries;
 
     public FeatureModificationContext(final BiomeSelectionContext biome, final RegistrySet registries) {
         this.biome = biome;
@@ -35,6 +37,7 @@ public class FeatureModificationContext {
         this.carvers = registries.getCarvers();
         this.features = registries.getFeatures();
         this.structures = registries.getStructures();
+        this.registries = registries.getRegistries();
     }
 
     @Overwrite
@@ -60,6 +63,11 @@ public class FeatureModificationContext {
     @Overwrite
     public Registry<ConfiguredStructureFeature<?, ?>> getStructureRegistry() {
         return this.structures;
+    }
+
+    @Overwrite
+    public RegistryAccess getRegistryAccess() {
+        return this.registries;
     }
 
     @Overwrite

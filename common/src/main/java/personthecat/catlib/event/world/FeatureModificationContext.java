@@ -1,6 +1,7 @@
 package personthecat.catlib.event.world;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep.Carving;
@@ -41,6 +42,11 @@ public class FeatureModificationContext {
 
     @PlatformMustOverwrite
     public Registry<ConfiguredStructureFeature<?, ?>> getStructureRegistry() {
+        throw new MissingOverrideException();
+    }
+
+    @PlatformMustOverwrite
+    public RegistryAccess getRegistryAccess() {
         throw new MissingOverrideException();
     }
 
