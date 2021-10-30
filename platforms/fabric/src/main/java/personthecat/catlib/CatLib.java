@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.biome.v1.ModificationPhase;
 import net.minecraft.resources.ResourceLocation;
 import personthecat.catlib.command.CommandRegistrationContext;
 import personthecat.catlib.command.DefaultLibCommands;
+import personthecat.catlib.command.arguments.EnumArgument;
 import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
@@ -27,6 +28,7 @@ public class CatLib implements ModInitializer {
     public void onInitialize() {
         AutoConfig.register(LibConfig.class, HjsonConfigSerializer::new);
 
+        EnumArgument.register();
         FileArgument.register();
         HjsonArgument.register();
         PathArgument.register();

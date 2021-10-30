@@ -56,6 +56,14 @@ public @interface Node {
     String name();
 
     /**
+     * Optional alias for <code>name</code> used for declaring literal argument types.
+     * <pre>
+     *     branch = @Node("exact")
+     * </pre>
+     */
+    String value() default "";
+
+    /**
      * Whether the given argument is optional. When this value is <code>true</code>, the
      * command will be able to execute <b>before</b> reaching this node.
      *
@@ -112,10 +120,18 @@ public @interface Node {
     /**
      * A <b>single</b> string value type for the current node.
      * <pre>
-     *     branch = @Node(name = "text", stringVal = @StringValue(type = Type.GREEDY))
+     *     branch = @Node(name = "text", stringValue = @StringValue(type = Type.GREEDY))
      * </pre>
      */
     StringValue[] stringValue() default {};
+
+    /**
+     * A <b>single</b> enum value type for the current node.
+     * <pre>
+     *     branch = @Node(name = "stage", enumValue = GenerationStep.Decoration.class)
+     * </pre>
+     */
+    Class<? extends Enum<?>>[] enumValue() default {};
 
     /**
      * Converts the given node into a list argument which can be repeated up to a

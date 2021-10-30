@@ -7,6 +7,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.catlib.command.*;
+import personthecat.catlib.command.arguments.EnumArgument;
 import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
@@ -28,6 +29,7 @@ public class CatLib {
 
     @SuppressWarnings("unused")
     private void initCommon(final FMLCommonSetupEvent event) {
+        EnumArgument.register();
         FileArgument.register();
         HjsonArgument.register();
         PathArgument.register();

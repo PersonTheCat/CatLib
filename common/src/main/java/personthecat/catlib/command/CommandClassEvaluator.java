@@ -12,6 +12,7 @@ import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.LibCommandBuilder.CommanBuilder;
 import personthecat.catlib.command.annotations.Node;
 import personthecat.catlib.command.arguments.ArgumentDescriptor;
+import personthecat.catlib.command.arguments.EnumArgument;
 import personthecat.catlib.command.arguments.ListArgumentBuilder;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.IntRef;
@@ -80,7 +81,7 @@ public class CommandClassEvaluator {
     }
 
     private static LibCommandBuilder createBuilder(final ModDescriptor mod, final CommandFunction cmd, final Method m, final ModCommand a) {
-        return LibCommandBuilder.named(a.name().isEmpty() ? m.getName() : a.name())
+        return LibCommandBuilder.named(getCommandName(m, a))
             .arguments(a.arguments())
             .description(String.join(" ", a.description()))
             .linter(a.linter().length == 0 ? mod.getDefaultLinter() : tryInstantiate(a.linter()[0]))
@@ -88,6 +89,12 @@ public class CommandClassEvaluator {
             .type(a.type())
             .side(a.side())
             .generate(createBranch(a));
+    }
+
+    private static String getCommandName(final Method m, final ModCommand a) {
+        if (!a.name().isEmpty()) return a.name();
+        if (!a.value().isEmpty()) return a.value();
+        return m.getName();
     }
 
     private static CommanBuilder<CommandSourceStack> createBranch(final ModCommand a) {
@@ -129,7 +136,7 @@ public class CommandClassEvaluator {
         return entries;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private static ArgumentDescriptor<?> createDescriptor(final Node node) {
         if (node.type().length > 0) {
             return new ArgumentDescriptor<>(tryInstantiate((Class<ArgumentType<?>>)node.type()[0]));
@@ -145,6 +152,8 @@ public class CommandClassEvaluator {
             return new ArgumentDescriptor<>(BoolArgumentType.bool());
         } else if (node.stringValue().length > 0) {
             return new ArgumentDescriptor<>(createStringArgumentType(node));
+        } else if (node.enumValue().length > 0) {
+            return new ArgumentDescriptor<>(EnumArgument.of((Class) node.enumValue()[0]));
         } else {
             return ArgumentDescriptor.LITERAL;
         }
@@ -166,19 +175,29 @@ public class CommandClassEvaluator {
 
         final Pair<Node, ArgumentDescriptor<?>> entry = entries.get(index.get());
         final ArgumentBuilder<CommandSourceStack, ?> argument;
-        if (entry.getKey().intoList().useList()) {
+        final Node node = entry.getKey();
+        final ArgumentDescriptor<?> descriptor = entry.getValue();
+        final ArgumentType<?> type = descriptor.getType();
+
+        if (node.intoList().useList()) {
             argument = createList(entries, index.get());
             index.add(2);
-        } else if (entry.getValue().isLiteral()) {
-            argument = Commands.literal(entry.getKey().name());
+        } else if (descriptor.isLiteral()) {
+            argument = Commands.literal(getArgumentName(node, type));
         } else {
-            argument = Commands.argument(entry.getKey().name(), entry.getValue().getType());
+            argument = Commands.argument(getArgumentName(node, type), type);
         }
-        if (entry.getValue().getSuggestions() != null) {
+        if (descriptor.getSuggestions() != null) {
             ((RequiredArgumentBuilder<CommandSourceStack, ?>) argument)
-                .suggests(entry.getValue().getSuggestions());
+                .suggests(descriptor.getSuggestions());
         }
         return argument;
+    }
+
+    private static String getArgumentName(final Node node, final ArgumentType<?> type) {
+        if (!node.name().isEmpty()) return node.name();
+        if (!node.value().isEmpty()) return node.value();
+        return type.getClass().getSimpleName();
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> createList(

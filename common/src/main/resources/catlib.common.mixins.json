@@ -3,7 +3,6 @@
   "package": "personthecat.catlib.mixin",
   "compatibilityLevel": "JAVA_8",
   "client": [
-    "LoadingOverlayAccessor",
     "MinecraftMixin"
   ],
   "injectors": {

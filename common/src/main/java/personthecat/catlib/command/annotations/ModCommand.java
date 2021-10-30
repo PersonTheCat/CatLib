@@ -87,6 +87,14 @@ public @interface ModCommand {
     String name() default "";
 
     /**
+     * Optional alias for <code>name</code> used for declaring no-argument commands.
+     *
+     * <p>Note that neither value nor name is required. If both are absent, the
+     * command value will default to the name of the declaring method.
+     */
+    String value() default "";
+
+    /**
      * Optional subtext to display on the help page.
      */
     String arguments() default "";
