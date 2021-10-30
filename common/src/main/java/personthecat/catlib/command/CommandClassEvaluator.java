@@ -81,14 +81,15 @@ public class CommandClassEvaluator {
     }
 
     private static LibCommandBuilder createBuilder(final ModDescriptor mod, final CommandFunction cmd, final Method m, final ModCommand a) {
+        final List<Pair<Node, ArgumentDescriptor<?>>> entries = createEntries(a.branch());
         return LibCommandBuilder.named(getCommandName(m, a))
-            .arguments(a.arguments())
+            .arguments(getArgumentText(entries, a))
             .description(String.join(" ", a.description()))
             .linter(a.linter().length == 0 ? mod.getDefaultLinter() : tryInstantiate(a.linter()[0]))
             .wrap("", cmd)
             .type(a.type())
             .side(a.side())
-            .generate(createBranch(a));
+            .generate(createBranch(entries));
     }
 
     private static String getCommandName(final Method m, final ModCommand a) {
@@ -97,9 +98,36 @@ public class CommandClassEvaluator {
         return m.getName();
     }
 
-    private static CommanBuilder<CommandSourceStack> createBranch(final ModCommand a) {
+    private static String getArgumentText(final List<Pair<Node, ArgumentDescriptor<?>>> entries, final ModCommand a) {
+        if (!a.arguments().isEmpty()) return a.arguments();
+        final StringBuilder sb = new StringBuilder();
+        for (final Pair<Node, ArgumentDescriptor<?>> entry : entries) {
+            final Node node = entry.getKey();
+            final ArgumentType<?> type = entry.getValue().getType();
+
+            if (sb.length() > 0) sb.append(' ');
+            if (isLiteral(node)) {
+                sb.append(getArgumentName(node, type));
+                continue;
+            }
+            if (node.optional()) sb.append('[');
+            sb.append('<');
+            sb.append(getArgumentName(node, type));
+            if (node.intoList().useList()) sb.append("...");
+            sb.append('>');
+            if (node.optional()) sb.append(']');
+        }
+        return sb.toString();
+    }
+
+    private static boolean isLiteral(final Node n) {
+        return !n.isBoolean() && n.descriptor().length == 0 && n.doubleRange().length == 0 && n.enumValue().length == 0
+            && n.intRange().length == 0 && n.stringValue().length == 0 && n.type().length == 0;
+    }
+
+    private static CommanBuilder<CommandSourceStack> createBranch(final List<Pair<Node, ArgumentDescriptor<?>>> entries) {
+
         return (builder, wrappers) -> {
-            final List<Pair<Node, ArgumentDescriptor<?>>> entries = createEntries(a.branch());
             final List<ArgumentBuilder<CommandSourceStack, ?>> arguments = new ArrayList<>();
             ArgumentBuilder<CommandSourceStack, ?> lastArg = builder;
             final IntRef index = new IntRef(0);

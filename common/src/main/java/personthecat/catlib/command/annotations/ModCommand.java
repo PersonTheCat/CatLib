@@ -96,6 +96,9 @@ public @interface ModCommand {
 
     /**
      * Optional subtext to display on the help page.
+     *
+     * <p>Note that, if this value is absent, the subtext will be generated
+     * from the command node branch.
      */
     String arguments() default "";
 
