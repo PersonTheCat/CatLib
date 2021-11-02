@@ -9,10 +9,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.resources.ResourceLocation;
 import personthecat.catlib.command.CommandRegistrationContext;
 import personthecat.catlib.command.DefaultLibCommands;
-import personthecat.catlib.command.arguments.EnumArgument;
-import personthecat.catlib.command.arguments.FileArgument;
-import personthecat.catlib.command.arguments.HjsonArgument;
-import personthecat.catlib.command.arguments.PathArgument;
+import personthecat.catlib.command.arguments.*;
 import personthecat.catlib.config.HjsonConfigSerializer;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.event.player.CommonPlayerEvent;
@@ -36,6 +33,7 @@ public class CatLib implements ModInitializer {
         FileArgument.register();
         HjsonArgument.register();
         PathArgument.register();
+        RegistryArgument.register();
 
         this.setupBiomeModificationHook();
 

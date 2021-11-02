@@ -9,10 +9,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.catlib.command.*;
-import personthecat.catlib.command.arguments.EnumArgument;
-import personthecat.catlib.command.arguments.FileArgument;
-import personthecat.catlib.command.arguments.HjsonArgument;
-import personthecat.catlib.command.arguments.PathArgument;
+import personthecat.catlib.command.arguments.*;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.event.registry.DynamicRegistries;
@@ -37,6 +34,7 @@ public class CatLib {
         FileArgument.register();
         HjsonArgument.register();
         PathArgument.register();
+        RegistryArgument.register();
 
         RegistryAccessEvent.EVENT.register(access -> {
             DynamicRegistries.updateRegistries(access);
