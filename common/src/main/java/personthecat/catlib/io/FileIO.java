@@ -168,7 +168,7 @@ public class FileIO {
      * Recursively stores a reference to each file in the given directory in the provided array.
      *
      * @param files The array storing the final list of files.
-     * @param dir The directory being operated on.
+     * @param dir   The directory being operated on.
      */
     private static void listFilesInto(final List<File> files, final File dir) {
         final File[] inDir = dir.listFiles();
@@ -177,6 +177,42 @@ public class FileIO {
                 if (f.isDirectory()) {
                     listFilesInto(files, f);
                 } else {
+                    files.add(f);
+                }
+            }
+        }
+    }
+
+    /**
+     * Variant of {@link #listFilesRecursive(File)} which filters based on a predicate.
+     *
+     * @param dir    The root directory which may contain the expected files.
+     * @param filter A predicate used to match the expected files.
+     * @return Every matching file nested within this directory.
+     */
+    public static List<File> listFilesRecursive(final File dir, final FileFilter filter) {
+        if (dir.isFile()) {
+            return Collections.emptyList();
+        }
+        final List<File> files = new ArrayList<>();
+        listFilesInto(files, dir, filter);
+        return files;
+    }
+
+    /**
+     * Variant of {@link #listFilesInto(List, File)} which filters based on a predicate.
+     *
+     * @param files  The array storing the final list of files.
+     * @param dir    The directory being operated on.
+     * @param filter A filter used for matching files.
+     */
+    private static void listFilesInto(final List<File> files, final File dir, final FileFilter filter) {
+        final File[] inDir = dir.listFiles();
+        if (inDir != null) {
+            for (final File f : inDir) {
+                if (f.isDirectory()) {
+                    listFilesInto(files, f);
+                } else if (filter.accept(f)) {
                     files.add(f);
                 }
             }
