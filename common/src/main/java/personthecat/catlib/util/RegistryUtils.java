@@ -6,7 +6,9 @@ import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.ResourceKey;
+import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.event.registry.RegistryHandle;
+import personthecat.catlib.exception.MissingElementException;
 import personthecat.catlib.exception.MissingOverrideException;
 import personthecat.catlib.exception.RegistryLookupException;
 import personthecat.overwritevalidator.annotations.OverwriteTarget;
@@ -61,5 +63,21 @@ public class RegistryUtils {
             final Registry<T> dummyRegistry = new MappedRegistry<>(key, Lifecycle.experimental());
             Registry.register((Registry) BuiltinRegistries.REGISTRY, key.location(), dummyRegistry);
         }
+    }
+
+    /**
+     * Acquires a handle on a registry when given the element type. For example, when
+     * given <code>Biome.class</code>, will return {@link BuiltinRegistries#BIOME}.
+     * On the Forge platform, this method will return the equivalent Forge registry.
+     *
+     * @throws MissingElementException if the expected registry is not found.
+     * @param clazz The element type contained within the registry.
+     * @param <T>   The type token of this element.
+     * @return A handle on the expected registry, guaranteed.
+     */
+    @NotNull
+    @PlatformMustOverwrite
+    public static <T> RegistryHandle<T> getByType(final Class<T> clazz) {
+        throw new MissingOverrideException();
     }
 }
