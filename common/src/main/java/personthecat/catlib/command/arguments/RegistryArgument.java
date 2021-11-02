@@ -14,18 +14,24 @@ import net.minecraft.resources.ResourceLocation;
 import personthecat.catlib.data.Lazy;
 import personthecat.catlib.event.registry.CommonRegistries;
 import personthecat.catlib.event.registry.RegistryHandle;
+import personthecat.catlib.util.LibReference;
+import personthecat.catlib.util.RegistryUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static personthecat.catlib.exception.Exceptions.cmdSyntax;
 
 public class RegistryArgument<T> implements ArgumentType<T> {
 
     public static void register() {
-        ArgumentTypes.register("catlib:registry_argument", RegistryArgument.class,
+        ArgumentTypes.register(LibReference.MOD_ID + ":registry_argument", RegistryArgument.class,
             new EmptyArgumentSerializer<>(() -> new RegistryArgument<>(CommonRegistries.BLOCKS)));
     }
+
+    private static final Map<Class<?>, RegistryArgument<?>> ARGUMENTS_BY_TYPE = new ConcurrentHashMap<>();
 
     private final RegistryHandle<T> handle;
     private final Lazy<List<String>> suggestions;
@@ -33,6 +39,12 @@ public class RegistryArgument<T> implements ArgumentType<T> {
     public RegistryArgument(final RegistryHandle<T> handle) {
         this.handle = handle;
         this.suggestions = Lazy.of(() -> computeSuggestions(handle));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> RegistryArgument<T> getOrThrow(final Class<T> clazz) {
+        return (RegistryArgument<T>) ARGUMENTS_BY_TYPE.computeIfAbsent(clazz, c ->
+            new RegistryArgument<>(RegistryUtils.getByType(c)));
     }
 
     @Override

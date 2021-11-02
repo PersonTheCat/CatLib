@@ -14,6 +14,7 @@ import personthecat.catlib.command.annotations.Node;
 import personthecat.catlib.command.arguments.ArgumentDescriptor;
 import personthecat.catlib.command.arguments.EnumArgument;
 import personthecat.catlib.command.arguments.ListArgumentBuilder;
+import personthecat.catlib.command.arguments.RegistryArgument;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.IntRef;
 import personthecat.catlib.data.ModDescriptor;
@@ -182,6 +183,8 @@ public class CommandClassEvaluator {
             return new ArgumentDescriptor<>(createStringArgumentType(node));
         } else if (node.enumValue().length > 0) {
             return new ArgumentDescriptor<>(EnumArgument.of((Class) node.enumValue()[0]));
+        } else if (node.registry().length > 0) {
+            return new ArgumentDescriptor<>(RegistryArgument.getOrThrow(node.registry()[0]));
         } else {
             return ArgumentDescriptor.LITERAL;
         }

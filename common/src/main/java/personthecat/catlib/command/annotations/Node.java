@@ -94,6 +94,19 @@ public @interface Node {
     Class<? extends ArgumentSupplier<?>>[] descriptor() default {};
 
     /**
+     * A <b>single</b> element type which will generate a registry argument. Note that,
+     * on the Forge platform, this argument <b>will</b> pull from the Forge registries.
+     * <pre>
+     *     branch = @Node(name = "feature", registry = Feature.class)
+     * </pre><p>
+     *     This can be used as:
+     * </p><pre>
+     *     /&lt;mod&gt; &lt;cmd&gt; minecraft:ore_feature
+     * </pre>
+     */
+    Class<?>[] registry() default {};
+
+    /**
      * A <b>single</b> integer range for the current node.
      * <pre>
      *     branch = @Node(name = "x", intRange = @IntRange(max = 5))
