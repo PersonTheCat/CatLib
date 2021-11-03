@@ -26,36 +26,46 @@ public class LibStringUtils {
      * @return The wrapped lines as a list of strings.
      */
     public static List<String> wrapLines(final String text, final int l) {
-        final List<String> lines = new ArrayList<>();
-        final StringBuilder line = new StringBuilder();
-        final StringBuilder word = new StringBuilder();
-        boolean nl = false;
+        if (text.length() < l) return Collections.singletonList(text);
 
-        for (final char c : text.toCharArray()) {
-            if (c == '\r') continue;
-            if (c == '\n') { nl = true; continue; }
-            if (c == ' ' || c == '\t' || nl) {
-                if (word.length() + line.length() > l) {
-                    lines.add(line.toString());
-                    line.setLength(0);
-                    word.append(' ');
-                } else {
-                    line.append(word).append(' ');
-                    word.setLength(0);
-                }
-            } else {
-                word.append(c);
-            }
-            nl = false;
-        }
-        if (word.length() + line.length() > l) {
-            lines.add(line.toString());
-            lines.add(word.toString());
-        } else {
-            line.append(word);
-            lines.add(line.toString());
+        final String normalized = text.replaceAll("\\s+", " ");
+        final List<String> lines = new ArrayList<>();
+        int index = 0;
+
+        while (index < normalized.length()) {
+            lines.add(normalized.substring(index, index = getEndOfLine(normalized, index, index + l)));
+            index++;
         }
         return lines;
+    }
+
+    /**
+     * Returns the closest index of a whitespace character, iterating backwards
+     * from <code>index</code>.
+     *
+     * @param text  The normalized body of text, containing only single spaces.
+     * @param last  The last index that was matched by the wrapper.
+     * @param index The last possible index when given a maximum line length.
+     * @return The last index of this line.
+     */
+    private static int getEndOfLine(final String text, final int last, final int index) {
+        if (index > text.length()) {
+            return text.length();
+        }
+        int i = index;
+        while (--i > last) {
+            if (text.charAt(i) == ' ') {
+                return i;
+            }
+        }
+        // Word is longer than the line. Get the whole word.
+        i = index;
+        while (++i < text.length()) {
+            if (text.charAt(i) == ' ') {
+                return i;
+            }
+        }
+        return text.length();
     }
 
     /**
