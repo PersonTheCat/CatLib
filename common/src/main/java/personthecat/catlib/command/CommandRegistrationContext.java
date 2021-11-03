@@ -256,6 +256,18 @@ public class CommandRegistrationContext {
     }
 
     /**
+     * Adds every command declared in the class of the given object. This allows command
+     * classes to use instance methods while also supporting multi-arg constructors.
+     *
+     * @param instances The instance of a class containing annotated command definitions.
+     * @return <code>this</code>, for method chaining.
+     */
+    public CommandRegistrationContext addAllCommands(final Object... instances) {
+        this.commands.addAll(CommandClassEvaluator.getBuilders(this.mod, instances));
+        return this;
+    }
+
+    /**
      * Adds the default set of commands provided by the library as sub commands of the
      * current mod's main command. Note that every command accepting a file argument
      * will be adjusted for the current mod according to its {@link ModDescriptor}.
