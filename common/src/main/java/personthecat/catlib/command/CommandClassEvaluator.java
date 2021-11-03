@@ -6,7 +6,6 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import org.apache.commons.lang3.tuple.Pair;
 import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.LibCommandBuilder.CommanBuilder;
@@ -18,6 +17,7 @@ import personthecat.catlib.command.arguments.RegistryArgument;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.IntRef;
 import personthecat.catlib.data.ModDescriptor;
+import personthecat.catlib.util.LibStringUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -82,8 +82,9 @@ public class CommandClassEvaluator {
     }
 
     private static LibCommandBuilder createBuilder(final ModDescriptor mod, final CommandFunction cmd, final Method m, final ModCommand a) {
-        final List<Pair<Node, ArgumentDescriptor<?>>> entries = createEntries(a.branch());
-        return LibCommandBuilder.named(getCommandName(m, a))
+        final List<String> tokens = LibStringUtils.tokenize(m.getName());
+        final List<ParsedNode> entries = createEntries(tokens, a);
+        return LibCommandBuilder.named(getCommandName(tokens, a))
             .arguments(getArgumentText(entries, a))
             .description(String.join(" ", a.description()))
             .linter(a.linter().length == 0 ? mod.getDefaultLinter() : tryInstantiate(a.linter()[0]))
@@ -93,40 +94,32 @@ public class CommandClassEvaluator {
             .generate(createBranch(entries));
     }
 
-    private static String getCommandName(final Method m, final ModCommand a) {
+    private static String getCommandName(final List<String> tokens, final ModCommand a) {
         if (!a.name().isEmpty()) return a.name();
         if (!a.value().isEmpty()) return a.value();
-        return m.getName();
+        return tokens.get(0);
     }
 
-    private static String getArgumentText(final List<Pair<Node, ArgumentDescriptor<?>>> entries, final ModCommand a) {
+    private static String getArgumentText(final List<ParsedNode> entries, final ModCommand a) {
         if (!a.arguments().isEmpty()) return a.arguments();
         final StringBuilder sb = new StringBuilder();
-        for (final Pair<Node, ArgumentDescriptor<?>> entry : entries) {
-            final Node node = entry.getKey();
-            final ArgumentType<?> type = entry.getValue().getType();
-
+        for (final ParsedNode entry : entries) {
             if (sb.length() > 0) sb.append(' ');
-            if (isLiteral(node)) {
-                sb.append(getArgumentName(node, type));
+            if (entry.arg.isLiteral()) {
+                sb.append(entry.name);
                 continue;
             }
-            if (node.optional()) sb.append('[');
+            if (entry.optional) sb.append('[');
             sb.append('<');
-            sb.append(getArgumentName(node, type));
-            if (node.intoList().useList()) sb.append("...");
+            sb.append(entry.name);
+            if (entry.isList) sb.append("...");
             sb.append('>');
-            if (node.optional()) sb.append(']');
+            if (entry.optional) sb.append(']');
         }
         return sb.toString();
     }
 
-    private static boolean isLiteral(final Node n) {
-        return !n.isBoolean() && n.descriptor().length == 0 && n.doubleRange().length == 0 && n.enumValue().length == 0
-            && n.intRange().length == 0 && n.stringValue().length == 0 && n.type().length == 0;
-    }
-
-    private static CommanBuilder<CommandSourceStack> createBranch(final List<Pair<Node, ArgumentDescriptor<?>>> entries) {
+    private static CommanBuilder<CommandSourceStack> createBranch(final List<ParsedNode> entries) {
 
         return (builder, wrappers) -> {
             final List<ArgumentBuilder<CommandSourceStack, ?>> arguments = new ArrayList<>();
@@ -134,8 +127,8 @@ public class CommandClassEvaluator {
             final IntRef index = new IntRef(0);
 
             while (index.get() < entries.size()) {
-                final Pair<Node, ArgumentDescriptor<?>> entry = entries.get(index.get());
-                if (entry.getKey().optional()) {
+                final ParsedNode entry = entries.get(index.get());
+                if (entry.optional) {
                     lastArg.executes(wrappers.get(""));
                 }
 
@@ -157,12 +150,29 @@ public class CommandClassEvaluator {
         };
     }
 
-    private static List<Pair<Node, ArgumentDescriptor<?>>> createEntries(final Node[] nodes) {
-        final List<Pair<Node, ArgumentDescriptor<?>>> entries = new ArrayList<>();
-        for (final Node node : nodes) {
-            entries.add(Pair.of(node, createDescriptor(node)));
+    private static List<ParsedNode> createEntries(final List<String> tokens, final ModCommand a) {
+        final List<ParsedNode> entries = new ArrayList<>();
+        if (a.name().isEmpty() && a.value().isEmpty()) {
+            addEntriesFromMethod(entries, tokens, a);
+        }
+        for (final Node node : a.branch()) {
+            final ArgumentDescriptor<?> arg = createDescriptor(node);
+            final String name = getArgumentName(node, arg.getType());
+            entries.add(new ParsedNode(node, name, arg));
         }
         return entries;
+    }
+
+    private static void addEntriesFromMethod(final List<ParsedNode> entries, final List<String> tokens, final ModCommand a) {
+        for (int i = 1; i < tokens.size(); i++) {
+            final String token = tokens.get(i).toLowerCase();
+            for (final Node node : a.branch()) {
+                if (node.name().equals(token) || node.value().equals(token)) {
+                    return;
+                }
+            }
+            entries.add(new ParsedNode(token));
+        }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -201,22 +211,19 @@ public class CommandClassEvaluator {
     }
 
     @SuppressWarnings("unchecked")
-    private static ArgumentBuilder<CommandSourceStack, ?> createArgument(
-        final List<Pair<Node, ArgumentDescriptor<?>>> entries, final IntRef index) {
-
-        final Pair<Node, ArgumentDescriptor<?>> entry = entries.get(index.get());
+    private static ArgumentBuilder<CommandSourceStack, ?> createArgument(final List<ParsedNode> entries, final IntRef index) {
+        final ParsedNode entry = entries.get(index.get());
         final ArgumentBuilder<CommandSourceStack, ?> argument;
-        final Node node = entry.getKey();
-        final ArgumentDescriptor<?> descriptor = entry.getValue();
+        final ArgumentDescriptor<?> descriptor = entry.arg;
         final ArgumentType<?> type = descriptor.getType();
 
-        if (node.intoList().useList()) {
+        if (entry.isList) {
             argument = createList(entries, index.get());
             index.add(2);
         } else if (descriptor.isLiteral()) {
-            argument = Commands.literal(getArgumentName(node, type));
+            argument = Commands.literal(entry.name);
         } else {
-            argument = Commands.argument(getArgumentName(node, type), type);
+            argument = Commands.argument(entry.name, type);
         }
         if (descriptor.getSuggestions() != null) {
             ((RequiredArgumentBuilder<CommandSourceStack, ?>) argument)
@@ -231,23 +238,21 @@ public class CommandClassEvaluator {
         return type.getClass().getSimpleName();
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> createList(
-            final List<Pair<Node, ArgumentDescriptor<?>>> entries, final int index) {
-
-        final Pair<Node, ArgumentDescriptor<?>> entry = entries.get(index);
+    private static ArgumentBuilder<CommandSourceStack, ?> createList(final List<ParsedNode> entries, final int index) {
+        final ParsedNode entry = entries.get(index);
         final ListArgumentBuilder listBuilder =
-            ListArgumentBuilder.create(entry.getKey().name(), entry.getValue().getType());
+            ListArgumentBuilder.create(entry.name, entry.arg.getType());
 
         if (entries.size() > index + 1) {
-            final Pair<Node, ArgumentDescriptor<?>> nextEntry = entries.get(index + 1);
-            if (!nextEntry.getValue().isLiteral() || entries.size() <= index + 2) {
-                throw new InvalidListNodeException(entry.getKey().name());
+            final ParsedNode nextEntry = entries.get(index + 1);
+            if (!nextEntry.arg.isLiteral() || entries.size() <= index + 2) {
+                throw new InvalidListNodeException(entry.name);
             }
-            final Pair<Node, ArgumentDescriptor<?>> followingEntry = entries.get(index + 2);
+            final ParsedNode followingEntry = entries.get(index + 2);
             final ArgumentBuilder<CommandSourceStack, ?> termination =
-                Commands.argument(followingEntry.getKey().name(), followingEntry.getValue().getType());
+                Commands.argument(followingEntry.name, followingEntry.arg.getType());
 
-            return listBuilder.terminatedBy(nextEntry.getKey().name(), termination).build();
+            return listBuilder.terminatedBy(nextEntry.name, termination).build();
         } else {
             return listBuilder.build();
         }
@@ -266,6 +271,27 @@ public class CommandClassEvaluator {
     private static CommandFunction createConsumer(final Method m) {
         m.setAccessible(true);
         return wrapper -> m.invoke(null, wrapper);
+    }
+
+    private static class ParsedNode {
+        final ArgumentDescriptor<?> arg;
+        final String name;
+        final boolean optional;
+        final boolean isList;
+
+        ParsedNode(final Node node, final String name, final ArgumentDescriptor<?> arg) {
+            this.arg = arg;
+            this.name = name;
+            this.optional = node.optional();
+            this.isList = node.intoList().useList();
+        }
+
+        ParsedNode(final String name) {
+            this.arg = ArgumentDescriptor.LITERAL;
+            this.name = name;
+            this.optional = false;
+            this.isList = false;
+        }
     }
 
     private static class CommandClassEvaluationException extends IllegalArgumentException {
