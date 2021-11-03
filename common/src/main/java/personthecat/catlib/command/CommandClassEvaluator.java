@@ -38,29 +38,39 @@ public class CommandClassEvaluator {
     public static List<LibCommandBuilder> getBuilders(final ModDescriptor mod, final Class<?>... classes) {
         final List<LibCommandBuilder> builders = new ArrayList<>();
         for (final Class<?> c : classes) {
-            addCommandBuilders(builders, c);
-            addModCommands(mod, builders, c);
+            final MutableObject<Object> instance = new MutableObject<>();
+            addCommandBuilders(builders, instance, c);
+            addModCommands(mod, builders, instance, c);
         }
         return builders;
     }
 
-    private static void addCommandBuilders(final List<LibCommandBuilder> builders, final Class<?> c) {
+    public static List<LibCommandBuilder> getBuilders(final ModDescriptor mod, final Object... instances) {
+        final List<LibCommandBuilder> builders = new ArrayList<>();
+        for (final Object o : instances) {
+            final MutableObject<Object> instance = new MutableObject<>(o);
+            addCommandBuilders(builders, instance, o.getClass());
+            addModCommands(mod, builders, instance, o.getClass());
+        }
+        return builders;
+    }
+
+    private static void addCommandBuilders(List<LibCommandBuilder> builders, MutableObject<Object> instance, Class<?> c) {
         forEachAnnotated(c, CommandBuilder.class, (m, a) -> {
             if (m.getParameterCount() > 0) {
                 throw new CommandClassEvaluationException("{} must have no parameters", m.getName());
             }
-            if (!Modifier.isStatic(m.getModifiers())) {
-                throw new CommandClassEvaluationException("{} must be static", m.getName());
-            }
             if (!LibCommandBuilder.class.isAssignableFrom(m.getReturnType())) {
                 throw new CommandClassEvaluationException("{} must return a LibCommandBuilder", m.getName());
+            }
+            if (instance.getValue() == null && !Modifier.isStatic(m.getModifiers())) {
+                instance.setValue(CachingReflectionHelper.tryInstantiate(c));
             }
             builders.add(getValue(m));
         });
     }
 
-    private static void addModCommands(final ModDescriptor mod, final List<LibCommandBuilder> builders, final Class<?> c) {
-        final MutableObject<Object> instance = new MutableObject<>();
+    private static void addModCommands(ModDescriptor mod, List<LibCommandBuilder> builders, MutableObject<Object> instance, Class<?> c) {
         forEachAnnotated(c, ModCommand.class, (m, a) -> {
             if (m.getParameterCount() != 1) {
                 throw new CommandClassEvaluationException("{} must have exactly 1 parameter", m.getName());
@@ -75,7 +85,7 @@ public class CommandClassEvaluator {
         });
     }
 
-    private static <A extends Annotation> void forEachAnnotated(final Class<?> c, final Class<A> a, final BiConsumer<Method, A> command) {
+    private static <A extends Annotation> void forEachAnnotated(Class<?> c, Class<A> a, BiConsumer<Method, A> command) {
         for (final Method m : c.getDeclaredMethods()) {
             final A annotation = m.getAnnotation(a);
             if (annotation != null) {
@@ -84,7 +94,7 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static LibCommandBuilder createBuilder(final ModDescriptor mod, final CommandFunction cmd, final Method m, final ModCommand a) {
+    private static LibCommandBuilder createBuilder(ModDescriptor mod, CommandFunction cmd, Method m, ModCommand a) {
         final List<String> tokens = LibStringUtils.tokenize(m.getName());
         final List<ParsedNode> entries = createEntries(tokens, a);
         return LibCommandBuilder.named(getCommandName(tokens, a))
@@ -97,13 +107,13 @@ public class CommandClassEvaluator {
             .generate(createBranch(entries));
     }
 
-    private static String getCommandName(final List<String> tokens, final ModCommand a) {
+    private static String getCommandName(List<String> tokens, ModCommand a) {
         if (!a.name().isEmpty()) return a.name();
         if (!a.value().isEmpty()) return a.value();
         return tokens.get(0);
     }
 
-    private static String getArgumentText(final List<ParsedNode> entries, final ModCommand a) {
+    private static String getArgumentText(List<ParsedNode> entries, ModCommand a) {
         if (!a.arguments().isEmpty()) return a.arguments();
         final StringBuilder sb = new StringBuilder();
         for (final ParsedNode entry : entries) {
@@ -122,7 +132,7 @@ public class CommandClassEvaluator {
         return sb.toString();
     }
 
-    private static CommanBuilder<CommandSourceStack> createBranch(final List<ParsedNode> entries) {
+    private static CommanBuilder<CommandSourceStack> createBranch(List<ParsedNode> entries) {
         return (builder, wrappers) -> {
             final List<ArgumentBuilder<CommandSourceStack, ?>> arguments = new ArrayList<>();
             ArgumentBuilder<CommandSourceStack, ?> lastArg = builder;
@@ -152,7 +162,7 @@ public class CommandClassEvaluator {
         };
     }
 
-    private static List<ParsedNode> createEntries(final List<String> tokens, final ModCommand a) {
+    private static List<ParsedNode> createEntries(List<String> tokens, ModCommand a) {
         final List<ParsedNode> entries = new ArrayList<>();
         if (a.name().isEmpty() && a.value().isEmpty()) {
             addEntriesFromMethod(entries, tokens, a);
@@ -165,7 +175,7 @@ public class CommandClassEvaluator {
         return entries;
     }
 
-    private static void addEntriesFromMethod(final List<ParsedNode> entries, final List<String> tokens, final ModCommand a) {
+    private static void addEntriesFromMethod(List<ParsedNode> entries, List<String> tokens, ModCommand a) {
         for (int i = 1; i < tokens.size(); i++) {
             final String token = tokens.get(i).toLowerCase();
             for (final Node node : a.branch()) {
@@ -178,7 +188,7 @@ public class CommandClassEvaluator {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static ArgumentDescriptor<?> createDescriptor(final Node node) {
+    private static ArgumentDescriptor<?> createDescriptor(Node node) {
         if (node.type().length > 0) {
             return new ArgumentDescriptor<>(tryInstantiate((Class<ArgumentType<?>>)node.type()[0]));
         } else if (node.descriptor().length > 0) {
@@ -202,7 +212,7 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static ArgumentType<?> createStringArgumentType(final Node node) {
+    private static ArgumentType<?> createStringArgumentType(Node node) {
         final Node.StringValue value = node.stringValue()[0];
         if (value.value() == Node.StringValue.Type.GREEDY) {
             return StringArgumentType.greedyString();
@@ -213,7 +223,7 @@ public class CommandClassEvaluator {
     }
 
     @SuppressWarnings("unchecked")
-    private static ArgumentBuilder<CommandSourceStack, ?> createArgument(final List<ParsedNode> entries, final IntRef index) {
+    private static ArgumentBuilder<CommandSourceStack, ?> createArgument(List<ParsedNode> entries, IntRef index) {
         final ParsedNode entry = entries.get(index.get());
         final ArgumentBuilder<CommandSourceStack, ?> argument;
         final ArgumentDescriptor<?> descriptor = entry.arg;
@@ -234,13 +244,13 @@ public class CommandClassEvaluator {
         return argument;
     }
 
-    private static String getArgumentName(final Node node, final ArgumentType<?> type) {
+    private static String getArgumentName(Node node, ArgumentType<?> type) {
         if (!node.name().isEmpty()) return node.name();
         if (!node.value().isEmpty()) return node.value();
         return type.getClass().getSimpleName();
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> createList(final List<ParsedNode> entries, final int index) {
+    private static ArgumentBuilder<CommandSourceStack, ?> createList(List<ParsedNode> entries, int index) {
         final ParsedNode entry = entries.get(index);
         final ListArgumentBuilder listBuilder =
             ListArgumentBuilder.create(entry.name, entry.arg.getType());
@@ -261,7 +271,7 @@ public class CommandClassEvaluator {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T getValue(final Method m) {
+    private static <T> T getValue(Method m) {
         m.setAccessible(true);
         try {
             return (T) m.invoke(null);
@@ -270,7 +280,7 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static CommandFunction createConsumer(final Object instance, final Method m) {
+    private static CommandFunction createConsumer(Object instance, Method m) {
         m.setAccessible(true);
         return wrapper -> m.invoke(instance, wrapper);
     }
@@ -281,14 +291,14 @@ public class CommandClassEvaluator {
         final boolean optional;
         final boolean isList;
 
-        ParsedNode(final Node node, final String name, final ArgumentDescriptor<?> arg) {
+        ParsedNode(Node node, String name, ArgumentDescriptor<?> arg) {
             this.arg = arg;
             this.name = name;
             this.optional = node.optional();
             this.isList = node.intoList().useList();
         }
 
-        ParsedNode(final String name) {
+        ParsedNode(String name) {
             this.arg = ArgumentDescriptor.LITERAL;
             this.name = name;
             this.optional = false;
@@ -297,13 +307,13 @@ public class CommandClassEvaluator {
     }
 
     private static class CommandClassEvaluationException extends IllegalArgumentException {
-        CommandClassEvaluationException(final String msg, final Object... args) {
+        CommandClassEvaluationException(String msg, Object... args) {
             super(f(msg, args));
         }
     }
 
     private static class InvalidListNodeException extends CommandClassEvaluationException {
-        InvalidListNodeException(final String name) {
+        InvalidListNodeException(String name) {
             super("List node {} must be the last node or followed by a literal then any other argument", name);
         }
     }

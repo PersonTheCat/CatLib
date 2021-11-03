@@ -44,15 +44,11 @@ public class CatLib {
             FeatureModificationHook.onRegistryAccess(access);
         });
 
-//        if (LibConfig.enableGlobalLibCommands()) {
-//            CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR)
-//                .addAllCommands(DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true))
-//                .registerAll();
-//        }
-
-        CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR)
-            .addAllCommands(Commands.class)
-            .registerAll();
+        if (LibConfig.enableGlobalLibCommands()) {
+            CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR)
+                .addAllCommands(DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true))
+                .registerAll();
+        }
 
         MinecraftForge.EVENT_BUS.addListener((WorldEvent.Load e) ->
             CommonWorldEvent.LOAD.invoker().accept(e.getWorld()));
@@ -66,26 +62,5 @@ public class CatLib {
 
     private void initServer(final FMLServerStartingEvent event) {
         LibCommandRegistrar.copyInto(event.getServer().getCommands());
-    }
-
-    private static class Commands {
-
-        @ModCommand
-        private static void oneTwoThree(final CommandContextWrapper ctx) {}
-
-        @ModCommand(name = "four", branch = @Node("six"))
-        private static void fourFiveSix(final CommandContextWrapper ctx) {}
-
-        @ModCommand(branch = @Node("nine"))
-        private static void sevenEightNine(final CommandContextWrapper ctx) {}
-
-        @ModCommand
-        private void deeEeeEff(final CommandContextWrapper ctx) {}
-
-        @ModCommand(branch = @Node(name = "twelve", isBoolean = true))
-        private static void tenElevenTwelve(final CommandContextWrapper ctx) {}
-
-        @ModCommand(branch = @Node("dee"))
-        private static void ayBeeCee(final CommandContextWrapper ctx) {}
     }
 }
