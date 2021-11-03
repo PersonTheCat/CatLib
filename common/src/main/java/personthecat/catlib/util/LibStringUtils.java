@@ -105,6 +105,18 @@ public class LibStringUtils {
     }
 
     /**
+     * Converts a <b>single</b> word to capital case.
+     *
+     * @param word The single word of text in any case.
+     * @return The same word in capital case.
+     */
+    public static String capitalize(final String word) {
+        if (word.isEmpty()) return "";
+        if (word.length() == 1) return String.valueOf(Character.toUpperCase(word.charAt(0)));
+        return Character.toUpperCase(word.charAt(0)) + word.substring(1);
+    }
+
+    /**
      * Separates a continuous string of alphanumeric characters into an array
      * of words.
      *
