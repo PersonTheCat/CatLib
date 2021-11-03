@@ -23,7 +23,7 @@ public class CachingReflectionHelper {
     }
 
     private static <T> T constructWithoutArgs(final Class<T> c) {
-        for (final Constructor<?> constructor : c.getConstructors()) {
+        for (final Constructor<?> constructor : c.getDeclaredConstructors()) {
             if (constructor.getParameterCount() == 0) {
                 constructor.setAccessible(true);
                 return tryInvoke(c, constructor);

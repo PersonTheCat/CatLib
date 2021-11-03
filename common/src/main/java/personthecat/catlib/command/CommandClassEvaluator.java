@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import org.apache.commons.lang3.mutable.MutableObject;
 import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.LibCommandBuilder.CommanBuilder;
@@ -18,6 +19,7 @@ import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.IntRef;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.LibStringUtils;
+import personthecat.catlib.util.unsafe.CachingReflectionHelper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -58,6 +60,7 @@ public class CommandClassEvaluator {
     }
 
     private static void addModCommands(final ModDescriptor mod, final List<LibCommandBuilder> builders, final Class<?> c) {
+        final MutableObject<Object> instance = new MutableObject<>();
         forEachAnnotated(c, ModCommand.class, (m, a) -> {
             if (m.getParameterCount() != 1) {
                 throw new CommandClassEvaluationException("{} must have exactly 1 parameter", m.getName());
@@ -65,10 +68,10 @@ public class CommandClassEvaluator {
             if (!CommandContextWrapper.class.equals(m.getParameterTypes()[0])) {
                 throw new CommandClassEvaluationException("{} must accept a CommandContextWrapper", m.getName());
             }
-            if (!Modifier.isStatic(m.getModifiers())) {
-                throw new CommandClassEvaluationException("{} must be static", m.getName());
+            if (instance.getValue() == null && !Modifier.isStatic(m.getModifiers())) {
+                instance.setValue(CachingReflectionHelper.tryInstantiate(c));
             }
-            builders.add(createBuilder(mod, createConsumer(m), m, a));
+            builders.add(createBuilder(mod, createConsumer(instance.getValue(), m), m, a));
         });
     }
 
@@ -120,7 +123,6 @@ public class CommandClassEvaluator {
     }
 
     private static CommanBuilder<CommandSourceStack> createBranch(final List<ParsedNode> entries) {
-
         return (builder, wrappers) -> {
             final List<ArgumentBuilder<CommandSourceStack, ?>> arguments = new ArrayList<>();
             ArgumentBuilder<CommandSourceStack, ?> lastArg = builder;
@@ -268,9 +270,9 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static CommandFunction createConsumer(final Method m) {
+    private static CommandFunction createConsumer(final Object instance, final Method m) {
         m.setAccessible(true);
-        return wrapper -> m.invoke(null, wrapper);
+        return wrapper -> m.invoke(instance, wrapper);
     }
 
     private static class ParsedNode {
