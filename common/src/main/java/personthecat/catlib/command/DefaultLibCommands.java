@@ -119,13 +119,13 @@ public class DefaultLibCommands {
             .append("Manually update a JSON value. Omit the value or")
             .append("path to display the current contents.")
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, util) -> builder
+            .generate((builder, utl) -> builder
                 .then(jsonFileArg(FILE_ARGUMENT, mod)
-                    .executes(util.wrap(DefaultLibCommands::display))
+                    .executes(utl.wrap(DefaultLibCommands::display))
                 .then(jsonPathArg(PATH_ARGUMENT)
-                    .executes(util.wrap(DefaultLibCommands::display))
+                    .executes(utl.wrap(DefaultLibCommands::display))
                 .then(greedyArg(VALUE_ARGUMENT, CURRENT_JSON)
-                    .executes(util.wrap(DefaultLibCommands::update)))))
+                    .executes(utl.wrap(DefaultLibCommands::update)))))
             );
     }
 
