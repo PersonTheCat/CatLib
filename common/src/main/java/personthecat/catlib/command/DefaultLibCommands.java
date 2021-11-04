@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static net.minecraft.commands.Commands.literal;
 import static personthecat.catlib.command.CommandSuggestions.CURRENT_JSON;
 import static personthecat.catlib.command.CommandUtils.arg;
 import static personthecat.catlib.command.CommandUtils.fileArg;
@@ -80,23 +81,6 @@ public class DefaultLibCommands {
     /** The number of backups before a warning is displayed. */
     private static final int BACKUP_COUNT_WARNING = 10;
 
-    private static final String DISPLAY_ANY = "#display";
-    private static final String UPDATE_ANY = "#update";
-    private static final String BACKUP_ANY = "#backup";
-    private static final String COPY_ANY = "#copy";
-    private static final String MOVE_ANY = "#move";
-    private static final String DELETE_ANY = "#delete";
-    private static final String CLEAN_ANY = "#clean";
-    private static final String RENAME_ANY = "#rename";
-    private static final String OPEN_ANY = "#open";
-    private static final String COMBINE_ANY = "#combine";
-    private static final String CH_ANY = "#ch";
-    private static final String CH_MAX = "#ch_max";
-    private static final String CW_ANY = "#cw";
-    private static final String CW_MAX = "#cw_max";
-    private static final String TO_JSON_ANY = "#to_json";
-    private static final String TO_HJSON_ANY = "#to_hjson";
-
     public static List<LibCommandBuilder> createAll(final ModDescriptor mod, final boolean global) {
         return Lists.newArrayList(
             createDisplay(mod, global),
@@ -120,13 +104,12 @@ public class DefaultLibCommands {
         return LibCommandBuilder.named("display")
             .arguments("<file> [<path>]")
             .append("Outputs the contents of any JSON file to the chat.")
-            .wrap(DISPLAY_ANY, DefaultLibCommands::executeDisplay)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, utl) -> builder
                 .then(jsonFileArg(FILE_ARGUMENT, mod)
-                    .executes(wrappers.get(DISPLAY_ANY))
+                    .executes(utl.wrap(DefaultLibCommands::display))
                 .then(jsonPathArg(PATH_ARGUMENT)
-                    .executes(wrappers.get(DISPLAY_ANY))))
+                    .executes(utl.wrap(DefaultLibCommands::display))))
             );
     }
 
@@ -135,16 +118,14 @@ public class DefaultLibCommands {
             .arguments("<file> [<path>] [<value>]")
             .append("Manually update a JSON value. Omit the value or")
             .append("path to display the current contents.")
-            .wrap(DISPLAY_ANY, DefaultLibCommands::executeDisplay)
-            .wrap(UPDATE_ANY, DefaultLibCommands::executeUpdate)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, util) -> builder
                 .then(jsonFileArg(FILE_ARGUMENT, mod)
-                    .executes(wrappers.get(DISPLAY_ANY))
+                    .executes(util.wrap(DefaultLibCommands::display))
                 .then(jsonPathArg(PATH_ARGUMENT)
-                    .executes(wrappers.get(DISPLAY_ANY))
+                    .executes(util.wrap(DefaultLibCommands::display))
                 .then(greedyArg(VALUE_ARGUMENT, CURRENT_JSON)
-                    .executes(wrappers.get(UPDATE_ANY)))))
+                    .executes(util.wrap(DefaultLibCommands::update)))))
             );
     }
 
@@ -152,11 +133,10 @@ public class DefaultLibCommands {
         return LibCommandBuilder.named("backup")
             .arguments("<file>")
             .append("Copies a file to the current mod's backup folder.")
-            .wrap(BACKUP_ANY, DefaultLibCommands::executeBackup)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
-                    .executes(wrappers.get(BACKUP_ANY)))
+                    .executes(utl.wrap(DefaultLibCommands::backup)))
             );
     }
 
@@ -165,12 +145,11 @@ public class DefaultLibCommands {
             .arguments("<file> <to>")
             .append("Copies a file from one location to another.")
             .append("Accepts either a directory or a file as <to>.")
-            .wrap(COPY_ANY, DefaultLibCommands::executeCopy)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                 .then(fileArg(DIRECTORY_ARGUMENT, mod)
-                    .executes(wrappers.get(COPY_ANY))))
+                    .executes(utl.wrap(DefaultLibCommands::copy))))
             );
     }
 
@@ -179,12 +158,11 @@ public class DefaultLibCommands {
             .arguments("<file> <to>")
             .append("Moves a file from one location to another.")
             .append("Accepts either a directory or a file as <to>.")
-            .wrap(MOVE_ANY, DefaultLibCommands::executeMove)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                 .then(fileArg(DIRECTORY_ARGUMENT, mod)
-                    .executes(wrappers.get(MOVE_ANY))))
+                    .executes(utl.wrap( DefaultLibCommands::move))))
             );
     }
 
@@ -192,11 +170,10 @@ public class DefaultLibCommands {
         return LibCommandBuilder.named("delete")
             .arguments("<file>")
             .append("Moves a file to the current mod's backup folder.")
-            .wrap(DELETE_ANY, DefaultLibCommands::executeDelete)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
-                    .executes(wrappers.get(DELETE_ANY)))
+                    .executes(utl.wrap(DefaultLibCommands::delete)))
             );
     }
 
@@ -206,11 +183,10 @@ public class DefaultLibCommands {
             .append("Moves all files in the given directory to the mod's")
             .append("backup folder. Else, deletes the contents of the")
             .append("mod's backup folder.")
-            .wrap(CLEAN_ANY, DefaultLibCommands::executeClean)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder.executes(wrappers.get(CLEAN_ANY))
+            .generate((builder, utl) -> builder.executes(utl.wrap(DefaultLibCommands::clean))
                 .then(fileArg(DIRECTORY_ARGUMENT, mod)
-                    .executes(wrappers.get(CLEAN_ANY)))
+                    .executes(utl.wrap(DefaultLibCommands::clean)))
             );
     }
 
@@ -218,12 +194,11 @@ public class DefaultLibCommands {
         return LibCommandBuilder.named("rename")
             .arguments("<file> <to>")
             .append("Renames a file without needing a path or extension.")
-            .wrap(RENAME_ANY, DefaultLibCommands::executeRename)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                 .then(Commands.argument(NAME_ARGUMENT, StringArgumentType.word())
-                    .executes(wrappers.get(RENAME_ANY))))
+                    .executes(utl.wrap(DefaultLibCommands::rename))))
             );
     }
 
@@ -231,11 +206,10 @@ public class DefaultLibCommands {
         return LibCommandBuilder.named("open")
             .arguments("[<name>]")
             .append("Opens a file or directory in your default editor.")
-            .wrap(OPEN_ANY, DefaultLibCommands::executeOpen)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
-                    .executes(wrappers.get(OPEN_ANY)))
+                    .executes(utl.wrap(DefaultLibCommands::open)))
             );
     }
 
@@ -243,13 +217,12 @@ public class DefaultLibCommands {
         return LibCommandBuilder.named("combine")
             .arguments("<file> <path> <to>")
             .append("Copies the given path from the first preset into the second preset.")
-            .wrap(COMBINE_ANY, DefaultLibCommands::executeCombine)
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, utl) -> builder
                 .then(jsonFileArg(FILE_ARGUMENT, mod)
                 .then(jsonPathArg(PATH_ARGUMENT)
                 .then(jsonFileArg(TO_ARGUMENT, mod)
-                    .executes(wrappers.get(COMBINE_ANY)))))
+                    .executes(utl.wrap(DefaultLibCommands::combine)))))
             );
     }
 
@@ -258,13 +231,11 @@ public class DefaultLibCommands {
             .arguments("[<scale|max>]")
             .append("Allows you to expand your chat height beyond the")
             .append("default limit of 1.0.")
-            .wrap(CH_ANY, wrapper -> executeCh(wrapper, false))
-            .wrap(CH_MAX, wrapper -> executeCh(wrapper, true))
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .side(CommandSide.CLIENT)
-            .generate((builder, wrappers) -> builder.executes(wrappers.get(CH_ANY))
-                .then(Commands.literal(MAX_ARGUMENT).executes(wrappers.get(CH_MAX)))
-                .then(arg(SCALE_ARGUMENT, 0.25, 5.0).executes(wrappers.get(CH_ANY)))
+            .generate((builder, utl) -> builder.executes(utl.wrap(ctx -> ch(ctx, false)))
+                .then(literal(MAX_ARGUMENT).executes(utl.wrap(ctx -> ch(ctx, true))))
+                .then(arg(SCALE_ARGUMENT, 0.25, 5.0).executes(utl.wrap(ctx -> ch(ctx, false))))
             );
     }
 
@@ -273,13 +244,11 @@ public class DefaultLibCommands {
             .arguments("[<scale|max>]")
             .append("Allows you to expand your chat width beyond the")
             .append("default limit of 1.0.")
-            .wrap(CW_ANY, wrapper -> executeCw(wrapper, false))
-            .wrap(CW_MAX, wrapper -> executeCw(wrapper, true))
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .side(CommandSide.CLIENT)
-            .generate((builder, wrappers) -> builder.executes(wrappers.get(CW_ANY))
-                .then(Commands.literal(MAX_ARGUMENT).executes(wrappers.get(CW_MAX)))
-                .then(arg(SCALE_ARGUMENT, 0.25, 3.0).executes(wrappers.get(CW_ANY)))
+            .generate((builder, utl) -> builder.executes(utl.wrap(ctx -> cw(ctx, false)))
+                .then(literal(MAX_ARGUMENT).executes(utl.wrap(ctx -> cw(ctx, true))))
+                .then(arg(SCALE_ARGUMENT, 0.25, 3.0).executes(utl.wrap(ctx -> cw(ctx, false))))
             );
     }
 
@@ -287,25 +256,23 @@ public class DefaultLibCommands {
         return LibCommandBuilder.named("tojson")
             .arguments("<file>")
             .append("Converts an Hjson file to a regular JSON file.")
-            .wrap(TO_JSON_ANY, wrapper -> convert(wrapper, true))
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
-                    .executes(wrappers.get(TO_JSON_ANY))));
+                    .executes(utl.wrap(ctx -> convert(ctx, true)))));
     }
 
     public static LibCommandBuilder createToHjson(final ModDescriptor mod, final boolean global) {
         return LibCommandBuilder.named("tohjson")
             .arguments("<file>")
             .append("Converts an Hjson file to a regular JSON file.")
-            .wrap(TO_HJSON_ANY, wrapper -> convert(wrapper, false))
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, wrappers) -> builder
+            .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
-                    .executes(wrappers.get(TO_HJSON_ANY))));
+                    .executes(utl.wrap(ctx -> convert(ctx, false)))));
     }
 
-    private static void executeDisplay(final CommandContextWrapper wrapper) {
+    private static void display(final CommandContextWrapper wrapper) {
         final HjsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
         final JsonValue json = wrapper.getOptional(PATH_ARGUMENT, PathArgument.Result.class)
             .flatMap(result -> HjsonUtils.getValueFromPath(file.json.get(), result))
@@ -318,7 +285,7 @@ public class DefaultLibCommands {
             .sendMessage();
     }
 
-    private static void executeUpdate(final CommandContextWrapper wrapper) {
+    private static void update(final CommandContextWrapper wrapper) {
         final HjsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
         final PathArgument.Result path = wrapper.getJsonPath(PATH_ARGUMENT);
 
@@ -363,26 +330,26 @@ public class DefaultLibCommands {
             .replace("\\\"", "\"");
     }
 
-    private static void executeBackup(final CommandContextWrapper wrapper) {
+    private static void backup(final CommandContextWrapper wrapper) {
         if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), wrapper.getFile(FILE_ARGUMENT), true)) {
             wrapper.sendError("{} backups detected. Consider cleaning these out.", BACKUP_COUNT_WARNING);
         }
         wrapper.sendMessage("Backup created successfully.");
     }
 
-    private static void executeCopy(final CommandContextWrapper wrapper) {
+    private static void copy(final CommandContextWrapper wrapper) {
         FileIO.copy(wrapper.getFile(FILE_ARGUMENT), wrapper.getFile(DIRECTORY_ARGUMENT))
             .expect("The file could not be copied.");
         wrapper.sendMessage("File copied successfully.");
     }
 
-    private static void executeMove(final CommandContextWrapper wrapper) {
+    private static void move(final CommandContextWrapper wrapper) {
         FileIO.move(wrapper.getFile(FILE_ARGUMENT), wrapper.getFile(DIRECTORY_ARGUMENT))
             .expect("The file could not be moved.");
         wrapper.sendMessage("File moved successfully.");
     }
 
-    private static void executeDelete(final CommandContextWrapper wrapper) {
+    private static void delete(final CommandContextWrapper wrapper) {
         final File file = wrapper.getFile(FILE_ARGUMENT);
         if (PathUtils.isIn(wrapper.getMod().getBackupFolder(), file)) {
             FileIO.delete(file);
@@ -393,7 +360,7 @@ public class DefaultLibCommands {
         wrapper.sendMessage("File moved to backups.");
     }
 
-    private static void executeClean(final CommandContextWrapper wrapper) {
+    private static void clean(final CommandContextWrapper wrapper) {
         final Optional<File> directory = wrapper.getOptional(DIRECTORY_ARGUMENT, File.class)
             .filter(dir -> !dir.equals(wrapper.getBackupsFolder()));
         if (directory.isPresent()) {
@@ -432,17 +399,17 @@ public class DefaultLibCommands {
         return deleted;
     }
 
-    private static void executeRename(final CommandContextWrapper wrapper) {
+    private static void rename(final CommandContextWrapper wrapper) {
         FileIO.rename(wrapper.getFile(FILE_ARGUMENT), wrapper.getString(NAME_ARGUMENT))
             .expect("Error renaming file.");
         wrapper.sendMessage("File renamed successfully.");
     }
 
-    private static void executeOpen(final CommandContextWrapper wrapper) {
+    private static void open(final CommandContextWrapper wrapper) {
         Util.getPlatform().openFile(wrapper.getFile(FILE_ARGUMENT));
     }
 
-    private static void executeCombine(final CommandContextWrapper wrapper) {
+    private static void combine(final CommandContextWrapper wrapper) {
         final HjsonArgument.Result from = wrapper.getJsonFile(FILE_ARGUMENT);
         final PathArgument.Result path = wrapper.getJsonPath(PATH_ARGUMENT);
         final HjsonArgument.Result to = wrapper.getJsonFile(TO_ARGUMENT);
@@ -454,7 +421,7 @@ public class DefaultLibCommands {
         wrapper.sendMessage("Finished combining file. The original was moved to the backups directory.");
     }
 
-    private static void executeCh(final CommandContextWrapper wrapper, final boolean max) {
+    private static void ch(final CommandContextWrapper wrapper, final boolean max) {
         final Minecraft mc = Minecraft.getInstance();
         final Options cfg = mc.options;
         final Window window = Objects.requireNonNull(mc.getWindow(), "Not running client side");
@@ -481,7 +448,7 @@ public class DefaultLibCommands {
         wrapper.sendMessage("Updated chat height: {}", cfg.chatHeightFocused);
     }
 
-    private static void executeCw(final CommandContextWrapper wrapper, final boolean max) {
+    private static void cw(final CommandContextWrapper wrapper, final boolean max) {
         final Minecraft mc = Minecraft.getInstance();
         final Options cfg = mc.options;
         final Window window = Objects.requireNonNull(mc.getWindow(), "Not running client side");

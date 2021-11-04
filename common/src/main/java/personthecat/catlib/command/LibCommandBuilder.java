@@ -8,7 +8,6 @@ import lombok.extern.log4j.Log4j2;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.SyntaxLinter;
@@ -60,7 +59,7 @@ import java.util.Objects;
  *         .generate((builder, wrappers) -> builder.execute(wrappers.get("")));
  * </pre><p>
  *   Generated builder objects can then be passed into an active {@link CommandRegistrationContext}
- *   or annotated with {@link CommandBuilder} and passed in through the parent class.
+ *   or annotated with {@link personthecat.catlib.command.annotations.CommandBuilder} and passed in through the parent class.
  * </p>
  */
 @Log4j2
@@ -234,15 +233,15 @@ public final class LibCommandBuilder {
          *                  and wrapped command functions.
          * @return A fully-constructed command builder.
          */
-        public LibCommandBuilder generate(final CommanBuilder<CommandSourceStack> generator) {
+        public LibCommandBuilder generate(final CommandBuilder<CommandSourceStack> generator) {
             if (this.mod == null) this.mod = CommandRegistrationContext.getActiveModOrThrow();
             if (this.linter == null) this.linter = this.mod.getDefaultLinter();
 
             final LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal(this.name);
-            final CommandMap commandMap = new CommandMap(this.wrappers, this.linter, this.mod);
+            final BuilderUtil util = new BuilderUtil(this.wrappers, this.linter, this.mod);
             final HelpCommandInfo helpInfo = new HelpCommandInfo(this.name, this.arguments, this.description, this.type);
 
-            final LiteralArgumentBuilder<CommandSourceStack> cmd = generator.apply(builder, commandMap);
+            final LiteralArgumentBuilder<CommandSourceStack> cmd = generator.apply(builder, util);
             return new LibCommandBuilder(cmd, helpInfo, this.type, this.side);
         }
     }
@@ -250,7 +249,7 @@ public final class LibCommandBuilder {
     private static class CommandMapBuilder extends HashMap<String, CommandFunction> {}
 
     @AllArgsConstructor
-    public static class CommandMap {
+    public static class BuilderUtil {
 
         private final Map<String, CommandFunction> map;
         private final SyntaxLinter linter;
@@ -260,6 +259,10 @@ public final class LibCommandBuilder {
             final CommandFunction fn = this.map.get(key);
             Objects.requireNonNull(fn, "No command function for key: " + key);
 
+            return ctx -> this.wrapCommand(new CommandContextWrapper(ctx, this.linter, this.mod), fn);
+        }
+
+        public Command<CommandSourceStack> wrap(final CommandFunction fn) {
             return ctx -> this.wrapCommand(new CommandContextWrapper(ctx, this.linter, this.mod), fn);
         }
 
@@ -287,7 +290,7 @@ public final class LibCommandBuilder {
     }
 
     @FunctionalInterface
-    public interface CommanBuilder<S> {
-        LiteralArgumentBuilder<S> apply(final LiteralArgumentBuilder<S> builder, final CommandMap wrappers);
+    public interface CommandBuilder<S> {
+        LiteralArgumentBuilder<S> apply(final LiteralArgumentBuilder<S> builder, final BuilderUtil wrappers);
     }
 }

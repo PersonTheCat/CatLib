@@ -9,8 +9,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.catlib.command.*;
-import personthecat.catlib.command.annotations.ModCommand;
-import personthecat.catlib.command.annotations.Node;
 import personthecat.catlib.command.arguments.*;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.event.player.CommonPlayerEvent;

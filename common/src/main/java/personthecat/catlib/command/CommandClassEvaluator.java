@@ -7,9 +7,8 @@ import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import org.apache.commons.lang3.mutable.MutableObject;
-import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.annotations.ModCommand;
-import personthecat.catlib.command.LibCommandBuilder.CommanBuilder;
+import personthecat.catlib.command.LibCommandBuilder.CommandBuilder;
 import personthecat.catlib.command.annotations.Node;
 import personthecat.catlib.command.arguments.ArgumentDescriptor;
 import personthecat.catlib.command.arguments.EnumArgument;
@@ -56,7 +55,7 @@ public class CommandClassEvaluator {
     }
 
     private static void addCommandBuilders(List<LibCommandBuilder> builders, MutableObject<Object> instance, Class<?> c) {
-        forEachAnnotated(c, CommandBuilder.class, (m, a) -> {
+        forEachAnnotated(c, personthecat.catlib.command.annotations.CommandBuilder.class, (m, a) -> {
             if (m.getParameterCount() > 0) {
                 throw new CommandClassEvaluationException("{} must have no parameters", m.getName());
             }
@@ -132,7 +131,7 @@ public class CommandClassEvaluator {
         return sb.toString();
     }
 
-    private static CommanBuilder<CommandSourceStack> createBranch(List<ParsedNode> entries) {
+    private static CommandBuilder<CommandSourceStack> createBranch(List<ParsedNode> entries) {
         return (builder, wrappers) -> {
             final List<ArgumentBuilder<CommandSourceStack, ?>> arguments = new ArrayList<>();
             ArgumentBuilder<CommandSourceStack, ?> lastArg = builder;
