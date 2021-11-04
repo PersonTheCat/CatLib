@@ -7,13 +7,14 @@ import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import org.apache.commons.lang3.mutable.MutableObject;
+import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.annotations.ModCommand;
-import personthecat.catlib.command.LibCommandBuilder.CommandBuilder;
 import personthecat.catlib.command.annotations.Node;
 import personthecat.catlib.command.arguments.ArgumentDescriptor;
 import personthecat.catlib.command.arguments.EnumArgument;
 import personthecat.catlib.command.arguments.ListArgumentBuilder;
 import personthecat.catlib.command.arguments.RegistryArgument;
+import personthecat.catlib.command.LibCommandBuilder.CommandGenerator;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.IntRef;
 import personthecat.catlib.data.ModDescriptor;
@@ -55,7 +56,7 @@ public class CommandClassEvaluator {
     }
 
     private static void addCommandBuilders(List<LibCommandBuilder> builders, MutableObject<Object> instance, Class<?> c) {
-        forEachAnnotated(c, personthecat.catlib.command.annotations.CommandBuilder.class, (m, a) -> {
+        forEachAnnotated(c, CommandBuilder.class, (m, a) -> {
             if (m.getParameterCount() > 0) {
                 throw new CommandClassEvaluationException("{} must have no parameters", m.getName());
             }
@@ -65,7 +66,7 @@ public class CommandClassEvaluator {
             if (instance.getValue() == null && !Modifier.isStatic(m.getModifiers())) {
                 instance.setValue(CachingReflectionHelper.tryInstantiate(c));
             }
-            builders.add(getValue(m));
+            builders.add(getValue(m, instance.getValue()));
         });
     }
 
@@ -80,7 +81,7 @@ public class CommandClassEvaluator {
             if (instance.getValue() == null && !Modifier.isStatic(m.getModifiers())) {
                 instance.setValue(CachingReflectionHelper.tryInstantiate(c));
             }
-            builders.add(createBuilder(mod, createConsumer(instance.getValue(), m), m, a));
+            builders.add(createBuilder(mod, instance.getValue(), m, a));
         });
     }
 
@@ -93,17 +94,17 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static LibCommandBuilder createBuilder(ModDescriptor mod, CommandFunction cmd, Method m, ModCommand a) {
+    private static LibCommandBuilder createBuilder(ModDescriptor mod, Object instance, Method m, ModCommand a) {
         final List<String> tokens = LibStringUtils.tokenize(m.getName());
+        final CommandFunction cmd = createConsumer(instance, m);
         final List<ParsedNode> entries = createEntries(tokens, a);
         return LibCommandBuilder.named(getCommandName(tokens, a))
             .arguments(getArgumentText(entries, a))
             .description(String.join(" ", a.description()))
             .linter(a.linter().length == 0 ? mod.getDefaultLinter() : tryInstantiate(a.linter()[0]))
-            .wrap("", cmd)
             .type(a.type())
             .side(a.side())
-            .generate(createBranch(entries));
+            .generate(createBranch(entries, cmd));
     }
 
     private static String getCommandName(List<String> tokens, ModCommand a) {
@@ -131,8 +132,8 @@ public class CommandClassEvaluator {
         return sb.toString();
     }
 
-    private static CommandBuilder<CommandSourceStack> createBranch(List<ParsedNode> entries) {
-        return (builder, wrappers) -> {
+    private static CommandGenerator<CommandSourceStack> createBranch(List<ParsedNode> entries, CommandFunction cmd) {
+        return (builder, utl) -> {
             final List<ArgumentBuilder<CommandSourceStack, ?>> arguments = new ArrayList<>();
             ArgumentBuilder<CommandSourceStack, ?> lastArg = builder;
             final IntRef index = new IntRef(0);
@@ -140,15 +141,14 @@ public class CommandClassEvaluator {
             while (index.get() < entries.size()) {
                 final ParsedNode entry = entries.get(index.get());
                 if (entry.optional) {
-                    lastArg.executes(wrappers.get(""));
+                    lastArg.executes(utl.wrap(cmd));
                 }
-
                 final ArgumentBuilder<CommandSourceStack, ?> argument = createArgument(entries, index);
                 arguments.add(argument);
                 lastArg = argument;
                 index.increment();
             }
-            lastArg.executes(wrappers.get(""));
+            lastArg.executes(utl.wrap(cmd));
 
             if (!arguments.isEmpty()) {
                 ArgumentBuilder<CommandSourceStack, ?> nextArg = arguments.get(arguments.size() - 1);
@@ -270,10 +270,10 @@ public class CommandClassEvaluator {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T getValue(Method m) {
+    private static <T> T getValue(Method m, Object instance) {
         m.setAccessible(true);
         try {
-            return (T) m.invoke(null);
+            return (T) m.invoke(instance);
         } catch (final IllegalAccessException | InvocationTargetException ignored) {
             throw new CommandClassEvaluationException("Could not invoke: {}", m.getName());
         }

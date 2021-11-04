@@ -233,7 +233,7 @@ public final class LibCommandBuilder {
          *                  and wrapped command functions.
          * @return A fully-constructed command builder.
          */
-        public LibCommandBuilder generate(final CommandBuilder<CommandSourceStack> generator) {
+        public LibCommandBuilder generate(final CommandGenerator<CommandSourceStack> generator) {
             if (this.mod == null) this.mod = CommandRegistrationContext.getActiveModOrThrow();
             if (this.linter == null) this.linter = this.mod.getDefaultLinter();
 
@@ -290,7 +290,7 @@ public final class LibCommandBuilder {
     }
 
     @FunctionalInterface
-    public interface CommandBuilder<S> {
+    public interface CommandGenerator<S> {
         LiteralArgumentBuilder<S> apply(final LiteralArgumentBuilder<S> builder, final BuilderUtil wrappers);
     }
 }
