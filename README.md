@@ -1,3 +1,3 @@
 # CatLib
-A collection of utilities for Hjson, noise generation, IO, and some new data types 
+Utilities for serialization, commands, noise generation, IO, and some new data types
 for Forge and Fabric
