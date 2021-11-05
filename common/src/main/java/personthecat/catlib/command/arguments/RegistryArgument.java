@@ -53,7 +53,7 @@ public class RegistryArgument<T> implements ArgumentType<T> {
         if (!this.handle.isRegistered(id)) {
             throw cmdSyntax(reader, "Feature not found");
         }
-        return this.handle.lookup(new ResourceLocation(reader.readString()));
+        return this.handle.lookup(id);
     }
 
     @Override
