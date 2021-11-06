@@ -6,7 +6,9 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -46,6 +48,11 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public boolean isRegistered(final ResourceLocation id) {
         return false;
+    }
+
+    @Override
+    public Set<ResourceLocation> keySet() {
+        return Collections.emptySet();
     }
 
     @NotNull

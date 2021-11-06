@@ -3,6 +3,7 @@ package personthecat.catlib.event.registry;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -13,5 +14,6 @@ public interface RegistryHandle<T> extends Iterable<T> {
     <V extends T> V register(final ResourceLocation id, V v);
     void forEach(final BiConsumer<ResourceLocation, T> f);
     boolean isRegistered(final ResourceLocation id);
+    Set<ResourceLocation> keySet();
     Stream<T> stream();
 }

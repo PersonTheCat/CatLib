@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -53,6 +54,11 @@ public class ForgeRegistryHandle<T extends IForgeRegistryEntry<T>> implements Re
     @Override
     public boolean isRegistered(final ResourceLocation id) {
         return this.registry.containsKey(id);
+    }
+
+    @Override
+    public Set<ResourceLocation> keySet() {
+        return this.registry.getKeys();
     }
 
     @NotNull
