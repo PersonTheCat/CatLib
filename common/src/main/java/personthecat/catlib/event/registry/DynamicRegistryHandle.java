@@ -9,6 +9,7 @@ import personthecat.catlib.util.RegistryUtils;
 
 import java.util.Iterator;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
 
@@ -57,5 +58,10 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public Iterator<T> iterator() {
         return this.wrapped.iterator();
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return this.wrapped.stream();
     }
 }

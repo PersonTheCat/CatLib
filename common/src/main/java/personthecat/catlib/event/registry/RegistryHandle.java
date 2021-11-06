@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public interface RegistryHandle<T> extends Iterable<T> {
     @Nullable ResourceLocation getKey(final T t);
@@ -12,6 +13,7 @@ public interface RegistryHandle<T> extends Iterable<T> {
     <V extends T> V register(final ResourceLocation id, V v);
     void forEach(final BiConsumer<ResourceLocation, T> f);
     boolean isRegistered(final ResourceLocation id);
+    Stream<T> stream();
 
     default void forEachValue(final Consumer<T> f) {
         this.forEach((id, t) -> f.accept(t));

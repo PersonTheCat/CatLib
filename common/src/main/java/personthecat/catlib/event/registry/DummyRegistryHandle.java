@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 @Log4j2
 public class DummyRegistryHandle<T> implements RegistryHandle<T> {
@@ -51,5 +52,10 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public Iterator<T> iterator() {
         return ObjectIterators.emptyIterator();
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return Stream.empty();
     }
 }

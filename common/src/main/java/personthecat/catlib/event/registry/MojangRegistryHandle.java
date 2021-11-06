@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 public class MojangRegistryHandle<T> implements RegistryHandle<T> {
 
@@ -58,5 +59,10 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public Iterator<T> iterator() {
         return this.registry.iterator();
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return this.registry.stream();
     }
 }
