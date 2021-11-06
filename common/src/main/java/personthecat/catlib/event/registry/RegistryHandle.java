@@ -18,4 +18,12 @@ public interface RegistryHandle<T> extends Iterable<T> {
     Set<ResourceLocation> keySet();
     Set<Map.Entry<ResourceKey<T>, T>> entrySet();
     Stream<T> stream();
+
+    default Stream<ResourceLocation> streamKeys() {
+        return this.keySet().stream();
+    }
+
+    default Stream<Map.Entry<ResourceKey<T>, T>> streamEntries() {
+        return this.entrySet().stream();
+    }
 }
