@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.util.RegistryUtils;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
@@ -58,6 +59,11 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public Set<ResourceLocation> keySet() {
         return this.wrapped.keySet();
+    }
+
+    @Override
+    public Set<Map.Entry<ResourceKey<T>, T>> entrySet() {
+        return this.wrapped.entrySet();
     }
 
     @NotNull

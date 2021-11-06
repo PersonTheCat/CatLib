@@ -61,6 +61,11 @@ public class ForgeRegistryHandle<T extends IForgeRegistryEntry<T>> implements Re
         return this.registry.getKeys();
     }
 
+    @Override
+    public Set<Map.Entry<ResourceKey<T>, T>> entrySet() {
+        return this.registry.getEntries();
+    }
+
     @NotNull
     @Override
     public Iterator<T> iterator() {

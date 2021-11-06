@@ -2,12 +2,14 @@ package personthecat.catlib.event.registry;
 
 import it.unimi.dsi.fastutil.objects.ObjectIterators;
 import lombok.extern.log4j.Log4j2;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
@@ -52,6 +54,11 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
 
     @Override
     public Set<ResourceLocation> keySet() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Set<Map.Entry<ResourceKey<T>, T>> entrySet() {
         return Collections.emptySet();
     }
 

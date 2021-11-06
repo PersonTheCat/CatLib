@@ -61,6 +61,11 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
         return this.registry.keySet();
     }
 
+    @Override
+    public Set<Map.Entry<ResourceKey<T>, T>> entrySet() {
+        return this.registry.entrySet();
+    }
+
     @NotNull
     @Override
     public Iterator<T> iterator() {
