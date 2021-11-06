@@ -14,8 +14,4 @@ public interface RegistryHandle<T> extends Iterable<T> {
     void forEach(final BiConsumer<ResourceLocation, T> f);
     boolean isRegistered(final ResourceLocation id);
     Stream<T> stream();
-
-    default void forEachValue(final Consumer<T> f) {
-        this.forEach((id, t) -> f.accept(t));
-    }
 }
