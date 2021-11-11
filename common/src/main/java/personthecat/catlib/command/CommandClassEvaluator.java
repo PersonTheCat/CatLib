@@ -1,11 +1,14 @@
 package personthecat.catlib.command;
 
+import com.google.common.primitives.*;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.annotations.ModCommand;
@@ -22,11 +25,11 @@ import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.unsafe.CachingReflectionHelper;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 import static personthecat.catlib.util.Shorthand.f;
@@ -72,12 +75,6 @@ public class CommandClassEvaluator {
 
     private static void addModCommands(ModDescriptor mod, List<LibCommandBuilder> builders, MutableObject<Object> instance, Class<?> c) {
         forEachAnnotated(c, ModCommand.class, (m, a) -> {
-            if (m.getParameterCount() != 1) {
-                throw new CommandClassEvaluationException("{} must have exactly 1 parameter", m.getName());
-            }
-            if (!CommandContextWrapper.class.equals(m.getParameterTypes()[0])) {
-                throw new CommandClassEvaluationException("{} must accept a CommandContextWrapper", m.getName());
-            }
             if (instance.getValue() == null && !Modifier.isStatic(m.getModifiers())) {
                 instance.setValue(CachingReflectionHelper.tryInstantiate(c));
             }
@@ -132,23 +129,24 @@ public class CommandClassEvaluator {
         return sb.toString();
     }
 
-    private static CommandGenerator<CommandSourceStack> createBranch(List<ParsedNode> entries, CommandFunction cmd) {
+    private static CommandGenerator<CommandSourceStack> createBranch(List<ParsedNode> entries, CommandFunction fn) {
         return (builder, utl) -> {
             final List<ArgumentBuilder<CommandSourceStack, ?>> arguments = new ArrayList<>();
             ArgumentBuilder<CommandSourceStack, ?> lastArg = builder;
             final IntRef index = new IntRef(0);
+            final Command<CommandSourceStack> cmd = utl.wrap(fn);
 
             while (index.get() < entries.size()) {
                 final ParsedNode entry = entries.get(index.get());
-                if (entry.optional) {
-                    lastArg.executes(utl.wrap(cmd));
+                if (entry.optional || (entry.isList && index.get() == entries.size() - 1)) {
+                    lastArg.executes(cmd);
                 }
-                final ArgumentBuilder<CommandSourceStack, ?> argument = createArgument(entries, index);
+                final ArgumentBuilder<CommandSourceStack, ?> argument = createArgument(entries, cmd, index);
                 arguments.add(argument);
                 lastArg = argument;
                 index.increment();
             }
-            lastArg.executes(utl.wrap(cmd));
+            lastArg.executes(cmd);
 
             if (!arguments.isEmpty()) {
                 ArgumentBuilder<CommandSourceStack, ?> nextArg = arguments.get(arguments.size() - 1);
@@ -222,14 +220,16 @@ public class CommandClassEvaluator {
     }
 
     @SuppressWarnings("unchecked")
-    private static ArgumentBuilder<CommandSourceStack, ?> createArgument(List<ParsedNode> entries, IntRef index) {
+    private static ArgumentBuilder<CommandSourceStack, ?> createArgument(
+            List<ParsedNode> entries, Command<CommandSourceStack> cmd, IntRef index) {
+
         final ParsedNode entry = entries.get(index.get());
         final ArgumentBuilder<CommandSourceStack, ?> argument;
         final ArgumentDescriptor<?> descriptor = entry.arg;
         final ArgumentType<?> type = descriptor.getType();
 
         if (entry.isList) {
-            argument = createList(entries, index.get());
+            argument = createList(entries, cmd, index.get());
             index.add(2);
         } else if (descriptor.isLiteral()) {
             argument = Commands.literal(entry.name);
@@ -249,7 +249,9 @@ public class CommandClassEvaluator {
         return type.getClass().getSimpleName();
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> createList(List<ParsedNode> entries, int index) {
+    private static ArgumentBuilder<CommandSourceStack, ?> createList(
+            List<ParsedNode> entries, Command<CommandSourceStack> cmd, int index) {
+
         final ParsedNode entry = entries.get(index);
         final ListArgumentBuilder listBuilder =
             ListArgumentBuilder.create(entry.name, entry.arg.getType());
@@ -265,7 +267,7 @@ public class CommandClassEvaluator {
 
             return listBuilder.terminatedBy(nextEntry.name, termination).build();
         } else {
-            return listBuilder.build();
+            return listBuilder.executes(cmd).build();
         }
     }
 
@@ -281,7 +283,87 @@ public class CommandClassEvaluator {
 
     private static CommandFunction createConsumer(Object instance, Method m) {
         m.setAccessible(true);
-        return wrapper -> m.invoke(instance, wrapper);
+        final Parameter[] params = removeImplicit(m.getParameters());
+        if (params.length == 0) {
+            return ctx -> m.invoke(instance);
+        } else if (params.length == 1 && params[0].getType().isAssignableFrom(CommandContextWrapper.class)) {
+            return ctx -> m.invoke(instance, ctx);
+        }
+        return ctx -> m.invoke(instance, getArgs(ctx, params));
+    }
+
+    private static Parameter[] removeImplicit(Parameter[] params) {
+        if (params.length == 0) return params;
+        if (params[0].isImplicit()) return ArrayUtils.subarray(params, 1, params.length);
+        return params;
+    }
+
+    private static Object[] getArgs(CommandContextWrapper ctx, Parameter[] params) {
+        final Object[] args = new Object[params.length];
+        for (int i = 0; i < params.length; i++) {
+            final Parameter param = params[i];
+            final Class<?> type = param.getType();
+            final String name = getName(param);
+            if (type.isAssignableFrom(CommandContextWrapper.class)) {
+                args[i] = ctx;
+            } else if (type.isAssignableFrom(Optional.class)) {
+                args[i] = ctx.getOptional(name, getTypeArg(param));
+            } else if (type.isAssignableFrom(List.class)) {
+                args[i] = ctx.getList(name, getTypeArg(param));
+            } else if (type.isArray() || param.isVarArgs()) {
+                final Class<?> arg = type.getComponentType();
+                args[i] = getArray(arg, ctx.getList(name, arg));
+            } else if (isNullable(param)) {
+                args[i] = ctx.getOptional(name, type).orElse(null);
+            } else {
+                args[i] = ctx.get(name, type);
+            }
+        }
+        return args;
+    }
+
+    private static String getName(final Parameter param) {
+        if (!param.isNamePresent()) {
+            final String methodName = param.getDeclaringExecutable().getName();
+            throw new CommandClassEvaluationException("Unable to resolve real name for {}({}). Compile with -parameters", methodName, param.getName());
+        }
+        return param.getName();
+    }
+
+    private static Class<?> getTypeArg(final Parameter param) {
+        return (Class<?>) ((ParameterizedType) param.getParameterizedType()).getActualTypeArguments()[0];
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object getArray(final Class<?> cmpType, final List<?> list) {
+        if (!cmpType.isPrimitive()) {
+            return list.toArray();
+        }
+        if (cmpType.isAssignableFrom(int.class)) {
+            return Ints.toArray((Collection) list);
+        } else if (cmpType.isAssignableFrom(double.class)) {
+            return Doubles.toArray((Collection) list);
+        } else if (cmpType.isAssignableFrom(float.class)) {
+            return Floats.toArray((Collection) list);
+        } else if (cmpType.isAssignableFrom(boolean.class)) {
+            return Booleans.toArray((Collection) list);
+        } else if (cmpType.isAssignableFrom(byte.class)) {
+            return Bytes.toArray((Collection) list);
+        } else if (cmpType.isAssignableFrom(short.class)) {
+            return Shorts.toArray((Collection) list);
+        } else if (cmpType.isAssignableFrom(long.class)) {
+            return Longs.toArray((Collection) list);
+        }
+        return list.toArray();
+    }
+
+    private static boolean isNullable(final Parameter param) {
+        for (final Annotation a : param.getAnnotations()) {
+            if (a.annotationType().getSimpleName().equalsIgnoreCase("nullable")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static class ParsedNode {

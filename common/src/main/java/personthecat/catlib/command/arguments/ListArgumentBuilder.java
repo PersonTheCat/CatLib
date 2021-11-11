@@ -1,5 +1,6 @@
 package personthecat.catlib.command.arguments;
 
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
@@ -12,8 +13,9 @@ public class ListArgumentBuilder {
     /** The maximum number of values in a list argument. */
     public static final int MAX_LIST_DEPTH = 32;
 
-    @Nullable
-    private ArgumentBuilder<CommandSourceStack, ?> exitNode;
+    @Nullable private ArgumentBuilder<CommandSourceStack, ?> exitNode;
+    @Nullable private Command<CommandSourceStack> cmd;
+
     private final String name;
     private final ArgumentType<?> type;
     private int size = MAX_LIST_DEPTH;
@@ -37,6 +39,11 @@ public class ListArgumentBuilder {
         return this;
     }
 
+    public ListArgumentBuilder executes(final Command<CommandSourceStack> cmd) {
+        this.cmd = cmd;
+        return this;
+    }
+
     public ListArgumentBuilder withSize(final int size) {
         this.size = Math.max(1, Math.min(size, MAX_LIST_DEPTH));
         return this;
@@ -52,6 +59,9 @@ public class ListArgumentBuilder {
 
     private ArgumentBuilder<CommandSourceStack, ?> createNode(final int index) {
         final ArgumentBuilder<CommandSourceStack, ?> arg = Commands.argument(this.name + index, this.type);
+        if (this.cmd != null) {
+            arg.executes(cmd);
+        }
         if (this.exitNode == null) {
             return arg;
         }
