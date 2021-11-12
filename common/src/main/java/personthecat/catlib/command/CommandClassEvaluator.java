@@ -8,6 +8,10 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.blocks.BlockInput;
+import net.minecraft.commands.arguments.item.ItemInput;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 import personthecat.catlib.command.annotations.CommandBuilder;
@@ -22,6 +26,7 @@ import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.IntRef;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.LibStringUtils;
+import personthecat.catlib.util.Shorthand;
 import personthecat.catlib.util.unsafe.CachingReflectionHelper;
 
 import java.lang.annotation.Annotation;
@@ -301,16 +306,16 @@ public class CommandClassEvaluator {
             if (type.isAssignableFrom(CommandContextWrapper.class)) {
                 args[i] = ctx;
             } else if (type.isAssignableFrom(Optional.class)) {
-                args[i] = ctx.getOptional(name, getTypeArg(param));
+                args[i] = getOptional(ctx, name, getTypeArg(param));
             } else if (type.isAssignableFrom(List.class)) {
-                args[i] = ctx.getList(name, getTypeArg(param));
+                args[i] = getList(ctx, name, getTypeArg(param));
             } else if (type.isArray() || param.isVarArgs()) {
                 final Class<?> arg = type.getComponentType();
-                args[i] = getArray(arg, ctx.getList(name, arg));
+                args[i] = toArray(arg, getList(ctx, name, arg));
             } else if (isNullable(param)) {
-                args[i] = ctx.getOptional(name, type).orElse(null);
+                args[i] = getOptional(ctx, name, type).orElse(null);
             } else {
-                args[i] = ctx.get(name, type);
+                args[i] = get(ctx, name, type);
             }
         }
         return args;
@@ -328,8 +333,43 @@ public class CommandClassEvaluator {
         return (Class<?>) ((ParameterizedType) param.getParameterizedType()).getActualTypeArguments()[0];
     }
 
+    private static Object get(final CommandContextWrapper ctx, final String name, final Class<?> type) {
+        if (type.isAssignableFrom(BlockState.class)) {
+            final Optional<BlockState> o = ctx.getOptional(name, BlockInput.class).map(BlockInput::getState);
+            if (o.isPresent()) return o.get();
+        } else if (type.isAssignableFrom(Item.class)) {
+            final Optional<Item> o = ctx.getOptional(name, ItemInput.class).map(ItemInput::getItem);
+            if (o.isPresent()) return o.get();
+        }
+        return ctx.get(name, type);
+    }
+
+    private static Optional<?> getOptional(final CommandContextWrapper ctx, final String name, final Class<?> type) {
+        if (type.isAssignableFrom(BlockState.class)) {
+            final Optional<BlockState> o = ctx.getOptional(name, BlockInput.class).map(BlockInput::getState);
+            if (o.isPresent()) return o;
+        } else if (type.isAssignableFrom(Item.class)) {
+            final Optional<Item> o = ctx.getOptional(name, ItemInput.class).map(ItemInput::getItem);
+            if (o.isPresent()) return o;
+        }
+        return ctx.getOptional(name, type);
+    }
+
+    private static List<?> getList(final CommandContextWrapper ctx, final String name, final Class<?> type) {
+        if (type.isAssignableFrom(BlockState.class)) {
+            if (ctx.getOptional(name + "0", BlockInput.class).isPresent()) {
+                return Shorthand.map(ctx.getList(name, BlockInput.class), BlockInput::getState);
+            }
+        } else if (type.isAssignableFrom(Item.class)) {
+            if (ctx.getOptional(name + "0", ItemInput.class).isPresent()) {
+                return Shorthand.map(ctx.getList(name, ItemInput.class), ItemInput::getItem);
+            }
+        }
+        return ctx.getList(name, type);
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Object getArray(final Class<?> cmpType, final List<?> list) {
+    private static Object toArray(final Class<?> cmpType, final List<?> list) {
         if (!cmpType.isPrimitive()) {
             return list.toArray();
         }
