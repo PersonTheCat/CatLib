@@ -17,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.ModDescriptor;
@@ -203,6 +204,14 @@ public class CommandContextWrapper {
         final Player player = this.getPlayer();
         if (player == null) throw new CommandExecutionException("Expected a player");
         return player;
+    }
+
+    public boolean isPlayer() {
+        return this.getEntity() instanceof Player;
+    }
+
+    public Vec3 getPos() {
+        return this.ctx.getSource().getPosition();
     }
 
     public Level getLevel() {
