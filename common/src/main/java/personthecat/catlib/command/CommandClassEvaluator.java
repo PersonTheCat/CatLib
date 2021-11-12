@@ -149,7 +149,7 @@ public class CommandClassEvaluator {
                 }
                 final ParsedNode entry = entries.get(index.get());
                 if (entry.optional || (entry.isList && index.get() == entries.size() - 1)) {
-                    optional = true; // if index < end && nextEntry.canBeOmitted()
+                    optional = true;
                 }
                 nextArg = nextArg != null ? argument.then(nextArg) : argument;
                 index.decrement();
