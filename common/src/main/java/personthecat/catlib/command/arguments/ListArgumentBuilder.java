@@ -29,6 +29,11 @@ public class ListArgumentBuilder {
         return new ListArgumentBuilder(name, type);
     }
 
+    public ListArgumentBuilder terminatedBy(final String key) {
+        this.exitNode = Commands.literal(key);
+        return this;
+    }
+
     public ListArgumentBuilder terminatedBy(final String key, final ArgumentBuilder<CommandSourceStack, ?> arg) {
         this.exitNode = Commands.literal(key).then(arg);
         return this;

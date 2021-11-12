@@ -131,31 +131,28 @@ public class CommandClassEvaluator {
 
     private static CommandGenerator<CommandSourceStack> createBranch(List<ParsedNode> entries, CommandFunction fn) {
         return (builder, utl) -> {
-            final List<ArgumentBuilder<CommandSourceStack, ?>> arguments = new ArrayList<>();
-            ArgumentBuilder<CommandSourceStack, ?> lastArg = builder;
-            final IntRef index = new IntRef(0);
+            ArgumentBuilder<CommandSourceStack, ?> nextArg = null;
+            final IntRef index = new IntRef(entries.size() - 1);
             final Command<CommandSourceStack> cmd = utl.wrap(fn);
+            boolean optional = true;
 
-            while (index.get() < entries.size()) {
+            while (index.get() >= 0) {
+                final ArgumentBuilder<CommandSourceStack, ?> argument = createArgument(entries, nextArg, cmd, index);
+                if (optional) {
+                    argument.executes(cmd);
+                    optional = false;
+                }
                 final ParsedNode entry = entries.get(index.get());
                 if (entry.optional || (entry.isList && index.get() == entries.size() - 1)) {
-                    lastArg.executes(cmd);
+                    optional = true; // if index < end && nextEntry.canBeOmitted()
                 }
-                final ArgumentBuilder<CommandSourceStack, ?> argument = createArgument(entries, cmd, index);
-                arguments.add(argument);
-                lastArg = argument;
-                index.increment();
+                nextArg = nextArg != null ? argument.then(nextArg) : argument;
+                index.decrement();
             }
-            lastArg.executes(cmd);
-
-            if (!arguments.isEmpty()) {
-                ArgumentBuilder<CommandSourceStack, ?> nextArg = arguments.get(arguments.size() - 1);
-                for (int i = arguments.size() - 2; i >= 0; i--) {
-                    nextArg = arguments.get(i).then(nextArg);
-                }
-                builder.then(nextArg);
+            if (optional || entries.isEmpty()) {
+                builder.executes(cmd);
             }
-            return builder;
+            return entries.isEmpty() ? builder : builder.then(nextArg);
         };
     }
 
@@ -221,7 +218,8 @@ public class CommandClassEvaluator {
 
     @SuppressWarnings("unchecked")
     private static ArgumentBuilder<CommandSourceStack, ?> createArgument(
-            List<ParsedNode> entries, Command<CommandSourceStack> cmd, IntRef index) {
+            List<ParsedNode> entries, ArgumentBuilder<CommandSourceStack, ?> next,
+            Command<CommandSourceStack> cmd, IntRef index) {
 
         final ParsedNode entry = entries.get(index.get());
         final ArgumentBuilder<CommandSourceStack, ?> argument;
@@ -229,8 +227,7 @@ public class CommandClassEvaluator {
         final ArgumentType<?> type = descriptor.getType();
 
         if (entry.isList) {
-            argument = createList(entries, cmd, index.get());
-            index.add(2);
+            argument = createList(entries, next, cmd, index.get());
         } else if (descriptor.isLiteral()) {
             argument = Commands.literal(entry.name);
         } else {
@@ -238,7 +235,7 @@ public class CommandClassEvaluator {
         }
         if (descriptor.getSuggestions() != null) {
             ((RequiredArgumentBuilder<CommandSourceStack, ?>) argument)
-                .suggests(descriptor.getSuggestions());
+                    .suggests(descriptor.getSuggestions());
         }
         return argument;
     }
@@ -250,22 +247,19 @@ public class CommandClassEvaluator {
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> createList(
-            List<ParsedNode> entries, Command<CommandSourceStack> cmd, int index) {
+            List<ParsedNode> entries, ArgumentBuilder<CommandSourceStack, ?> next,
+            Command<CommandSourceStack> cmd, int index) {
 
         final ParsedNode entry = entries.get(index);
         final ListArgumentBuilder listBuilder =
             ListArgumentBuilder.create(entry.name, entry.arg.getType());
 
-        if (entries.size() > index + 1) {
+        if (index < entries.size() - 1) {
             final ParsedNode nextEntry = entries.get(index + 1);
-            if (!nextEntry.arg.isLiteral() || entries.size() <= index + 2) {
+            if (!nextEntry.arg.isLiteral()) {
                 throw new InvalidListNodeException(entry.name);
             }
-            final ParsedNode followingEntry = entries.get(index + 2);
-            final ArgumentBuilder<CommandSourceStack, ?> termination =
-                Commands.argument(followingEntry.name, followingEntry.arg.getType());
-
-            return listBuilder.terminatedBy(nextEntry.name, termination).build();
+            return listBuilder.terminatedBy(next).build();
         } else {
             return listBuilder.executes(cmd).build();
         }
