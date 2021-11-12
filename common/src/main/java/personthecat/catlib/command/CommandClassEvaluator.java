@@ -36,12 +36,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import static personthecat.catlib.util.Shorthand.f;
 import static personthecat.catlib.util.unsafe.CachingReflectionHelper.tryInstantiate;
 
 @UtilityClass
 public class CommandClassEvaluator {
+
+    private static final Mapping<?, ?>[] AUTOMATIC_MAPPINGS = {
+        new Mapping<>(BlockInput.class, BlockState.class, BlockInput::getState),
+        new Mapping<>(ItemInput.class, Item.class, ItemInput::getItem)
+    };
 
     public static List<LibCommandBuilder> getBuilders(final ModDescriptor mod, final Class<?>... classes) {
         final List<LibCommandBuilder> builders = new ArrayList<>();
@@ -333,36 +339,38 @@ public class CommandClassEvaluator {
         return (Class<?>) ((ParameterizedType) param.getParameterizedType()).getActualTypeArguments()[0];
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private static Object get(final CommandContextWrapper ctx, final String name, final Class<?> type) {
-        if (type.isAssignableFrom(BlockState.class)) {
-            final Optional<BlockState> o = ctx.getOptional(name, BlockInput.class).map(BlockInput::getState);
-            if (o.isPresent()) return o.get();
-        } else if (type.isAssignableFrom(Item.class)) {
-            final Optional<Item> o = ctx.getOptional(name, ItemInput.class).map(ItemInput::getItem);
-            if (o.isPresent()) return o.get();
+        for (final Mapping<?, ?> mapping : AUTOMATIC_MAPPINGS) {
+            if (type.isAssignableFrom(mapping.to)) {
+                final Optional<?> o = ctx.getOptional(name, mapping.from).map((Function) mapping.mapper);
+                if (o.isPresent()) return o.get();
+                break;
+            }
         }
         return ctx.get(name, type);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private static Optional<?> getOptional(final CommandContextWrapper ctx, final String name, final Class<?> type) {
-        if (type.isAssignableFrom(BlockState.class)) {
-            final Optional<BlockState> o = ctx.getOptional(name, BlockInput.class).map(BlockInput::getState);
-            if (o.isPresent()) return o;
-        } else if (type.isAssignableFrom(Item.class)) {
-            final Optional<Item> o = ctx.getOptional(name, ItemInput.class).map(ItemInput::getItem);
-            if (o.isPresent()) return o;
+        for (final Mapping<?, ?> mapping : AUTOMATIC_MAPPINGS) {
+            if (type.isAssignableFrom(mapping.to)) {
+                final Optional<?> o = ctx.getOptional(name, mapping.from).map((Function) mapping.mapper);
+                if (o.isPresent()) return o;
+                break;
+            }
         }
         return ctx.getOptional(name, type);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private static List<?> getList(final CommandContextWrapper ctx, final String name, final Class<?> type) {
-        if (type.isAssignableFrom(BlockState.class)) {
-            if (ctx.getOptional(name + "0", BlockInput.class).isPresent()) {
-                return Shorthand.map(ctx.getList(name, BlockInput.class), BlockInput::getState);
-            }
-        } else if (type.isAssignableFrom(Item.class)) {
-            if (ctx.getOptional(name + "0", ItemInput.class).isPresent()) {
-                return Shorthand.map(ctx.getList(name, ItemInput.class), ItemInput::getItem);
+        for (final Mapping<?, ?> mapping : AUTOMATIC_MAPPINGS) {
+            if (type.isAssignableFrom(mapping.to)) {
+                if (ctx.getOptional(name + "0", mapping.from).isPresent()) {
+                    return Shorthand.map((List) ctx.getList(name, mapping.from), mapping.mapper);
+                }
+                break;
             }
         }
         return ctx.getList(name, type);
@@ -418,6 +426,18 @@ public class CommandClassEvaluator {
             this.name = name;
             this.optional = false;
             this.isList = false;
+        }
+    }
+
+    private static class Mapping<T, R> {
+        final Class<T> from;
+        final Class<R> to;
+        final Function<T, R> mapper;
+
+        Mapping(Class<T> from, Class<R> to, Function<T, R> mapper) {
+            this.from = from;
+            this.to = to;
+            this.mapper = mapper;
         }
     }
 
