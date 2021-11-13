@@ -4,6 +4,7 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Either;
 import org.jetbrains.annotations.NotNull;
+import personthecat.fresult.Result;
 
 import java.util.*;
 
@@ -87,6 +88,34 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         if (cursor - 1 == begin || last == '.') {
             throw cmdSyntax(reader, "Unexpected accessor");
         }
+    }
+
+    /**
+     * Variant of {@link #parse(String)} which returns instead of throwing
+     * an exception.
+     *
+     * @param raw The raw JSON path being deserialized.
+     * @return An object representing every accessor leading to a JSON value.
+     */
+    public static Result<JsonPath, CommandSyntaxException> tryParse(final String raw) {
+        return Result.of(() -> parse(raw)).ifErr(Result::IGNORE);
+    }
+
+    /**
+     * Generates a new JsonPath from a string containing only keys.
+     *
+     * <p>This method is intended as optimization in cases where no
+     * arrays are needed.
+     *
+     * @param raw The raw JSON path containing <b>keys only</b>.
+     * @return A new object representing this path.
+     */
+    public static JsonPath objectOnly(final String raw) {
+        final List<Either<String, Integer>> path = new ArrayList<>();
+        for (final String key : raw.split("\\.")) {
+            path.add(Either.left(key));
+        }
+        return new JsonPath(path, raw);
     }
 
     /**
