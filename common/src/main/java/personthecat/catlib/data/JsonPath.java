@@ -3,7 +3,11 @@ package personthecat.catlib.data;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Either;
+import org.hjson.JsonObject;
+import org.hjson.JsonValue;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.util.HjsonUtils;
 import personthecat.fresult.Result;
 
 import java.util.*;
@@ -139,6 +143,18 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         }
         final String s = sb.toString();
         return s.startsWith(".") ? s.substring(1) : s;
+    }
+
+    public JsonValue getLastContainer(final JsonObject json) {
+        return HjsonUtils.getLastContainer(json, this);
+    }
+
+    public Optional<JsonValue> getValue(final JsonObject json) {
+        return HjsonUtils.getValueFromPath(json, this);
+    }
+
+    public void setValue(final JsonObject json, final @Nullable JsonValue value) {
+        HjsonUtils.setValueFromPath(json, this, value);
     }
 
     public Collection<Either<String, Integer>> asCollection() {
