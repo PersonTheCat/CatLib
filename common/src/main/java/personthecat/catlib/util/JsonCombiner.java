@@ -2,7 +2,7 @@ package personthecat.catlib.util;
 
 import org.hjson.JsonValue;
 import personthecat.catlib.command.arguments.HjsonArgument;
-import personthecat.catlib.command.arguments.PathArgument;
+import personthecat.catlib.data.JsonPath;
 
 import static personthecat.catlib.exception.Exceptions.runEx;
 
@@ -16,15 +16,14 @@ public class JsonCombiner {
      * @param to The name of the preset being written into.
      * @param path The path of the JSON data being merged.
      */
-    public static void combine(final HjsonArgument.Result from, final HjsonArgument.Result to,
-                               final PathArgument.Result path) {
+    public static void combine(final HjsonArgument.Result from, final HjsonArgument.Result to, final JsonPath path) {
         JsonValue fromValue = HjsonUtils.getLastContainer(from.json.get(), path);
         if (fromValue.isObject()) {
-            final String key = path.path.get(path.path.size() - 1).left()
+            final String key = path.get(path.size() - 1).left()
                 .orElseThrow(() -> runEx("Expected an object at end of path."));
             fromValue = fromValue.asObject().get(key);
         } else if (fromValue.isArray()) {
-            final int index = path.path.get(path.path.size() - 1).right()
+            final int index = path.get(path.size() - 1).right()
                 .orElseThrow(() -> runEx("Expected an array at end of path."));
             fromValue = fromValue.asArray().get(index);
         }

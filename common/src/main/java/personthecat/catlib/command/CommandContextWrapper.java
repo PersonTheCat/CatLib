@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
+import personthecat.catlib.data.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.exception.CommandExecutionException;
 import personthecat.catlib.util.PathUtils;
@@ -78,8 +79,8 @@ public class CommandContextWrapper {
         return this.get(key, HjsonArgument.Result.class);
     }
 
-    public PathArgument.Result getJsonPath(final String key) {
-        return this.get(key, PathArgument.Result.class);
+    public JsonPath getJsonPath(final String key) {
+        return this.get(key, JsonPath.class);
     }
 
     public <T> Optional<T> getOptional(final String key, final Class<T> type) {

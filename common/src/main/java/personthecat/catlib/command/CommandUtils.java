@@ -20,6 +20,7 @@ import net.minecraft.network.chat.TextComponent;
 import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
+import personthecat.catlib.data.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.McUtils;
 
@@ -188,7 +189,7 @@ public class CommandUtils {
      * @param name The name of the output argument node.
      * @return An argument builder for the given specs.
      */
-    public static RequiredArgumentBuilder<CommandSourceStack, PathArgument.Result> jsonPathArg(final String name) {
+    public static RequiredArgumentBuilder<CommandSourceStack, JsonPath> jsonPathArg(final String name) {
         return Commands.argument(name, new PathArgument());
     }
 

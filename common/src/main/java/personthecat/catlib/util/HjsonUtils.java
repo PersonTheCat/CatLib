@@ -281,11 +281,11 @@ public class HjsonUtils {
      * @param path The output of a {@link PathArgument}.
      * @param value The updated value to set at this path.
      */
-    public static void setValueFromPath(final JsonObject json, final PathArgument.Result path, @Nullable final JsonValue value) {
-        if (path.path.isEmpty()) {
+    public static void setValueFromPath(final JsonObject json, final JsonPath path, @Nullable final JsonValue value) {
+        if (path.isEmpty()) {
             return;
         }
-        final Either<String, Integer> lastVal = path.path.get(path.path.size() - 1);
+        final Either<String, Integer> lastVal = path.get(path.size() - 1);
         setEither(getLastContainer(json, path), lastVal, value);
     }
 
@@ -296,11 +296,11 @@ public class HjsonUtils {
      * @param path The output of a {@link PathArgument}.
      * @return The value at this location, or else {@link Optional#empty}.
      */
-    public static Optional<JsonValue> getValueFromPath(final JsonObject json, final PathArgument.Result path) {
-        if (path.path.isEmpty()) {
+    public static Optional<JsonValue> getValueFromPath(final JsonObject json, final JsonPath path) {
+        if (path.isEmpty()) {
             return empty();
         }
-        final Either<String, Integer> lastVal = path.path.get(path.path.size() - 1);
+        final Either<String, Integer> lastVal = path.get(path.size() - 1);
         return getEither(getLastContainer(json, path), lastVal);
     }
 
@@ -323,14 +323,14 @@ public class HjsonUtils {
      * @param path The output of a {@link PathArgument}.
      * @return The value at this location, the original <code>json</code>, or else a new container.
      */
-    public static JsonValue getLastContainer(final JsonObject json, final PathArgument.Result path) {
-        if (path.path.isEmpty()) {
+    public static JsonValue getLastContainer(final JsonObject json, final JsonPath path) {
+        if (path.isEmpty()) {
             return json;
         }
         JsonValue current = json;
-        for (int i = 0; i < path.path.size() - 1; i++) {
-            final Either<String, Integer> val = path.path.get(i);
-            final Either<String, Integer> peek = path.path.get(i + 1);
+        for (int i = 0; i < path.size() - 1; i++) {
+            final Either<String, Integer> val = path.get(i);
+            final Either<String, Integer> peek = path.get(i + 1);
 
             if (val.right().isPresent()) { // Index
                 current = getOrTryNew(current.asArray(), val.right().get(), peek);
@@ -450,20 +450,20 @@ public class HjsonUtils {
      * @param path The current output of a {@link PathArgument}.
      * @return A list of all adjacent paths.
      */
-    public static List<String> getPaths(final JsonObject json, final PathArgument.Result path) {
+    public static List<String> getPaths(final JsonObject json, final JsonPath path) {
         final JsonValue container = Result.of(() -> getLastContainer(json, path))
             .get(Result::WARN)
             .orElse(json);
-        int end = path.path.size() - 1;
+        int end = path.size() - 1;
         if (end < 0) {
             return getNeighbors("", container);
         }
-        final Optional<JsonValue> v = getEither(container, path.path.get(end))
+        final Optional<JsonValue> v = getEither(container, path.get(end))
             .filter(value -> value.isObject() || value.isArray());
         if (v.isPresent()) {
             end++; // The full path is a valid container -> use it.
         }
-        final String dir = PathArgument.serialize(path.path.subList(0, end));
+        final String dir = JsonPath.serialize(path.subList(0, end));
         return getNeighbors(dir, v.orElse(container));
     }
 

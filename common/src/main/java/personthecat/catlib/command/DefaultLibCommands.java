@@ -17,7 +17,7 @@ import org.hjson.HjsonOptions;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import personthecat.catlib.command.arguments.HjsonArgument;
-import personthecat.catlib.command.arguments.PathArgument;
+import personthecat.catlib.data.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.io.FileIO;
 import personthecat.catlib.util.HjsonUtils;
@@ -64,7 +64,7 @@ public class DefaultLibCommands {
     private static final Style DELETED_VALUE_STYLE = Style.EMPTY
         .withColor(ChatFormatting.RED);
 
-    /** The text formatting use to indicate values being replaced. */
+    /** The text formatting used to indicate values being replaced. */
     private static final Style REPLACED_VALUE_STYLE = Style.EMPTY
         .withColor(ChatFormatting.GREEN);
 
@@ -274,7 +274,7 @@ public class DefaultLibCommands {
 
     private static void display(final CommandContextWrapper wrapper) {
         final HjsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
-        final JsonValue json = wrapper.getOptional(PATH_ARGUMENT, PathArgument.Result.class)
+        final JsonValue json = wrapper.getOptional(PATH_ARGUMENT, JsonPath.class)
             .flatMap(result -> HjsonUtils.getValueFromPath(file.json.get(), result))
             .orElseGet(file.json);
 
@@ -287,7 +287,7 @@ public class DefaultLibCommands {
 
     private static void update(final CommandContextWrapper wrapper) {
         final HjsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
-        final PathArgument.Result path = wrapper.getJsonPath(PATH_ARGUMENT);
+        final JsonPath path = wrapper.getJsonPath(PATH_ARGUMENT);
 
         // Read the old and new values.
         final String toEscaped = wrapper.getString(VALUE_ARGUMENT);
@@ -411,7 +411,7 @@ public class DefaultLibCommands {
 
     private static void combine(final CommandContextWrapper wrapper) {
         final HjsonArgument.Result from = wrapper.getJsonFile(FILE_ARGUMENT);
-        final PathArgument.Result path = wrapper.getJsonPath(PATH_ARGUMENT);
+        final JsonPath path = wrapper.getJsonPath(PATH_ARGUMENT);
         final HjsonArgument.Result to = wrapper.getJsonFile(TO_ARGUMENT);
 
         if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), to.file, true)) {

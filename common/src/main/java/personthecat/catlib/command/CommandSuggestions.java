@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.hjson.JsonValue;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
+import personthecat.catlib.data.JsonPath;
 import personthecat.catlib.util.HjsonUtils;
 import personthecat.catlib.util.LibReference;
 
@@ -43,7 +44,7 @@ public class CommandSuggestions {
         register("current_json_suggestion", (ctx, builder) -> {
             final HjsonArgument.Result json = CommandUtils.getLastArg(ctx, HjsonArgument.class, HjsonArgument.Result.class).orElse(null);
             if (json == null) return suggestAny(builder);
-            final PathArgument.Result path = CommandUtils.getLastArg(ctx, PathArgument.class, PathArgument.Result.class).orElse(null);
+            final JsonPath path = CommandUtils.getLastArg(ctx, PathArgument.class, JsonPath.class).orElse(null);
             if (path == null) return suggestAny(builder);
             final JsonValue value = HjsonUtils.getValueFromPath(json.json.get(), path).orElse(null);
             if (value == null) return suggestAny(builder);
