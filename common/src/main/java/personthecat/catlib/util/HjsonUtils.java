@@ -537,14 +537,22 @@ public class HjsonUtils {
         if (either.left().isPresent()) {
             if (value == null) {
                 container.asObject().remove(either.left().get());
-            } else {
+            } else if (value.hasComments()) {
                 container.asObject().set(either.left().get(), value);
+            } else {
+                final String key = either.left().get();
+                final JsonObject object = container.asObject();
+                object.set(key, value.copyComments(object.get(key)));
             }
         } else if (either.right().isPresent()) { // Just to stop the linting.
             if (value == null) {
                 container.asArray().remove(either.right().get());
-            } else {
+            } else if (value.hasComments()) {
                 container.asArray().set(either.right().get(), value);
+            } else {
+                final int index = either.right().get();
+                final JsonArray array = container.asArray();
+                array.set(index, value.copyComments(array.get(index)));
             }
         }
     }
