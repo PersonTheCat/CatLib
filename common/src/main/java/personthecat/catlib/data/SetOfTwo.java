@@ -99,8 +99,9 @@ public class SetOfTwo<T> implements Set<T> {
 
         @Override
         public T next() {
-            if (this.index == 0) return one;
-            return this.index == 1 ? two : null;
+            int i = this.index++;
+            if (i == 0) return one;
+            return i == 1 ? two : null;
         }
     }
 }
