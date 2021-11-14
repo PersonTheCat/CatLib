@@ -99,7 +99,8 @@ public class DynamicCategory<T> implements Map<String, T> {
 
     @Override
     public T remove(final Object key) {
-        return this.map.remove(key).getValue();
+        final Map.Entry<String, T> entry = this.map.remove(key);
+        return entry != null ? entry.getValue() : null;
     }
 
     @Override
