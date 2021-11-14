@@ -8,6 +8,7 @@ import personthecat.catlib.exception.ResourceException;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import personthecat.fresult.OptionalResult;
+import personthecat.fresult.PartialResult;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 import personthecat.fresult.functions.ThrowingConsumer;
@@ -94,14 +95,25 @@ public class FileIO {
      * to be specified either as a directory which will contain the new file or as the actual
      * file being written.
      *
+     * <p>In the event where the file being copied is a directory, its contents will also be
+     * copied and the output directory will <b>always</b> be <code>to</code>.
+     *
      * @param f The file being copied.
      * @param to The directory or file being copied into.
      * @return The result of this operation, which you may wish to rethrow.
      */
     public static Result<Path, IOException> copy(final File f, final File to) {
-        final File output = to.isDirectory() ? new File(to, f.getName()) : to;
-        return Result.of(() -> Files.copy(f.toPath(), output.toPath()))
-            .ifErr(e -> log.error("Copying file", e));
+        final PartialResult<Path, IOException> partial;
+        if (f.isDirectory()) {
+            partial = Result.of(() -> {
+                FileUtils.copyDirectory(f, to);
+                return to.toPath();
+            });
+        } else {
+            final File output = to.isDirectory() ? new File(to, f.getName()) : to;
+            partial = Result.of(() -> Files.copy(f.toPath(), output.toPath()));
+        }
+        return partial.ifErr(e -> log.error("Copying file", e));
     }
 
     /**
