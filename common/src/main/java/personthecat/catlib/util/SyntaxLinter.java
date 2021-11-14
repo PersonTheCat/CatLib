@@ -53,6 +53,9 @@ public class SyntaxLinter {
     /** Identifies all null values to be highlighted. */
     public static final Pattern NULL_VALUE = Pattern.compile("(null)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
 
+    /** Indicates that a random color should be used for each match of this type. */
+    protected static final Style RANDOM_COLOR = null;
+
     /** A list of every target needed for highlighting basic Hjson data. */
     public static final Target[] HJSON_TARGETS = {
         new Target(MULTILINE_DOC, color(ChatFormatting.DARK_GREEN).withItalic(true)),
@@ -68,6 +71,17 @@ public class SyntaxLinter {
 
     /** The default Hjson syntax linter provided by the library. */
     public static final SyntaxLinter DEFAULT_LINTER = new SyntaxLinter(HJSON_TARGETS);
+
+    /** An array of colors to be used in place of the wildcard color. */
+    private static final Style[] RANDOM_COLORS = {
+        color(ChatFormatting.YELLOW),
+        color(ChatFormatting.GREEN),
+        color(ChatFormatting.AQUA),
+        color(ChatFormatting.GOLD),
+        color(ChatFormatting.BLUE),
+        color(ChatFormatting.LIGHT_PURPLE),
+        color(ChatFormatting.RED)
+    };
 
     /** Whichever targets the author has selected for highlighting their text.s */
     final Target[] targets;
@@ -94,6 +108,7 @@ public class SyntaxLinter {
 
         Scope s;
         int i = 0;
+        int m = 0;
         while ((s = ctx.next(i)) != null) {
             final int start = s.matcher.start();
             final int end = s.matcher.end();
@@ -103,7 +118,7 @@ public class SyntaxLinter {
                 // Append unformatted text;
                 formatted.append(stc(text.substring(i, start)));
             }
-            formatted.append(stc(text.substring(start, end)).setStyle(s.style));
+            formatted.append(stc(text.substring(start, end)).setStyle(getStyle(s.style, m++)));
 
             i = end;
         }
@@ -129,6 +144,17 @@ public class SyntaxLinter {
      */
     public static Style color(final ChatFormatting color) {
         return Style.EMPTY.withColor(color);
+    }
+
+    /**
+     * Generates a random color for use with the current match, if applicable.
+     *
+     * @param style The style configured for use with this target.
+     * @param m     The number of the current match.
+     * @return The input style, or else a random style, if null.
+     */
+    private static Style getStyle(@Nullable final Style style, int m) {
+        return style != null ? style : RANDOM_COLORS[m % RANDOM_COLORS.length];
     }
 
     /**
