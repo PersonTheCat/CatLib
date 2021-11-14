@@ -29,7 +29,7 @@ public class ForgeRegistryHandle<T extends IForgeRegistryEntry<T>> implements Re
     @Nullable
     @Override
     public ResourceLocation getKey(final T t) {
-        return this.registry.getKey(t);
+        return t.getRegistryName();
     }
 
     @Nullable
