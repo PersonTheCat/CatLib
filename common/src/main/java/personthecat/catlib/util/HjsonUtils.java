@@ -33,6 +33,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.*;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -555,6 +556,90 @@ public class HjsonUtils {
                 array.set(index, value.copyComments(array.get(index)));
             }
         }
+    }
+
+    /**
+     * Creates a new {@link JsonArray} from a collection of strings.
+     *
+     * @param strings The contents of the array.
+     * @return A regular {@link JsonArray}.
+     */
+    public static JsonArray stringArray(final Collection<String> strings) {
+        return createArray(strings, JsonArray::add);
+    }
+
+    /**
+     * Creates a new {@link JsonArray} from a collection of strings.
+     *
+     * @param ints The contents of the array.
+     * @return A regular {@link JsonArray}.
+     */
+    public static JsonArray intArray(final Collection<Integer> ints) {
+        return createArray(ints, JsonArray::add);
+    }
+
+    /**
+     * Creates a new {@link JsonArray} from a collection of doubles.
+     *
+     * @param doubles The contents of the array.
+     * @return A regular {@link JsonArray}.
+     */
+    public static JsonArray doubleArray(final Collection<Double> doubles) {
+        return createArray(doubles, JsonArray::add);
+    }
+
+    /**
+     * Creates a new {@link JsonArray} from a collection of floats.
+     *
+     * @param floats The contents of the array.
+     * @return A regular {@link JsonArray}.
+     */
+    public static JsonArray floatArray(final Collection<Float> floats) {
+        return createArray(floats, JsonArray::add);
+    }
+
+    /**
+     * Creates a new {@link JsonArray} from a collection of booleans.
+     *
+     * @param booleans The contents of the array.
+     * @return A regular {@link JsonArray}.
+     */
+    public static JsonArray boolArray(final Collection<Boolean> booleans) {
+        return createArray(booleans, JsonArray::add);
+    }
+
+    /**
+     * Creates a new {@link JsonArray} from a collection of {@link JsonValue}s.
+     *
+     * @param values The contents of the array.
+     * @return A regular {@link JsonArray}.
+     */
+    public static JsonArray valueArray(final Collection<? extends JsonValue> values) {
+        return createArray(values, JsonArray::add);
+    }
+
+    /**
+     * Creates a new {@link JsonArray} from a collection of any type.
+     *
+     * @param any The contents of the array.
+     * @return A regular {@link JsonArray}.
+     */
+    public static JsonArray anyArray(final Collection<?> any) {
+        return createArray(any, (a, o) -> a.add(JsonValue.valueOf(o)));
+    }
+
+    /**
+     * Generates a {@link JsonArray} containing values of the given type.
+     *
+     * @param values A collection of any type which the array will be constructed from.
+     * @param adder  Instructions for how to add the elements into the array.
+     * @param <T>    The type of values in the collection.
+     * @return A regular {@link JsonArray}.
+     */
+    public static <T> JsonArray createArray(final Collection<T> values, final BiConsumer<JsonArray, T> adder) {
+        final JsonArray array = new JsonArray();
+        values.forEach(t -> adder.accept(array, t));
+        return array;
     }
 
     /**
