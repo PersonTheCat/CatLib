@@ -3,10 +3,11 @@ package personthecat.catlib.versioning;
 import org.jetbrains.annotations.NotNull;
 import personthecat.fresult.Result;
 
+import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class Version implements Comparable<Version> {
+public final class Version implements Comparable<Version>, Serializable {
 
     public static final String SNAPSHOT = "SNAPSHOT";
     private static final int COMPONENT_SIZE = 1 << 16;
