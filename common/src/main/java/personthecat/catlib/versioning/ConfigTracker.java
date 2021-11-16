@@ -128,8 +128,12 @@ public class ConfigTracker<T extends Serializable> {
         return this.cached;
     }
 
-    public T getCachedOrDefault() {
+    public T getCachedOrCurrent() {
         return this.cached != null ? this.cached : this.current;
+    }
+
+    public T getCachedOrDefault(final T def) {
+        return this.cached != null ? this.cached : def;
     }
 
     public boolean isSaved() {
