@@ -6,6 +6,7 @@ run/
 runServer/
 .vscode/
 logs/
+testOutput/
 *.launch
 *.classpath
 *.prefs
