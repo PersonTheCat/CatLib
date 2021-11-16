@@ -49,7 +49,7 @@ public class RegistryArgument<T> implements ArgumentType<T> {
 
     @Override
     public T parse(final StringReader reader) throws CommandSyntaxException {
-        final ResourceLocation id = new ResourceLocation(reader.readString());
+        final ResourceLocation id = ResourceLocation.read(reader);
         if (!this.handle.isRegistered(id)) {
             throw cmdSyntax(reader, "Feature not found");
         }
