@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.lifecycle.ClientReadyEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
+import personthecat.catlib.exception.UnreachableException;
 import personthecat.catlib.io.FileIO;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
@@ -165,7 +166,18 @@ public class ConfigTracker<T extends Serializable> {
         }
 
         public <T extends Serializable> ConfigTracker<T> track(final T current) {
+            checkEqualsImplementation(current);
             return new ConfigTracker<>(this, current);
+        }
+
+        private static void checkEqualsImplementation(final Object o) {
+            try {
+                final Class<?> type = o.getClass();
+                assert type.getMethod("equals", Object.class).getDeclaringClass() != Object.class
+                    : "Cached object must provide explicit equals implementation";
+            } catch (final NoSuchMethodException ignored) {
+                throw new UnreachableException();
+            }
         }
     }
 
