@@ -1,3 +1,4 @@
+import org.apache.tools.ant.filters.ReplaceTokens
 import personthecat.overwritevalidator.OverwriteValidator
 
 buildscript {
@@ -62,7 +63,17 @@ allprojects {
         testImplementation group: 'org.mockito', name: 'mockito-inline', version: '3.+'
     }
 
+    task processSource(type: Sync) {
+        from sourceSets.main.java
+        inputs.properties(mod_version: mod_version, mod_id: mod_id, mod_name: mod_name)
+        filesMatching(['**/LibReference.java']) {
+            filter(ReplaceTokens, tokens: [MOD_VERSION: mod_version, MOD_ID: mod_id, MOD_NAME: mod_name])
+        }
+        into "$buildDir/src"
+    }
+
     compileJava {
+        source = processSource.outputs
         options.compilerArgs << '-parameters'
     }
 
