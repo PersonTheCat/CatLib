@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import personthecat.catlib.event.lifecycle.ClientReadyEvent;
+import personthecat.catlib.event.lifecycle.GameReadyEvent;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -21,7 +21,7 @@ public abstract class MinecraftMixin {
     public void postInit(final @Nullable Screen screen, final CallbackInfo ci) {
         if (INIT_COMPLETE.compareAndSet(false, true)) {
             if (!(screen instanceof LoadingErrorScreen)) {
-                ClientReadyEvent.EVENT.invoker().run();
+                GameReadyEvent.CLIENT.invoker().run();
             }
         }
     }

@@ -7,10 +7,15 @@
     "BiomeGenerationSettingsAccessor",
     "BiomeGenerationSettingsBuilderAccessor",
     "ForgeRegistryMixin",
-    "MinecraftMixin",
     "MojangRegistryMixin",
     "RegistryAccessMixin",
     "RegistryReadOpsMixin"
+  ],
+  "client": [
+    "MinecraftMixin"
+  ],
+  "server": [
+    "MainServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

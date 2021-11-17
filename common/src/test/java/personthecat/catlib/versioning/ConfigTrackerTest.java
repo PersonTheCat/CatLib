@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import personthecat.catlib.data.ModDescriptor;
-import personthecat.catlib.event.lifecycle.ClientReadyEvent;
+import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.util.McUtils;
 
 import java.io.File;
@@ -66,9 +66,9 @@ public final class ConfigTrackerTest {
         final ConfigTracker<TestCache> newCache = ConfigTracker.forMod(this.testDescriptor)
             .scheduleSave(ConfigTracker.PersistOption.MAIN_MENU).track(new TestCache(false));
 
-        ClientReadyEvent.EVENT.invoker().run();
+        GameReadyEvent.CLIENT.invoker().run();
         assertTrue(newCache.isSaved());
-        assertTrue(ClientReadyEvent.EVENT.isEmpty());
+        assertTrue(GameReadyEvent.CLIENT.isEmpty());
     }
 
     private static class TestCache implements Serializable {

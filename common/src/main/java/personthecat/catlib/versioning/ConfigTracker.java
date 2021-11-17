@@ -4,7 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import net.minecraft.world.level.LevelAccessor;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.ModDescriptor;
-import personthecat.catlib.event.lifecycle.ClientReadyEvent;
+import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.exception.UnreachableException;
 import personthecat.catlib.io.FileIO;
@@ -62,7 +62,7 @@ public class ConfigTracker<T extends Serializable> {
     private static Runnable createClientReady(final ConfigTracker<?> tracker, final PersistOption persist) {
         if (persist == PersistOption.MAIN_MENU) {
             final Runnable clientReady = tracker::save;
-            ClientReadyEvent.EVENT.register(clientReady);
+            GameReadyEvent.CLIENT.register(clientReady);
             return clientReady;
         }
         return null;
@@ -118,7 +118,7 @@ public class ConfigTracker<T extends Serializable> {
 
     public void deregister() {
         if (this.clientReady != null) {
-            ClientReadyEvent.EVENT.deregister(this.clientReady);
+            GameReadyEvent.CLIENT.deregister(this.clientReady);
         } else if (this.worldLoad != null) {
             CommonWorldEvent.LOAD.deregister(this.worldLoad);
         }

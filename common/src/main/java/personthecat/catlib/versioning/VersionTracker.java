@@ -1,7 +1,7 @@
 package personthecat.catlib.versioning;
 
 import personthecat.catlib.data.ModDescriptor;
-import personthecat.catlib.event.lifecycle.ClientReadyEvent;
+import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
 
 public class VersionTracker {
@@ -11,7 +11,7 @@ public class VersionTracker {
      * to acquire a handle on the most recent {@link Version} of your mod.
      *
      * <p>Your mod's current version, provided by {@link ModDescriptor#getVersion}, will be persisted
-     * on {@link ClientReadyEvent#EVENT} on the client side, or {@link CommonWorldEvent#LOAD} on
+     * on {@link GameReadyEvent#CLIENT} on the client side, or {@link CommonWorldEvent#LOAD} on
      * the server side.
      *
      * <p>For example, to check whether your mod has been updated by the user, call

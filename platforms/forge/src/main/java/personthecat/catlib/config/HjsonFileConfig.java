@@ -52,6 +52,11 @@ public class HjsonFileConfig implements CommentedFileConfig  {
         this(file, loadContainer(file));
     }
 
+    /** Constructs a new instance from an existing JSON object. */
+    public HjsonFileConfig(File file, JsonObject json) {
+        this(file, getContainer(file, json));
+    }
+
     /** Constructs a new instance with data that have been previously loaded. */
     private HjsonFileConfig(File file, Container container) {
         this.file = file;
