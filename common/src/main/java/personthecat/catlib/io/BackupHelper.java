@@ -20,7 +20,7 @@ public class BackupHelper {
 
     BackupHelper(final File file) {
         final String name = file.getName();
-        final int dotIndex = name.indexOf(".");
+        final int dotIndex = name.lastIndexOf(".");
         if (dotIndex > 0) {
             base = name.substring(0, dotIndex);
             ext = name.substring(dotIndex);
@@ -33,7 +33,7 @@ public class BackupHelper {
 
     int cycle(final File dir) {
         final File[] arr = dir.listFiles(this::matches);
-        if (arr == null) return 0;
+        if (arr == null || arr.length == 0) return 0;
         final List<File> matching = Arrays.asList(arr);
         matching.sort(this::compare);
         final int end = this.getFirstGap(matching);
@@ -42,10 +42,22 @@ public class BackupHelper {
             final int number = i + 1;
             final File newFile = new File(f.getParentFile(), base + " (" + number + ")" + ext);
             if (!f.renameTo(newFile)) {
-                throw Exceptions.runEx("Could not increment backup: {}", f.getName());
+                throw Exceptions.resourceEx("Could not increment backup: {}", f.getName());
             }
         }
         return matching.size();
+    }
+
+    void truncate(final File dir, final int count) {
+        final File[] arr = dir.listFiles(this::matches);
+        if (arr == null || arr.length == 0) return;
+        for (final File f : arr) {
+            if (getNumber(f) >= count) {
+                if (!f.delete()) {
+                    throw Exceptions.resourceEx("Could not truncate backup: {}", f.getName());
+                }
+            }
+        }
     }
 
     boolean matches(final File file) {

@@ -22,8 +22,8 @@ public class VersionTracker {
      *
      * <p>Additionally, you can use this handle to read the most recent version of your mod, as follows:
      * <pre>{@code
-     *   final ConfigTracker&lt;Version&gt; versionCache = trackModVersion(MOD_DESCRIPTOR);
-     *   final Version previousVersion = versionCache.getCacheOrUpdated();
+     *   final ConfigTracker<Version> versionCache = trackModVersion(MOD_DESCRIPTOR);
+     *   final Version previousVersion = versionCache.getCachedOrCurrent();
      * }</pre>
      *
      * <p>It is highly recommended to only call this method a single time as it requires a bit of file

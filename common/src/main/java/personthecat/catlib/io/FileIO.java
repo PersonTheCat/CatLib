@@ -347,8 +347,25 @@ public class FileIO {
     }
 
     /**
+     * Variant of {@link #backup(File, File, boolean)} which never throws an exception.
+     *
+     * @param dir The directory where this backup will be stored.
+     * @param f The file being backed up.
+     * @param copy Whether to additionally copy the file instead of just moving it.
+     * @return A result indicating either the number of backups or the error.
+     */
+    public static Result<Integer, ResourceException> tryBackup(final File dir, final File f, final boolean copy) {
+        try {
+            return Result.ok(backup(dir, f, copy));
+        } catch (final ResourceException e) {
+            return Result.err(e);
+        }
+    }
+
+    /**
      * Copies (or moves) a file to the given backup directory.
      *
+     * @throws ResourceException If <b>any</b> IO exception occurs.
      * @param dir The directory where this backup will be stored.
      * @param f The file being backed up.
      * @param copy Whether to additionally copy the file instead of just moving it.
@@ -373,6 +390,38 @@ public class FileIO {
             throw resourceEx("Error moving {} to backups", f.getName());
         }
         return count + 1;
+    }
+
+    /**
+     * Variant of {@link #truncateBackups(File, File, int)} which never throws an exception.
+     *
+     * @param dir The directory containing the files being truncated.
+     * @param f The being moved into the backup folder.
+     * @param count The maximum number of matching backups to keep in this directory.
+     * @return A result wrapping the error, if applicable.
+     */
+    public static Result<Void, ResourceException> tryTruncateBackups(final File dir, final File f, final int count) {
+        try {
+            truncateBackups(dir, f, count);
+            return Result.ok();
+        } catch (final ResourceException e) {
+            return Result.err(e);
+        }
+    }
+
+    /**
+     * Deletes any matching file in the backup folder, keeping <code>count</code> files.
+     *
+     * @throws ResourceException If <b>any</b> IO exception occurs in the process.
+     * @param dir The directory containing the files being truncated.
+     * @param f The being moved into the backup folder.
+     * @param count The maximum number of matching backups to keep in this directory.
+     */
+    public static void truncateBackups(final File dir, final File f, final int count) {
+        if (!mkdirs(dir)) {
+            throw resourceEx("Error creating backup directory: {}", dir);
+        }
+        new BackupHelper(f).truncate(dir, count);
     }
 
     /**

@@ -174,7 +174,7 @@ public class ConfigTracker<T extends Serializable> {
             try {
                 final Class<?> type = o.getClass();
                 assert type.getMethod("equals", Object.class).getDeclaringClass() != Object.class
-                    : "Cached object must provide explicit equals implementation";
+                    : type.getSimpleName() + " must provide explicit equals implementation";
             } catch (final NoSuchMethodException ignored) {
                 throw new UnreachableException();
             }
