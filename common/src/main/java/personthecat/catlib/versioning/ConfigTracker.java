@@ -22,17 +22,17 @@ public class ConfigTracker<T extends Serializable> {
     @Nullable private final T cached;
     private final boolean updated;
     private volatile boolean saved;
-    @Nullable private final Runnable clientReady;
+    @Nullable private final Runnable gameReady;
     @Nullable private final Consumer<LevelAccessor> worldLoad;
 
-    private ConfigTracker(final Builder builder, final T current) {
+    protected ConfigTracker(final Builder builder, final T current) {
         this.mod = builder.mod;
         this.file = createFile(builder);
         this.current = current;
         this.cached = readCached(this.file);
         this.updated = !this.current.equals(cached);
         this.saved = false;
-        this.clientReady = createClientReady(this, builder.persist);
+        this.gameReady = gameReady(this, builder.persist);
         this.worldLoad = createWorldLoad(this, builder.persist);
     }
 
@@ -48,6 +48,7 @@ public class ConfigTracker<T extends Serializable> {
     @Nullable
     @SuppressWarnings("unchecked")
     private static <T extends Serializable> T readCached(final File file) {
+        if (!file.exists()) return null;
         try (final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             return (T) ois.readObject();
         } catch (final IOException e) {
@@ -59,7 +60,7 @@ public class ConfigTracker<T extends Serializable> {
     }
 
     @Nullable
-    private static Runnable createClientReady(final ConfigTracker<?> tracker, final PersistOption persist) {
+    private static Runnable gameReady(final ConfigTracker<?> tracker, final PersistOption persist) {
         if (persist == PersistOption.GAME_READY) {
             final Runnable clientReady = tracker::save;
             GameReadyEvent.CLIENT.register(clientReady);
@@ -117,8 +118,8 @@ public class ConfigTracker<T extends Serializable> {
     }
 
     public void deregister() {
-        if (this.clientReady != null) {
-            GameReadyEvent.CLIENT.deregister(this.clientReady);
+        if (this.gameReady != null) {
+            GameReadyEvent.CLIENT.deregister(this.gameReady);
         } else if (this.worldLoad != null) {
             CommonWorldEvent.LOAD.deregister(this.worldLoad);
         }
@@ -179,6 +180,6 @@ public class ConfigTracker<T extends Serializable> {
     public enum PersistOption {
         GAME_READY,
         WORLD_LOAD,
-        MANUAL;
+        MANUAL
     }
 }
