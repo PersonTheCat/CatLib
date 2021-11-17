@@ -34,6 +34,6 @@ public class VersionTracker {
      */
     public static ConfigTracker<Version> trackModVersion(final ModDescriptor mod) {
         return ConfigTracker.forMod(mod).withCategory("version")
-            .scheduleSave(ConfigTracker.PersistOption.MAIN_MENU).track(mod.getVersion());
+            .scheduleSave(ConfigTracker.PersistOption.GAME_READY).track(mod.getVersion());
     }
 }

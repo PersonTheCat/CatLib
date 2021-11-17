@@ -64,11 +64,11 @@ public final class ConfigTrackerTest {
         ConfigTracker.forMod(this.testDescriptor).track(new TestCache(true)).save();
 
         final ConfigTracker<TestCache> newCache = ConfigTracker.forMod(this.testDescriptor)
-            .scheduleSave(ConfigTracker.PersistOption.MAIN_MENU).track(new TestCache(false));
+            .scheduleSave(ConfigTracker.PersistOption.GAME_READY).track(new TestCache(false));
 
-        GameReadyEvent.CLIENT.invoker().run();
+        GameReadyEvent.COMMON.invoker().run();
         assertTrue(newCache.isSaved());
-        assertTrue(GameReadyEvent.CLIENT.isEmpty());
+        assertTrue(GameReadyEvent.COMMON.isEmpty());
     }
 
     private static class TestCache implements Serializable {

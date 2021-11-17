@@ -60,7 +60,7 @@ public class ConfigTracker<T extends Serializable> {
 
     @Nullable
     private static Runnable createClientReady(final ConfigTracker<?> tracker, final PersistOption persist) {
-        if (persist == PersistOption.MAIN_MENU) {
+        if (persist == PersistOption.GAME_READY) {
             final Runnable clientReady = tracker::save;
             GameReadyEvent.CLIENT.register(clientReady);
             return clientReady;
@@ -155,13 +155,8 @@ public class ConfigTracker<T extends Serializable> {
             return this;
         }
 
-        @SuppressWarnings("ConstantConditions")
         public Builder scheduleSave(final PersistOption persist) {
-            if (persist == PersistOption.MAIN_MENU && McUtils.isDedicatedServer()) {
-                this.persist = PersistOption.WORLD_LOAD;
-            } else {
-                this.persist = persist;
-            }
+            this.persist = persist;
             return this;
         }
 
@@ -182,7 +177,7 @@ public class ConfigTracker<T extends Serializable> {
     }
 
     public enum PersistOption {
-        MAIN_MENU,
+        GAME_READY,
         WORLD_LOAD,
         MANUAL;
     }
