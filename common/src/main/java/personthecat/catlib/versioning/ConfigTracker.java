@@ -63,7 +63,7 @@ public class ConfigTracker<T extends Serializable> {
     private static Runnable gameReady(final ConfigTracker<?> tracker, final PersistOption persist) {
         if (persist == PersistOption.GAME_READY) {
             final Runnable clientReady = tracker::save;
-            GameReadyEvent.CLIENT.register(clientReady);
+            GameReadyEvent.COMMON.register(clientReady);
             return clientReady;
         }
         return null;
@@ -119,7 +119,7 @@ public class ConfigTracker<T extends Serializable> {
 
     public void deregister() {
         if (this.gameReady != null) {
-            GameReadyEvent.CLIENT.deregister(this.gameReady);
+            GameReadyEvent.COMMON.deregister(this.gameReady);
         } else if (this.worldLoad != null) {
             CommonWorldEvent.LOAD.deregister(this.worldLoad);
         }
