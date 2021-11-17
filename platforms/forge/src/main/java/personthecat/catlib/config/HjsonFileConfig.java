@@ -20,7 +20,7 @@ import static personthecat.catlib.util.HjsonUtils.readJson;
 import static personthecat.catlib.util.HjsonUtils.writeJson;
 
 /**
- * Contains all of the necessary procedures for handling a Forge-friendly configuration
+ * Contains the necessary procedures for handling a Forge-friendly configuration
  * based on Hjson, a human-friendly variant of JSON.
  * <p>
  *   One of the benefits of using Hjson over the Forge-preferred TOML is that string arrays

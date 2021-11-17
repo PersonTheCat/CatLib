@@ -684,7 +684,7 @@ public class HjsonUtils {
      * </p
      * <p>
      *   These objects can be stored in any number of dimensions, but will be coerced
-     *   into a single dimensional array. For example, all of the following values will
+     *   into a single dimensional array. For example, each of the following values will
      *   yield single dimensional object arrays:
      * </p>
      * <ul>

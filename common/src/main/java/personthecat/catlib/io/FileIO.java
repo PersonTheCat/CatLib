@@ -65,7 +65,7 @@ public class FileIO {
      * not return whether the file exists or has been created and instead will throw an exception
      * if the operation fails.
      *
-     * @param files All of the directories being created.
+     * @param files A series of directories being created.
      * @throws DirectoryNotCreatedException If any error occurs when creating the directory.
      */
     public static void mkdirsOrThrow(final File... files) {

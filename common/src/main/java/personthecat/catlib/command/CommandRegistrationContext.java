@@ -53,7 +53,7 @@ import static personthecat.catlib.util.Shorthand.f;
  *       .addAllCommands(ModCommands.class, ClientModCommands.class)
  *       ...
  * </pre><p>
- *   Once all of the builders for the current mod have been passed into the
+ *   Once each of the builders for the current mod have been passed into the
  *   context, calling {@link #registerAll()} will take care of generating the
  *   Brigadier command trees and registering them via {@link LibCommandRegistrar}.
  * </p><pre>
@@ -146,9 +146,8 @@ public class CommandRegistrationContext {
      *   Consider storing this object in a static field for any method which
      *   requires it after the context has been disposed.
      * <p>
-     *   Alternatively, the descriptor can be accessed by all of the commands
-     *   registered through this context wherever a  {@link CommandContextWrapper}
-     *   is provided.
+     *   Alternatively, the descriptor can be accessed by every command registered
+     *   through this context wherever a {@link CommandContextWrapper} is provided.
      *  </p>
      *
      * @param mod Data about the mod registering commands.
@@ -231,7 +230,7 @@ public class CommandRegistrationContext {
      * builders simultaneously. Note that each of these builders <b>must be generated
      * after the context has been constructed</b>.
      *
-     * @param commands All of the command builders being added.
+     * @param commands A series of command builders being added.
      * @return <code>this</code>, for method chaining.
      */
     public CommandRegistrationContext addAllCommands(final Collection<LibCommandBuilder> commands) {
@@ -247,7 +246,7 @@ public class CommandRegistrationContext {
      *   See the respective classes for more information on using these annotations.
      * </p>
      *
-     * @param classes All of the classes containing the annotated methods.
+     * @param classes A series of class files containing the annotated methods.
      * @return <code>this</code>, for method chaining.
      */
     public CommandRegistrationContext addAllCommands(final Class<?>... classes) {
@@ -367,7 +366,7 @@ public class CommandRegistrationContext {
      * Generates a basic {@link LiteralArgumentBuilder} named according to this mod's
      * command prefix, which is provided by its {@link ModDescriptor}.
      *
-     * @param commands All of the commands applicable to the current server side.
+     * @param commands Every command applicable to the current server side.
      * @return A generated {@link LiteralArgumentBuilder} for the current mod.
      */
     private LiteralArgumentBuilder<CommandSourceStack> generateBasicModCommand(final List<LibCommandBuilder> commands) {
@@ -405,10 +404,10 @@ public class CommandRegistrationContext {
     }
 
     /**
-     * Generates a list of help pages when provided all of the commands that are
-     * valid for the current server side.
+     * Generates a list of help pages when provided every command that is valid
+     * for the current server side.
      *
-     * @param commands All of the command builders applicable for the current context.
+     * @param commands Every command builder applicable for the current context.
      * @return The generated list of formatted help pages.
      */
     private List<TextComponent> createHelpMessage(final List<LibCommandBuilder> commands) {
@@ -430,10 +429,9 @@ public class CommandRegistrationContext {
     }
 
     /**
-     * Sorts all of the {@link HelpCommandInfo} containers from a list of command
-     * builders.
+     * Sorts every {@link HelpCommandInfo} container from a list of command builders.
      *
-     * @param commands All of the command builders applicable for the current context.
+     * @param commands Every command builder applicable for the current context.
      * @return The sorted pages of help info.
      */
     private List<List<HelpCommandInfo>> createHelpPages(final List<LibCommandBuilder> commands) {
@@ -465,7 +463,7 @@ public class CommandRegistrationContext {
      * Determines whether any of the commands in the given list should be applied to
      * the global root command node.
      *
-     * @param commands All of the commands applicable for the current context.
+     * @param commands Every command applicable for the current context.
      * @return whether any command in the list is global.
      */
     private boolean isAnyGlobal(final List<LibCommandBuilder> commands) {
@@ -486,8 +484,8 @@ public class CommandRegistrationContext {
 
     /**
      * Generates the formatted usage text for a single command's {@link HelpCommandInfo}.
-     * If any command in the context is global, all of the non-global commands will be
-     * rendered with <code>/&lt;modid&gt;</code> in the title.
+     * If any command in the context is global, every non-global command will be rendered
+     * with <code>/&lt;modid&gt;</code> in the title.
      *
      * @param anyGlobal Whether any command in the context is a global command.
      * @param info The raw help info corresponding to the current command.

@@ -374,7 +374,7 @@ public class HjsonMapper<B, R> {
     }
 
     /**
-     * Applies all of the mappers to a given builder and JSON object(s). Note that
+     * Applies a series of mappers to a given builder and JSON object(s). Note that
      * an array of backup JSONs may be provided for any <b>optional</b> value.
      *
      * @throws JsonMappingException If any required fields are absent from the primary json.

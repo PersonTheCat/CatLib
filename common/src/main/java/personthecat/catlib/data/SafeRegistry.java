@@ -28,7 +28,7 @@ import static personthecat.catlib.exception.Exceptions.missingElement;
  * <p>This is the primary type of registry used in this mod. This registry is lazily initialized
  * and cannot be modified. It is constructed with a data supplier which is then treated as an
  * event. This event will fire at the first time any of this class' methods are called. It is
- * equipped with all of the necessary overrides to be treated as a regular {@link Set}.</p>
+ * equipped with each of the necessary overrides to be treated as a regular {@link Set}.</p>
  *
  * <p>Many of these methods are simply stubs which will throw an {@link UnsupportedOperationException}
  * when called. They are not intended for use by external implementors.</p>
@@ -143,7 +143,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
     }
 
     /**
-     * Enumerates all of the values in a collection, mapping them to their index.
+     * Enumerates every value in a collection, mapping them to their index.
      *
      * @param values A collection of any type.
      * @param <V> The type of value being stored in the registry.
@@ -161,7 +161,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
     /**
      * A static utility for loading a series of multiple {@link SafeRegistry registries}.
      *
-     * @param registries All of the registries being initialized at this time.
+     * @param registries A series of registries being initialized at this time.
      */
     public static void loadAll(final SafeRegistry<?, ?>... registries) {
         for (final SafeRegistry<?, ?> registry : registries) {
@@ -174,7 +174,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      *
      * <p>Note that non-resettable registries will neither unload nor throw exceptions.</p>
      *
-     * @param registries All of the registries being unloaded at this time.
+     * @param registries A series of registries being unloaded at this time.
      */
     public static void resetAll(final SafeRegistry<?, ?>... registries) {
         for (final SafeRegistry<?, ?> registry : registries) {
@@ -187,7 +187,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      *
      * <p>Note that non-resettable registries will neither reload nor throw exceptions.</p>
      *
-     * @param registries All of the registries being reloaded at this time.
+     * @param registries A series of registries being reloaded at this time.
      */
     public static void reloadAll(final SafeRegistry<?, ?>... registries) {
         for (final SafeRegistry<?, ?> registry : registries) {
@@ -258,10 +258,10 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
     }
 
     /**
-     * Returns all of the matching values in this registry for the given keys.
+     * Returns a set of matching values in this registry for the given keys.
      *
      * @param ks The keys for each element being retrieved.
-     * @return A set of all of the matching values in the registry.
+     * @return A set containing the matching values in the registry.
      */
     public Set<V> tryGetAll(final Collection<K> ks) {
         final Set<V> set = new HashSet<>();
@@ -274,7 +274,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      * mapped in this registry.
      *
      * @param ks The keys for each element being retrieved.
-     * @return A set of all of the matching values in the registry.
+     * @return A set containing the matching values in the registry.
      */
     public Set<V> getAllAsserted(final Collection<K> ks) {
         return ks.stream().map(this::getAsserted).collect(Collectors.toSet());
@@ -358,8 +358,8 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
     }
 
     /**
-     * Attempts to reload all of the data in the registry. If the underlying map
-     * cannot be reset, nothing will happen.
+     * Attempts to reload the data in this registry. If the underlying map cannot
+     * be reset, nothing will happen.
      *
      * @return <code>this</code>, for method chaining.
      */

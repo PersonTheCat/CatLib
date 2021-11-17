@@ -19,14 +19,14 @@ import java.util.List;
 public class LibCommandRegistrar {
 
     /**
-     * Registers all of the commands in the given class files to be applied as soon as
+     * Registers every command in the given class files to be applied as soon as
      * the server loads. For more control over this process, consider using a
      * {@link CommandRegistrationContext} directly.
      *
      * @param mod The current mod's descriptor, to be used in generating argument nodes.
-     * @param libCommands Whether to additionally register all of the commands provided
-     *                    by the library directly to this mod's main command node.
-     * @param types All of the classes containing annotated command methods.
+     * @param libCommands Whether to additionally register every command provided by the
+     *                    library directly to this mod's main command node.
+     * @param types Every class containing annotated command methods.
      */
     @PlatformMustInherit
     public static void registerCommands(final ModDescriptor mod, final boolean libCommands, final Class<?>... types) {
