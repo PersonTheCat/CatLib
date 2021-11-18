@@ -17,7 +17,7 @@ public class VersionTracker extends ConfigTracker<Version> {
      */
     private VersionTracker(final Builder builder, final Version current) {
         super(builder, current);
-        this.change = this.getCached() != null ? this.getCached().compareTo(current) : 0;
+        this.change = this.getCachedOrDefault(Version.ZERO).compareTo(current);
     }
 
     /**
