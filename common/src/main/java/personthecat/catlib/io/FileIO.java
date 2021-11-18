@@ -431,8 +431,10 @@ public class FileIO {
      * @param f The file or directory being deleted.
      */
     public static void delete(final File f) {
-        if (f.isFile() && !f.delete()) {
-            throw resourceEx("Error deleting file {}.", f.getName());
+        if (f.isFile()) {
+            if (!f.delete()) {
+                throw resourceEx("Error deleting file {}.", f.getName());
+            }
         } else {
             try {
                 Files.walk(f.toPath()).sorted(Comparator.reverseOrder()).forEach(p -> {
