@@ -1,29 +1,30 @@
 package personthecat.catlib.event;
 
-import personthecat.catlib.data.NonRecursiveIterable;
+import personthecat.catlib.data.NonRecursiveObserverSet;
+import personthecat.catlib.data.ObserverSet;
+import personthecat.catlib.data.SimpleObserverSet;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.function.Function;
 
 public class LibEvent<T> {
-    private final Function<Collection<T>, T> event;
-    private final Collection<T> listeners;
-    private volatile T invoker;
+    private final ObserverSet<T> listeners;
+    private final T invoker;
 
-    private LibEvent(final Function<Collection<T>, T> event, final Collection<T> listeners) {
-        this.event = event;
+    private LibEvent(final ObserverSet<T> listeners, final T invoker) {
         this.listeners = listeners;
-        this.invoker = null;
+        this.invoker = invoker;
     }
 
-    public static <T> LibEvent<T> create(final Function<Collection<T>, T> event) {
-        return new LibEvent<>(event, Collections.synchronizedList(new ArrayList<>()));
+    public static <T> LibEvent<T> create(final Function<ObserverSet<T>, T> event) {
+        return create(new SimpleObserverSet<>(), event);
     }
 
-    public static <T> LibEvent<T> nonRecursive(final Function<Collection<T>, T> event) {
-        return new LibEvent<>(event, Collections.synchronizedCollection(new NonRecursiveIterable<>(new ArrayList<>())));
+    public static <T> LibEvent<T> nonRecursive(final Function<ObserverSet<T>, T> event) {
+        return create(new NonRecursiveObserverSet<>(), event);
+    }
+
+    private static <T> LibEvent<T> create(final ObserverSet<T> listeners, final Function<ObserverSet<T>, T> event) {
+        return new LibEvent<>(listeners, event.apply(listeners));
     }
 
     public LibEvent<T> register(final T listener) {
@@ -37,27 +38,19 @@ public class LibEvent<T> {
         return this.listeners.contains(listener);
     }
 
-    public boolean deregister(final T listener) {
-        return this.listeners.remove(listener);
+    public void deregister(final T listener) {
+        this.listeners.remove(listener);
     }
 
     public T invoker() {
-        if (this.invoker != null) {
-            return this.invoker;
-        }
-        return this.update().invoker;
-    }
-
-    private synchronized LibEvent<T> update() {
-        if (this.listeners.size() == 1) {
-            this.invoker = this.listeners.iterator().next();
-        } else {
-            this.invoker = this.event.apply(this.listeners);
-        }
-        return this;
+        return this.invoker;
     }
 
     public boolean isEmpty() {
         return this.listeners.isEmpty();
+    }
+
+    public void clear() {
+        this.listeners.clear();
     }
 }
