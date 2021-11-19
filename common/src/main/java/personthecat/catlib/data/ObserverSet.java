@@ -110,10 +110,43 @@ public interface ObserverSet<O> {
         for (final O o : collection) this.remove(o);
     }
 
+    /**
+     * The backbone of every <code>ObserverSet</code> implementation. These entries
+     * are used to attach state-like metadata to the observers in this collection.
+     * This enables the object to effectively "remove" entries at a global scale,
+     * even if the underlying collection has been cloned.
+     *
+     * @param <O> The type of observer contained within this collection.
+     */
     interface TrackedEntry<O> {
+
+        /**
+         * Indicates whether this entry is currently being operated on.
+         *
+         * @return <code>true</code>, if this entry is in-use.
+         */
         boolean isActive();
+
+        /**
+         * Indicates whether this entry has been effectively removed.
+         *
+         * <p>Note that the default implementations of this interface are only used
+         * when this observer has also been removed from the source collection.
+         *
+         * @return <code>true</code> if this entry was removed from the source.
+         */
         boolean isRemoved();
+
+        /**
+         * Flags this entry as having been removed from the source collection.
+         */
         void remove();
+
+        /**
+         * Exposes the raw observer being wrapped.
+         *
+         * @return The raw observer.
+         */
         O getObserver();
     }
 }
