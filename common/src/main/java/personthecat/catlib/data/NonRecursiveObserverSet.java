@@ -14,6 +14,7 @@ public class NonRecursiveObserverSet<O> extends SimpleObserverSet<O> {
         super(entries);
     }
 
+    @Override
     public boolean hasActiveEntries() {
         for (final SimpleTrackedEntry<O> entry : this.tracked) {
             if (entry.isActive()) {
