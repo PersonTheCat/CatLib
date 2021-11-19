@@ -111,6 +111,17 @@ public interface ObserverSet<O> {
     }
 
     /**
+     * Indicates whether any of the entries in this collection are currently
+     * being acted on. Note that not all implementors are guaranteed to track
+     * this information.
+     *
+     * @return <code>true</code> if any listeners are in use.
+     */
+    default boolean hasActiveEntries() {
+        return false;
+    }
+
+    /**
      * The backbone of every <code>ObserverSet</code> implementation. These entries
      * are used to attach state-like metadata to the observers in this collection.
      * This enables the object to effectively "remove" entries at a global scale,
