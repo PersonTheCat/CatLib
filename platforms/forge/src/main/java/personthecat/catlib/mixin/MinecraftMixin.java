@@ -20,9 +20,12 @@ public abstract class MinecraftMixin {
     @Inject(method = "setScreen", at = @At("HEAD"))
     public void postInit(final @Nullable Screen screen, final CallbackInfo ci) {
         if (INIT_COMPLETE.compareAndSet(false, true)) {
-            if (!(screen instanceof LoadingErrorScreen)) {
-                GameReadyEvent.CLIENT.invoker().run();
+            if (screen instanceof LoadingErrorScreen) {
+                if (!((LoadingErrorScreenAccessor) screen).getModLoadErrors().isEmpty()) {
+                    return;
+                }
             }
+            GameReadyEvent.CLIENT.invoker().run();
         }
     }
 }

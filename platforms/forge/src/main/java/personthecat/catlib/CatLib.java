@@ -11,6 +11,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.catlib.command.*;
 import personthecat.catlib.command.arguments.*;
 import personthecat.catlib.config.LibConfig;
+import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.event.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
@@ -56,6 +57,10 @@ public class CatLib {
             CommonPlayerEvent.LOGIN.invoker().accept(e.getPlayer(), e.getPlayer().getServer()));
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent e) ->
             CommonPlayerEvent.LOGOUT.invoker().accept(e.getPlayer(), e.getPlayer().getServer()));
+
+        GameReadyEvent.COMMON.register(() -> {
+            System.out.println("Testing game ready event!");
+        });
     }
 
     private void initServer(final FMLServerStartingEvent event) {
