@@ -416,12 +416,13 @@ public class FileIO {
      * @param dir The directory containing the files being truncated.
      * @param f The being moved into the backup folder.
      * @param count The maximum number of matching backups to keep in this directory.
+     * @return <code>true</code>, if any backups were deleted.
      */
-    public static void truncateBackups(final File dir, final File f, final int count) {
+    public static boolean truncateBackups(final File dir, final File f, final int count) {
         if (!mkdirs(dir)) {
             throw resourceEx("Error creating backup directory: {}", dir);
         }
-        new BackupHelper(f).truncate(dir, count);
+        return new BackupHelper(f).truncate(dir, count);
     }
 
     /**

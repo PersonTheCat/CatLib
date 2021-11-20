@@ -48,9 +48,9 @@ public class BackupHelper {
         return matching.size();
     }
 
-    void truncate(final File dir, final int count) {
+    boolean truncate(final File dir, final int count) {
         final File[] arr = dir.listFiles(this::matches);
-        if (arr == null || arr.length == 0) return;
+        if (arr == null || arr.length == 0) return false;
         for (final File f : arr) {
             if (getNumber(f) >= count) {
                 if (!f.delete()) {
@@ -58,6 +58,7 @@ public class BackupHelper {
                 }
             }
         }
+        return arr.length >= count;
     }
 
     boolean matches(final File file) {
