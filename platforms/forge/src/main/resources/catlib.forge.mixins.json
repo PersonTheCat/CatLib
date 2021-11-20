@@ -7,13 +7,12 @@
     "BiomeGenerationSettingsAccessor",
     "BiomeGenerationSettingsBuilderAccessor",
     "ForgeRegistryMixin",
-    "LoadingErrorScreenAccessor",
     "MojangRegistryMixin",
     "RegistryAccessMixin",
     "RegistryReadOpsMixin"
   ],
   "client": [
-    "MinecraftMixin"
+    "TitleScreenMixin"
   ],
   "server": [
     "MainServerMixin"

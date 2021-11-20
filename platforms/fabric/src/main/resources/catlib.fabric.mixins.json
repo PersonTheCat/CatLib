@@ -7,7 +7,7 @@
     "RegistryReadOpsMixin"
   ],
   "client": [
-    "MinecraftMixin"
+    "TitleScreenMixin"
   ],
   "server": [
     "MainServerMixin"
