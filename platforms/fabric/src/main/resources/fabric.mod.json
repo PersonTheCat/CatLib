@@ -19,7 +19,8 @@
     ]
   },
   "mixins": [
-    "catlib.fabric.mixins.json"
+    "catlib.fabric.mixins.json",
+    "catlib.common.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",

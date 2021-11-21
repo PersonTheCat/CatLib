@@ -12,6 +12,7 @@ architectury {
 loom {
     silentMojangMappingsLicense()
     mixinConfig 'catlib.fabric.mixins.json'
+    mixinConfig 'catlib.common.mixins.json'
 }
 
 dependencies {

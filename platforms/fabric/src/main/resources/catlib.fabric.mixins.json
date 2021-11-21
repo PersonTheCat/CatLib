@@ -6,12 +6,6 @@
     "BiomeModificationContextAccessor",
     "RegistryReadOpsMixin"
   ],
-  "client": [
-    "TitleScreenMixin"
-  ],
-  "server": [
-    "MainServerMixin"
-  ],
   "injectors": {
     "defaultRequire": 1
   },

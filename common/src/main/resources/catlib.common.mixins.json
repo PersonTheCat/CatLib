@@ -3,7 +3,9 @@
   "package": "personthecat.catlib.mixin",
   "compatibilityLevel": "JAVA_8",
   "server": [
-    "MainServerMixin",
+    "MainServerMixin"
+  ],
+  "client": [
     "TitleScreenMixin"
   ],
   "injectors": {
