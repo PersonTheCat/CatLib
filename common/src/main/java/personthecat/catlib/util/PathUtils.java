@@ -5,6 +5,8 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static personthecat.catlib.io.FileIO.listFiles;
@@ -278,9 +280,17 @@ public class PathUtils {
      */
     public static Stream<String> getContents(final File root, final File current, boolean simple) {
         final File dir = current.isDirectory() ? current : current.getParentFile();
-        final Stream<File> files = Stream.of(listFiles(dir));
-        return simple ? files.map(f -> noExtension(formatContents(root, f)))
-            : files.map(f -> formatContents(root, f));
+        if (simple) {
+            final Set<String> contents = new HashSet<>();
+            for (final File file : listFiles(dir)) {
+                final String format = formatContents(root, file);
+                if (!contents.add(noExtension(format))) {
+                    contents.add(format);
+                }
+            }
+            return contents.stream();
+        }
+        return Stream.of(listFiles(dir)).map(f -> formatContents(root, f));
     }
 
     /**
