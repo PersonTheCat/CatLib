@@ -6,12 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.exception.MissingElementException;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -89,7 +84,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      * @return An immutable registry which cannot be refreshed.
      */
     public static <K, V> SafeRegistry<K, V> of(final Map<K, V> map) {
-        return new SafeRegistry<>(new Lazy<>(map), DEFAULT_ERROR::apply);
+        return new SafeRegistry<>(new Lazy<>(Collections.unmodifiableMap(map)), DEFAULT_ERROR::apply);
     }
 
     /**
@@ -103,7 +98,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
      * @return An immutable registry which cannot be refreshed.
      */
     public static <K, V> SafeRegistry<K, V> of(final Supplier<Map<K, V>> event, final ErrorFunction<K> err) {
-        return new SafeRegistry<>(new Lazy<>(event), err);
+        return new SafeRegistry<>(new Lazy<>(() -> Collections.unmodifiableMap(event.get())), err);
     }
 
     /**
