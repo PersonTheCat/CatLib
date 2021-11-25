@@ -51,10 +51,11 @@ public class Range implements Iterable<Integer> {
         if (ints.isEmpty()) return empty();
         final IntRef min = new IntRef(ints.get(0));
         final IntRef max = new IntRef(ints.get(0));
-        ints.forEach(i -> {
-            min.set(Math.min(min.get(), i));
-            max.set(Math.max(max.get(), i));
-        });
+        for (int i = 1; i < ints.size(); i++) {
+            final int n = ints.get(i);
+            min.set(Math.min(min.get(), n));
+            max.set(Math.max(max.get(), n));
+        }
         return new Range(min.get(), max.get());
     }
 
