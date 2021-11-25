@@ -10,6 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -367,6 +368,51 @@ public class Shorthand {
             if (filter.test(item)) {
                 iterator.remove();
                 into.add(item);
+            }
+        }
+        return into;
+    }
+
+    /**
+     * Direct variant of {@link Stream#filter} which generates a new collection.
+     *
+     * @param source The original data source being filtered out of.
+     * @param filter The filter for which files to retain in the collection.
+     * @param <T> The type of data in the collection.
+     * @param <R> The type of collection being returned.
+     * @return A new collection containing the filtered data.
+     */
+    public static <T> List<T> filter(final List<T> source, final Predicate<T> filter) {
+        return filter(source, new ArrayList<>(), filter);
+    }
+
+    /**
+     * Direct variant of {@link Stream#filter} which generates a new collection.
+     *
+     * @param source The original data source being filtered out of.
+     * @param filter The filter for which files to retain in the collection.
+     * @param <T> The type of data in the collection.
+     * @param <R> The type of collection being returned.
+     * @return A new collection containing the filtered data.
+     */
+    public static <T> Set<T> filter(final Set<T> source, final Predicate<T> filter) {
+        return filter(source, new HashSet<>(), filter);
+    }
+
+    /**
+     * Direct variant of {@link Stream#filter} which generates a new collection.
+     *
+     * @param source The original data source being filtered out of.
+     * @param into The collection being copied into.
+     * @param filter The filter for which files to retain in the collection.
+     * @param <T> The type of data in the collection.
+     * @param <R> The type of collection being returned.
+     * @return A new collection containing the filtered data.
+     */
+    public static <T, R extends Collection<T>> R filter(final Collection<T> source, final R into, final Predicate<T> filter) {
+        for (final T t : source) {
+            if (filter.test(t)) {
+                into.add(t);
             }
         }
         return into;
