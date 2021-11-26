@@ -49,14 +49,14 @@ public class Range implements Iterable<Integer> {
 
     public static Range fromList(final List<Integer> ints) {
         if (ints.isEmpty()) return empty();
-        final IntRef min = new IntRef(ints.get(0));
-        final IntRef max = new IntRef(ints.get(0));
+        int min = ints.get(0);
+        int max = min;
         for (int i = 1; i < ints.size(); i++) {
             final int n = ints.get(i);
-            min.set(Math.min(min.get(), n));
-            max.set(Math.max(max.get(), n));
+            min = Math.min(min, n);
+            max = Math.max(max, n);
         }
-        return new Range(min.get(), max.get());
+        return new Range(min, max);
     }
 
     public static Range checkedOrEmpty(int min, int max) {
