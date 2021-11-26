@@ -1,7 +1,5 @@
 package personthecat.catlib.util;
 
-import java.util.Random;
-
 /**
  * Generates noise quickly. Useful when shape isn't so important.
  * <p>
@@ -15,27 +13,13 @@ public class HashGenerator {
     private static final long Y_MULTIPLE = 0x7A69; // 31337
     private static final long Z_MULTIPLE = 0x1B3B; // 6971
 
-    private static final long GENERAL_MULTIPLE = 0x5DEECE66DL; // 25214903917
-    private static final long ADDEND = 0xBL;                   // 11
-    private static final long MASK = 0xFFFFFFFFFFFFL;          // 281474976710656
-    private static final long SCALE = 0x16345785D8A0000L;      // E18
+    private static final long SCALE = 0x16345785D8A0000L; // E18
 
-    /** The scrambled seed to use for hash generation. */
-    private final long seed;
+    private HashGenerator() {}
 
-    public HashGenerator(final long seed) {
-        this.seed = scramble(seed);
-    }
-
-    /** Similar to {@link Random}'s scramble method. */
-    private static long scramble(final long seed) {
-        long newSeed = (seed ^ GENERAL_MULTIPLE) & MASK;
-        return (newSeed * GENERAL_MULTIPLE + ADDEND) & MASK;
-    }
-
-    public double getHash(final int x, final int y, final int z) {
+    public static double getHash(final long seed, final int x, final int y, final int z) {
         // Clone the seed to allow for reuse.
-        long hash = this.seed;
+        long hash = seed;
 
         // Mask the value using x, y, and z.
         hash ^= x * X_MULTIPLE;

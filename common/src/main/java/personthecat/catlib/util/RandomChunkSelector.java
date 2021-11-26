@@ -16,9 +16,6 @@ package personthecat.catlib.util;
 @SuppressWarnings("unused")
 public class RandomChunkSelector {
 
-    /** The hashing algorithm to be used for selecting chunks. */
-    private final HashGenerator noise;
-
     /** Reflects the probability of selection for any given chunk. */
     private static final double MAX_THRESHOLD = 91.0; // Highest possible value.
 
@@ -34,13 +31,35 @@ public class RandomChunkSelector {
     /** The radius of chunks to search outward. */
     private static final int DISTANCE = 2;
 
-    public RandomChunkSelector(final long worldSeed) {
-        this.noise = new HashGenerator(worldSeed);
+    public static final RandomChunkSelector DEFAULT = new RandomChunkSelector();
+
+    private final long defaultSeed;
+
+    protected RandomChunkSelector() {
+        this.defaultSeed = 0L;
+    }
+
+    public RandomChunkSelector(final long defaultSeed) {
+        this.defaultSeed = defaultSeed;
     }
 
     /**
      * Obtain a random value from the three inputs using HashGenerator.
      * The threshold reflects the probability of selection.
+     *
+     * @param seed The seed to use for this comparison.
+     * @param ID A unique identifier to further scramble the output.
+     * @param x The chunk's x-coordinate.
+     * @param y The chunk's y-coordinate.
+     * @return whether this chunk has been selected.
+     */
+    public boolean testCoordinates(final long seed, final int ID, final int x, final int y) {
+        return HashGenerator.getHash(seed, x, y, ID) > DEFAULT_THRESHOLD;
+    }
+
+    /**
+     * Variant of {@link #testCoordinates(long, int, int, int)} providing
+     * a default seed.
      *
      * @param ID A unique identifier to further scramble the output.
      * @param x The chunk's x-coordinate.
@@ -48,12 +67,27 @@ public class RandomChunkSelector {
      * @return whether this chunk has been selected.
      */
     public boolean testCoordinates(final int ID, final int x, final int y) {
-        return this.noise.getHash(x, y, ID) > DEFAULT_THRESHOLD;
+        return HashGenerator.getHash(this.defaultSeed, x, y, ID) > DEFAULT_THRESHOLD;
     }
 
     /**
-     * Variant of {@link #testCoordinates(int, int, int)} accepting a
+     * Variant of {@link #testCoordinates(long, int, int, int)} accepting a
      * custom threshold.
+     *
+     * @param seed The seed to use for this comparison.
+     * @param ID A unique identifier to further scramble the output.
+     * @param x The chunk's x-coordinate.
+     * @param y The chunk's y-coordinate.
+     * @param threshold The minimum accepted output from the hasher.
+     * @return whether this chunk has been selected.
+     */
+    public boolean testCoordinates(final long seed, final int ID, final int x, final int y, final double threshold) {
+        return HashGenerator.getHash(seed, x, y, ID) > threshold;
+    }
+
+    /**
+     * Variant of {@link #testCoordinates(long, int, int, int, double)}
+     * providing a default seed.
      *
      * @param ID A unique identifier to further scramble the output.
      * @param x The chunk's x-coordinate.
@@ -62,7 +96,21 @@ public class RandomChunkSelector {
      * @return whether this chunk has been selected.
      */
     public boolean testCoordinates(final int ID, final int x, final int y, final double threshold) {
-        return this.noise.getHash(x, y, ID) > threshold;
+        return HashGenerator.getHash(this.defaultSeed, x, y, ID) > threshold;
+    }
+
+    /**
+     * Returns a random probability when given a chunk's coordinates and
+     * a unique identifier.
+     *
+     * @param seed The seed to use for this comparison.
+     * @param ID A unique identifier to further scramble the output.
+     * @param x The chunk's x-coordinate.
+     * @param y The chunk's y-coordinate.
+     * @return A 0-1 probability representing a spawn chance for this chunk.
+     */
+    public double getProbability(final long seed, final int ID, final int x, final int y) {
+        return getProbability(seed, ID, x, y, DEFAULT_THRESHOLD);
     }
 
     /**
@@ -88,12 +136,12 @@ public class RandomChunkSelector {
      * @param threshold The minimum accepted output from the hasher.
      * @return A 0-1 probability representing a spawn chance for this chunk.
      */
-    public double getProbability(final int ID, final int x, final int y, final double threshold) {
-        if (testCoordinates(ID, x, y, threshold)) {
+    public double getProbability(final long seed, final int ID, final int x, final int y, final double threshold) {
+        if (testCoordinates(seed, ID, x, y, threshold)) {
             return MAX_PROBABILITY;
         }
         for (int i = 1; i <= DISTANCE; i++) {
-            if (testDistance(ID, x, y, i, threshold)) {
+            if (testDistance(seed, ID, x, y, i, threshold)) {
                 // (0.8) -> 0.4 -> 0.2 -> etc.
                 return (double) ((int) (MAX_PROBABILITY * 100) >> i) / 100.0;
             }
@@ -102,8 +150,23 @@ public class RandomChunkSelector {
     }
 
     /**
+     * Variant of {@link #getProbability(long, int, int, int, double)} providing
+     * a default seed.
+     *
+     * @param ID A unique identifier to further scramble the output.
+     * @param x The chunk's x-coordinate.
+     * @param y The chunk's y-coordinate.
+     * @param threshold The minimum accepted output from the hasher.
+     * @return A 0-1 probability representing a spawn chance for this chunk.
+     */
+    public double getProbability(final int ID, final int x, final int y, final double threshold) {
+        return getProbability(this.defaultSeed, ID, x, y, threshold);
+    }
+
+    /**
      * Scans (most of) the surrounding chunks +- radius.
      *
+     * @param seed The used to use for this comparison.
      * @param ID A unique identifier to further scramble the output.
      * @param x The chunk's x-coordinate.
      * @param y The chunk's y-coordinate.
@@ -111,24 +174,24 @@ public class RandomChunkSelector {
      * @param threshold The minimum accepted output from the hasher.
      * @return Whether an matches were found.
      */
-    private boolean testDistance(final int ID, final int x, final int y, final int radius, final double threshold) {
+    private boolean testDistance(final long seed, final int ID, final int x, final int y, final int radius, final double threshold) {
         final int diameter = (radius * 2) + 1;
         final int innerLength = diameter - 2;
         final int shift = -(radius - 1);
 
         // Test the corners;
-        if (testCoordinates(ID, x + radius, y + radius)
-            || testCoordinates(ID, x - radius, y - radius)
-            || testCoordinates(ID, x + radius, y - radius)
-            || testCoordinates(ID, x - radius, y + radius)) {
+        if (testCoordinates(seed, ID, x + radius, y + radius)
+            || testCoordinates(seed, ID, x - radius, y - radius)
+            || testCoordinates(seed, ID, x + radius, y - radius)
+            || testCoordinates(seed, ID, x - radius, y + radius)) {
             return true;
         }
         // Test the sides.
         for (int i = shift; i < innerLength + shift; i++) {
-            if (testCoordinates(ID, x + radius, y + i, threshold)
-                || testCoordinates(ID, x + i, y + radius, threshold)
-                || testCoordinates(ID, x - radius, y + i, threshold)
-                || testCoordinates(ID, x + i, y - radius, threshold)) {
+            if (testCoordinates(seed, ID, x + radius, y + i, threshold)
+                || testCoordinates(seed, ID, x + i, y + radius, threshold)
+                || testCoordinates(seed, ID, x - radius, y + i, threshold)
+                || testCoordinates(seed, ID, x + i, y - radius, threshold)) {
                 return true;
             }
         }
