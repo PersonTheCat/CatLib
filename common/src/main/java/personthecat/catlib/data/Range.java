@@ -1,6 +1,7 @@
 package personthecat.catlib.data;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
@@ -85,6 +86,16 @@ public class Range implements Iterable<Integer> {
 
     public IntList toList() {
         return this.min == this.max ? IntLists.singleton(this.min) : IntArrayList.wrap(new int[] {this.min, this.max});
+    }
+
+    public <T> DataResult<T> validate(final T t, final Range... ranges) {
+        for (final Range range : ranges) {
+            if (!(this.contains(range.min) && this.contains(range.max))) {
+                return DataResult.error(f("Value outside of range: [{}~{}] is not in [{}~{}]",
+                    range.min, range.max, this.min, this.max));
+            }
+        }
+        return DataResult.success(t);
     }
 
     @NotNull
