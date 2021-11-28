@@ -72,7 +72,7 @@ public class DefaultLibCommands {
     private static final Style UNDO_STYLE = Style.EMPTY
         .withColor(ChatFormatting.GRAY)
         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("Click to undo.")))
-        .withUnderlined(true)
+        .applyFormat(ChatFormatting.UNDERLINE)
         .withBold(true);
 
     /** Require braces for objects when executing the update command. */
