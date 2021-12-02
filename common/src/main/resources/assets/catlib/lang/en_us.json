@@ -1,0 +1,5 @@
+{
+  "catlib.errorMenu.numErrors": "Encountered errors for %d mod(s)",
+  "catlib.errorMenu.mods": "Mods",
+  "catlib.errorMenu.misc": "Miscellaneous Errors"
+}

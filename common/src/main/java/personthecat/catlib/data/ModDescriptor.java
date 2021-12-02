@@ -49,6 +49,16 @@ public class ModDescriptor {
 
     SyntaxLinter defaultLinter;
 
+    @Override
+    public boolean equals(final Object o) {
+        return o instanceof ModDescriptor && this.modId.equals(((ModDescriptor) o).getModId());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.modId.hashCode();
+    }
+
     public static class ModDescriptorBuilder {
         public ModDescriptor build() {
             Objects.requireNonNull(this.name, "name must not be null");

@@ -4,18 +4,15 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
-import net.minecraft.core.Direction;
 import personthecat.catlib.data.Lazy;
+import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
+import personthecat.overwritevalidator.annotations.InheritMissingMembers;
 import personthecat.overwritevalidator.annotations.Overwrite;
 import personthecat.overwritevalidator.annotations.OverwriteClass;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-
 @OverwriteClass
+@InheritMissingMembers
 @Config(name = LibReference.MOD_ID)
 public class LibConfig implements ConfigData {
 
@@ -29,8 +26,17 @@ public class LibConfig implements ConfigData {
         return CONFIG.get().general.enableGlobalLibCommands;
     }
 
+    @Overwrite
+    public static Severity getErrorLevel() {
+        return CONFIG.get().general.errorLevel;
+    }
+
     private static class General {
+
         @Comment("Whether to enable this library's provided commands as regular commands.")
         boolean enableGlobalLibCommands = false;
+
+        @Comment("The minimum error level to display in the error menu. (warn, error, fatal)")
+        Severity errorLevel = Severity.ERROR;
     }
 }
