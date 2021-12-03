@@ -19,6 +19,10 @@ import java.util.*;
 
 public class LibErrorMenu extends LibMenu {
 
+    private static final int PADDING = 6;
+    private static final int MAX_SIZE = 756;
+    private static final int MID_SIZE = 596;
+
     private final Map<ModDescriptor, CategorizedList> options;
     private final MultiValueMap<ModDescriptor, FormattedException> errors;
     private final List<ModDescriptor> keys;
@@ -52,7 +56,7 @@ public class LibErrorMenu extends LibMenu {
         this.updateButtons();
         this.rebuildOptions();
         this.current = this.options.get(this.keys.get(this.page));
-        this.mods = new CategorizedList(this, 6, this.width / 2, this.createModButtons());
+        this.mods = new CategorizedList(this, this.getModMenuLeft(), this.getModMenuRight(), this.createModButtons());
         this.mods.deselectAll();
         this.mods.selectButton(this.page);
         this.children.add(this.current);
@@ -71,9 +75,25 @@ public class LibErrorMenu extends LibMenu {
         this.options.clear();
         for (final Map.Entry<ModDescriptor, List<FormattedException>> entry : this.errors.entrySet()) {
             final MultiValueMap<String, FormattedException> sorted = sortExceptions(entry.getValue());
-            final CategorizedList list = new CategorizedList(this, this.width / 2 - 6, this.width, createErrorButtons(sorted));
+            final CategorizedList list = new CategorizedList(this, this.getErrorMenuLeft(), this.getErrorMenuRight(), createErrorButtons(sorted));
             this.options.put(entry.getKey(), list);
         }
+    }
+
+    private int getModMenuLeft() {
+        return this.width < MAX_SIZE ? PADDING : this.width / 2 - (MID_SIZE / 2);
+    }
+
+    private int getModMenuRight() {
+        return this.width / 2;
+    }
+
+    private int getErrorMenuLeft() {
+        return this.width / 2 - PADDING;
+    }
+
+    private int getErrorMenuRight() {
+        return this.width < MAX_SIZE ? this.width : this.width / 2 + (MID_SIZE / 2);
     }
 
     private MultiValueMap<String, AbstractWidget> createModButtons() {
