@@ -5,15 +5,18 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.item.ItemInput;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.mutable.MutableObject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.annotations.Node;
@@ -25,9 +28,13 @@ import personthecat.catlib.command.LibCommandBuilder.CommandGenerator;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.IntRef;
 import personthecat.catlib.data.ModDescriptor;
+import personthecat.catlib.event.error.LibErrorContext;
+import personthecat.catlib.exception.FormattedException;
+import personthecat.catlib.exception.UncheckedFormattedException;
 import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.Shorthand;
 import personthecat.catlib.util.unsafe.CachingReflectionHelper;
+import personthecat.fresult.functions.ThrowingBiConsumer;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -35,81 +42,107 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static personthecat.catlib.util.Shorthand.f;
 import static personthecat.catlib.util.unsafe.CachingReflectionHelper.tryInstantiate;
 
-@UtilityClass
 public class CommandClassEvaluator {
+
+    private static final String COMMAND_CATEGORY = "catlib.errorMenu.commands";
+    private static final String GENERIC_ERROR = "catlib.errorText.commandClass";
+    private static final String NO_PARAMETERS = "catlib.errorText.noParameters";
+    private static final String EXPECTED_BUILDER = "catlib.errorText.expectedBuilder";
+    private static final String COULD_NOT_INVOKE = "catlib.errorText.noInvoke";
+    private static final String MISSING_COMPILE_ARG = "catlib.errorText.missingCompileArg";
+    private static final String COMMAND_NODE = "catlib.errorText.commandNode";
+    private static final String LIST_NODE = "catlib.errorText.listNode";
+    private static final String DISPLAY_NODE = "catlib.errorText.displayNode";
 
     private static final Mapping<?, ?>[] AUTOMATIC_MAPPINGS = {
         new Mapping<>(BlockInput.class, BlockState.class, BlockInput::getState),
         new Mapping<>(ItemInput.class, Item.class, ItemInput::getItem)
     };
 
+    private final List<LibCommandBuilder> builders;
+    private final ModDescriptor mod;
+    private Object instance;
+    private Class<?> clazz;
+
+    private CommandClassEvaluator(final ModDescriptor mod) {
+        this.builders = new ArrayList<>();
+        this.mod = mod;
+        this.instance = null;
+    }
+
     public static List<LibCommandBuilder> getBuilders(final ModDescriptor mod, final Class<?>... classes) {
-        final List<LibCommandBuilder> builders = new ArrayList<>();
+        final CommandClassEvaluator evaluator = new CommandClassEvaluator(mod);
         for (final Class<?> c : classes) {
-            final MutableObject<Object> instance = new MutableObject<>();
-            addCommandBuilders(builders, instance, c);
-            addModCommands(mod, builders, instance, c);
+            evaluator.instance = null;
+            evaluator.clazz = c;
+            evaluator.addCommandBuilders();
+            evaluator.addModCommands();
         }
-        return builders;
+        return evaluator.builders;
     }
 
     public static List<LibCommandBuilder> getBuilders(final ModDescriptor mod, final Object... instances) {
-        final List<LibCommandBuilder> builders = new ArrayList<>();
+        final CommandClassEvaluator evaluator = new CommandClassEvaluator(mod);
         for (final Object o : instances) {
-            final MutableObject<Object> instance = new MutableObject<>(o);
-            addCommandBuilders(builders, instance, o.getClass());
-            addModCommands(mod, builders, instance, o.getClass());
+            evaluator.instance = o;
+            evaluator.clazz = o.getClass();
+            evaluator.addCommandBuilders();
+            evaluator.addModCommands();
         }
-        return builders;
+        return evaluator.builders;
     }
 
-    private static void addCommandBuilders(List<LibCommandBuilder> builders, MutableObject<Object> instance, Class<?> c) {
-        forEachAnnotated(c, CommandBuilder.class, (m, a) -> {
+    private void addCommandBuilders() {
+        forEachAnnotated(CommandBuilder.class, (m, a) -> {
             if (m.getParameterCount() > 0) {
-                throw new CommandClassEvaluationException("{} must have no parameters", m.getName());
+                throw new CommandClassEvaluationException(NO_PARAMETERS, m);
             }
             if (!LibCommandBuilder.class.isAssignableFrom(m.getReturnType())) {
-                throw new CommandClassEvaluationException("{} must return a LibCommandBuilder", m.getName());
+                throw new CommandClassEvaluationException(EXPECTED_BUILDER, m);
             }
-            if (instance.getValue() == null && !Modifier.isStatic(m.getModifiers())) {
-                instance.setValue(CachingReflectionHelper.tryInstantiate(c));
+            if (this.instance == null && !Modifier.isStatic(m.getModifiers())) {
+                this.instance = CachingReflectionHelper.tryInstantiate(this.clazz);
             }
-            builders.add(getValue(m, instance.getValue()));
+            builders.add(getValue(m));
         });
     }
 
-    private static void addModCommands(ModDescriptor mod, List<LibCommandBuilder> builders, MutableObject<Object> instance, Class<?> c) {
-        forEachAnnotated(c, ModCommand.class, (m, a) -> {
-            if (instance.getValue() == null && !Modifier.isStatic(m.getModifiers())) {
-                instance.setValue(CachingReflectionHelper.tryInstantiate(c));
+    private void addModCommands() {
+        forEachAnnotated(ModCommand.class, (m, a) -> {
+            if (this.instance == null && !Modifier.isStatic(m.getModifiers())) {
+                this.instance = CachingReflectionHelper.tryInstantiate(this.clazz);
             }
-            builders.add(createBuilder(mod, instance.getValue(), m, a));
+            builders.add(createBuilder(m, a));
         });
     }
 
-    private static <A extends Annotation> void forEachAnnotated(Class<?> c, Class<A> a, BiConsumer<Method, A> command) {
-        for (final Method m : c.getDeclaredMethods()) {
+    private <A extends Annotation> void forEachAnnotated(Class<A> a, ThrowingBiConsumer<Method, A, FormattedException> command) {
+        for (final Method m : this.clazz.getDeclaredMethods()) {
             final A annotation = m.getAnnotation(a);
             if (annotation != null) {
-                command.accept(m, annotation);
+                try {
+                    command.accept(m, annotation);
+                } catch (final UncheckedFormattedException e) {
+                    LibErrorContext.registerSingle(this.mod, e.getCause());
+                } catch (final FormattedException e) {
+                    LibErrorContext.registerSingle(this.mod, e);
+                }
             }
         }
     }
 
-    private static LibCommandBuilder createBuilder(ModDescriptor mod, Object instance, Method m, ModCommand a) {
+    private LibCommandBuilder createBuilder(Method m, ModCommand a) {
         final List<String> tokens = LibStringUtils.tokenize(m.getName());
-        final CommandFunction cmd = createConsumer(instance, m);
+        final CommandFunction cmd = createConsumer(this.instance, m);
         final List<ParsedNode> entries = createEntries(tokens, a);
         return LibCommandBuilder.named(getCommandName(tokens, a))
             .arguments(getArgumentText(entries, a))
             .description(String.join(" ", a.description()))
-            .linter(a.linter().length == 0 ? mod.getDefaultLinter() : tryInstantiate(a.linter()[0]))
+            .linter(a.linter().length == 0 ? this.mod.getDefaultLinter() : tryInstantiate(a.linter()[0]))
             .type(a.type())
             .side(a.side())
             .generate(createBranch(entries, cmd));
@@ -140,7 +173,9 @@ public class CommandClassEvaluator {
         return sb.toString();
     }
 
-    private static CommandGenerator<CommandSourceStack> createBranch(List<ParsedNode> entries, CommandFunction fn) {
+    private CommandGenerator<CommandSourceStack>
+            createBranch(List<ParsedNode> entries, CommandFunction fn) {
+
         return (builder, utl) -> {
             ArgumentBuilder<CommandSourceStack, ?> nextArg = null;
             final IntRef index = new IntRef(entries.size() - 1);
@@ -148,7 +183,13 @@ public class CommandClassEvaluator {
             boolean optional = true;
 
             while (index.get() >= 0) {
-                final ArgumentBuilder<CommandSourceStack, ?> argument = createArgument(entries, nextArg, cmd, index);
+                final ArgumentBuilder<CommandSourceStack, ?> argument;
+                try {
+                    argument = createArgument(entries, nextArg, cmd, index);
+                } catch (final FormattedException e) {
+                    throw new UncheckedFormattedException(e);
+                }
+
                 if (optional) {
                     argument.executes(cmd);
                     optional = false;
@@ -167,7 +208,7 @@ public class CommandClassEvaluator {
         };
     }
 
-    private static List<ParsedNode> createEntries(List<String> tokens, ModCommand a) {
+    private List<ParsedNode> createEntries(List<String> tokens, ModCommand a) {
         final List<ParsedNode> entries = new ArrayList<>();
         if (a.name().isEmpty() && a.value().isEmpty()) {
             addEntriesFromMethod(entries, tokens, a);
@@ -180,7 +221,7 @@ public class CommandClassEvaluator {
         return entries;
     }
 
-    private static void addEntriesFromMethod(List<ParsedNode> entries, List<String> tokens, ModCommand a) {
+    private void addEntriesFromMethod(List<ParsedNode> entries, List<String> tokens, ModCommand a) {
         for (int i = 1; i < tokens.size(); i++) {
             final String token = tokens.get(i).toLowerCase();
             for (final Node node : a.branch()) {
@@ -193,7 +234,7 @@ public class CommandClassEvaluator {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static ArgumentDescriptor<?> createDescriptor(Node node) {
+    private ArgumentDescriptor<?> createDescriptor(Node node) {
         if (node.type().length > 0) {
             return new ArgumentDescriptor<>(tryInstantiate((Class<ArgumentType<?>>)node.type()[0]));
         } else if (node.descriptor().length > 0) {
@@ -217,7 +258,7 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static ArgumentType<?> createStringArgumentType(Node node) {
+    private ArgumentType<?> createStringArgumentType(Node node) {
         final Node.StringValue value = node.stringValue()[0];
         if (value.value() == Node.StringValue.Type.GREEDY) {
             return StringArgumentType.greedyString();
@@ -228,9 +269,9 @@ public class CommandClassEvaluator {
     }
 
     @SuppressWarnings("unchecked")
-    private static ArgumentBuilder<CommandSourceStack, ?> createArgument(
+    private ArgumentBuilder<CommandSourceStack, ?> createArgument(
             List<ParsedNode> entries, ArgumentBuilder<CommandSourceStack, ?> next,
-            Command<CommandSourceStack> cmd, IntRef index) {
+            Command<CommandSourceStack> cmd, IntRef index) throws FormattedException {
 
         final ParsedNode entry = entries.get(index.get());
         final ArgumentBuilder<CommandSourceStack, ?> argument;
@@ -246,20 +287,20 @@ public class CommandClassEvaluator {
         }
         if (descriptor.getSuggestions() != null) {
             ((RequiredArgumentBuilder<CommandSourceStack, ?>) argument)
-                    .suggests(descriptor.getSuggestions());
+                .suggests(descriptor.getSuggestions());
         }
         return argument;
     }
 
-    private static String getArgumentName(Node node, ArgumentType<?> type) {
+    private String getArgumentName(Node node, ArgumentType<?> type) {
         if (!node.name().isEmpty()) return node.name();
         if (!node.value().isEmpty()) return node.value();
         return type.getClass().getSimpleName();
     }
 
-    private static ArgumentBuilder<CommandSourceStack, ?> createList(
+    private ArgumentBuilder<CommandSourceStack, ?> createList(
             List<ParsedNode> entries, ArgumentBuilder<CommandSourceStack, ?> next,
-            Command<CommandSourceStack> cmd, int index) {
+            Command<CommandSourceStack> cmd, int index) throws FormattedException {
 
         final ParsedNode entry = entries.get(index);
         final ListArgumentBuilder listBuilder =
@@ -277,16 +318,16 @@ public class CommandClassEvaluator {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T getValue(Method m, Object instance) {
+    private <T> T getValue(Method m) throws CommandClassEvaluationException {
         m.setAccessible(true);
         try {
-            return (T) m.invoke(instance);
+            return (T) m.invoke(this.instance);
         } catch (final IllegalAccessException | InvocationTargetException ignored) {
-            throw new CommandClassEvaluationException("Could not invoke: {}", m.getName());
+            throw new CommandClassEvaluationException(COULD_NOT_INVOKE, m);
         }
     }
 
-    private static CommandFunction createConsumer(Object instance, Method m) {
+    private CommandFunction createConsumer(Object instance, Method m) {
         m.setAccessible(true);
         final Parameter[] params = removeImplicit(m.getParameters());
         if (params.length == 0) {
@@ -303,7 +344,7 @@ public class CommandClassEvaluator {
         return params;
     }
 
-    private static Object[] getArgs(CommandContextWrapper ctx, Parameter[] params) {
+    private Object[] getArgs(CommandContextWrapper ctx, Parameter[] params) throws CommandClassEvaluationException {
         final Object[] args = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
             final Parameter param = params[i];
@@ -327,10 +368,10 @@ public class CommandClassEvaluator {
         return args;
     }
 
-    private static String getName(final Parameter param) {
+    private String getName(final Parameter param) throws CommandClassEvaluationException {
         if (!param.isNamePresent()) {
-            final String methodName = param.getDeclaringExecutable().getName();
-            throw new CommandClassEvaluationException("Unable to resolve real name for {}({}). Compile with -parameters", methodName, param.getName());
+            final Method m = (Method) param.getDeclaringExecutable();
+            throw new CommandClassEvaluationException(MISSING_COMPILE_ARG, m);
         }
         return param.getName();
     }
@@ -441,15 +482,65 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static class CommandClassEvaluationException extends IllegalArgumentException {
-        CommandClassEvaluationException(String msg, Object... args) {
-            super(f(msg, args));
+    private class CommandClassEvaluationException extends FormattedException {
+        final Method method;
+
+        CommandClassEvaluationException(String msg, Method method) {
+            super(msg);
+            this.method = method;
+        }
+
+        @Override
+        public @NotNull String getCategory() {
+            return COMMAND_CATEGORY;
+        }
+
+        @Override
+        public @NotNull Component getDisplayMessage() {
+            return new TextComponent(this.getFullMethod());
+        }
+
+        @Override
+        public @Nullable Component getTooltip() {
+            return new TranslatableComponent(this.getMessage(), this.method.getName());
+        }
+
+        @Override
+        public @NotNull Component getTitleMessage() {
+            return new TranslatableComponent(GENERIC_ERROR, this.getFullMethod());
+        }
+
+        private String getFullMethod() {
+            return clazz.getSimpleName() + "#" + this.method.getName();
         }
     }
 
-    private static class InvalidListNodeException extends CommandClassEvaluationException {
+    private static class InvalidListNodeException extends FormattedException {
+        private final String name;
+
         InvalidListNodeException(String name) {
-            super("List node {} must be the last node or followed by a literal then any other argument", name);
+            super(COMMAND_NODE);
+            this.name = name;
+        }
+
+        @Override
+        public @NotNull String getCategory() {
+            return COMMAND_CATEGORY;
+        }
+
+        @Override
+        public @NotNull Component getDisplayMessage() {
+            return new TranslatableComponent(DISPLAY_NODE, this.name);
+        }
+
+        @Override
+        public @Nullable Component getTooltip() {
+            return new TranslatableComponent(LIST_NODE, this.name);
+        }
+
+        @Override
+        public @NotNull Component getTitleMessage() {
+            return new TranslatableComponent(COMMAND_NODE, this.name);
         }
     }
 }

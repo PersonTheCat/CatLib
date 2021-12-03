@@ -58,7 +58,8 @@ public abstract class FormattedException extends Exception {
     protected String readStacktrace() {
         final StringWriter sw = new StringWriter();
         final PrintWriter pw = new PrintWriter(sw);
-        this.getCause().printStackTrace(pw);
+        final Throwable cause = this.getCause();
+        (cause != null ? cause : this).printStackTrace(pw);
         return sw.toString().replace("\t", "    ").replace("\r", "");
     }
 }
