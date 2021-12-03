@@ -6,11 +6,11 @@ public class GenericArrayLinter extends SyntaxLinter {
 
     private static final Pattern ELEMENT_PATTERN = Pattern.compile("[^\\[\\],]+");
 
-    private static final Target[] TARGETS = {
-        new Target(ELEMENT_PATTERN, RANDOM_COLOR)
+    private static final Highlighter[] HIGHLIGHTERS = {
+        new RegexHighlighter(ELEMENT_PATTERN, RANDOM_COLOR)
     };
 
     public GenericArrayLinter() {
-        super(TARGETS);
+        super(HIGHLIGHTERS);
     }
 }
