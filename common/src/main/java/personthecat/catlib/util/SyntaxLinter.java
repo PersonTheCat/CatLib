@@ -1,10 +1,7 @@
 package personthecat.catlib.util;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.*;
 
 import javax.annotation.Nullable;
 import javax.annotation.RegEx;
@@ -51,10 +48,10 @@ public class SyntaxLinter {
     public static final Pattern MULTILINE_KEY = Pattern.compile("\\n\\s*(\\w+)\\s*(?:\\n|#|//|/\\*)(\\s*\\w+):[^{}]*}", Pattern.DOTALL);
     public static final Pattern BAD_CLOSER = Pattern.compile("[a-zA-Z]\\w*(?<!true|false|null)\\s*[]}]", Pattern.MULTILINE);
 
-    protected static final Style UNCLOSED_ERROR = error("This or a later opener is never closed.");
-    protected static final Style UNEXPECTED_ERROR = error("This closer does not belong to any container.");
-    protected static final Style MULTILINE_KEY_ERROR = error("Hjson does not allow multiline keys.");
-    protected static final Style BAD_CLOSER_ERROR = error("Closer is consumed by unquoted string. Use quotes or new line.");
+    protected static final Style UNCLOSED_ERROR = error("catlib.errorText.unclosed");
+    protected static final Style UNEXPECTED_ERROR = error("catlib.errorText.unclosed");
+    protected static final Style MULTILINE_KEY_ERROR = error("catlib.errorText.multilineKey");
+    protected static final Style BAD_CLOSER_ERROR = error("catlib.errorText.badCloser");
 
     protected static final Style RANDOM_COLOR = null;
 
@@ -144,7 +141,7 @@ public class SyntaxLinter {
      */
     public static Style error(final String s) {
         return Style.EMPTY.applyFormats(ChatFormatting.RED, ChatFormatting.UNDERLINE)
-            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, stc(s)));
+            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, translate(s)));
     }
 
     /**
@@ -155,6 +152,16 @@ public class SyntaxLinter {
      */
     public static TextComponent stc(final String s) {
         return new TextComponent(s);
+    }
+
+    /**
+     * Shorthand for a {@link TranslatableComponent}.
+     *
+     * @param s The text being wrapped.
+     * @return A wrapped, formattable output containing the translated message.
+     */
+    public static TranslatableComponent translate(final String s) {
+        return new TranslatableComponent(s);
     }
 
     /**

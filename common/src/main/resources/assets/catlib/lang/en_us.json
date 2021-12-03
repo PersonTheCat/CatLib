@@ -1,5 +1,9 @@
 {
   "catlib.errorMenu.numErrors": "Encountered errors for %d mod(s)",
   "catlib.errorMenu.mods": "Mods",
-  "catlib.errorMenu.misc": "Miscellaneous Errors"
+  "catlib.errorMenu.misc": "Miscellaneous Errors",
+  "catlib.errorText.unclosed": "This or a later opener is never closed.",
+  "catlib.errorText.unexpected": "This closer does not belong to any container.",
+  "catlib.errorText.multilineKey": "Hjson does not allow multiline keys.",
+  "catlib.errorText.badCloser": "Consumed by unquoted string. Use quotes or a new line."
 }
