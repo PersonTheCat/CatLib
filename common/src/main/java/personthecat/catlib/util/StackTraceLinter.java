@@ -48,8 +48,8 @@ public class StackTraceLinter extends SyntaxLinter {
             final String[] packs = match.split("\\.");
             sb.append(packs[0].charAt(0));
 
-            for (final String pack : packs) {
-                sb.append('.').append(pack.charAt(0));
+            for (int i = 1; i < packs.length; i++) {
+                sb.append('.').append(packs[i].charAt(0));
             }
             end = matcher.end();
         }
