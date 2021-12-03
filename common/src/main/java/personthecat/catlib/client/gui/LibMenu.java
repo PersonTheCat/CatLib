@@ -124,6 +124,11 @@ public class LibMenu extends Screen {
     }
 
     @Override
+    public void renderTooltip(PoseStack stack, Component tooltip, int x, int y) {
+        this.renderTooltip(stack, this.font.split(tooltip,this.width / 2), x, y);
+    }
+
+    @Override
     public void onClose() {
         Minecraft.getInstance().setScreen(this.parent);
     }
