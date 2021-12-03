@@ -18,7 +18,6 @@ import java.util.List;
 public class ErrorDetailPage extends LibMenu {
     private final Component details;
     private final List<FormattedCharSequence> lines;
-    private final Font font;
     public int left;
     public int right;
     private int maxScroll;
@@ -28,7 +27,6 @@ public class ErrorDetailPage extends LibMenu {
         super(parent, title);
         this.details = details;
         this.lines = new ArrayList<>();
-        this.font = Minecraft.getInstance().font;
         this.left = 6;
         this.right = 6;
         this.maxScroll = 0;

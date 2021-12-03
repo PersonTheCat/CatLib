@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -21,12 +22,14 @@ public class LibMenu extends Screen {
     protected static final int Y1 = 50;
 
     @Nullable protected Screen parent;
+    protected Font font;
     protected Button previous;
     protected Button cancel;
     protected Button next;
 
     protected LibMenu(@Nullable Screen parent, Component title) {
         super(title);
+        this.font = Minecraft.getInstance().font;
         this.parent = parent;
     }
 
