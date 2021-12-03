@@ -153,7 +153,7 @@ public class ErrorDetailPage extends LibMenu {
                 }
                 return true;
             }
-        } else if (key == GLFW.GLFW_KEY_SPACE || key == GLFW.GLFW_KEY_Q) {
+        } else if (key == GLFW.GLFW_KEY_SPACE || key == GLFW.GLFW_KEY_W) {
             this.wrap = !this.wrap;
             this.resetLines();
         }
