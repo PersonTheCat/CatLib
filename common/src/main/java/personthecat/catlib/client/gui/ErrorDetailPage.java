@@ -99,7 +99,8 @@ public class ErrorDetailPage extends LibMenu {
         }
         final Component tooltip = hover.getValue(HoverEvent.Action.SHOW_TEXT);
         if (tooltip != null) {
-            this.renderTooltip(stack, tooltip, x, y);
+            final List<FormattedCharSequence> list = this.font.split(tooltip,this.width / 2);
+            this.renderTooltip(stack, list, x, y);
         }
     }
 
