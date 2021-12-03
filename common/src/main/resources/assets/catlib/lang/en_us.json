@@ -14,5 +14,5 @@
   "catlib.errorText.expectedBuilder": "%s must return a LibCommandBuilder",
   "catlib.errorText.noInvoke": "Could not invoke %s",
   "catlib.errorText.missingCompileArg": "Unable to resolve argument names for %s. Compile with -parameters",
-  "catlib.errorText.listNode": "List node %s must be the last node or followed by a literal and then any other argument"
+  "catlib.errorText.listNode": "List node %s must be the last node or followed by a literal argument"
 }
