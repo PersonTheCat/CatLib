@@ -3,7 +3,6 @@ package personthecat.catlib.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -20,6 +19,7 @@ public class ErrorDetailPage extends LibMenu {
     private final List<FormattedCharSequence> lines;
     public int left;
     public int right;
+    public boolean wrap;
     private int maxScroll;
     private int scroll;
 
@@ -29,6 +29,7 @@ public class ErrorDetailPage extends LibMenu {
         this.lines = new ArrayList<>();
         this.left = 6;
         this.right = 6;
+        this.wrap = true;
         this.maxScroll = 0;
         this.scroll = 0;
     }
@@ -37,8 +38,7 @@ public class ErrorDetailPage extends LibMenu {
     protected void init() {
         super.init();
 
-        this.lines.clear();
-        this.lines.addAll(this.font.split(this.details,this.width - 12));
+        this.resetLines();
 
         final int menuHeight = this.height - Y1 - Y0;
         final int linesPerPage = menuHeight / (this.font.lineHeight + 1);
@@ -49,6 +49,11 @@ public class ErrorDetailPage extends LibMenu {
             this.previous.active = menu.hasPreviousError();
             this.next.active = menu.hasNextError();
         }
+    }
+
+    private void resetLines() {
+        this.lines.clear();
+        this.lines.addAll(this.font.split(this.details, this.wrap ? this.width - 12 : 10000));
     }
 
     @Override
@@ -148,6 +153,9 @@ public class ErrorDetailPage extends LibMenu {
                 }
                 return true;
             }
+        } else if (key == GLFW.GLFW_KEY_SPACE || key == GLFW.GLFW_KEY_Q) {
+            this.wrap = !this.wrap;
+            this.resetLines();
         }
         return false;
     }
