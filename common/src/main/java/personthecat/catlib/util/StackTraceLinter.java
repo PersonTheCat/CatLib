@@ -2,8 +2,6 @@ package personthecat.catlib.util;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.TextComponent;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,7 +21,7 @@ public class StackTraceLinter extends SyntaxLinter {
         new RegexHighlighter(METHOD_PATTERN, color(ChatFormatting.GOLD).withItalic(true)),
         new RegexHighlighter(SPECIAL_METHOD_PATTERN, color(ChatFormatting.GOLD).withItalic(true).withBold(true)),
         new RegexHighlighter(LINE_PATTERN, color(ChatFormatting.DARK_PURPLE).applyFormat(ChatFormatting.UNDERLINE)),
-        new RegexHighlighter(MESSAGE_PATTERN, color(ChatFormatting.RED).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("This is a test"))))
+        new RegexHighlighter(MESSAGE_PATTERN, color(ChatFormatting.RED))
     };
 
     public static final StackTraceLinter INSTANCE = new StackTraceLinter();
