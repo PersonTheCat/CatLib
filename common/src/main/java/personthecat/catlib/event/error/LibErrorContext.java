@@ -39,7 +39,7 @@ public class LibErrorContext {
     }
 
     public static boolean hasErrors() {
-        return !COMMON_ERRORS.isEmpty() && !FATAL_ERRORS.isEmpty();
+        return !COMMON_ERRORS.isEmpty() || !FATAL_ERRORS.isEmpty();
     }
 
     public static boolean isFatal() {
