@@ -1,11 +1,14 @@
 package personthecat.catlib.util;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 
 import javax.annotation.Nullable;
+import javax.annotation.RegEx;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -13,50 +16,48 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A bare-bones syntax linter for displaying some formatted data in the chat.
- * <p>
- *   This class is <em>not intended</em> to be a foolproof utility. It is only
- *   designed for a few scenarios and can highlight keys and documentation.
- * </p>
- * <p>
- *   Eventually, this class will be expanded to support matching individual
- *   groups in an expression, but this behavior is <b>currently unsupported</b>.
- * </p>
+ * An extensible, modular linter for displaying formatted data in the chat.
+ *
+ * <p>To use this class, create a new instance by passing in an array of
+ * {@link Highlighter highlighters}. A highlighter is an object which locates
+ * and stylizes text. For example, the {@link RegexHighlighter} is capable
+ * of matching entire patterns or groups in a regular expression and applying
+ * a constant style to the individual matches.
+ *
+ * <pre>{@code
+ *   static final SyntaxLinter TRUE_LINTER =
+ *     new SyntaxLinter({
+ *        new RegexHighlighter("true", color(ChatFormatting.GOLD))
+ *     });
+ * }</pre>
+ *
+ * <p>This object can then produce a formatted {@link Component} when provided
+ * a body of text.
+ *
+ * <p>Note that this object is valid and safe in a multithreaded context.
  */
-@SuppressWarnings("unused")
+@ThreadSafe
 public class SyntaxLinter {
 
-    /** Identifies multiline documentation comments. Just because. */
     public static final Pattern MULTILINE_DOC = Pattern.compile("/\\*\\*[\\s\\S]*?\\*/", Pattern.DOTALL);
-
-    /** Identifies multiline / inline comments to be highlighted. */
     public static final Pattern MULTILINE_COMMENT = Pattern.compile("/\\*[\\s\\S]*?\\*/", Pattern.DOTALL);
-
-    /** Identifies todos in single line comments. Just because. */
     public static final Pattern LINE_TODO = Pattern.compile("(?:#|//).*(?:todo|to-do).*$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-
-    /** Identifies single line documentation comments. Just because. */
     public static final Pattern LINE_DOC = Pattern.compile("(?:#!|///).*$", Pattern.MULTILINE);
-
-    /** Identifies single line comments to be highlighted. */
     public static final Pattern LINE_COMMENT = Pattern.compile("(?:#|//).*$", Pattern.MULTILINE);
-
-    /** Identifies all other Hjson / Yaml keys to be highlighted. */
     public static final Pattern KEY = Pattern.compile("(\"[\\w\\s]*\"|\\w+)\\s*(?=:)|[-_\\w./]+\\s*(?:::|[aA][sS])\\s*\\w+(.*\\s[aA][sS]\\s+\\w+)?", Pattern.MULTILINE);
-
-    /** Identifies all boolean values to be highlighted. */
     public static final Pattern BOOLEAN_VALUE = Pattern.compile("(true|false)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
-
-    /** Identifies all numeric values to be highlighted. */
     public static final Pattern NUMERIC_VALUE = Pattern.compile("(\\d+(\\.\\d+)?)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
-
-    /** Identifies all null values to be highlighted. */
     public static final Pattern NULL_VALUE = Pattern.compile("(null)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
+    public static final Pattern MULTILINE_KEY = Pattern.compile("\\n\\s*(\\w+)\\s*(?:\\n|#|//|/\\*)(\\s*\\w+):[^{}]*}", Pattern.DOTALL);
+    public static final Pattern BAD_CLOSER = Pattern.compile("[a-zA-Z]\\w*(?<!true|false|null)\\s*[]}]", Pattern.MULTILINE);
 
-    /** Indicates that a random color should be used for each match of this type. */
+    protected static final Style UNCLOSED_ERROR = error("This or a later opener is never closed.");
+    protected static final Style UNEXPECTED_ERROR = error("This closer does not belong to any container.");
+    protected static final Style MULTILINE_KEY_ERROR = error("Hjson does not allow multiline keys.");
+    protected static final Style BAD_CLOSER_ERROR = error("Closer is consumed by unquoted string. Use quotes or new line.");
+
     protected static final Style RANDOM_COLOR = null;
 
-    /** A list of every target needed for highlighting basic Hjson data. */
     public static final Highlighter[] HJSON_HIGHLIGHTERS = {
         new RegexHighlighter(MULTILINE_DOC, color(ChatFormatting.DARK_GREEN).withItalic(true)),
         new RegexHighlighter(LINE_TODO, color(ChatFormatting.YELLOW)),
@@ -66,13 +67,14 @@ public class SyntaxLinter {
         new RegexHighlighter(KEY, color(ChatFormatting.AQUA)),
         new RegexHighlighter(BOOLEAN_VALUE, color(ChatFormatting.GOLD)),
         new RegexHighlighter(NUMERIC_VALUE, color(ChatFormatting.LIGHT_PURPLE)),
-        new RegexHighlighter(NULL_VALUE, color(ChatFormatting.RED))
+        new RegexHighlighter(NULL_VALUE, color(ChatFormatting.RED)),
+        new RegexHighlighter(MULTILINE_KEY, MULTILINE_KEY_ERROR, true),
+        new RegexHighlighter(BAD_CLOSER, BAD_CLOSER_ERROR),
+        UnbalancedTokenHighlighter.INSTANCE
     };
 
-    /** The default Hjson syntax linter provided by the library. */
     public static final SyntaxLinter DEFAULT_LINTER = new SyntaxLinter(HJSON_HIGHLIGHTERS);
 
-    /** An array of colors to be used in place of the wildcard color. */
     private static final Style[] RANDOM_COLORS = {
         color(ChatFormatting.YELLOW),
         color(ChatFormatting.GREEN),
@@ -118,7 +120,6 @@ public class SyntaxLinter {
 
         Highlighter.Instance h;
         int i = 0;
-        int m = 0;
         while ((h = ctx.next(i)) != null) {
             final int start = h.start();
             final int end = h.end();
@@ -133,6 +134,17 @@ public class SyntaxLinter {
         }
 
         return formatted.append(stc(text.substring(i)));
+    }
+
+    /**
+     * Shorthand for constructing an error style when provided a raw tooltip.
+     *
+     * @param s The string to display as a tooltip.
+     * @return A new {@link Style} used for displaying error messages.
+     */
+    public static Style error(final String s) {
+        return Style.EMPTY.applyFormats(ChatFormatting.RED, ChatFormatting.UNDERLINE)
+            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, stc(s)));
     }
 
     /**
@@ -153,17 +165,6 @@ public class SyntaxLinter {
      */
     public static Style color(final ChatFormatting color) {
         return Style.EMPTY.withColor(color);
-    }
-
-    /**
-     * Generates a random color for use with the current match, if applicable.
-     *
-     * @param style The style configured for use with this target.
-     * @param m     The number of the current match.
-     * @return The input style, or else a random style, if null.
-     */
-    private static Style getStyle(@Nullable final Style style, int m) {
-        return style != null ? style : RANDOM_COLORS[m % RANDOM_COLORS.length];
     }
 
     /**
@@ -217,40 +218,61 @@ public class SyntaxLinter {
     /**
      * A highlighter which applies a single pattern based on a regular expression.
      *
-     * <p>Note that any part of the expression matched will be consumed by this
-     * highlighter. Use lookaheads and lookbehinds to avoid highlighting matched
-     * text, as this particular highlighter will ignore grouping.
+     * <p>Note that, by default, any part of the expression matched will be consumed
+     * by this highlighter. To explicitly match the individual groups within a pattern,
+     * apply the <code>useGroups</code> flag to the constructor.
      */
     public static class RegexHighlighter implements Highlighter {
         final Pattern pattern;
         final Style style;
+        final boolean useGroups;
+
+        public RegexHighlighter(@RegEx final String pattern, final Style style) {
+            this(Pattern.compile(pattern, Pattern.MULTILINE), style);
+        }
 
         public RegexHighlighter(final Pattern pattern, final Style style) {
+            this(pattern, style, false);
+        }
+
+        public RegexHighlighter(final Pattern pattern, final Style style, final boolean useGroups) {
             this.pattern = pattern;
             this.style = style;
+            this.useGroups = useGroups;
         }
 
         @Override
         public Instance get(final String text) {
-            return new RegexHighlighterInstance(this.pattern.matcher(text), text, this.style);
+            return new RegexHighlighterInstance(text);
         }
 
-        public static class RegexHighlighterInstance implements Instance {
+        public class RegexHighlighterInstance implements Instance {
             final Matcher matcher;
             final String text;
-            final Style style;
+            final int groups;
             boolean found;
+            int group;
+            int m;
 
-            public RegexHighlighterInstance(final Matcher matcher, final String text, final Style style) {
-                this.matcher = matcher;
+            public RegexHighlighterInstance(final String text) {
+                this.matcher = pattern.matcher(text);
                 this.text = text;
-                this.style = style;
+                this.groups = useGroups ? matcher.groupCount() : 0;
                 this.found = matcher.find();
+                this.group = useGroups && found && groups > 0 ? 1 : 0;
+                this.m = 0;
             }
 
             @Override
             public void next() {
-                this.found = this.matcher.find();
+                if (this.group < this.groups) {
+                    this.group++;
+                } else {
+                    this.found = this.matcher.find();
+                    if (this.found) {
+                        this.m++;
+                    }
+                }
             }
 
             @Override
@@ -260,17 +282,168 @@ public class SyntaxLinter {
 
             @Override
             public int start() {
-                return this.matcher.start();
+                return this.matcher.start(this.group);
             }
 
             @Override
             public int end() {
-                return this.matcher.end();
+                return this.matcher.end(this.group);
             }
 
             @Override
             public Component replacement() {
-                return new TextComponent(this.text.substring(this.start(), this.end())).setStyle(this.style);
+                return new TextComponent(this.text.substring(this.start(), this.end())).setStyle(this.getStyle());
+            }
+
+            private Style getStyle() {
+                return style != null ? style : RANDOM_COLORS[this.m % RANDOM_COLORS.length];
+            }
+        }
+    }
+
+    /**
+     * A simple highlighter used for locating any unclosed or unexpected container
+     * elements. These characters will be highlighted in red and underlined with a
+     * tooltip displaying details about the issue.
+     *
+     * <p>Note that this highlighter is not designed for high accuracy. It is not
+     * aware that container elements will be consumed by raw, unquoted strings.
+     * Instead, it assumes that these errors are unrelated and expects that they
+     * will be highlighted by some other object. This is an intentionally pragmatic
+     * approach, but may need more testing.
+     *
+     * <p>Please share any feedback regarding this highlighter to PersonTheCat on
+     * the GitHub repository for this project.
+     */
+    public static class UnbalancedTokenHighlighter implements Highlighter {
+
+        public static final UnbalancedTokenHighlighter INSTANCE = new UnbalancedTokenHighlighter();
+
+        private UnbalancedTokenHighlighter() {}
+
+        @Override
+        public Instance get(final String text) {
+            return new UnbalancedTokenHighlighterInstance(text);
+        }
+
+        public static class UnbalancedTokenHighlighterInstance implements Instance {
+            final BitSet unclosed = new BitSet();
+            final BitSet unexpected = new BitSet();
+            int unclosedIndex = 0;
+            int unexpectedIndex = 0;
+            final String text;
+
+            public UnbalancedTokenHighlighterInstance(final String text) {
+                this.text = text;
+                this.resolveErrors();
+                this.next();
+            }
+
+            private void resolveErrors() {
+                boolean esc = false;
+                int braces = 0;
+                int brackets = 0;
+                int i = 0;
+                while (i < this.text.length()) {
+                    if (esc) {
+                        esc = false;
+                        i++;
+                        continue;
+                    }
+                    switch (this.text.charAt(i)) {
+                        case '\\':
+                            esc = true;
+                            break;
+                        case '{':
+                            if (this.findClosing(i, braces, '{', '}') < 0) {
+                                this.unclosed.set(i);
+                            }
+                            braces++;
+                            break;
+                        case '[':
+                            if (this.findClosing(i, brackets, '[', ']') < 0) {
+                                this.unclosed.set(i);
+                            }
+                            brackets++;
+                            break;
+                        case '}':
+                            if (braces <= 0) {
+                                this.unexpected.set(i);
+                            }
+                            braces--;
+                            break;
+                        case ']':
+                            if (brackets <= 0) {
+                                this.unexpected.set(i);
+                            }
+                            brackets--;
+                    }
+                    i++;
+                }
+            }
+
+            private int findClosing(int opening, int ongoing, char open, char close) {
+                int numP = ongoing;
+                boolean dq = false;
+                boolean sq = false;
+                boolean esc = false;
+                for (int i = opening; i < this.text.length(); i++) {
+                    if (esc) {
+                        esc = false;
+                        continue;
+                    }
+                    final char c = this.text.charAt(i);
+                    if (c == '\\') {
+                        esc = true;
+                    } else if (c == '"') {
+                        dq = !dq;
+                    } else if (c == '\'') {
+                        sq = !sq;
+                    } else if (c == open) {
+                        if (!dq && !sq) numP++;
+                    } else if (c == close) {
+                        if (!dq && !sq && --numP == 0) return i;
+                    }
+                }
+                return -1;
+            }
+
+            @Override
+            public void next() {
+                if (this.unclosedIndex >= 0) {
+                    this.unclosedIndex = this.unclosed.nextSetBit(this.unclosedIndex + 1);
+                }
+                if (this.unexpectedIndex >= 0) {
+                    this.unexpectedIndex = this.unexpected.nextSetBit(this.unexpectedIndex + 1);
+                }
+            }
+
+            @Override
+            public boolean found() {
+                return this.unclosedIndex >= 0 || this.unexpectedIndex >= 0;
+            }
+
+            @Override
+            public int start() {
+                if (this.unexpectedIndex < 0) {
+                    return this.unclosedIndex;
+                } else if (this.unclosedIndex < 0) {
+                    return this.unexpectedIndex;
+                }
+                return Math.min(this.unclosedIndex, this.unexpectedIndex);
+            }
+
+            @Override
+            public int end() {
+                return this.start() + 1;
+            }
+
+            @Override
+            public Component replacement() {
+                final int start = this.start();
+                final char c = this.text.charAt(start);
+                final Style style = start == this.unclosedIndex ? UNCLOSED_ERROR : UNEXPECTED_ERROR;
+                return stc(String.valueOf(c)).withStyle(style);
             }
         }
     }
