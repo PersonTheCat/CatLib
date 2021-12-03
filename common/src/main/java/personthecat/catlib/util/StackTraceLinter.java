@@ -23,7 +23,7 @@ public class StackTraceLinter extends SyntaxLinter {
         new RegexHighlighter(METHOD_PATTERN, color(ChatFormatting.GOLD).withItalic(true)),
         new RegexHighlighter(SPECIAL_METHOD_PATTERN, color(ChatFormatting.GOLD).withItalic(true).withBold(true)),
         new RegexHighlighter(LINE_PATTERN, color(ChatFormatting.DARK_PURPLE).applyFormat(ChatFormatting.UNDERLINE)),
-        new RegexHighlighter(MESSAGE_PATTERN, color(ChatFormatting.RED))
+        new RegexHighlighter(MESSAGE_PATTERN, color(ChatFormatting.RED).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("This is a test"))))
     };
 
     public static final StackTraceLinter INSTANCE = new StackTraceLinter();
