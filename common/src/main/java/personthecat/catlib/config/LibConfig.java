@@ -13,4 +13,8 @@ public class LibConfig {
     public static Severity getErrorLevel() {
         return Severity.ERROR;
     }
+
+    public static boolean wrapText() {
+        return true;
+    }
 }

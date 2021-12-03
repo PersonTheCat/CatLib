@@ -31,6 +31,11 @@ public class LibConfig implements ConfigData {
         return CONFIG.get().general.errorLevel;
     }
 
+    @Overwrite
+    public static boolean wrapText() {
+        return CONFIG.get().general.wrapText;
+    }
+
     private static class General {
 
         @Comment("Whether to enable this library's provided commands as regular commands.")
@@ -38,5 +43,8 @@ public class LibConfig implements ConfigData {
 
         @Comment("The minimum error level to display in the error menu. (warn, error, fatal)")
         Severity errorLevel = Severity.ERROR;
+
+        @Comment("Whether to wrap text on the error detail page. Hit W or space to toggle in game.")
+        boolean wrapText = true;
     }
 }

@@ -30,6 +30,10 @@ public class LibConfig {
         .comment("The minimum error level to display in the error menu.")
         .defineEnum("errorLevel", Severity.ERROR);
 
+    private static final BooleanValue WRAP_TEXT_VALUE = COMMON
+        .comment("Whether to wrap text on the error detail page. Hit W or space to toggle in game.")
+        .define("wrapText", true);
+
     @Overwrite
     public static boolean enableGlobalLibCommands() {
         return ENABLE_LIB_COMMANDS_VALUE.get();
@@ -38,6 +42,11 @@ public class LibConfig {
     @Overwrite
     public static Severity getErrorLevel() {
         return ERROR_LEVEL_VALUE.get();
+    }
+
+    @Overwrite
+    public static boolean wrapText() {
+        return WRAP_TEXT_VALUE.get();
     }
 
     public static void register(final ModContainer ctx) {

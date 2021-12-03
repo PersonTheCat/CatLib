@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
+import personthecat.catlib.config.LibConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public class ErrorDetailPage extends LibMenu {
         this.lines = new ArrayList<>();
         this.left = 6;
         this.right = 6;
-        this.wrap = true;
+        this.wrap = LibConfig.wrapText();
         this.maxScroll = 0;
         this.scroll = 0;
     }
