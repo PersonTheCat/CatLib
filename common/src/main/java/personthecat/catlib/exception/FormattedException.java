@@ -2,7 +2,6 @@ package personthecat.catlib.exception;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,16 +34,18 @@ public abstract class FormattedException extends Exception {
     public abstract Component getDisplayMessage();
 
     @Nullable
-    public abstract Component getTooltip();
+    public Component getTooltip() {
+        return null;
+    }
 
     @NotNull
-    public Component getDetailsMessage() {
+    public Component getDetailMessage() {
         return StackTraceLinter.format(this.readStacktrace());
     }
 
     @NotNull
     public Screen getDetailsScreen(final Screen parent) {
-        return new ErrorDetailPage(parent, this.getDisplayMessage(), this.getDetailsMessage());
+        return new ErrorDetailPage(parent, this.getDisplayMessage(), this.getDetailMessage());
     }
 
     public void onErrorReceived(final Logger log) {}
