@@ -33,6 +33,11 @@ public abstract class FormattedException extends Exception {
     @NotNull
     public abstract Component getDisplayMessage();
 
+    @NotNull
+    public Component getTitleMessage() {
+        return this.getDisplayMessage();
+    }
+
     @Nullable
     public Component getTooltip() {
         return null;
@@ -45,7 +50,7 @@ public abstract class FormattedException extends Exception {
 
     @NotNull
     public Screen getDetailsScreen(final Screen parent) {
-        return new ErrorDetailPage(parent, this.getDisplayMessage(), this.getDetailMessage());
+        return new ErrorDetailPage(parent, this.getTitleMessage(), this.getDetailMessage());
     }
 
     public void onErrorReceived(final Logger log) {}
