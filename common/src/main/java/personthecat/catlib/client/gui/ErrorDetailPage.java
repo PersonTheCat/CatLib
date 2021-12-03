@@ -6,6 +6,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -67,6 +69,37 @@ public class ErrorDetailPage extends LibMenu {
             if ((t += h) > this.height - Y1) {
                 return;
             }
+        }
+    }
+
+    @Override
+    protected void renderDetails(PoseStack stack, int x, int y, float partial) {
+        super.renderDetails(stack, x, y, partial);
+        if (y < Y0 + 6 || y > this.height - Y1 || x < 6 || x > this.width - 6) {
+            return;
+        }
+
+        final int o = Y0 + 6;
+        final int d = y - o;
+        final int h = this.font.lineHeight + 1;
+        final int l = d / h;
+        final int a = this.scroll + l;
+
+        if (a >= this.lines.size()) {
+            return;
+        }
+        final FormattedCharSequence chars = this.lines.get(a);
+        final Style s = this.font.getSplitter().componentStyleAtWidth(chars, x - 6);
+        if (s == null) {
+            return;
+        }
+        final HoverEvent hover = s.getHoverEvent();
+        if (hover == null) {
+            return;
+        }
+        final Component tooltip = hover.getValue(HoverEvent.Action.SHOW_TEXT);
+        if (tooltip != null) {
+            this.renderTooltip(stack, tooltip, x, y);
         }
     }
 
