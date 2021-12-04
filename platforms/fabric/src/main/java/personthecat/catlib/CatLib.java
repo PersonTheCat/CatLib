@@ -1,6 +1,5 @@
 package personthecat.catlib;
 
-import lombok.extern.log4j.Log4j2;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
@@ -24,7 +23,6 @@ import personthecat.catlib.event.world.RegistrySet;
 import personthecat.catlib.mixin.BiomeModificationContextAccessor;
 import personthecat.catlib.util.LibReference;
 
-@Log4j2
 public class CatLib implements ModInitializer {
 
     @Override
