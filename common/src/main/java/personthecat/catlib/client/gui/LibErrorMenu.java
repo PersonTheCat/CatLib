@@ -1,11 +1,13 @@
 package personthecat.catlib.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +27,7 @@ public class LibErrorMenu extends LibMenu {
 
     private final Map<ModDescriptor, CategorizedList> options;
     private final MultiValueMap<ModDescriptor, FormattedException> errors;
+    private final Set<FormattedException> fatal;
     private final List<ModDescriptor> keys;
     private final int[] screens;
     private @Nullable CategorizedList current;
@@ -35,6 +38,7 @@ public class LibErrorMenu extends LibMenu {
         super(parent, new TranslatableComponent("catlib.errorMenu.numErrors", LibErrorContext.numMods()));
         this.options = new HashMap<>();
         this.errors = new MultiValueHashMap<>();
+        this.fatal = new HashSet<>();
         this.screens = new int[LibErrorContext.numMods()];
         this.keys = LibErrorContext.getMods();
         this.current = null;
@@ -45,7 +49,10 @@ public class LibErrorMenu extends LibMenu {
 
     private void loadErrors() {
         this.errors.putAll(LibErrorContext.getCommon());
-        LibErrorContext.getFatal().forEach((m, l) -> l.forEach(e -> this.errors.add(m, e)));
+        LibErrorContext.getFatal().forEach((m, l) -> l.forEach(e -> {
+            this.errors.add(m, e);
+            this.fatal.add(e);
+        }));
         Arrays.fill(this.screens, 0);
     }
 
@@ -126,7 +133,11 @@ public class LibErrorMenu extends LibMenu {
                 final int page = i;
                 final int screen = j;
 
-                final Component display = e.getDisplayMessage();
+                Component display = e.getDisplayMessage();
+                if (this.fatal.contains(e)) {
+                    display = new TextComponent("").append(display)
+                        .withStyle(Style.EMPTY.withColor(ChatFormatting.RED));
+                }
                 final Component tooltip = e.getTooltip();
 
                 final Button.OnPress onPress = b -> {
