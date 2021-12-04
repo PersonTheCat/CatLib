@@ -6,10 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.*;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.data.MultiValueHashMap;
@@ -134,9 +131,8 @@ public class LibErrorMenu extends LibMenu {
                 final int screen = j;
 
                 Component display = e.getDisplayMessage();
-                if (this.fatal.contains(e)) {
-                    display = new TextComponent("").append(display)
-                        .withStyle(Style.EMPTY.withColor(ChatFormatting.RED));
+                if (display instanceof BaseComponent && this.fatal.contains(e)) {
+                    display = ((BaseComponent) display).withStyle(Style.EMPTY.withColor(ChatFormatting.RED));
                 }
                 final Component tooltip = e.getTooltip();
 
