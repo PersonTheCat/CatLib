@@ -130,10 +130,7 @@ public class LibErrorMenu extends LibMenu {
                 final int page = i;
                 final int screen = j;
 
-                Component display = e.getDisplayMessage();
-                if (display instanceof BaseComponent && this.fatal.contains(e)) {
-                    display = ((BaseComponent) display).withStyle(Style.EMPTY.withColor(ChatFormatting.RED));
-                }
+                final Component display = e.getDisplayMessage();
                 final Component tooltip = e.getTooltip();
 
                 final Button.OnPress onPress = b -> {
