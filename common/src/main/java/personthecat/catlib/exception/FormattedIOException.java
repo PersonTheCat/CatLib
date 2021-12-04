@@ -4,7 +4,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.PathUtils;
 
 import java.io.File;
