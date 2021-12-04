@@ -36,11 +36,6 @@ public class FormattedIOException extends FormattedException {
         this.msg = msg;
     }
 
-    private static String createMsg(final Throwable cause) {
-        final String m = cause.getMessage();
-        return m != null ? m : LibStringUtils.toTitleCase(cause.getClass().getSimpleName());
-    }
-
     @Override
     public @NotNull String getCategory() {
         return "catlib.errorMenu.io";

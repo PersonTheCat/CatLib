@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.client.gui.ErrorDetailPage;
+import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.StackTraceLinter;
 
 import java.io.PrintWriter;
@@ -61,5 +62,10 @@ public abstract class FormattedException extends Exception {
         final Throwable cause = this.getCause();
         (cause != null ? cause : this).printStackTrace(pw);
         return sw.toString().replace("\t", "    ").replace("\r", "");
+    }
+
+    protected static String createMsg(final Throwable cause) {
+        final String m = cause.getMessage();
+        return m != null ? m : LibStringUtils.toTitleCase(cause.getClass().getSimpleName(), true);
     }
 }

@@ -20,7 +20,7 @@ public class GenericFormattedException extends FormattedException {
 
     @Override
     public @NotNull Component getDisplayMessage() {
-        return new TextComponent(this.getCause().getLocalizedMessage());
+        return new TextComponent(createMsg(this.getCause()));
     }
 
     @Override
