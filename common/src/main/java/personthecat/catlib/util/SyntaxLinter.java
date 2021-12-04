@@ -266,7 +266,7 @@ public class SyntaxLinter {
                 this.text = text;
                 this.groups = useGroups ? matcher.groupCount() : 0;
                 this.found = matcher.find();
-                this.group = useGroups && found && groups > 0 ? 1 : 0;
+                this.group = found && groups > 0 ? 1 : 0;
                 this.m = 0;
             }
 
