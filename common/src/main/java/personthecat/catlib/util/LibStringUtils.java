@@ -97,10 +97,7 @@ public class LibStringUtils {
     }
 
     /**
-     * Converts a string in lower case or snake case to title case.
-     *
-     * <p>Note that <b>camel case is not supported</b>. Please submit
-     * a PR if you would like this functionality.
+     * Converts a string in lower, snake, camel, or pascal case to title case.
      *
      * @param text The text in lower case or snake case.
      * @param camel Whether to explicitly support camel and or pascal case.
