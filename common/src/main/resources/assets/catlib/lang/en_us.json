@@ -14,5 +14,14 @@
   "catlib.errorText.expectedBuilder": "%s must return a LibCommandBuilder",
   "catlib.errorText.noInvoke": "Could not invoke %s",
   "catlib.errorText.missingCompileArg": "Unable to resolve argument names for %s. Compile with -parameters",
-  "catlib.errorText.listNode": "List node %s must be the last node or followed by a literal argument"
+  "catlib.errorText.listNode": "List node %s must be the last node or followed by a literal argument",
+  "catlib.errorMenu.io": "IO Errors",
+  "catlib.errorText.fileError": "IO Error on %s",
+  "catlib.errorText.fileDiagnostics": "File diagnostics:",
+  "catlib.errorText.fileExists": "File exists:",
+  "catlib.errorText.directoryExists": "Directory exists:",
+  "catlib.errorText.fileType": "File type:",
+  "catlib.errorText.fileSize": "File size:",
+  "catlib.errorText.ioNotAllowed": "IO was blocked by the filesystem",
+  "catlib.errorText.stackTrace": "Stack trace:"
 }
