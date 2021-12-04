@@ -46,7 +46,7 @@ public class SyntaxLinter {
     public static final Pattern NUMERIC_VALUE = Pattern.compile("(\\d+(\\.\\d+)?)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
     public static final Pattern NULL_VALUE = Pattern.compile("(null)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
     public static final Pattern MULTILINE_KEY = Pattern.compile("\\n\\s*(\\w+)\\s*(?:\\n|#|//|/\\*)(\\s*\\w+):[^{}]*}", Pattern.DOTALL);
-    public static final Pattern BAD_CLOSER = Pattern.compile("[a-zA-Z]\\w*(?<!true|false|null)\\s*[]}]", Pattern.MULTILINE);
+    public static final Pattern BAD_CLOSER = Pattern.compile("[a-zA-Z]\\w*(?<!true|false|null)[\\t ]*[]}]", Pattern.MULTILINE);
 
     protected static final Style UNCLOSED_ERROR = error("catlib.errorText.unclosed");
     protected static final Style UNEXPECTED_ERROR = error("catlib.errorText.unclosed");
