@@ -6,10 +6,13 @@ import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.data.MultiValueHashMap;
 import personthecat.catlib.data.MultiValueMap;
 import personthecat.catlib.exception.FormattedException;
+import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.util.McUtils;
+import personthecat.fresult.functions.ThrowingRunnable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 @Log4j2
 public class LibErrorContext {
@@ -18,11 +21,19 @@ public class LibErrorContext {
     private static final Map<ModDescriptor, List<FormattedException>> FATAL_ERRORS = new ConcurrentHashMap<>();
     private static final Set<ModDescriptor> ERRED_MODS = ConcurrentHashMap.newKeySet();
 
-    public static void registerSingle(final ModDescriptor mod, final FormattedException e) {
-        registerSingle(Severity.ERROR, mod, e);
+    public static void warn(final ModDescriptor mod, final FormattedException e) {
+        register(Severity.WARN, mod, e);
     }
 
-    public static void registerSingle(final Severity level, final ModDescriptor mod, final FormattedException e) {
+    public static void error(final ModDescriptor mod, final FormattedException e) {
+        register(Severity.ERROR, mod, e);
+    }
+
+    public static void fatal(final ModDescriptor mod, final FormattedException e) {
+        register(Severity.FATAL, mod, e);
+    }
+
+    public static void register(final Severity level, final ModDescriptor mod, final FormattedException e) {
         e.onErrorReceived(log);
 
         if (McUtils.isDedicatedServer()) {
@@ -36,6 +47,39 @@ public class LibErrorContext {
             log.warn("Ignoring error at level: " + level, e);
         }
         ERRED_MODS.add(mod);
+    }
+
+    public static boolean run(final ModDescriptor mod, final ThrowingRunnable<FormattedException> f) {
+        try {
+            f.run();
+        } catch (final FormattedException e) {
+            fatal(mod, e);
+            return true;
+        }
+        return false;
+    }
+
+    public static <E extends Throwable> boolean apply(final ModDescriptor mod, final ThrowingRunnable<E> f) {
+        return apply(mod, f, GenericFormattedException::new);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <E extends Throwable> boolean apply(
+            final ModDescriptor mod, final ThrowingRunnable<E> f, final Function<E, FormattedException> e) {
+
+        try {
+            f.run();
+        } catch (final Throwable t) {
+            final FormattedException formatted;
+            try {
+                formatted = e.apply((E) t);
+            } catch (final ClassCastException ignored) {
+                throw new RuntimeException(t);
+            }
+            fatal(mod, formatted);
+            return true;
+        }
+        return false;
     }
 
     public static boolean hasErrors() {

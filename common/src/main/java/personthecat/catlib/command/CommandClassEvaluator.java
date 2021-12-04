@@ -127,9 +127,9 @@ public class CommandClassEvaluator {
                 try {
                     command.accept(m, annotation);
                 } catch (final UncheckedFormattedException e) {
-                    LibErrorContext.registerSingle(this.mod, e.getCause());
+                    LibErrorContext.error(this.mod, e.getCause());
                 } catch (final FormattedException e) {
-                    LibErrorContext.registerSingle(this.mod, e);
+                    LibErrorContext.error(this.mod, e);
                 }
             }
         }
