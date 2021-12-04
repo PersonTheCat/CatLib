@@ -85,13 +85,28 @@ public class LibStringUtils {
     /**
      * Converts a string in lower case or snake case to title case.
      *
-     * <p>Note that <b>camel case is not supported</b>. Please submit
-     * a PR if you would like this functionality.
+     * <p>Note that this method <b>does not support camel or pascal</b>
+     * case by default. You must provide an additional argument to
+     * optionally support this feature.
      *
      * @param text The text in lower case or snake case.
      * @return The equivalent message in title case.
      */
     public static String toTitleCase(final String text) {
+        return toTitleCase(text, false);
+    }
+
+    /**
+     * Converts a string in lower case or snake case to title case.
+     *
+     * <p>Note that <b>camel case is not supported</b>. Please submit
+     * a PR if you would like this functionality.
+     *
+     * @param text The text in lower case or snake case.
+     * @param camel Whether to explicitly support camel and or pascal case.
+     * @return The equivalent message in title case.
+     */
+    public static String toTitleCase(final String text, final boolean camel) {
         if (text.isEmpty()) return "";
 
         final StringBuilder sb = new StringBuilder(text.length());
@@ -107,6 +122,8 @@ public class LibStringUtils {
             } else if (capitalize) {
                 sb.append(Character.toUpperCase(c));
                 capitalize = false;
+            } else if (camel && Character.isUpperCase(c)) {
+                sb.append(' ').append(c);
             } else {
                 sb.append(c);
             }

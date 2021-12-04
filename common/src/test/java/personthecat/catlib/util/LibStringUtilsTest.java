@@ -53,6 +53,13 @@ public final class LibStringUtilsTest {
     }
 
     @Test
+    public void toTitleCase_canSupportCamelCase() {
+        assertEquals("One Two Three", LibStringUtils.toTitleCase("oneTwoThree", true));
+        assertEquals("Four Five Six", LibStringUtils.toTitleCase("fourFiveSix", true));
+        assertEquals("Seven Eight Nine", LibStringUtils.toTitleCase("sevenEightNine", true));
+    }
+
+    @Test
     public void capitalize_returnsCapitalWord() {
         assertEquals("One two three", LibStringUtils.capitalize("one two three"));
         assertEquals("Four five six", LibStringUtils.capitalize("four five six"));
