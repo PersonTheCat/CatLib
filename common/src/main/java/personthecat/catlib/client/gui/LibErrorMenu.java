@@ -228,6 +228,7 @@ public class LibErrorMenu extends LibMenu {
         if (LibErrorContext.isFatal()) {
             Minecraft.getInstance().close();
         }
+        LibErrorContext.dispose();
         super.onClose();
     }
 
