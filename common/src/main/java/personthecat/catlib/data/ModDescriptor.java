@@ -2,6 +2,7 @@ package personthecat.catlib.data;
 
 import lombok.Builder;
 import lombok.Value;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.SyntaxLinter;
@@ -48,6 +49,10 @@ public class ModDescriptor {
     @Nullable File preferredDirectory;
 
     SyntaxLinter defaultLinter;
+
+    public ResourceLocation id(final String path) {
+        return new ResourceLocation(this.modId, path);
+    }
 
     @Override
     public boolean equals(final Object o) {
