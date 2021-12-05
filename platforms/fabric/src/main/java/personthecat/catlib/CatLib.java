@@ -6,12 +6,18 @@ import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.ModificationPhase;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.Util;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import personthecat.catlib.command.CatLibCommands;
 import personthecat.catlib.command.CommandRegistrationContext;
+import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.command.DefaultLibCommands;
 import personthecat.catlib.command.arguments.*;
 import personthecat.catlib.config.HjsonConfigSerializer;
 import personthecat.catlib.config.LibConfig;
+import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.event.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
@@ -42,14 +48,20 @@ public class CatLib implements ModInitializer {
             RegistryAddedEvent.onRegistryAccess(access);
         });
 
+        final CommandRegistrationContext ctx = CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR);
         if (LibConfig.enableGlobalLibCommands()) {
-            CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR)
-                .addAllCommands(DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true))
-                .registerAll();
+            ctx.addAllCommands(DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true));
         }
+        ctx.addCommand(CatLibCommands.ERROR_MENU).registerAll();
 
         ServerWorldEvents.LOAD.register((s, l) -> CommonWorldEvent.LOAD.invoker().accept(l));
         ServerWorldEvents.UNLOAD.register((s, l) -> CommonWorldEvent.UNLOAD.invoker().accept(l));
+        ServerPlayConnectionEvents.JOIN.register((h, tx, s) -> {
+            if (LibErrorContext.hasErrors()) {
+                h.player.sendMessage(new TranslatableComponent("catlib.errorText.clickHere")
+                    .withStyle(Style.EMPTY.withClickEvent(CommandUtils.clickToRun("/catlib errors"))), Util.NIL_UUID);
+            }
+        });
         ServerPlayConnectionEvents.JOIN.register((h, tx, s) -> CommonPlayerEvent.LOGIN.invoker().accept(h.player, s));
         ServerPlayConnectionEvents.DISCONNECT.register((h, s) -> CommonPlayerEvent.LOGOUT.invoker().accept(h.player, s));
     }
