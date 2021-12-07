@@ -68,6 +68,11 @@ public class LibErrorMenu extends LibMenu {
         this.setFocused(this.current);
     }
 
+    public LibErrorMenu loadImmediately() {
+        this.init();
+        return this;
+    }
+
     private void updateButtons() {
         if (this.keys.size() == 1) {
             this.previous.active = false;
@@ -228,6 +233,7 @@ public class LibErrorMenu extends LibMenu {
         if (LibErrorContext.isFatal()) {
             Minecraft.getInstance().close();
         }
+        LibErrorContext.dispose();
         super.onClose();
     }
 

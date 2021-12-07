@@ -3,7 +3,11 @@ package personthecat.catlib.command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
 import lombok.AllArgsConstructor;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.blocks.BlockInput;
@@ -123,6 +127,10 @@ public class CommandContextWrapper {
         this.sendMessage(f(msg, args));
     }
 
+    public void sendMessage(final String msg, final ChatFormatting color) {
+        this.sendMessage(msg, Style.EMPTY.withColor(color));
+    }
+
     public void sendMessage(final String msg, final Style style) {
         this.sendMessage(new TextComponent(msg).setStyle(style));
     }
@@ -181,6 +189,11 @@ public class CommandContextWrapper {
 
     public Component lintMessage(final String msg, final Object... args) {
         return this.linter.lint(f(msg, args));
+    }
+
+    @Environment(EnvType.CLIENT)
+    public void setScreen(final Screen screen) {
+        Minecraft.getInstance().setScreen(screen);
     }
 
     @Nullable

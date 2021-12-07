@@ -1,6 +1,7 @@
 package personthecat.catlib.event.error;
 
 import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.ApiStatus;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.data.MultiValueHashMap;
@@ -108,5 +109,12 @@ public class LibErrorContext {
         final MultiValueMap<ModDescriptor, FormattedException> fatal = new MultiValueHashMap<>();
         fatal.putAll(FATAL_ERRORS);
         return fatal;
+    }
+
+    @ApiStatus.Internal
+    public static void dispose() {
+        COMMON_ERRORS.clear();
+        FATAL_ERRORS.clear();
+        ERRED_MODS.clear();
     }
 }

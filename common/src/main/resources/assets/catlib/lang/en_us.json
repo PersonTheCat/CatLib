@@ -23,5 +23,7 @@
   "catlib.errorText.fileType": "File type:",
   "catlib.errorText.fileSize": "File size:",
   "catlib.errorText.ioNotAllowed": "IO was blocked by the filesystem",
-  "catlib.errorText.stackTrace": "Stack trace:"
+  "catlib.errorText.stackTrace": "Stack trace:",
+  "catlib.errorText.clickHere": "New errors have occurred. Click here for details.",
+  "catlib.errorText.noErrors": "No errors available."
 }

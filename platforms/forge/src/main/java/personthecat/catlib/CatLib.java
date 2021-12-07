@@ -1,5 +1,8 @@
 package personthecat.catlib;
 
+import net.minecraft.Util;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -11,12 +14,14 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.catlib.command.*;
 import personthecat.catlib.command.arguments.*;
 import personthecat.catlib.config.LibConfig;
+import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.event.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.FeatureModificationHook;
+import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.util.LibReference;
 
 @Mod(LibReference.MOD_ID)
@@ -42,16 +47,23 @@ public class CatLib {
             FeatureModificationHook.onRegistryAccess(access);
         });
 
+        final CommandRegistrationContext ctx = CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR);
         if (LibConfig.enableGlobalLibCommands()) {
-            CommandRegistrationContext.forMod(LibReference.MOD_DESCRIPTOR)
-                .addAllCommands(DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true))
-                .registerAll();
+            ctx.addAllCommands(DefaultLibCommands.createAll(LibReference.MOD_DESCRIPTOR, true));
         }
+        ctx.addCommand(CatLibCommands.ERROR_MENU).registerAll();
 
         MinecraftForge.EVENT_BUS.addListener((WorldEvent.Load e) ->
             CommonWorldEvent.LOAD.invoker().accept(e.getWorld()));
         MinecraftForge.EVENT_BUS.addListener((WorldEvent.Unload e) ->
             CommonWorldEvent.UNLOAD.invoker().accept(e.getWorld()));
+        MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) -> {
+            LibErrorContext.error(LibReference.MOD_DESCRIPTOR, new GenericFormattedException(new RuntimeException(), "WHO AM I?!?!"));
+            if (LibErrorContext.hasErrors()) {
+                e.getPlayer().sendMessage(new TranslatableComponent("catlib.errorText.clickHere")
+                    .withStyle(Style.EMPTY.withClickEvent(CommandUtils.clickToRun("/catlib errors"))), Util.NIL_UUID);
+            }
+        });
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) ->
             CommonPlayerEvent.LOGIN.invoker().accept(e.getPlayer(), e.getPlayer().getServer()));
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent e) ->
