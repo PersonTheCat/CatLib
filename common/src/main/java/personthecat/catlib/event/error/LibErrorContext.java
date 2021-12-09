@@ -99,6 +99,34 @@ public class LibErrorContext {
         return new ArrayList<>(ERRED_MODS);
     }
 
+    public static Collection<FormattedException> get(final Class<? extends FormattedException> type) {
+        final Set<FormattedException> matching = new HashSet<>();
+        COMMON_ERRORS.forEach((mod, errors) -> errors.forEach(error -> {
+            if (type.isInstance(error)) matching.add(error);
+        }));
+        FATAL_ERRORS.forEach((mod, errors) -> errors.forEach(error -> {
+            if (type.isInstance(error)) matching.add(error);
+        }));
+        return matching;
+    }
+
+    public static Collection<FormattedException> get(final ModDescriptor m, final Class<? extends FormattedException> type) {
+        final Set<FormattedException> matching = new HashSet<>();
+        final List<FormattedException> common = COMMON_ERRORS.get(m);
+        if (common != null) {
+            common.forEach(error -> {
+                if (type.isInstance(error)) matching.add(error);
+            });
+        }
+        final List<FormattedException> fatal = FATAL_ERRORS.get(m);
+        if (fatal != null) {
+            fatal.forEach(error -> {
+                if (type.isInstance(error)) matching.add(error);
+            });
+        }
+        return matching;
+    }
+
     public static void clear(final Class<? extends FormattedException> type) {
         if (type == FormattedException.class || type == GenericFormattedException.class) {
             throw new UnsupportedOperationException("Operation affects too many mods (" + type.getSimpleName() + ")");
