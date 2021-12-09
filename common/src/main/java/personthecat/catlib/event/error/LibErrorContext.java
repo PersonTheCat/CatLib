@@ -99,6 +99,23 @@ public class LibErrorContext {
         return new ArrayList<>(ERRED_MODS);
     }
 
+    public static void clear(final Class<? extends FormattedException> type) {
+        if (type == FormattedException.class || type == GenericFormattedException.class) {
+            throw new UnsupportedOperationException("Operation affects too many mods (" + type.getSimpleName() + ")");
+        }
+        COMMON_ERRORS.forEach((mod, errors) -> errors.removeIf(type::isInstance));
+        FATAL_ERRORS.forEach((mod, errors) -> errors.removeIf(type::isInstance));
+    }
+
+    public static void clear(final ModDescriptor m, final Class<? extends FormattedException> type) {
+        COMMON_ERRORS.forEach((mod, errors) -> {
+            if (mod.equals(m)) errors.removeIf(type::isInstance);
+        });
+        FATAL_ERRORS.forEach((mod, errors) -> {
+            if (mod.equals(m)) errors.removeIf(type::isInstance);
+        });
+    }
+
     public static MultiValueMap<ModDescriptor, FormattedException> getCommon() {
         final MultiValueMap<ModDescriptor, FormattedException> common = new MultiValueHashMap<>();
         common.putAll(COMMON_ERRORS);
