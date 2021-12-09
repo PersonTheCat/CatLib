@@ -3,6 +3,8 @@ package personthecat.catlib.versioning;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import personthecat.catlib.data.ModDescriptor;
@@ -15,6 +17,7 @@ import java.io.Serializable;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@EnabledOnOs(OS.WINDOWS)
 public final class ConfigTrackerTest {
 
     // Need test implementations since we're running agnostic code.
