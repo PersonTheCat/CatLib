@@ -13,6 +13,12 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import org.hjson.HjsonOptions;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
@@ -93,6 +99,8 @@ public class DefaultLibCommands {
             createRename(mod, global),
             createOpen(mod, global),
             createCombine(mod, global),
+            createTest(mod, global),
+            createUnTest(mod, global),
             createCh(mod, global),
             createCw(mod, global),
             createToJson(mod, global),
@@ -224,6 +232,22 @@ public class DefaultLibCommands {
                 .then(jsonFileArg(TO_ARGUMENT, mod)
                     .executes(utl.wrap(DefaultLibCommands::combine)))))
             );
+    }
+
+    public static LibCommandBuilder createTest(final ModDescriptor mod, final boolean global) {
+        return LibCommandBuilder.named("test")
+            .append("Applies night vision and spectator mode for easy cave viewing.")
+            .type(global ? CommandType.GLOBAL : CommandType.MOD)
+                .generate((builder, utl) ->
+                    builder.executes(utl.wrap(DefaultLibCommands::test)));
+    }
+
+    public static LibCommandBuilder createUnTest(final ModDescriptor mod, final boolean global) {
+        return LibCommandBuilder.named("untest")
+            .append("Removes night vision and puts you in the default game mode.")
+            .type(global ? CommandType.GLOBAL : CommandType.MOD)
+            .generate((builder, utl) ->
+                builder.executes(utl.wrap(DefaultLibCommands::unTest)));
     }
 
     public static LibCommandBuilder createCh(final ModDescriptor mod, final boolean global) {
@@ -419,6 +443,28 @@ public class DefaultLibCommands {
         }
         JsonCombiner.combine(from, to, path);
         wrapper.sendMessage("Finished combining file. The original was moved to the backups directory.");
+    }
+
+    private static void test(final CommandContextWrapper wrapper) {
+        final Player player = wrapper.getPlayer();
+        if (player != null) {
+            player.setGameMode(GameType.SPECTATOR);
+
+            final MobEffect nightVision = MobEffects.NIGHT_VISION;
+            player.addEffect(new MobEffectInstance(nightVision, 999999999, 1, true, false));
+        }
+    }
+
+    private static void unTest(final CommandContextWrapper wrapper) {
+        final Player player = wrapper.getPlayer();
+        if (player != null) {
+            final GameType mode = Optional.ofNullable(wrapper.getServer())
+                .map(MinecraftServer::getDefaultGameType)
+                .orElse(GameType.CREATIVE);
+
+            player.setGameMode(mode);
+            player.removeEffect(MobEffects.NIGHT_VISION);
+        }
     }
 
     private static void ch(final CommandContextWrapper wrapper, final boolean max) {
