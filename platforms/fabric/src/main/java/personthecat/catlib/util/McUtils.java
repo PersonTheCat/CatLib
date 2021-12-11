@@ -21,6 +21,11 @@ public class McUtils {
     }
 
     @Overwrite
+    public static String getPlatform() {
+        return "fabric";
+    }
+
+    @Overwrite
     public static boolean isModLoaded(final String id) {
         return FabricLoader.getInstance().isModLoaded(id);
     }

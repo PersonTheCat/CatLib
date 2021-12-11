@@ -32,6 +32,11 @@ public class McUtils {
     }
 
     @Overwrite
+    public static String getPlatform() {
+        return "forge";
+    }
+
+    @Overwrite
     public static boolean isModLoaded(final String id) {
         return ModList.get().isLoaded(id);
     }

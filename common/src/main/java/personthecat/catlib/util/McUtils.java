@@ -49,6 +49,14 @@ public class McUtils {
     }
 
     /**
+     * @return The name of the current platform, e.g. <code>forge</code>.
+     */
+    @PlatformMustOverwrite
+    public static String getPlatform() {
+        return "agnostic";
+    }
+
+    /**
      * @param id The id of the mod being researched.
      * @return Whether the given mod is currently installed.
      */
