@@ -58,7 +58,6 @@ public class CatLib {
         MinecraftForge.EVENT_BUS.addListener((WorldEvent.Unload e) ->
             CommonWorldEvent.UNLOAD.invoker().accept(e.getWorld()));
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) -> {
-            LibErrorContext.error(LibReference.MOD_DESCRIPTOR, new GenericFormattedException(new RuntimeException(), "WHO AM I?!?!"));
             if (LibErrorContext.hasErrors()) {
                 e.getPlayer().sendMessage(new TranslatableComponent("catlib.errorText.clickHere")
                     .withStyle(Style.EMPTY.withClickEvent(CommandUtils.clickToRun("/catlib errors"))), Util.NIL_UUID);
