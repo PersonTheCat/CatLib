@@ -21,7 +21,6 @@ import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.FeatureModificationHook;
-import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.util.LibReference;
 
 @Mod(LibReference.MOD_ID)
