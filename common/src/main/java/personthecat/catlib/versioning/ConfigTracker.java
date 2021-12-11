@@ -100,6 +100,10 @@ public class ConfigTracker<T extends Serializable> {
         this.deregister();
     }
 
+    public T getCurrent() {
+        return this.current;
+    }
+
     public synchronized void setCurrent(final T current) {
         this.current = current;
     }
