@@ -32,6 +32,7 @@ import static java.util.Optional.empty;
 import static personthecat.catlib.exception.Exceptions.directoryNotCreated;
 import static personthecat.catlib.exception.Exceptions.runEx;
 import static personthecat.catlib.exception.Exceptions.resourceEx;
+import static personthecat.catlib.util.Shorthand.f;
 import static personthecat.catlib.util.Shorthand.full;
 import static personthecat.catlib.util.Shorthand.nullable;
 
@@ -386,8 +387,10 @@ public class FileIO {
         }
         if (copy) {
             copy(f, dir).ifErr(Result::THROW);
-        } else if (!f.renameTo(backup)) {
-            throw resourceEx("Error moving {} to backups", f.getName());
+        } else {
+            move(f, backup).ifErr(e -> {
+                throw resourceEx(f("Error moving {} to backups", f.getName()), e);
+            });
         }
         return count + 1;
     }
