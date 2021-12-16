@@ -179,6 +179,24 @@ public final class JsonTransformerTest {
     }
 
     @Test
+    public void setDefaults_updatesObjectRecursively() {
+        final JsonObject transformed = parse("a:1,n:{}");
+        final JsonObject defaults = parse("a:1,n:{k:9},b:2");
+        JsonTransformer.root().setDefaults(defaults).updateAll(transformed);
+
+        assertEquals(parse("a:1,n:{k:9},b:2"), transformed);
+    }
+
+    @Test
+    public void setDefaults_doesNotReplaceUpdatedValues() {
+        final JsonObject transformed = parse("a:1,b:2,c:3");
+        final JsonObject defaults = parse("a:4,b:5,c:6");
+        JsonTransformer.root().setDefaults(defaults).updateAll(transformed);
+
+        assertEquals(parse("a:1,b:2,c:3"), transformed);
+    }
+
+    @Test
     public void remove_removesMatchingValue() {
         final JsonObject transformed = parse("a:1,b:2,c:3");
         JsonTransformer.root().remove("b", 2).updateAll(transformed);

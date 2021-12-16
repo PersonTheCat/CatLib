@@ -712,6 +712,49 @@ public class JsonTransformer {
         }
 
         /**
+         * Recursively provides default values in the matching objects. Existing values will
+         * not be replaced by this transformer.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: 0
+         *     c: 4
+         *     n: {}
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.root()
+         *     .setDefaults(parse("a:1,b:2,c:3,n:{k:9}"))
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: 0
+         *     b: 2
+         *     c: 4
+         *     n: {
+         *       k: 9
+         *     }
+         *   }
+         * }</pre>
+         *
+         * @param defaults An object containing the default values.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver setDefaults(final JsonObject defaults) {
+            updates.add(new DefaultFieldProvider(this, defaults));
+            return this;
+        }
+
+        /**
          * Removes any single key from the matching objects.
          * <p>
          *   For example, when given the following JSON data:
@@ -1387,6 +1430,26 @@ public class JsonTransformer {
                     }
                 }
             }
+        }
+    }
+
+    public static class DefaultFieldProvider implements Updater {
+
+        final ObjectResolver resolver;
+        final JsonObject defaults;
+
+        private DefaultFieldProvider(final ObjectResolver resolver, final JsonObject defaults) {
+            this.resolver = resolver;
+            this.defaults = defaults;
+        }
+
+        @Override
+        public void update(final JsonObject json) {
+            this.resolver.forEach(json, this::setDefaults);
+        }
+
+        private void setDefaults(final JsonObject json) {
+            HjsonUtils.setRecursivelyIfAbsent(json, this.defaults);
         }
     }
 
