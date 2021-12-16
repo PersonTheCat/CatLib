@@ -19,6 +19,7 @@ public class LibConfig {
     private static final ForgeConfigSpec.Builder COMMON = new ForgeConfigSpec.Builder();
     private static final String FILENAME = McUtils.getConfigDir() + "/" + LibReference.MOD_ID;
     private static final HjsonFileConfig COMMON_CFG = new HjsonFileConfig(FILENAME + ".hjson");
+    private static final Object LOCK = new Object();
 
     static { COMMON.push("general"); }
 
@@ -36,20 +37,28 @@ public class LibConfig {
 
     @Overwrite
     public static boolean enableGlobalLibCommands() {
-        return ENABLE_LIB_COMMANDS_VALUE.get();
+        synchronized (LOCK) {
+            return ENABLE_LIB_COMMANDS_VALUE.get();
+        }
     }
 
     @Overwrite
     public static Severity getErrorLevel() {
-        return ERROR_LEVEL_VALUE.get();
+        synchronized (LOCK) {
+            return ERROR_LEVEL_VALUE.get();
+        }
     }
 
     @Overwrite
     public static boolean wrapText() {
-        return WRAP_TEXT_VALUE.get();
+        synchronized (LOCK) {
+            return WRAP_TEXT_VALUE.get();
+        }
     }
 
     public static void register(final ModContainer ctx) {
-        ctx.addConfig(new CustomModConfig(ModConfig.Type.COMMON, COMMON.build(), ctx, COMMON_CFG));
+        synchronized (LOCK) {
+            ctx.addConfig(new CustomModConfig(ModConfig.Type.COMMON, COMMON.build(), ctx, COMMON_CFG));
+        }
     }
 }
