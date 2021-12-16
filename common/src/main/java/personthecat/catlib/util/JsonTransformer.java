@@ -711,6 +711,170 @@ public class JsonTransformer {
             return this;
         }
 
+        /**
+         * Removes any single key from the matching objects.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: 1
+         *     b: 2
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.root()
+         *     .remove("a")
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     b: 2
+         *   }
+         * }</pre>
+         *
+         * @param key The name of the field being removed.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver remove(final String key) {
+            return this.remove(key, null);
+        }
+
+        /**
+         * Removes a single key-value pair from the matching objects. For this transformer
+         * to remove a field, the value of the field must match <code>value</code>.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: 1
+         *     b: 2
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.root()
+         *     .remove("a", 1)
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     b: 2
+         *   }
+         * }</pre>
+         * <p>
+         *   However, <b>the field will not be removed if the value does not match</b>.
+         * </p>
+         *
+         * @param key The name of the field being removed.
+         * @param value The expected value being removed.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver remove(final String key, final Object value) {
+            return this.remove(key, JsonValue.valueOf(value));
+        }
+
+        /**
+         * Removes a set of key-value pairs from the matching object. An ideal use case for this
+         * transformer would be whenever a default JSON object is available. The default object
+         * could be used as a mask to remove unnecessary fields.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: 1
+         *     b: 2
+         *     c: 3
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.root()
+         *     .remove(parse("a:1,b:1,c:1"))
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     b: 2
+         *     c: 3
+         *   }
+         * }</pre>
+         *
+         * @param json A set of key-value pairs being removed.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver remove(final JsonObject json) {
+            for (final JsonObject.Member m : json) {
+                this.remove(m.getName(), m.getValue());
+            }
+            return this;
+        }
+
+        /**
+         * Removes a single key-value pair from the matching objects. This method is a variant
+         * of {@link #remove(String, Object)} accepting a {@link JsonValue} directly.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: 1
+         *     b: 2
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.root()
+         *     .remove("a", JsonValue.valueOf(1))
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     b: 2
+         *   }
+         * }</pre>
+         * <p>
+         *   However, <b>the field will not be removed if the value does not match</b>.
+         * </p>
+         *
+         * @param key The name of the field being removed.
+         * @param value The expected value being removed.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver remove(final String key, @Nullable final JsonValue value) {
+            updates.add(new FieldRemover(this, key, value));
+            return this;
+        }
+
+        /**
+         * Prevents any further changes to this resolver. Use this to clearly indicate the
+         * purpose of any static json transformer and guarantee thread safety.
+         *
+         * @return A new object resolver which cannot be mutated.
+         */
         public final ObjectResolver freeze() {
             return new FrozenObjectResolver(this);
         }
@@ -1222,6 +1386,30 @@ public class JsonTransformer {
                         this.addToArray(containers, value.asArray(), index);
                     }
                 }
+            }
+        }
+    }
+
+    public static class FieldRemover implements Updater {
+
+        final ObjectResolver resolver;
+        final String key;
+        @Nullable final JsonValue value;
+
+        private FieldRemover(final ObjectResolver resolver, final String key, @Nullable final JsonValue value) {
+            this.resolver = resolver;
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+        public void update(final JsonObject json) {
+            this.resolver.forEach(json, this::remove);
+        }
+
+        private void remove(final JsonObject json) {
+            if (this.value == null || this.value.equals(json.get(this.key))) {
+                json.remove(this.key);
             }
         }
     }

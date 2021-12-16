@@ -179,6 +179,38 @@ public final class JsonTransformerTest {
     }
 
     @Test
+    public void remove_removesMatchingValue() {
+        final JsonObject transformed = parse("a:1,b:2,c:3");
+        JsonTransformer.root().remove("b", 2).updateAll(transformed);
+
+        assertEquals(parse("a:1,c:3"), transformed);
+    }
+
+    @Test
+    public void remove_ignoresMismatch() {
+        final JsonObject transformed = parse("a:1,b:2,c:3");
+        JsonTransformer.root().remove("b", 1).updateAll(transformed);
+
+        assertEquals(parse("a:1,b:2,c:3"), transformed);
+    }
+
+    @Test
+    public void removeAll_removesMultipleValues() {
+        final JsonObject transformed = parse("a:1,b:2,c:3");
+        JsonTransformer.root().remove(parse("b:2,c:3")).updateAll(transformed);
+
+        assertEquals(parse("a:1"), transformed);
+    }
+
+    @Test
+    public void removeNull_removesAnyValue() {
+        final JsonObject transformed = parse("a:1,b:2,c:3");
+        JsonTransformer.root().remove("b").updateAll(transformed);
+
+        assertEquals(parse("a:1,c:3"), transformed);
+    }
+
+    @Test
     public void parentTransformer_appliesNestedTransformations() {
         final JsonObject transformed = parse("a:1");
         final ObjectResolver nested = JsonTransformer.root().history("a", "b");
