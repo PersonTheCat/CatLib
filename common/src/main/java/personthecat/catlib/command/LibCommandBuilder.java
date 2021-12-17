@@ -242,13 +242,10 @@ public final class LibCommandBuilder {
             final BuilderUtil util = new BuilderUtil(this.wrappers, this.linter, this.mod);
             final HelpCommandInfo helpInfo = new HelpCommandInfo(this.name, this.arguments, this.description, this.type);
 
-            final LiteralArgumentBuilder<CommandSourceStack> cmd;
             if (this.side.canRegister(McUtils.isDedicatedServer())) {
-                cmd = generator.apply(builder, util);
-            } else {
-                cmd = Commands.literal(this.name);
+                return new LibCommandBuilder(generator.apply(builder, util), helpInfo, this.type, this.side);
             }
-            return new LibCommandBuilder(cmd, helpInfo, this.type, this.side);
+            return new LibCommandBuilder(builder, helpInfo, this.type, this.side);
         }
     }
 
