@@ -10,6 +10,8 @@ import personthecat.catlib.util.JsonTransformer.ObjectResolver;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.singleton;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -176,6 +178,20 @@ public final class JsonTransformerTest {
         JsonTransformer.root().relocate("a.b.c.d", "e").updateAll(transformed);
 
         assertEquals(parse("a:{b:1}"), transformed);
+    }
+
+    public void reorder_movesFieldsToTopAndBottom() {
+        final JsonObject transformed = parse("a:1,first:8,b:2,last:9,c:3");
+        JsonTransformer.root().reorder(singleton("first"), singleton("last")).updateAll(transformed);
+
+        assertEquals(parse("first:8,a:1,b:2,c:3,last:9"), transformed);
+    }
+
+    public void sort_sortsAllFields() {
+        final JsonObject transformed = parse("a:1,b:2,c:3");
+        JsonTransformer.root().sort((m1, m2) -> m2.getName().compareTo(m1.getName())).updateAll(transformed);
+
+        assertEquals(parse("c:3,b:2,a:1"), transformed);
     }
 
     @Test

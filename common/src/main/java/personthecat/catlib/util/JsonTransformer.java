@@ -712,6 +712,168 @@ public class JsonTransformer {
         }
 
         /**
+         * Places the fields in every matching object into a specific order. Any fields
+         * not matched by the set will simply be rendered at the end.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: 1
+         *     first: 9
+         *     b: 2
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.root()
+         *     .reorder(singleton("first")
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     first: 9
+         *     a: 1
+         *     b: 2
+         *   }
+         * }</pre>
+         *
+         * @param keys The exact order in which to place the fields.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver reorder(final Collection<String> keys) {
+            return this.reorder(keys, Collections.emptyList());
+        }
+
+        /**
+         * Places the fields in a strict, specific order. This method accepts two sets of
+         * keys, where the first places any matching fields at the top and the second
+         * places any matching fields at the bottom.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: 1
+         *     first: 8
+         *     b: 2
+         *     last: 9
+         *     c: 3
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.root()
+         *     .reorder(singleton("first"), singleton("last"))
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     first: 8
+         *     a: 1
+         *     b: 2
+         *     c: 3
+         *     last: 9
+         *   }
+         * }</pre>
+         *
+         * @param first The keys to display at the beginning of the object.
+         * @param last The keys to display at the end of the object.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver reorder(final Collection<String> first, final Collection<String> last) {
+            updates.add(new StrictFieldOrganizer(this, first, last));
+            return this;
+        }
+
+        /**
+         * Sorts every field in the matching objects in alphabetical order.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     b: 2
+         *     c: 3
+         *     a: 1
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.root()
+         *     .sort()
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: 1
+         *     b: 2
+         *     c: 3
+         *   }
+         * }</pre>
+         *
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver sort() {
+            return this.sort(new JsonObject.MemberComparator());
+        }
+
+        /**
+         * Sorts every field in the matching objects when given a specific comparator
+         * to determine their order.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: 1
+         *     b: 2
+         *     c: 3
+         *   }
+         * }</pre>
+         * <p>
+         *   And the following history:
+         * </p>
+         * <pre>{@code
+         *   JsonTransformer.root()
+         *     .sort((m1, m2) -> m2.getName().compareTo(m1.getName()))
+         *     .updateAll(json)
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     c: 3
+         *     b: 2
+         *     a: 1
+         *   }
+         * }</pre>
+         *
+         * @param comparator A comparator to determine field order.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver sort(final Comparator<JsonObject.Member> comparator) {
+            updates.add(new FieldSorter(this, comparator));
+            return this;
+        }
+
+        /**
          * Recursively provides default values in the matching objects. Existing values will
          * not be replaced by this transformer.
          * <p>
@@ -1433,6 +1595,75 @@ public class JsonTransformer {
         }
     }
 
+    public static class StrictFieldOrganizer implements Updater {
+
+        final ObjectResolver resolver;
+        final Collection<String> first;
+        final Collection<String> last;
+
+        private StrictFieldOrganizer(final ObjectResolver resolver, final Collection<String> first, final Collection<String> last) {
+            this.resolver = resolver;
+            this.first = first;
+            this.last = last;
+        }
+
+        @Override
+        public void update(final JsonObject json) {
+            resolver.forEach(json, this::reorder);
+        }
+
+        private void reorder(final JsonObject json) {
+            final JsonObject clone = new JsonObject().addAll(json);
+            final JsonObject firstValues = drain(clone, first);
+            final JsonObject lastValues = drain(clone, last);
+            json.clear();
+
+            json.addAll(firstValues);
+            json.addAll(clone);
+            json.addAll(lastValues);
+        }
+
+        private static JsonObject drain(final JsonObject source, final Collection<String> keys) {
+            final JsonObject drain = new JsonObject();
+            for (final String key : keys) {
+                final JsonValue value = source.get(key);
+                if (value != null) {
+                    drain.add(key, value);
+                    source.remove(key);
+                }
+            }
+            return drain;
+        }
+    }
+
+    public static class FieldSorter implements Updater {
+
+        final ObjectResolver resolver;
+        final Comparator<JsonObject.Member> comparator;
+
+        private FieldSorter(final ObjectResolver resolver, final Comparator<JsonObject.Member> comparator) {
+            this.resolver = resolver;
+            this.comparator = comparator;
+        }
+
+        @Override
+        public void update(final JsonObject json) {
+            resolver.forEach(json, this::sort);
+        }
+
+        private void sort(final JsonObject json) {
+            final List<JsonObject.Member> members = new ArrayList<>();
+            for (final JsonObject.Member member : json) {
+                members.add(member);
+            }
+            members.sort(comparator);
+            json.clear();
+            for (final JsonObject.Member member : members) {
+                json.add(member.getName(), member.getValue());
+            }
+        }
+    }
+
     public static class DefaultFieldProvider implements Updater {
 
         final ObjectResolver resolver;
@@ -1445,7 +1676,7 @@ public class JsonTransformer {
 
         @Override
         public void update(final JsonObject json) {
-            this.resolver.forEach(json, this::setDefaults);
+            resolver.forEach(json, this::setDefaults);
         }
 
         private void setDefaults(final JsonObject json) {
@@ -1467,7 +1698,7 @@ public class JsonTransformer {
 
         @Override
         public void update(final JsonObject json) {
-            this.resolver.forEach(json, this::remove);
+            resolver.forEach(json, this::remove);
         }
 
         private void remove(final JsonObject json) {
