@@ -10,6 +10,7 @@ import net.minecraft.commands.Commands;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.ModDescriptor;
+import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.SyntaxLinter;
 import personthecat.fresult.Result;
 
@@ -241,7 +242,12 @@ public final class LibCommandBuilder {
             final BuilderUtil util = new BuilderUtil(this.wrappers, this.linter, this.mod);
             final HelpCommandInfo helpInfo = new HelpCommandInfo(this.name, this.arguments, this.description, this.type);
 
-            final LiteralArgumentBuilder<CommandSourceStack> cmd = generator.apply(builder, util);
+            final LiteralArgumentBuilder<CommandSourceStack> cmd;
+            if (this.side.canRegister(McUtils.isDedicatedServer())) {
+                cmd = generator.apply(builder, util);
+            } else {
+                cmd = Commands.literal(this.name);
+            }
             return new LibCommandBuilder(cmd, helpInfo, this.type, this.side);
         }
     }
