@@ -180,6 +180,7 @@ public final class JsonTransformerTest {
         assertEquals(parse("a:{b:1}"), transformed);
     }
 
+    @Test
     public void reorder_movesFieldsToTopAndBottom() {
         final JsonObject transformed = parse("a:1,first:8,b:2,last:9,c:3");
         JsonTransformer.root().reorder(singleton("first"), singleton("last")).updateAll(transformed);
@@ -187,6 +188,7 @@ public final class JsonTransformerTest {
         assertEquals(parse("first:8,a:1,b:2,c:3,last:9"), transformed);
     }
 
+    @Test
     public void sort_sortsAllFields() {
         final JsonObject transformed = parse("a:1,b:2,c:3");
         JsonTransformer.root().sort((m1, m2) -> m2.getName().compareTo(m1.getName())).updateAll(transformed);
