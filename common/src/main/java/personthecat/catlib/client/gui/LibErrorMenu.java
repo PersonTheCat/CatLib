@@ -82,10 +82,12 @@ public class LibErrorMenu extends LibMenu {
 
     private void rebuildOptions() {
         this.options.clear();
+        int page = 0;
         for (final Map.Entry<ModDescriptor, List<FormattedException>> entry : this.errors.entrySet()) {
             final MultiValueMap<String, FormattedException> sorted = sortExceptions(entry.getValue());
-            final CategorizedList list = new CategorizedList(this, this.getErrorMenuLeft(), this.getErrorMenuRight(), createErrorButtons(sorted));
+            final CategorizedList list = new CategorizedList(this, this.getErrorMenuLeft(), this.getErrorMenuRight(), createErrorButtons(page, sorted));
             this.options.put(entry.getKey(), list);
+            page++;
         }
     }
 
@@ -123,16 +125,14 @@ public class LibErrorMenu extends LibMenu {
         return sorted;
     }
 
-    private MultiValueMap<String, AbstractWidget> createErrorButtons(MultiValueMap<String, FormattedException> sorted) {
+    private MultiValueMap<String, AbstractWidget> createErrorButtons(int page, MultiValueMap<String, FormattedException> sorted) {
         final MultiValueMap<String, AbstractWidget> buttons = new MultiValueHashMap<>();
-        int i = 0;
 
         for (final Map.Entry<String, List<FormattedException>> entry : sorted.entrySet()) {
             final List<AbstractWidget> widgets = new ArrayList<>();
 
             for (int j = 0; j < entry.getValue().size(); j++) {
                 final FormattedException e = entry.getValue().get(j);
-                final int page = i;
                 final int screen = j;
 
                 Component display = e.getDisplayMessage();
@@ -152,7 +152,6 @@ public class LibErrorMenu extends LibMenu {
                 widgets.add(CategorizedList.createButton(display, onPress, onTooltip));
             }
             buttons.put(entry.getKey(), widgets);
-            i++;
         }
         return buttons;
     }
