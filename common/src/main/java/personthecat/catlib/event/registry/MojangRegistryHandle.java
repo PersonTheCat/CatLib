@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.mixin.MojangRegistryAccessor;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -53,7 +54,7 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
 
     @Override
     public boolean isRegistered(final ResourceLocation id) {
-        return this.registry.containsKey(id);
+        return ((MojangRegistryAccessor<?>) this.registry).getStorage().containsKey(id);
     }
 
     @Override

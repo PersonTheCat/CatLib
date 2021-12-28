@@ -2,6 +2,9 @@
   "required": true,
   "package": "personthecat.catlib.mixin",
   "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MojangRegistryAccessor"
+  ],
   "server": [
     "MainServerMixin"
   ],
