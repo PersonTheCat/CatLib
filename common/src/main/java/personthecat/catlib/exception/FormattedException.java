@@ -1,5 +1,7 @@
 package personthecat.catlib.exception;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.Logger;
@@ -50,6 +52,7 @@ public abstract class FormattedException extends Exception {
     }
 
     @NotNull
+    @Environment(EnvType.CLIENT)
     public Screen getDetailsScreen(final Screen parent) {
         return new ErrorDetailPage(parent, this.getTitleMessage(), this.getDetailMessage());
     }
