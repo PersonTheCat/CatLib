@@ -3,6 +3,7 @@ package personthecat.catlib.util;
 import lombok.experimental.UtilityClass;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
+import personthecat.overwritevalidator.annotations.Inherit;
 import personthecat.overwritevalidator.annotations.InheritMissingMembers;
 import personthecat.overwritevalidator.annotations.Overwrite;
 import personthecat.overwritevalidator.annotations.OverwriteClass;
@@ -33,5 +34,10 @@ public class McUtils {
     @Overwrite
     public static boolean isDedicatedServer() {
         return EnvType.SERVER == FabricLoader.getInstance().getEnvironmentType();
+    }
+
+    @Inherit
+    public static boolean isClientSide() {
+        return !isDedicatedServer();
     }
 }

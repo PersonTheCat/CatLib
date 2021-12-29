@@ -3,22 +3,19 @@ package personthecat.catlib.util;
 import lombok.experimental.UtilityClass;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.forgespi.Environment;
 import net.minecraftforge.registries.ForgeRegistries;
+import personthecat.overwritevalidator.annotations.Inherit;
 import personthecat.overwritevalidator.annotations.InheritMissingMembers;
 import personthecat.overwritevalidator.annotations.Overwrite;
 import personthecat.overwritevalidator.annotations.OverwriteClass;
 
 import java.io.File;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @UtilityClass
 @OverwriteClass
@@ -54,6 +51,11 @@ public class McUtils {
     @Overwrite
     public static boolean isDedicatedServer() {
         return Dist.DEDICATED_SERVER == Environment.get().getDist();
+    }
+
+    @Inherit
+    public static boolean isClientSide() {
+        return !isDedicatedServer();
     }
 
     @Overwrite

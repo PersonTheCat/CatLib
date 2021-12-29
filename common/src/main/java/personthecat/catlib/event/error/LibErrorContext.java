@@ -8,7 +8,7 @@ import personthecat.catlib.data.MultiValueHashMap;
 import personthecat.catlib.data.MultiValueMap;
 import personthecat.catlib.exception.FormattedException;
 import personthecat.catlib.exception.GenericFormattedException;
-import personthecat.catlib.util.McUtils;
+import personthecat.catlib.exception.ModLoadException;
 import personthecat.fresult.functions.ThrowingRunnable;
 
 import java.util.*;
@@ -37,9 +37,6 @@ public class LibErrorContext {
     public static void register(final Severity level, final ModDescriptor mod, final FormattedException e) {
         e.onErrorReceived(log);
 
-        if (McUtils.isDedicatedServer()) {
-            throw new RuntimeException(e);
-        }
         if (level == Severity.FATAL) {
             FATAL_ERRORS.computeIfAbsent(mod, m -> Collections.synchronizedList(new ArrayList<>())).add(e);
         } else if (level.isAtLeast(LibConfig.getErrorLevel())) {
@@ -154,6 +151,26 @@ public class LibErrorContext {
         final MultiValueMap<ModDescriptor, FormattedException> fatal = new MultiValueHashMap<>();
         fatal.putAll(FATAL_ERRORS);
         return fatal;
+    }
+
+    @ApiStatus.Internal
+    public static void outputServerErrors(final boolean notify) {
+        if (hasErrors()) {
+            for (final Map.Entry<ModDescriptor, List<FormattedException>> entry : COMMON_ERRORS.entrySet()) {
+                log.error("Encountered {} warnings for {}", entry.getValue().size(), entry.getKey().getModId());
+                entry.getValue().forEach(log::warn);
+            }
+            for (final Map.Entry<ModDescriptor, List<FormattedException>> entry : FATAL_ERRORS.entrySet()) {
+                log.error("Encountered {} errors for {}", entry.getValue().size(), entry.getKey().getModId());
+                entry.getValue().forEach(log::fatal);
+            }
+            if (!FATAL_ERRORS.isEmpty()) {
+                throw new ModLoadException(FATAL_ERRORS.size() + " mods encountered fatal errors");
+            }
+            dispose();
+        } else if (notify) {
+            log.info("No errors in context. Server init complete!");
+        }
     }
 
     @ApiStatus.Internal

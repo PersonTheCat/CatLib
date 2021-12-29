@@ -28,6 +28,7 @@ import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.event.world.RegistrySet;
 import personthecat.catlib.mixin.BiomeModificationContextAccessor;
 import personthecat.catlib.util.LibReference;
+import personthecat.catlib.util.McUtils;
 
 public class CatLib implements ModInitializer {
 
@@ -54,15 +55,20 @@ public class CatLib implements ModInitializer {
         }
         ctx.addCommand(CatLibCommands.ERROR_MENU).registerAll();
 
-        ServerWorldEvents.LOAD.register((s, l) -> CommonWorldEvent.LOAD.invoker().accept(l));
+        ServerWorldEvents.LOAD.register((s, l) -> {
+            if (McUtils.isDedicatedServer()) {
+                LibErrorContext.outputServerErrors(false);
+            }
+            CommonWorldEvent.LOAD.invoker().accept(l);
+        });
         ServerWorldEvents.UNLOAD.register((s, l) -> CommonWorldEvent.UNLOAD.invoker().accept(l));
         ServerPlayConnectionEvents.JOIN.register((h, tx, s) -> {
-            if (LibErrorContext.hasErrors()) {
+            if (McUtils.isClientSide() && LibErrorContext.hasErrors()) {
                 h.player.sendMessage(new TranslatableComponent("catlib.errorText.clickHere")
                     .withStyle(Style.EMPTY.withClickEvent(CommandUtils.clickToRun("/catlib errors"))), Util.NIL_UUID);
             }
+            CommonPlayerEvent.LOGIN.invoker().accept(h.player, s);
         });
-        ServerPlayConnectionEvents.JOIN.register((h, tx, s) -> CommonPlayerEvent.LOGIN.invoker().accept(h.player, s));
         ServerPlayConnectionEvents.DISCONNECT.register((h, s) -> CommonPlayerEvent.LOGOUT.invoker().accept(h.player, s));
     }
 

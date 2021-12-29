@@ -22,6 +22,7 @@ import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.FeatureModificationHook;
 import personthecat.catlib.util.LibReference;
+import personthecat.catlib.util.McUtils;
 
 @Mod(LibReference.MOD_ID)
 public class CatLib {
@@ -52,18 +53,21 @@ public class CatLib {
         }
         ctx.addCommand(CatLibCommands.ERROR_MENU).registerAll();
 
-        MinecraftForge.EVENT_BUS.addListener((WorldEvent.Load e) ->
-            CommonWorldEvent.LOAD.invoker().accept(e.getWorld()));
+        MinecraftForge.EVENT_BUS.addListener((WorldEvent.Load e) -> {
+            if (McUtils.isDedicatedServer()) {
+                LibErrorContext.outputServerErrors(false);
+            }
+            CommonWorldEvent.LOAD.invoker().accept(e.getWorld());
+        });
         MinecraftForge.EVENT_BUS.addListener((WorldEvent.Unload e) ->
             CommonWorldEvent.UNLOAD.invoker().accept(e.getWorld()));
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) -> {
-            if (LibErrorContext.hasErrors()) {
+            if (McUtils.isClientSide() && LibErrorContext.hasErrors()) {
                 e.getPlayer().sendMessage(new TranslatableComponent("catlib.errorText.clickHere")
                     .withStyle(Style.EMPTY.withClickEvent(CommandUtils.clickToRun("/catlib errors"))), Util.NIL_UUID);
             }
+            CommonPlayerEvent.LOGIN.invoker().accept(e.getPlayer(), e.getPlayer().getServer());
         });
-        MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) ->
-            CommonPlayerEvent.LOGIN.invoker().accept(e.getPlayer(), e.getPlayer().getServer()));
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent e) ->
             CommonPlayerEvent.LOGOUT.invoker().accept(e.getPlayer(), e.getPlayer().getServer()));
     }
