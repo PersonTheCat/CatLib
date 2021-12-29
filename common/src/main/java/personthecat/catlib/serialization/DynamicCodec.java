@@ -25,10 +25,55 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
 
     @SafeVarargs
     public DynamicCodec(final Supplier<B> builder, final Function<A, R> in, final Function<B, A> out, final DynamicField<B, R, ?>... fields) {
+        this(builder, in, out, createMap(fields));
+    }
+
+    protected DynamicCodec(final Supplier<B> builder, final Function<A, R> in, final Function<B, A> out, final Map<String, DynamicField<B, R, ?>> fields) {
         this.builder = builder;
         this.in = in;
         this.out = out;
-        this.fields = createMap(fields);
+        this.fields = fields;
+    }
+
+    public static <B, R, A> Builder<B, R, A> builder(final Supplier<B> builder, final Function<A, R> in, final Function<B, A> out) {
+        return new Builder<>(builder, in, out);
+    }
+
+    public DynamicCodec<B, R, A> withBuilder(final Supplier<B> builder) {
+        return new DynamicCodec<>(builder, this.in, this.out, this.fields);
+    }
+
+    public DynamicCodec<B, R, A> withReader(final Function<A, R> reader) {
+        return new DynamicCodec<>(this.builder, reader, this.out, this.fields);
+    }
+
+    public DynamicCodec<B, R, A> withWriter(final Function<B, A> writer) {
+        return new DynamicCodec<>(this.builder, this.in, writer, this.fields);
+    }
+
+    @SafeVarargs
+    public final DynamicCodec<B, R, A> withMoreFields(final DynamicField<B, R, ?>... fields) {
+        final ImmutableMap.Builder<String, DynamicField<B, R, ?>> map = ImmutableMap.builder();
+        map.putAll(this.fields);
+        map.putAll(createMap(fields));
+        return new DynamicCodec<>(this.builder, this.in, this.out, map.build());
+    }
+
+    public DynamicCodec<B, R, A> withoutFields(final String... fields) {
+        final Map<String, DynamicField<B, R, ?>> map = new HashMap<>(this.fields);
+        for (final String field : fields) {
+            map.remove(field);
+        }
+        return new DynamicCodec<>(this.builder, this.in, this.out, ImmutableMap.copyOf(map));
+    }
+
+    @SafeVarargs
+    public final DynamicCodec<B, R, A> withoutFields(final DynamicField<B, R, ?>... fields) {
+        final Map<String, DynamicField<B, R, ?>> map = new HashMap<>(this.fields);
+        for (final DynamicField<B, R, ?> field : fields) {
+            map.remove(field.key);
+        }
+        return new DynamicCodec<>(this.builder, this.in, this.out, ImmutableMap.copyOf(map));
     }
 
     private static <B, R> Map<String, DynamicField<B, R, ?>> createMap(final DynamicField<B, R, ?>[] fields) {
@@ -37,10 +82,6 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
             map.put(field.key, field);
         }
         return map.build();
-    }
-
-    public static <B, R, A> Builder<B, R, A> builder(final Supplier<B> builder, final Function<A, R> in, final Function<B, A> out) {
-        return new Builder<>(builder, in, out);
     }
 
     @Override
