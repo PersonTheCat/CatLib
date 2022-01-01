@@ -92,6 +92,16 @@ public class Shorthand {
     }
 
     /**
+     * Returns 1 / x, or else 0 if x == 0;
+     *
+     * @param value Any integer value;
+     * @return The inversion of the input, which never divides by 0.
+     */
+    public static double invertInt(final int value) {
+        return value == 0 ? 1.0 : 1.0 / (double) value;
+    }
+
+    /**
      * Interpolates strings by replacing instances of <code>{}</code> in order.
      *
      * @param s The template string being formatted.
@@ -379,7 +389,6 @@ public class Shorthand {
      * @param source The original data source being filtered out of.
      * @param filter The filter for which files to retain in the collection.
      * @param <T> The type of data in the collection.
-     * @param <R> The type of collection being returned.
      * @return A new collection containing the filtered data.
      */
     public static <T> List<T> filter(final List<T> source, final Predicate<T> filter) {
@@ -392,7 +401,6 @@ public class Shorthand {
      * @param source The original data source being filtered out of.
      * @param filter The filter for which files to retain in the collection.
      * @param <T> The type of data in the collection.
-     * @param <R> The type of collection being returned.
      * @return A new collection containing the filtered data.
      */
     public static <T> Set<T> filter(final Set<T> source, final Predicate<T> filter) {
