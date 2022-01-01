@@ -92,7 +92,8 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
         final List<T> errors = new ArrayList<>();
 
         for (final DynamicField<B, R, ?> field : this.fields.values()) {
-            final Codec<Object> type = (Codec<Object>) field.codec;
+            Codec<Object> type = (Codec<Object>) field.codec;
+            if (type == null) type = (Codec<Object>) this;
             type.encodeStart(ops, field.getter.apply(reader))
                 .resultOrPartial(e -> errors.add(ops.createString(e)))
                 .ifPresent(t -> map.put(ops.createString(field.key), t));
@@ -117,7 +118,9 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
                 key.resultOrPartial(e -> failed.add(pair.getFirst())).ifPresent(k -> {
                     final DynamicField<B, R, Object> field = (DynamicField<B, R, Object>) this.fields.get(k.getFirst());
                     if (field != null) {
-                        final DataResult<Pair<Object, T>> element = field.codec.decode(ops,  pair.getSecond());
+                        Codec<Object> codec = field.codec;
+                        if (codec == null) codec = (Codec<Object>) this;
+                        final DataResult<Pair<Object, T>> element = codec.decode(ops,  pair.getSecond());
 
                         element.error().ifPresent(e -> failed.add(pair.getSecond()));
                         result.setValue(result.getValue().apply2stable((r, v) -> {
