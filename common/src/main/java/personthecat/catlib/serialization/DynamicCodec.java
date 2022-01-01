@@ -146,11 +146,9 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
                 key.resultOrPartial(e -> failed.add(pair.getFirst())).ifPresent(k -> {
                     final DynamicField<B, R, Object> field = (DynamicField<B, R, Object>) this.fields.get(k.getFirst());
                     if (field != null && !field.isImplicit()) {
-                        if (pair.getSecond() == null) {
-                            if (field.isNullable()) {
-                                field.setter.accept(builder, null);
-                            }
-                            return; // Always tolerate null values
+                        if (pair.getSecond() == null && field.isNullable()) {
+                            field.setter.accept(builder, null);
+                            return;
                         }
                         Codec<Object> codec = field.codec;
                         if (codec == null) codec = (Codec<Object>) this;

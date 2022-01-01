@@ -38,12 +38,10 @@ public class DynamicCodecTest {
     }
 
     @Test
-    public void simpleCodec_supportsReadingNullValues() {
+    public void simpleCodec_doesNotSupportReadingNullValues() {
         final JsonObject json = parse("a:null");
         final SimpleObject o = decode(SimpleObject.CODEC, json);
-        assertNotNull(o);
-        assertNull(o.a);
-        assertEquals(0, o.b);
+        assertNull(o);
     }
 
     @Test
