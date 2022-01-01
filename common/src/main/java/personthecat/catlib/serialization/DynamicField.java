@@ -12,19 +12,19 @@ public class DynamicField<B, R, T> {
     final String key;
     final Function<R, T> getter;
     final BiConsumer<B, T> setter;
-    final boolean up;
+    final Type type;
 
     public DynamicField(final @Nullable Codec<T> codec, final String key, final Function<R, T> getter, final BiConsumer<B, T> setter) {
-        this(codec, key, getter, setter, false);
+        this(codec, key, getter, setter, Type.NONNULL);
     }
 
-    public DynamicField(final @Nullable Codec<T> codec, final String key, final Function<R, T> getter, final BiConsumer<B, T> setter, final boolean up) {
+    public DynamicField(final @Nullable Codec<T> codec, final String key, final Function<R, T> getter, final BiConsumer<B, T> setter, final Type type) {
         this.codec = codec;
         this.key = key;
         this.getter = getter;
         this.setter = setter;
-        this.up = up;
-        if (codec == null && up) throw new IllegalArgumentException("Implicit fields cannot be recursive");
+        this.type = type;
+        if (codec == null && type == Type.IMPLICIT) throw new IllegalArgumentException("Implicit fields cannot be recursive");
     }
 
     public static <B, R, T> DynamicField<B, R, T> field(final Codec<T> type, final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {
@@ -32,7 +32,11 @@ public class DynamicField<B, R, T> {
     }
 
     public static <B, R, T> DynamicField<B, R, T> extend(final Codec<T> type, final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {
-        return new DynamicField<>(type, name, getter, setter, true);
+        return new DynamicField<>(type, name, getter, setter, Type.IMPLICIT);
+    }
+
+    public static <B, R, T> DynamicField<B, R, T> nullable(final Codec<T> type, final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {
+        return new DynamicField<>(type, name, getter, setter, Type.NULLABLE);
     }
 
     public static <B, R, T> DynamicField<B, R, T> recursive(final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {
@@ -56,6 +60,16 @@ public class DynamicField<B, R, T> {
     }
 
     public boolean isImplicit() {
-        return this.up;
+        return this.type == Type.IMPLICIT;
+    }
+
+    public boolean isNullable() {
+        return this.type == Type.NULLABLE;
+    }
+
+    public enum Type {
+        NONNULL,
+        NULLABLE,
+        IMPLICIT
     }
 }

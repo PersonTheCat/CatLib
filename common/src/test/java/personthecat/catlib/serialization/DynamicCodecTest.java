@@ -10,15 +10,17 @@ import org.junit.jupiter.api.Test;
 import static personthecat.catlib.serialization.CodecUtils.dynamic;
 import static personthecat.catlib.serialization.DynamicField.extend;
 import static personthecat.catlib.serialization.DynamicField.field;
+import static personthecat.catlib.serialization.DynamicField.nullable;
 import static personthecat.catlib.serialization.DynamicField.recursive;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DynamicCodecTest {
 
     @Test
-    public void simpleDynamicCodec_mapsValues() {
+    public void simpleCodec_mapsValues() {
         final JsonObject json = parse("a:'test',b:1337");
         final SimpleObject o = decode(SimpleObject.CODEC, json);
         assertNotNull(o);
@@ -27,12 +29,54 @@ public class DynamicCodecTest {
     }
 
     @Test
-    public void simpleDynamicCodec_supportsMissingValues() {
+    public void simpleCodec_supportsMissingValues() {
         final JsonObject json = parse("");
         final SimpleObject o = decode(SimpleObject.CODEC, json);
         assertNotNull(o);
         assertNull(o.a);
         assertEquals(0, o.b);
+    }
+
+    @Test
+    public void simpleCodec_supportsReadingNullValues() {
+        final JsonObject json = parse("a:null");
+        final SimpleObject o = decode(SimpleObject.CODEC, json);
+        assertNotNull(o);
+        assertNull(o.a);
+        assertEquals(0, o.b);
+    }
+
+    @Test
+    public void simpleCodec_supportsWritingNullValues() {
+        final SimpleObject o = new SimpleObject();
+        final JsonObject json = encode(SimpleObject.CODEC, o);
+        assertNotNull(json);
+        assertTrue(json.get("a").isNull());
+    }
+
+    @Test
+    public void nullableCodec_supportsReadingNullValues() {
+        final JsonObject json = parse("a:null");
+        final NullableObject o = decode(NullableObject.CODEC, json);
+        assertNotNull(o);
+        assertNull(o.a);
+    }
+
+    @Test
+    public void nullableCodec_supportsReadingNonnullValues() {
+        final JsonObject json = parse("a:test");
+        final NullableObject o = decode(NullableObject.CODEC, json);
+        assertNotNull(o);
+        assertEquals("test", o.a);
+    }
+
+    @Test
+    public void nullableCodec_supportsWritingNullValues() {
+        final NullableObject o = new NullableObject();
+        o.a = null;
+        final JsonObject json = encode(NullableObject.CODEC, o);
+        assertNotNull(json);
+        assertTrue(json.get("a").isNull());
     }
 
     @Test
@@ -87,6 +131,10 @@ public class DynamicCodecTest {
         return pair != null ? pair.getFirst() : null;
     }
 
+    public static <T> JsonObject encode(final Codec<T> codec, final T value) {
+        return codec.encodeStart(HjsonOps.INSTANCE, value).getOrThrow(false, e -> {}).asObject();
+    }
+
     static class SimpleObject {
         @Nullable String a;
         int b;
@@ -94,6 +142,14 @@ public class DynamicCodecTest {
         static Codec<SimpleObject> CODEC = dynamic(SimpleObject::new).create(
             field(Codec.STRING, "a", o -> o.a, (o, a) -> o.a = a),
             field(Codec.INT, "b", o -> o.b, (o, b) -> o.b = b)
+        );
+    }
+
+    static class NullableObject {
+        @Nullable String a = "nonnull";
+
+        static Codec<NullableObject> CODEC = dynamic(NullableObject::new).create(
+            nullable(Codec.STRING, "a", o -> o.a, (o, a) -> o.a = a)
         );
     }
 
