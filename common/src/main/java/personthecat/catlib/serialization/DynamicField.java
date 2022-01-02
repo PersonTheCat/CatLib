@@ -15,7 +15,7 @@ public class DynamicField<B, R, T> {
     final Type type;
 
     public DynamicField(final @Nullable Codec<T> codec, final String key, final Function<R, T> getter, final BiConsumer<B, T> setter) {
-        this(codec, key, getter, setter, Type.NONNULL);
+        this(codec, key, getter, setter, Type.IGNORE_NULL);
     }
 
     public DynamicField(final @Nullable Codec<T> codec, final String key, final Function<R, T> getter, final BiConsumer<B, T> setter, final Type type) {
@@ -37,6 +37,10 @@ public class DynamicField<B, R, T> {
 
     public static <B, R, T> DynamicField<B, R, T> nullable(final Codec<T> type, final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {
         return new DynamicField<>(type, name, getter, setter, Type.NULLABLE);
+    }
+
+    public static <B, R, T> DynamicField<B, R, T> required(final Codec<T> type, final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {
+        return new DynamicField<>(type, name, getter, setter, Type.NONNULL);
     }
 
     public static <B, R, T> DynamicField<B, R, T> recursive(final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {
@@ -67,9 +71,14 @@ public class DynamicField<B, R, T> {
         return this.type == Type.NULLABLE;
     }
 
+    public boolean isRequired() {
+        return this.type == Type.NONNULL;
+    }
+
     public enum Type {
         NONNULL,
         NULLABLE,
+        IGNORE_NULL,
         IMPLICIT
     }
 }

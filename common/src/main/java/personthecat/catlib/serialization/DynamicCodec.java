@@ -9,10 +9,7 @@ import com.mojang.serialization.DynamicOps;
 import org.apache.commons.lang3.mutable.MutableObject;
 import personthecat.catlib.exception.UnreachableException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -24,6 +21,8 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
     private final Function<A, R> in;
     private final Function<B, A> out;
     private final Map<String, DynamicField<B, R, ?>> fields;
+    private final Map<String, DynamicField<B, R, ?>> implicitFields;
+    private final Map<String, DynamicField<B, R, ?>> requiredFields;
 
     @SafeVarargs
     public DynamicCodec(final Supplier<B> builder, final Function<A, R> in, final Function<B, A> out, final DynamicField<B, R, ?>... fields) {
@@ -35,6 +34,8 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
         this.in = in;
         this.out = out;
         this.fields = fields;
+        this.implicitFields = getFields(fields.values(), DynamicField.Type.IMPLICIT);
+        this.requiredFields = getFields(fields.values(), DynamicField.Type.NONNULL);
     }
 
     public static <B, R, A> Builder<B, R, A> builder(final Supplier<B> builder, final Function<A, R> in, final Function<B, A> out) {
@@ -86,9 +87,24 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
         return map.build();
     }
 
+    private static <B, R> Map<String, DynamicField<B, R, ?>> getFields(
+        final Collection<DynamicField<B, R, ?>> all, final DynamicField.Type type) {
+
+        final ImmutableMap.Builder<String, DynamicField<B, R, ?>> fields = ImmutableMap.builder();
+        for (final DynamicField<B, R, ?> field : all) {
+            if (field.type == type) {
+                fields.put(field.key, field);
+            }
+        }
+        return fields.build();
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> DataResult<T> encode(final A input, final DynamicOps<T> ops, final T prefix) {
+        if (input == null) {
+            return DataResult.error("Input is null");
+        }
         final R reader = this.in.apply(input);
         final Map<T, T> map = new HashMap<>();
         final List<T> errors = new ArrayList<>();
@@ -96,23 +112,23 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
         for (final DynamicField<B, R, ?> field : this.fields.values()) {
             Codec<Object> type = (Codec<Object>) field.codec;
             if (type == null) type = (Codec<Object>) this;
-            final DataResult<T> result = field.isImplicit()
-                ? type.encode(input, ops, prefix)
-                : type.encodeStart(ops, field.getter.apply(reader));
 
+            final Object value = field.getter.apply(reader);
+            if (value == null) {
+                continue;
+            }
             if (field.isImplicit()) {
-                type.encode(input, ops, prefix)
+                type.encode(value, ops, prefix)
                     .resultOrPartial(e -> errors.add(ops.createString(e)))
                     .flatMap(t -> ops.getMapValues(t)
-                        .resultOrPartial(e -> errors.add(ops.createString("Implicit value must a map"))))
+                        .resultOrPartial(e -> errors.add(ops.createString("Implicit value must be a map"))))
                     .ifPresent(values -> values
                         .forEach(pair -> map.put(pair.getFirst(), pair.getSecond())));
             } else {
-                type.encodeStart(ops, field.getter.apply(reader))
+                type.encodeStart(ops, value)
                     .resultOrPartial(e -> errors.add(ops.createString(e)))
                     .ifPresent(t -> map.put(ops.createString(field.key), t));
             }
-
         }
         if (!errors.isEmpty()) {
             return DataResult.error("Error encoding builder", ops.createList(errors.stream()));
@@ -127,17 +143,16 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
             final B builder = this.builder.get();
             final Stream.Builder<T> failed = Stream.builder();
             final MutableObject<DataResult<Unit>> result = new MutableObject<>(DataResult.success(Unit.INSTANCE));
+            final Map<String, DynamicField<B, R, ?>> required = new HashMap<>(this.requiredFields);
 
-            for (final DynamicField<B, R, ?> field : this.fields.values()) {
-                if (field.isImplicit()) {
-                    if (field.codec == null) throw new UnreachableException();
-                    final DataResult<Pair<Object, T>> element = ((Codec<Object>) field.codec).decode(ops, input);
-                    element.error().ifPresent(e -> failed.add(ops.createString(field.key)));
-                    result.setValue(result.getValue().apply2stable((r, v) -> {
-                        ((BiConsumer<B, Object>) field.setter).accept(builder, v.getFirst());
-                        return r;
-                    }, element));
-                }
+            for (final DynamicField<B, R, ?> field : this.implicitFields.values()) {
+                if (field.codec == null) throw new UnreachableException();
+                final DataResult<Pair<Object, T>> element = ((Codec<Object>) field.codec).decode(ops, input);
+                element.error().ifPresent(e -> failed.add(ops.createString(field.key)));
+                result.setValue(result.getValue().apply2stable((r, v) -> {
+                    ((BiConsumer<B, Object>) field.setter).accept(builder, v.getFirst());
+                    return r;
+                }, element));
             }
 
             map.entries().forEach(pair -> {
@@ -146,10 +161,13 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
                 key.resultOrPartial(e -> failed.add(pair.getFirst())).ifPresent(k -> {
                     final DynamicField<B, R, Object> field = (DynamicField<B, R, Object>) this.fields.get(k.getFirst());
                     if (field != null && !field.isImplicit()) {
-                        if (pair.getSecond() == null && field.isNullable()) {
-                            field.setter.accept(builder, null);
+                        if (pair.getSecond() == null) {
+                            if (field.isNullable()) {
+                                field.setter.accept(builder, null);
+                            }
                             return;
                         }
+                        required.remove(field.key);
                         Codec<Object> codec = field.codec;
                         if (codec == null) codec = (Codec<Object>) this;
                         final DataResult<Pair<Object, T>> element = codec.decode(ops,  pair.getSecond());
@@ -163,6 +181,12 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
                 });
             });
 
+            if (!required.isEmpty()) {
+                for (final String missing : required.keySet()) {
+                    failed.add(ops.createString(missing));
+                }
+                result.setValue(DataResult.error("Required values are missing"));
+            }
             final Pair<A, T> pair = Pair.of(this.out.apply(builder), ops.createList(failed.build()));
             return result.getValue().map(unit -> pair).setPartial(pair);
         });
