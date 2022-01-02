@@ -97,7 +97,7 @@ public class Shorthand {
      * @param value Any integer value;
      * @return The inversion of the input, which never divides by 0.
      */
-    public static double invertInt(final int value) {
+    public static double invert(final int value) {
         return value == 0 ? 1.0 : 1.0 / (double) value;
     }
 
