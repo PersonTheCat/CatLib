@@ -482,6 +482,7 @@ public class Shorthand {
      * @param <T> The type of data in the collection.
      * @return A new collection containing the filtered data.
      */
+    @Contract(pure = true)
     public static <T> List<T> filter(final List<T> source, final Predicate<T> filter) {
         return filter(source, new ArrayList<>(), filter);
     }
@@ -494,6 +495,7 @@ public class Shorthand {
      * @param <T> The type of data in the collection.
      * @return A new collection containing the filtered data.
      */
+    @Contract(pure = true)
     public static <T> Set<T> filter(final Set<T> source, final Predicate<T> filter) {
         return filter(source, new HashSet<>(), filter);
     }
