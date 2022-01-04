@@ -2,7 +2,9 @@ package personthecat.catlib.util;
 
 import lombok.experimental.UtilityClass;
 import org.apache.logging.log4j.util.TriConsumer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.exception.InvalidEnumConstantException;
 
 import java.util.*;
@@ -11,7 +13,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import static java.util.Optional.empty;
@@ -46,7 +47,7 @@ public class Shorthand {
      * @return <code>val</code>, wrapped in {@link Optional}.
      */
     @NotNull
-    public static <T> Optional<T> nullable(@Nullable final T val) {
+    public static <T> Optional<T> nullable(final @Nullable T val) {
         return Optional.ofNullable(val);
     }
 
@@ -94,11 +95,96 @@ public class Shorthand {
     /**
      * Returns 1 / x, or else 0 if x == 0;
      *
-     * @param value Any integer value;
+     * @param value Any integer value
      * @return The inversion of the input, which never divides by 0.
      */
     public static double invert(final int value) {
         return value == 0 ? 1.0 : 1.0 / (double) value;
+    }
+
+    /**
+     * Variant of {@link #invert(double)} safely accepting null values.
+     *
+     * @param value Any double value, or <code>null</code>.
+     * @return The inverse of the input, or else <code>null</code>.
+     */
+    @Contract("null -> null; !null -> !null")
+    public static Integer invert(final @Nullable Double value) {
+        return value != null ? invert(value.doubleValue()) : null;
+    }
+
+    /**
+     * Variant of {@link #invert(int)} safely accepting null values.
+     *
+     * @param value Any integer value, or <code>null</code>.
+     * @return The inverse of the input, or else <code>null</code>.
+     */
+    @Contract("null -> null; !null -> !null")
+    public static Double invert(final @Nullable Integer value) {
+        return value != null ? invert(value.intValue()) : null;
+    }
+
+    /**
+     * Returns the first non-null argument, or else null.
+     *
+     * <p>One particular use case for this method which may come in handy is
+     * when applying a large number of default values, as this will reduce
+     * the number of extraneous tokens.
+     *
+     * <pre>{@code
+     *   class Dog {
+     *     final String name;
+     *     final int age;
+     *
+     *     Dog(final @Nullable String name, final @Nullable Integer age) {
+     *       this.name = coalesce(name, "Sparky");
+     *       this.age = coalesce(age, 14);
+     *     }
+     *   }
+     * }</pre>
+     *
+     * @param t1  The first argument being compared.
+     * @param t2  The second argument being compared.
+     * @param <T> The type of argument and return value.
+     * @return The first non-null argument, or else null.
+     */
+    @Contract("null, null -> null; _, !null -> !null")
+    public static <T> T coalesce(final @Nullable T t1, final @Nullable T t2) {
+        return t1 != null ? t1 : t2;
+    }
+
+    /**
+     * Variant of {@link #coalesce(Object, Object)} accepting 3 parameters.
+     *
+     * @param t1  The first argument being compared.
+     * @param t2  The second argument being compared.
+     * @param t3  The third argument being compared.
+     * @param <T> The type of argument and return value.
+     * @return The first non-null argument, or else null.
+     */
+    @Contract("null, null, null -> null; _, _, !null -> !null")
+    public static <T> T coalesce(final @Nullable T t1, final @Nullable T t2, final @Nullable T t3) {
+        if (t1 != null) return t1;
+        if (t2 != null) return t2;
+        return t3;
+    }
+
+    /**
+     *  Variant of {@link #coalesce(Object, Object)} accepting 4 parameters.
+     *
+     * @param t1  The first argument being compared.
+     * @param t2  The second argument being compared.
+     * @param t3  The third argument being compared.
+     * @param t4  The fourth argument being compared.
+     * @param <T> The type of argument and return value.
+     * @return The first non-null argument, or else null.
+     */
+    @Contract("null, null, null, null -> null; _, _, _, !null -> !null")
+    public static <T> T coalesce(final @Nullable T t1, final @Nullable T t2, final @Nullable T t3, final @Nullable T t4) {
+        if (t1 != null) return t1;
+        if (t2 != null) return t2;
+        if (t3 != null) return t3;
+        return t4;
     }
 
     /**
