@@ -130,6 +130,7 @@ public class RandomChunkSelector {
      * Variant of {@link #getProbability(int, int, int)} accepting a
      * custom threshold.
      *
+     * @param seed The seed to use for RNG.
      * @param ID A unique identifier to further scramble the output.
      * @param x The chunk's x-coordinate.
      * @param y The chunk's y-coordinate.

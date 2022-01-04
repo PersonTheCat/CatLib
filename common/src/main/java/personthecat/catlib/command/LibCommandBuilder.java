@@ -34,7 +34,7 @@ import java.util.Objects;
  * </pre><p>
  *   The template returned by this method provides a series of options which can be used
  *   the configure the generated help command, supply mod information, and more.
- * </p><pre>
+ * </p><pre>{@code
  *     LibCommandBuilder.named("myCommand")
  *
  *         // Append text to the generated help message.
@@ -50,15 +50,15 @@ import java.util.Objects;
  *         // This converts the wrapper to an int function of type {@link CommandContext}.
  *         .wrap("", wrapper -> wrapper.sendMessage("Hello, world!"))
  *         ...
- * </pre><p>
+ * }</pre><p>
  *   Finally, once the command's metadata have been configured, you can return a complete
  *   command builder by calling {@link Template#generate}.
- * </p><pre>
+ * </p><pre>{@code
  *     final LibCommandBuilder cmd = LibCommandBuilder.named("myCommand")
  *         ...
  *         // This method exposes the raw Brigadier argument tree.
  *         .generate((builder, wrappers) -> builder.execute(wrappers.get("")));
- * </pre><p>
+ * }</pre><p>
  *   Generated builder objects can then be passed into an active {@link CommandRegistrationContext}
  *   or annotated with {@link personthecat.catlib.command.annotations.CommandBuilder} and passed in through the parent class.
  * </p>

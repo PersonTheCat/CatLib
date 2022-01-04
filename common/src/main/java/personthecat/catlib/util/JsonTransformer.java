@@ -101,7 +101,7 @@ import static personthecat.catlib.util.Shorthand.f;
  * <p>
  *   I am especially fond of this class. If you would like additional transformations
  *   to be supported by the library, <b>please</b> create an issue on
- *   <a href="">GitHub</a>.
+ *   <a href="https://github.com/PersonTheCat/CatLib/issues">GitHub</a>.
  *   Thanks for your help!
  * </p>
  */

@@ -97,6 +97,7 @@ public class SyntaxLinter {
     /**
      * Deprecated constructor for backwards compatibility.
      *
+     * @param targets The original target style mappings.
      * @deprecated Use {@link SyntaxLinter#SyntaxLinter(Highlighter[])}
      */
     @Deprecated
@@ -175,7 +176,7 @@ public class SyntaxLinter {
     }
 
     /**
-     * A map of {@link Pattern} -> {@link Style}.
+     * A map of {@link Pattern} {@code ->} {@link Style}.
      */
     @Deprecated
     public static class Target {

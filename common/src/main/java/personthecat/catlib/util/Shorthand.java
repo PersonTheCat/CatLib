@@ -350,6 +350,7 @@ public class Shorthand {
      *
      * @param <K> The unused key type in the given map.
      * @param <V> The type of value being retrieved.
+     * @param map The map being queried from.
      * @param key The key being researched in the map.
      * @return The mapped value, or else {@link Optional#empty}.
      */
@@ -362,6 +363,7 @@ public class Shorthand {
      * Safely retrieves a value from the input array.
      *
      * @param <T> The type of value being retrieved.
+     * @param array The array containing the expected value.
      * @param index The index of the value being returned.
      * @return The value at the given index, or else {@link Optional#empty}.
      */
@@ -569,9 +571,9 @@ public class Shorthand {
      * <p>The following tuples will be consumed:
      *
      * <ul>
-     *   <code>('a', 1)</code>
-     *   <code>('a', 2)</code>
-     *   <code>('a', 3)</code>
+     *   <li><code>('a', 1)</code></li>
+     *   <li><code>('a', 2)</code></li>
+     *   <li><code>('a', 3)</code></li>
      * </ul>
      *
      * @param t   The first iterator.

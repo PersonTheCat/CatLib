@@ -457,6 +457,7 @@ public class FileIO {
      *
      * @param f The file being renamed.
      * @param name The new name for this file.
+     * @return A result for handling errors, if any.
      */
     public static Result<Void, RuntimeException> rename(final File f, final String name) {
         final File path = new File(f.getParentFile(), name);
@@ -492,6 +493,7 @@ public class FileIO {
      *   Note that the given input stream <b>will not be closed.</b>.
      * </p>
      * @param is The input stream being copied out of.
+     * @param path The raw file path, as a string.
      * @return The result of the operation. <b>Any errors should not be ignored</b>.
      */
     @CheckReturnValue
@@ -505,6 +507,7 @@ public class FileIO {
      * Determines whether an asset is present in the jar.
      *
      * @param path The path to the file, with or without the beginning <code>/</code>.
+     * @return Whether a resource exists at this location.
      */
     @CheckReturnValue
     public static boolean resourceExists(final String path) {
@@ -517,6 +520,7 @@ public class FileIO {
      * Retrieves an asset from the jar file or resources directory.
      *
      * @param path The path to the file, with or without the beginning <code>/</code>.
+     * @return The expected resource, or else {@link Optional#empty}.
      */
     @CheckReturnValue
     public static Optional<InputStream> getResource(final String path) {

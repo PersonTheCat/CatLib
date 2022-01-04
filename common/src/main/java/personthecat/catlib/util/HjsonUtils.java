@@ -250,11 +250,11 @@ public class HjsonUtils {
      * <p>
      *   For example,
      * </p>
-     * <pre>
+     * <pre>{@code
      *   HjsonTools.updateJson(file, json -> {
      *      json.set("hello", "world");
      *   });
-     * </pre>
+     * }</pre>
      * <p>
      *   The output of this expression will be applied to the original file.
      * </p>
@@ -661,7 +661,7 @@ public class HjsonUtils {
      * </pre>
      * @param json The JSON object containing these data.
      * @param field The key for updating an array.
-     * @value The value being added to the array.
+     * @param value The value being added to the array.
      * @return The original <code>json</code> passed in.
      */
     public static JsonObject addToArray(final JsonObject json, final String field, final JsonValue value) {
@@ -681,7 +681,7 @@ public class HjsonUtils {
      * Returns a list of {@link JsonObject}s from the given source.
      * <p>
      *   Note that the values in this array will be coerced into {@link JsonObject}s.
-     * </p
+     * </p>
      * <p>
      *   These objects can be stored in any number of dimensions, but will be coerced
      *   into a single dimensional array. For example, each of the following values will
@@ -740,6 +740,7 @@ public class HjsonUtils {
      * </pre>
      * @param json The JSON object containing the array.
      * @param field The key where this array is stored.
+     * @return A list of all {@link JsonObject}s at this location.
      */
     public static List<JsonObject> getRegularObjects(final JsonObject json, final String field) {
         final List<JsonObject> list = new ArrayList<>();

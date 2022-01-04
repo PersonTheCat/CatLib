@@ -75,22 +75,39 @@ public class LazyFunction<T, R> {
         return Lazy.of(() -> this.apply(t));
     }
 
-    /** Returns the value only if it has already been computed. */
+    /**
+     * Returns the value only if it has already been computed.
+     *
+     * @return The underlying value, or else {@link Optional#empty}.
+     */
     public Optional<R> getIfComputed() {
         return Optional.ofNullable(this.value);
     }
 
-    /** Returns whether the underlying operation has completed. */
+    /**
+     * Returns whether the underlying operation has completed.
+     *
+     * @return <code>true</code>, if the value has been computed.
+     */
     public boolean computed() {
         return this.set;
     }
 
-    /** Returns an up-to-date value without resetting this value's reference. */
+    /**
+     * Returns an up-to-date value without resetting this value's reference.
+     *
+     * @param t The generic input to this function.
+     * @return The result of this function, non-lazily.
+     */
     public R applyUpdated(final T t) {
         return this.function.apply(t);
     }
 
-    /** Exposes the data directly without wrapping them in {@link Optional}. */
+    /**
+     * Exposes the data directly without wrapping them in {@link Optional}.
+     *
+     * @return The raw value, or else <code>null</code>.
+     */
     @Nullable
     public R expose() {
         return this.value;

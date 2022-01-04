@@ -192,7 +192,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
 
     /**
      * Generates a new registry containing the same data. The new registry will
-     * respond with this message when calling {@link #getAsserted(K)}.
+     * respond with this message when calling {@link #getAsserted(Object)}.
      *
      * @param err A function for generating missing element exceptions.
      * @return A new registry with the updated error info.
@@ -237,7 +237,7 @@ public class SafeRegistry<K, V> implements Map<K, V>, Iterable<V> {
     }
 
     /**
-     * Variant of {@link #getOptional(K)} which instead throws an exception if
+     * Variant of {@link #getOptional(Object)} which instead throws an exception if
      * no value is mapped to the given key.
      *
      * @throws RuntimeException If no value is present.

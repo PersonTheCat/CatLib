@@ -28,13 +28,21 @@ public class Lazy<T> implements Supplier<T> {
     /** Whether the value has been setup. */
     protected volatile boolean set;
 
-    /** The primary constructor with instructions for producing the value. */
+    /**
+     * The primary constructor with instructions for producing the value.
+     *
+     * @param supplier A function generating the value when ready.
+     */
     public Lazy(@NotNull final Supplier<T> supplier) {
         this.supplier = supplier;
         this.set = false;
     }
 
-    /** To be used in the event that a value already exists. */
+    /**
+     * To be used in the event that a value already exists.
+     *
+     * @param value The known value being wrapped.
+     */
     public Lazy(@NotNull final T value) {
         this.value = value;
         this.supplier = () -> value;
@@ -53,7 +61,7 @@ public class Lazy<T> implements Supplier<T> {
     }
 
     /**
-     * Factory variant of {@link #Lazy(T)}.
+     * Factory variant of {@link #Lazy(Object)}.
      *
      * @param <T> The type of value being wrapped.
      * @param value The actual value being wrapped.
@@ -93,27 +101,47 @@ public class Lazy<T> implements Supplier<T> {
         return value;
     }
 
-    /** Returns the value only if it has already been computed. */
+    /**
+     * Returns the value only if it has already been computed.
+     *
+     * @return The actual value, if ready.
+     */
     public Optional<T> getIfComputed() {
         return Optional.ofNullable(this.value);
     }
 
-    /** Returns whether the underlying operation has completed. */
+    /**
+     * Returns whether the underlying operation has completed.
+     *
+     * @return whether the value has been computed.
+     */
     public boolean computed() {
         return this.set;
     }
 
-    /** Returns an up-to-date value without resetting this value's reference. */
+    /**
+     * Returns an up-to-date value without resetting this value's reference.
+     *
+     * @return A regenerated value using the given supplier.
+     */
     public T getUpdated() {
         return this.supplier.get();
     }
 
-    /** Returns whether the underlying data can be reloaded. */
+    /**
+     * Returns whether the underlying data can be reloaded.
+     *
+     * @return <code>true</code>if this type supports reloading its value.
+     */
     public boolean isResettable() {
         return false;
     }
 
-    /** Exposes the data directly without wrapping them in {@link Optional}. */
+    /**
+     * Exposes the data directly without wrapping them in {@link Optional}.
+     *
+     * @return The raw value, or else <code>null</code>.
+     */
     @Nullable
     public T expose() {
         return this.value;

@@ -21,6 +21,7 @@ public class PathUtils {
      * Converts the input path into a fully-qualified ResourceLocation.
      *
      * @param path The raw file URI being decoded.
+     * @return The corresponding {@link ResourceLocation ID} of this path.
      */
     public static ResourceLocation getResourceLocation(final String path) {
         final String namespace = getNamespaceFromPath(path);

@@ -206,62 +206,116 @@ public class ValueLookup {
         sound -> serialize(sound).map(DataResult::success).orElse(DataResult.error("Unknown sound type: " + sound))
     );
 
-    /** Attempts to retrieve a material from the map. */
+    /**
+     * Attempts to retrieve a material from the map.
+     *
+     * @param key The name of the material being queried.
+     * @return The corresponding material, or else {@link Optional#empty}.
+     */
     public static Optional<Material> getMaterial(final String key) {
         return nullable(MATERIAL_MAP.get(key.toUpperCase()));
     }
 
-    /** Returns every material name in the registry. */
+    /**
+     * Returns every material name in the registry.
+     *
+     * @return All material keys.
+     */
     public static Set<String> getMaterialNames() {
         return MATERIAL_MAP.keySet();
     }
 
-    /** Returns every material object in the registry. */
+    /**
+     * Returns every material object in the registry.
+     *
+     * @return All known material values.
+     */
     public static Set<Material> getMaterialValues() {
         return MATERIAL_MAP.values();
     }
 
-    /** Converts the input material to a string. */
+    /**
+     * Converts the input material to a string.
+     *
+     * @param value The actual {@link Material} object which may have a name.
+     * @return The name of the material, or else {@link Optional#empty}.
+     */
     public static Optional<String> serialize(final Material value) {
         return nullable(MATERIAL_MAP.inverse().get(value));
     }
 
-    /** Attempts to retrieve a sound type from the map. */
+    /**
+     * Attempts to retrieve a sound type from the map.
+     *
+     * @param key The name of the sound type being queried.
+     * @return The corresponding {@link SoundType}, or else {@link Optional#empty}.
+     */
     public static Optional<SoundType> getSoundType(final String key) {
         return nullable(SOUND_MAP.get(key.toUpperCase()));
     }
 
-    /** Returns every sound name in the registry. */
+    /**
+     * Returns every sound name in the registry.
+     *
+     * @return All sound keys.
+     */
     public static Set<String> getSoundNames() {
         return SOUND_MAP.keySet();
     }
 
-    /** Returns every sound object in the registry. */
+    /**
+     * Returns every sound object in the registry.
+     *
+     * @return All known sound types.
+     */
     public static Set<SoundType> getSoundValues() {
         return SOUND_MAP.values();
     }
 
-    /** Converts the input sound type to a string. */
+    /**
+     * Converts the input sound type to a string.
+     *
+     * @param value The actual {@link SoundType} object which may have a name.
+     * @return The name of the sound, or else {@link Optional#empty}.
+     */
     public static Optional<String> serialize(final SoundType value) {
         return nullable(SOUND_MAP.inverse().get(value));
     }
 
-    /** Attempts to retrieve a material color from the map. */
+    /**
+     * Attempts to retrieve a material color from the map.
+     *
+     * @param key The name of the color being queried.
+     * @return The actual color object, or else {@link Optional#empty}.
+     */
     public static Optional<MaterialColor> getColor(final String key) {
         return nullable(COLOR_MAP.get(key.toUpperCase()));
     }
 
-    /** Returns every color name in the registry. */
+    /**
+     * Returns every color name in the registry.
+     *
+     * @return All known color keys.
+     */
     public static Set<String> getColorNames() {
         return COLOR_MAP.keySet();
     }
 
-    /** Returns every color object in the registry. */
+    /**
+     * Returns every color object in the registry.
+     *
+     * @return All known color values.
+     */
     public static Set<MaterialColor> getColorValues() {
         return COLOR_MAP.values();
     }
 
-    /** Converts the input color type to a string. */
+    /**
+     * Converts the input color type to a string.
+     *
+     * @param value The actual {@link MaterialColor} which may have a name.
+     * @return The name of the color, or else {@link Optional#empty}.
+     */
     public static Optional<String> serialize(final MaterialColor value) {
         return nullable(COLOR_MAP.inverse().get(value));
     }

@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  *   no parameters and returning an instance of {@link LibCommandBuilder}.
  * </p><p>
  *   For example:
- * </p><pre>
+ * </p><pre>{@code
  *     &#064;CommandBuilder
  *     private static LibCommandBuilder myCommand() {
  *         return LibCommandBuilder.named("command")
@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  *             .generate((builder, wrappers) ->
  *                 builder.executes(wrappers.get("")));
  *     }
- * </pre>
+ * }</pre>
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
