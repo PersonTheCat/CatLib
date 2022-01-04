@@ -376,6 +376,7 @@ public class Shorthand {
      * @param array The array of integers being sorted.
      * @return The sorted array.
      */
+    @Contract(mutates = "param1")
     public static int[] sort(final int[] array) {
         Arrays.sort(array);
         return array;
@@ -387,6 +388,7 @@ public class Shorthand {
      * @param array The array of floats being sorted.
      * @return The sorted array.
      */
+    @Contract(mutates = "param1")
     public static float[] sort(final float[] array) {
         Arrays.sort(array);
         return array;
@@ -429,6 +431,7 @@ public class Shorthand {
      * @return A new collection containing the removed data.
      */
     @NotNull
+    @Contract(mutates = "param1")
     public static <T> Set<T> drain(final Set<T> source, final Predicate<T> filter) {
         return drain(source, new HashSet<>(), filter);
     }
@@ -442,6 +445,7 @@ public class Shorthand {
      * @return A new collection containing the removed data.
      */
     @NotNull
+    @Contract(mutates = "param1")
     public static <T> List<T> drain(final List<T> source, final Predicate<T> filter) {
         return drain(source, new ArrayList<>(), filter);
     }
@@ -457,6 +461,7 @@ public class Shorthand {
      * @return A new collection containing the removed data.
      */
     @NotNull
+    @Contract(mutates = "param1, param2")
     public static <T, R extends Collection<T>> R drain(final Collection<T> source, final R into, final Predicate<T> filter) {
         final Iterator<T> iterator = source.iterator();
         while (iterator.hasNext()) {
@@ -503,6 +508,7 @@ public class Shorthand {
      * @param <R> The type of collection being returned.
      * @return A new collection containing the filtered data.
      */
+    @Contract(mutates = "param2")
     public static <T, R extends Collection<T>> R filter(final Collection<T> source, final R into, final Predicate<T> filter) {
         for (final T t : source) {
             if (filter.test(t)) {
