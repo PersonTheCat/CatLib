@@ -78,6 +78,10 @@ allprojects {
         options.compilerArgs << '-parameters'
     }
 
+    java {
+        withSourcesJar()
+    }
+
     jar {
         archivesBaseName = "$archive_base-$platform"
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
