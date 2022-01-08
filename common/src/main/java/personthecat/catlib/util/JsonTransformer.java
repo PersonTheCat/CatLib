@@ -1214,6 +1214,17 @@ public class JsonTransformer {
         }
 
         /**
+         * Runs the given consumer for each matching object, when available.
+         *
+         * @param fn The function to execute for each matching object.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver run(final Consumer<JsonObject> fn) {
+            updates.add(new SimpleFunctionRunner(this, fn));
+            return this;
+        }
+
+        /**
          * Prevents any further changes to this resolver. Use this to clearly indicate the
          * purpose of any static json transformer and guarantee thread safety.
          *
@@ -1923,6 +1934,22 @@ public class JsonTransformer {
             if (this.value == null || this.value.equals(json.get(this.key))) {
                 json.remove(this.key);
             }
+        }
+    }
+
+    public static class SimpleFunctionRunner implements Updater {
+
+        final ObjectResolver resolver;
+        final Consumer<JsonObject> fn;
+
+        private SimpleFunctionRunner(final ObjectResolver resolver, final Consumer<JsonObject> fn) {
+            this.resolver = resolver;
+            this.fn = fn;
+        }
+
+        @Override
+        public void update (final JsonObject json) {
+            resolver.forEach(json, fn);
         }
     }
 
