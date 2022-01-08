@@ -1257,6 +1257,34 @@ public class JsonTransformer {
         }
 
         /**
+         * Runs every transformation without modifying the given object. Instead, a new value
+         * will be returned.
+         *
+         * @param json The JSON object source for this operation.
+         * @return A <em>new</em> JSON object with the provided transforms applied.
+         */
+        public final JsonObject getUpdated(final JsonObject json) {
+            final JsonObject clone = HjsonUtils.shallowCopy(json).asObject();
+            this.updateAll(clone);
+            return clone;
+        }
+
+        /**
+         * Runs every transformation on multiple JSON objects without modifying <b>any</b>
+         * source object.
+         *
+         * @param objects The JSON object sources for this operation.
+         * @return An array of <em>new</em> JSON objects with the provided transforms applied.
+         */
+        public final JsonObject[] getUpdated(final JsonObject... objects) {
+            final JsonObject[] clones = new JsonObject[objects.length];
+            for (int i = 0; i < objects.length; i++) {
+                clones[i] = this.getUpdated(objects[i]);
+            }
+            return clones;
+        }
+
+        /**
          * Executes an operation for each last container when given a path. Each path element
          * is treated as <em>either</em> an object <em>or</em> an array.
          *
