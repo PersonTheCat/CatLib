@@ -7,7 +7,6 @@ import org.hjson.JsonValue;
 import org.junit.jupiter.api.Test;
 import personthecat.catlib.util.JsonTransformer.ObjectResolver;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.singleton;
@@ -23,18 +22,24 @@ public final class JsonTransformerTest {
     @Test
     public void rootResolver_resolvesRootPathOnly() {
         final JsonObject subject = parse("a:{x:1},b:{y:2},c:{z:3}");
-        final List<JsonObject> resolved = new ArrayList<>();
-        JsonTransformer.root().forEach(subject, resolved::add);
+        final List<JsonObject> resolved = JsonTransformer.root().collect(subject);
 
         assertEquals(1, resolved.size());
         assertSame(subject, resolved.get(0));
     }
 
     @Test
+    public void allResolver_resolvesAllObjects() {
+        final JsonObject subject = parse("a:{b:[{}{}]}");
+        final List<JsonObject> resolved = JsonTransformer.all().collect(subject);
+
+        assertEquals(4, resolved.size());
+    }
+
+    @Test
     public void staticResolver_resolvesRegularPaths() {
         final JsonObject subject = parse("a:[{x:1},{y:2}],b:[{z:3}]");
-        final List<JsonObject> resolved = new ArrayList<>();
-        JsonTransformer.withPath("a").forEach(subject, resolved::add);
+        final List<JsonObject> resolved = JsonTransformer.withPath("a").collect(subject);
 
         assertEquals(2, resolved.size());
         assertTrue(resolved.contains(parse("x:1")));
@@ -44,10 +49,46 @@ public final class JsonTransformerTest {
     @Test
     public void recursiveResolver_resolvesPathsRecursively() {
         final JsonObject subject = parse("a:[{z:{z:{z:{}}}},{z:{}}],z:{}");
-        final List<JsonObject> resolved = new ArrayList<>();
-        JsonTransformer.recursive("z").forEach(subject, resolved::add);
+        final List<JsonObject> resolved = JsonTransformer.recursive("z").collect(subject);
 
         assertEquals(5, resolved.size());
+    }
+
+    @Test
+    public void containingResolver_resolvesPathsContaining() {
+        final JsonObject subject = parse("a:[{},{b:{}},{b:1}]");
+        final List<JsonObject> resolved = JsonTransformer.containing("b").collect(subject);
+
+        assertEquals(2, resolved.size());
+    }
+
+    @Test
+    public void containingResolver_resolvesMatchingValuesOnly() {
+        final JsonObject subject = parse("a:[{},{b:{}},{b:1}]");
+        final List<JsonObject> resolved =
+            JsonTransformer.containing("b", JsonValue::isNumber).collect(subject);
+
+        assertEquals(1, resolved.size());
+        assertEquals(1, resolved.get(0).get("b").asInt());
+    }
+
+    @Test
+    public void matchingResolver_resolvesObjectsMatching() {
+        final JsonObject subject = parse("a:[{},{b:{}},{b:1}]");
+        final List<JsonObject> resolved =
+            JsonTransformer.matching(null, JsonObject::isEmpty).collect(subject);
+
+        assertEquals(2, resolved.size());
+    }
+
+    @Test
+    public void matchingResolver_resolvesKeysMatching() {
+        final JsonObject subject = parse("a:{x:1},b:{y:2}");
+        final List<JsonObject> resolved =
+            JsonTransformer.matching(null, (k, o) -> "a".equals(k)).collect(subject);
+
+        assertEquals(1, resolved.size());
+        assertEquals(1, resolved.get(0).get("x").asInt());
     }
 
     @Test

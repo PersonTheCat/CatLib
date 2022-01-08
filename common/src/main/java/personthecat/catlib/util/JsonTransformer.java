@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import static personthecat.catlib.util.Shorthand.f;
 
@@ -119,7 +120,7 @@ public class JsonTransformer {
      *   The following code is an assertion of this behavior:
      * </p>
      * <pre>{@code
-     *   final JsonObject json = parse("{inner:{}}")
+     *   final JsonObject json = parse("{inner:{}}");
      *   final List<JsonObject> resolved = JsonTransformer.root().collect(json);
      *
      *   assert resolved != null;
@@ -131,6 +132,26 @@ public class JsonTransformer {
      */
     public static ObjectResolver root() {
         return new RootObjectResolver();
+    }
+
+    /**
+     * This resolver is intended for transforming <b>all</b> available objects in a given
+     * JSON object.
+     * <p>
+     *   The following code is an assertion of this behavior:
+     * </p>
+     * <pre>{@code
+     *   final JsonObject json = parse("{k1:{},k2:{k3:{}}}");
+     *   final List<JsonObject> resolved = JsonTransformer.all().collect(json);
+     *
+     *   assert resolved != null;
+     *   assert resolved.size == 4;
+     * }</pre>
+     *
+     * @return A new object resolver to house transformations on all possible objects.
+     */
+    public static ObjectResolver all() {
+        return new MatchingObjectResolver(null, (k, o) -> true);
     }
 
     /**
@@ -169,11 +190,129 @@ public class JsonTransformer {
      *   assert resolved.size() == 4;
      * }</pre>
      *
+     * <p><b>Note</b>: This method will be replaced with <code>global</code> in CatLib 2.0.
+     * Expect its behavior to change slightly in the future.
+     *
      * @param key The name of every object being resolved.
-     * @return A new recursive object resolver for all transformations of this kind.
+     * @return A new matching object resolver for all transformations of this kind.
      */
     public static ObjectResolver recursive(final String key) {
-        return new RecursiveObjectResolver(key);
+        return new MatchingObjectResolver(null, (k, o) -> key.equals(k));
+    }
+
+    /**
+     * This resolver is intended for any objects containing the given key.
+     * <p>
+     *   The following code is an assertion of this behavior:
+     * </p>
+     * <pre>{@code
+     *   final JsonObject json = parse("a:{b:{},c:{}}");
+     *   final List<JsonObject> resolved = JsonTransformer.containing("b").collect();
+     *
+     *   assert resolved != null;
+     *   assert resolved.size() == 1;
+     *   assert resolved.get(0).has("c");
+     * }</pre>
+     * @param key The key which must be present.
+     * @return A new matching object resolver for all transformations of this kind.
+     */
+    public static ObjectResolver containing(final String key) {
+        return new MatchingObjectResolver(null, (k, o) -> o.has(key));
+    }
+
+    /**
+     * This resolver is intended for any objects containing the given key, provided
+     * that its value matches the given predicate.
+     * <p>
+     *   The following code is an assertion of this behavior:
+     * </p>
+     * <pre>{@code
+     *   final JsonObject json = parse("a:[{b:1},{b:''}]");
+     *   final List<JsonObject> resolved = JsonTransformer.containing("b", JsonValue::isNumber).collect();
+     *
+     *   assert resolved != null;
+     *   assert resolved.size() == 1;
+     *   assert resolved.get(0).get("b").asInt() == 1;
+     * }</pre>
+     *
+     * @param key The key which must be present.
+     * @param predicate The predicate for matching the value of this key.
+     * @return A new matching object resolver for all transformations of this kind.
+     */
+    public static ObjectResolver containing(final String key, final Predicate<JsonValue> predicate) {
+        return new MatchingObjectResolver(null, (k, o) -> {
+            final JsonValue value = o.get(key);
+            return value != null && predicate.test(value);
+        });
+    }
+
+    /**
+     * This resolver is intended for matching any condition at all when given a JSON object.
+     * <p>
+     *   The following code is an assertion of this behavior:
+     * </p>
+     * <pre>{@code
+     *   final JsonObject json = parse("a:[{b:1,c:2},{d:4,e:5}]");
+     *   final List<JsonObject> resolved = JsonTransformer.matching(null, o -> o.has("c") && o.has("d")).collect();
+     *
+     *   assert resolved != null;
+     *   assert resolved.size() == 1;
+     *   assert resolved.get(0).get("d").asInt() == 4;
+     *   assert resolved.get(0).get("e").asInt() == 5;
+     * }</pre>
+     *
+     * @param defaultKey An optional key to be used as the root key.
+     * @param predicate The condition which any given object must match.
+     * @return A new matching object resolver for all transformations of this kind.
+     */
+    public static ObjectResolver matching(final @Nullable String defaultKey, final Predicate<JsonObject> predicate) {
+        return new MatchingObjectResolver(defaultKey, (k, o) -> predicate.test(o));
+    }
+
+    /**
+     * This resolver is intended for matching any condition at all when given a JSON object.
+     * <p>
+     *   The following code is an assertion of this behavior:
+     * </p>
+     * <pre>{@code
+     *   final JsonObject json = parse("a:[{b:1,c:2},{d:4}]");
+     *   final List<JsonObject> resolved =
+     *     JsonTransformer.matching(null, (k, o) -> "a".equals(k) && o.size() == 2).collect();
+     *
+     *   assert resolved != null;
+     *   assert resolved.size() == 1;
+     *   assert resolved.get(0).get("b").asInt() == 1;
+     *   assert resolved.get(0).get("c").asInt() == 2;
+     * }</pre>
+     *
+     * @param defaultKey An optional key to be used as the root key.
+     * @param predicate The condition which any given object must match.
+     * @return A new matching object resolver for all transformations of this kind.
+     */
+    public static ObjectResolver matching(final @Nullable String defaultKey, final ObjectMemberPredicate predicate) {
+        return new MatchingObjectResolver(defaultKey, predicate);
+    }
+
+    /**
+     * Variant of {@link JsonTransformer#matching(String, Predicate)} with no explicit
+     * parameter for <code>defaultKey</code>.
+     *
+     * @param predicate The condition which any given object must match.
+     * @return A new matching object resolver for all transformations of this kind.
+     */
+    public static ObjectResolver matching(final Predicate<JsonObject> predicate) {
+        return new MatchingObjectResolver(null, (k, o) -> predicate.test(o));
+    }
+
+    /**
+     * Variant of {@link JsonTransformer#matching(String, ObjectMemberPredicate)} with no
+     * explicit parameter for <code>defaultKey</code>.
+     *
+     * @param predicate The condition which any given object must match.
+     * @return A new matching object resolver for all transformations of this kind.
+     */
+    public static ObjectResolver matching(final ObjectMemberPredicate predicate) {
+        return new MatchingObjectResolver(null, predicate);
     }
 
     public static abstract class ObjectResolver {
@@ -1200,6 +1339,85 @@ public class JsonTransformer {
                     forEach(value.asObject(), fn);
                 } else if (value.isArray()) {
                     forEachInArray(value.asArray(), fn);
+                }
+            }
+        }
+    }
+
+    public static class ContainingObjectResolver extends ObjectResolver {
+        private final String key;
+        private final Predicate<JsonValue> predicate;
+
+        private ContainingObjectResolver(final String key, final Predicate<JsonValue> predicate) {
+            this.key = key;
+            this.predicate = predicate;
+        }
+
+        @Override
+        public void forEach(final JsonObject json, final Consumer<JsonObject> fn) {
+            for (final JsonObject.Member member : json) {
+                final JsonValue value = member.getValue();
+                if (member.getName().equals(key) && predicate.test(member.getValue())) {
+                    fn.accept(json);
+                }
+                if (value.isObject()) {
+                    forEach(value.asObject(), fn);
+                } else if (value.isArray()) {
+                    forEachInArray(value.asArray(), fn);
+                }
+            }
+        }
+
+        private void forEachInArray(final JsonArray array, final Consumer<JsonObject> fn) {
+            for (final JsonValue value : array) {
+                if (value.isObject()) {
+                    forEach(value.asObject(), fn);
+                } else if (value.isArray()) {
+                    forEachInArray(value.asArray(), fn);
+                }
+            }
+        }
+    }
+
+    public interface ObjectMemberPredicate {
+        boolean test(final @Nullable String key, final JsonObject json);
+    }
+
+    public static class MatchingObjectResolver extends ObjectResolver {
+        private final @Nullable String defaultKey;
+        private final ObjectMemberPredicate predicate;
+
+        private MatchingObjectResolver(final @Nullable String defaultKey, final ObjectMemberPredicate predicate) {
+            this.defaultKey = defaultKey;
+            this.predicate = predicate;
+        }
+
+        @Override
+        public void forEach(final JsonObject json, final Consumer<JsonObject> fn) {
+            this.forEachInObject(this.defaultKey, json, fn);
+        }
+
+        private void forEachInObject(final String key, final JsonObject json, final Consumer<JsonObject> fn) {
+            if (this.predicate.test(key, json)) {
+                fn.accept(json);
+            }
+            for (final JsonObject.Member member : json) {
+                final String name = member.getName();
+                final JsonValue value = member.getValue();
+                if (value.isObject()) {
+                    forEachInObject(name, value.asObject(), fn);
+                } else if (value.isArray()) {
+                    forEachInArray(name, value.asArray(), fn);
+                }
+            }
+        }
+
+        private void forEachInArray(final String key, final JsonArray array, final Consumer<JsonObject> fn) {
+            for (final JsonValue value : array) {
+                if (value.isObject()) {
+                    forEachInObject(key, value.asObject(), fn);
+                } else if (value.isArray()) {
+                    forEachInArray(key, value.asArray(), fn);
                 }
             }
         }
