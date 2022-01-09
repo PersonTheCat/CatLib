@@ -31,4 +31,9 @@ public class EasyStateCodec implements Codec<BlockState> {
             }
         });
     }
+
+    @Override
+    public String toString() {
+        return "EasyStateCodec";
+    }
 }

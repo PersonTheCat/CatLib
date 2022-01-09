@@ -51,4 +51,9 @@ public class SetCodec<A> implements Codec<Set<A>> {
             return result.getValue().map(unit -> pair).setPartial(pair);
         });
     }
+
+    @Override
+    public String toString() {
+        return "SetCodec[" + this.elementCodec + "]";
+    }
 }

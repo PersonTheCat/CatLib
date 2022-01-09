@@ -60,4 +60,9 @@ public class AutoFlatListCodec<A> implements Codec<List<A>> {
             }, element));
         }
     }
+
+    @Override
+    public String toString() {
+        return "AutoFlatListCodec[" + this.elementCodec + "]";
+    }
 }
