@@ -52,4 +52,9 @@ public class SimpleEitherCodec<A> implements Codec<A> {
     public <T> DataResult<T> encode(final A input, final DynamicOps<T> ops, final T prefix) {
         return this.encoder.apply(input).encode(input, ops, prefix);
     }
+
+    @Override
+    public String toString() {
+        return "SimpleEither[" + this.first + " | " + this.second + "]";
+    }
 }
