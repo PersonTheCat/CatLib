@@ -60,6 +60,10 @@ public class CodecUtils {
         );
     }
 
+    public static <A> Codec<List<A>> autoFlatten(final @NotNull Codec<A> codec) {
+        return new AutoFlatListCodec<>(codec);
+    }
+
     public static <E extends Enum<E>> Codec<E> ofEnum(final Class<E> e) {
         final StringBuilder sb = new StringBuilder("[");
         for (final E constant : e.getEnumConstants()) {
