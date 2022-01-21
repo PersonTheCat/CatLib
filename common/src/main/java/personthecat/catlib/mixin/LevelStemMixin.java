@@ -26,7 +26,9 @@ public class LevelStemMixin {
             final DimInjector injector = (DimInjector) chunk;
             final DimensionType get = dim.get();
             if (get != null) {
+                final ResourceLocation id = DynamicRegistries.DIMENSION_TYPES.getKey(get);
                 injector.setType(get);
+                CATLIB_LOG.info("Injected dim key {} into chunk {}", id, chunk);
             } else if (injector.getType() != null) {
                 final ResourceLocation original = DynamicRegistries.DIMENSION_TYPES.getKey(injector.getType());
                 CATLIB_LOG.error("Level stem created with invalid dim key. Reusing {} in chunk {}", original, chunk);
