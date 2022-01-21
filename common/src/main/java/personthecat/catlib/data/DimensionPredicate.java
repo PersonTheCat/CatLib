@@ -4,11 +4,15 @@ import com.mojang.serialization.Codec;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.event.registry.DynamicRegistries;
 import personthecat.catlib.serialization.CodecUtils;
+import personthecat.catlib.util.DimInjector;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collections;
@@ -52,6 +56,19 @@ public class DimensionPredicate implements Predicate<DimensionType> {
 
     public static final Codec<DimensionPredicate> CODEC = simpleEither(ID_CODEC, OBJECT_CODEC)
         .withEncoder(dp -> dp.isNamesOnly() ? ID_CODEC : OBJECT_CODEC);
+
+    public boolean test(final LevelStem stem) {
+        return this.test(stem.type());
+    }
+
+    public boolean test(final Level level) {
+        return this.test(level.dimensionType());
+    }
+
+    public boolean test(final ChunkGenerator chunk) {
+        final DimensionType type = ((DimInjector) chunk).getType();
+        return type != null ? this.test(type) : this.isEmpty();
+    }
 
     @Override
     public boolean test(final DimensionType type) {
