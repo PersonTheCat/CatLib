@@ -4,7 +4,10 @@ import com.mojang.serialization.Codec;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
@@ -61,7 +64,7 @@ public class DimensionPredicate implements Predicate<DimensionType> {
         return this.test(stem.type());
     }
 
-    public boolean test(final Level level) {
+    public boolean test(final LevelReader level) {
         return this.test(level.dimensionType());
     }
 
