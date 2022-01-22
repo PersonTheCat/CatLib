@@ -3,9 +3,9 @@
   "package": "personthecat.catlib.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "ChunkGeneratorMixin",
-    "LevelStemMixin",
-    "MojangRegistryAccessor"
+    "ChunkStatusMixin",
+    "MojangRegistryAccessor",
+    "ProtoChunkMixin"
   ],
   "server": [
     "MainServerMixin"

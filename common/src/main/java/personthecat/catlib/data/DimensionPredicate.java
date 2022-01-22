@@ -4,11 +4,10 @@ import com.mojang.serialization.Codec;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.WorldGenRegion;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
@@ -68,9 +67,16 @@ public class DimensionPredicate implements Predicate<DimensionType> {
         return this.test(level.dimensionType());
     }
 
-    public boolean test(final ChunkGenerator chunk) {
-        final DimensionType type = ((DimInjector) chunk).getType();
-        return type != null ? this.test(type) : this.isEmpty();
+    public boolean test(final ChunkAccess chunk) {
+        if (chunk instanceof DimInjector) {
+            final DimensionType type = ((DimInjector) chunk).getType();
+            if (type != null) {
+                return this.test(type);
+            }
+        } else if (chunk instanceof LevelChunk) {
+            return this.test(((LevelChunk) chunk).getLevel());
+        }
+        return this.isEmpty();
     }
 
     @Override
