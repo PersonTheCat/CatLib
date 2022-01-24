@@ -38,7 +38,8 @@ public class ArgumentSuppliers {
      */
     public static class SimpleFile implements ArgumentSupplier<java.io.File> {
         public ArgumentDescriptor<java.io.File> get() {
-            return new ArgumentDescriptor<>(new FileArgument(getModConfigFolderOrThrow(), false));
+            final ModDescriptor mod = getModDescriptorOrThrow();
+            return new ArgumentDescriptor<>(new FileArgument(mod.getConfigFolder(), false));
         }
     }
 
@@ -47,7 +48,8 @@ public class ArgumentSuppliers {
      */
     public static class HjsonFile implements ArgumentSupplier<HjsonArgument.Result> {
         public ArgumentDescriptor<HjsonArgument.Result> get() {
-            return new ArgumentDescriptor<>(new HjsonArgument(getModConfigFolderOrThrow()));
+            final ModDescriptor mod = getModDescriptorOrThrow();
+            return new ArgumentDescriptor<>(new HjsonArgument(mod.getConfigFolder(), mod.getPreferredDirectory(), true));
         }
     }
 
@@ -56,7 +58,8 @@ public class ArgumentSuppliers {
      */
     public static class SimpleHjsonFile implements ArgumentSupplier<HjsonArgument.Result> {
         public ArgumentDescriptor<HjsonArgument.Result> get() {
-            return new ArgumentDescriptor<>(new HjsonArgument(getModConfigFolderOrThrow(), false));
+            final ModDescriptor mod = getModDescriptorOrThrow();
+            return new ArgumentDescriptor<>(new HjsonArgument(mod.getConfigFolder(), false));
         }
     }
 
@@ -85,10 +88,6 @@ public class ArgumentSuppliers {
         public ArgumentDescriptor<Double> get() {
             return new ArgumentDescriptor<>(DoubleArgumentType.doubleArg(), CommandSuggestions.ANY_DECIMAL);
         }
-    }
-
-    private static java.io.File getModConfigFolderOrThrow() {
-        return CommandRegistrationContext.getActiveModOrThrow().getConfigFolder();
     }
 
     private static ModDescriptor getModDescriptorOrThrow() {

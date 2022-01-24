@@ -10,6 +10,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import org.hjson.JsonObject;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.data.JsonType;
 import personthecat.catlib.data.Lazy;
@@ -36,16 +37,24 @@ public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
     private final FileArgument getter;
 
     public HjsonArgument(final File dir) {
-        this(dir, true);
+        this(new FileArgument(dir));
     }
 
     public HjsonArgument(final File dir, final boolean recursive) {
-        this.getter = new FileArgument(dir, recursive);
+        this(new FileArgument(dir, recursive));
+    }
+
+    public HjsonArgument(final File dir, @Nullable final File preferred, final boolean recursive) {
+        this(new FileArgument(dir, preferred, recursive));
+    }
+
+    protected HjsonArgument(final FileArgument getter) {
+        this.getter = getter;
     }
 
     @Override
     public Result parse(final StringReader reader) throws CommandSyntaxException {
-        final File f = getter.parse(reader);
+        final File f = this.getter.parse(reader);
         final String ext = extension(f);
         if (f.exists() && !(f.isDirectory() || JsonType.isSupported(ext))) {
             throw cmdSyntax(reader, "Unsupported format");

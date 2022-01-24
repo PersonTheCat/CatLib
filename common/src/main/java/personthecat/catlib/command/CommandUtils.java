@@ -17,6 +17,7 @@ import net.minecraft.commands.arguments.blocks.BlockStateArgument;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.TextComponent;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
@@ -136,7 +137,7 @@ public class CommandUtils {
      * @return An argument builder for the given specs.
      */
     public static RequiredArgumentBuilder<CommandSourceStack, File> fileArg(final String name, final ModDescriptor mod) {
-        return fileArg(name, mod.getConfigFolder());
+        return fileArg(name, mod.getConfigFolder(), mod.getPreferredDirectory());
     }
 
     /**
@@ -148,6 +149,19 @@ public class CommandUtils {
      */
     public static RequiredArgumentBuilder<CommandSourceStack, File> fileArg(final String name, final File root) {
         return Commands.argument(name, new FileArgument(root));
+    }
+
+    /**
+     * Variant of {@link #fileArg(String)} which directly supplies a root folder
+     * <em>and</em> the preferred directory for recursion.
+     *
+     * @param name      The name of the output argument node.
+     * @param root      The root folder to be used by the file argument parser.
+     * @param preferred The first directory to search through for recursive searches.
+     * @return An argument builder for the given specs.
+     */
+    public static RequiredArgumentBuilder<CommandSourceStack, File> fileArg(final String name, final File root, final @Nullable File preferred) {
+        return Commands.argument(name, new FileArgument(root, preferred, true));
     }
 
     /**
@@ -169,7 +183,7 @@ public class CommandUtils {
      * @return An argument builder for the given specs.
      */
     public static RequiredArgumentBuilder<CommandSourceStack, HjsonArgument.Result> jsonFileArg(final String name, final ModDescriptor mod) {
-        return jsonFileArg(name, mod.getConfigFolder());
+        return jsonFileArg(name, mod.getConfigFolder(), mod.getPreferredDirectory());
     }
 
     /**
@@ -181,6 +195,19 @@ public class CommandUtils {
      */
     public static RequiredArgumentBuilder<CommandSourceStack, HjsonArgument.Result> jsonFileArg(final String name, final File root) {
         return Commands.argument(name, new HjsonArgument(root));
+    }
+
+    /**
+     * Variant of {@link #jsonFileArg(String)} which directly supplies the root folder
+     * <em>and</em> the preferred directory for recursion.
+     *
+     * @param name      The name of the output argument node.
+     * @param root      The root folder to be used by the file argument parser.
+     * @param preferred The first directory to search through for recursive searches.
+     * @return An argument builder for the given specs.
+     */
+    public static RequiredArgumentBuilder<CommandSourceStack, HjsonArgument.Result> jsonFileArg(final String name, final File root, final @Nullable File preferred) {
+        return Commands.argument(name, new HjsonArgument(root, preferred, true));
     }
 
     /**
