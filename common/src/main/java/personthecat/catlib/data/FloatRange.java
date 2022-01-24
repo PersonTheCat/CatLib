@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.floats.FloatLists;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.mutable.MutableFloat;
 import personthecat.catlib.serialization.CodecUtils;
 
 import java.util.List;
@@ -33,13 +32,15 @@ public class FloatRange {
     }
 
     public static FloatRange fromList(final List<Float> floats) {
-        final MutableFloat min = new MutableFloat(0);
-        final MutableFloat max = new MutableFloat(0);
-        floats.forEach(i -> {
-            min.setValue(Math.min(min.getValue(), i));
-            max.setValue(Math.max(max.getValue(), i));
-        });
-        return new FloatRange(min.getValue(), max.getValue());
+        if (floats.isEmpty()) return new FloatRange(0.0F);
+        float min = floats.get(0);
+        float max = min;
+        for (int i = 1; i < floats.size(); i++) {
+            final float n = floats.get(i);
+            min = Math.min(min, n);
+            max = Math.max(max, n);
+        }
+        return new FloatRange(min, max);
     }
 
     public float rand(Random rand) {
