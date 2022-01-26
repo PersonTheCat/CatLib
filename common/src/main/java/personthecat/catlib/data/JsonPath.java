@@ -36,6 +36,16 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
     }
 
     /**
+     * Creates a new JSON path builder, used for programmatically generating new
+     * JSON path representations.
+     *
+     * @return A new {@link JsonPathBuilder} for constructing JSON paths.
+     */
+    public static JsonPathBuilder builder() {
+        return new JsonPathBuilder();
+    }
+
+    /**
      * Deserializes the given raw path into a collection of keys and indices.
      *
      * @throws CommandSyntaxException If the path is formatted incorrectly.
@@ -203,5 +213,35 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
     @Override
     public String toString() {
         return this.raw;
+    }
+
+    /**
+     * A builder used for manually constructing JSON paths in-code.
+     */
+    public static class JsonPathBuilder {
+
+        final List<Either<String, Integer>> path = new ArrayList<>();
+        final StringBuilder raw = new StringBuilder();
+
+        private JsonPathBuilder() {}
+
+        public JsonPathBuilder key(final String key) {
+            this.path.add(Either.left(key));
+            if (this.raw.length() > 0) {
+                this.raw.append('.');
+            }
+            this.raw.append(key);
+            return this;
+        }
+
+        public JsonPathBuilder index(final int index) {
+            this.path.add(Either.right(index));
+            this.raw.append('[').append(index).append(']');
+            return this;
+        }
+
+        public JsonPath build() {
+            return new JsonPath(this.path, this.raw.toString());
+        }
     }
 }
