@@ -167,6 +167,10 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         HjsonUtils.setValueFromPath(json, this, value);
     }
 
+    public JsonPathBuilder toBuilder() {
+        return new JsonPathBuilder(new ArrayList<>(this.path), new StringBuilder(this.raw));
+    }
+
     public Collection<Either<String, Integer>> asCollection() {
         return Collections.unmodifiableCollection(this.path);
     }
@@ -220,10 +224,17 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
      */
     public static class JsonPathBuilder {
 
-        final List<Either<String, Integer>> path = new ArrayList<>();
-        final StringBuilder raw = new StringBuilder();
+        private final List<Either<String, Integer>> path;
+        private final StringBuilder raw;
 
-        private JsonPathBuilder() {}
+        private JsonPathBuilder() {
+            this(new ArrayList<>(), new StringBuilder());
+        }
+
+        private JsonPathBuilder(final List<Either<String, Integer>> path, final StringBuilder raw) {
+            this.path = path;
+            this.raw = raw;
+        }
 
         public JsonPathBuilder key(final String key) {
             this.path.add(Either.left(key));
@@ -237,6 +248,27 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         public JsonPathBuilder index(final int index) {
             this.path.add(Either.right(index));
             this.raw.append('[').append(index).append(']');
+            return this;
+        }
+
+        public JsonPathBuilder up(final int count) {
+            JsonPathBuilder builder = this;
+            for (int i = 0; i < count; i++) {
+                builder = builder.up();
+            }
+            return builder;
+        }
+
+        public JsonPathBuilder up() {
+            if (this.path.isEmpty()) {
+                return this;
+            } else if (this.path.size() == 1) {
+                return new JsonPathBuilder();
+            }
+            this.path.remove(this.path.size() - 1);
+            final int dot = this.raw.lastIndexOf(".");
+            final int bracket = this.raw.lastIndexOf("[");
+            this.raw.delete(Math.max(dot, bracket), this.raw.length());
             return this;
         }
 
