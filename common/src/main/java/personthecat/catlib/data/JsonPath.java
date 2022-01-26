@@ -191,8 +191,25 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         return this.path.get(index);
     }
 
-    public List<Either<String, Integer>> subList(int s, int e) {
+    public int indexOf(final String key) {
+        return this.path.indexOf(Either.left(key));
+    }
+
+    public int lastIndexOf(final String key) {
+        return this.path.lastIndexOf(Either.left(key));
+    }
+
+    public List<Either<String, Integer>> subList(final int s, final int e) {
         return this.path.subList(s, e);
+    }
+
+    public JsonPath subPath(final String key) {
+        final int index = this.indexOf(key);
+        return index < 0 ? this : this.subPath(index, this.size());
+    }
+
+    public JsonPath subPath(final int s, final int e) {
+        return new JsonPath(this.subList(s, e));
     }
 
     @NotNull

@@ -25,6 +25,13 @@ public final class JsonPathTest {
     }
 
     @Test
+    public void subPath_generatesPathSlice() {
+        final JsonPath expected = JsonPath.builder().key("two").index(3).build();
+        final JsonPath path = JsonPath.builder().index(1).key("two").index(3).key("four").build();
+        assertEquals(expected, path.subPath(1, 3));
+    }
+
+    @Test
     public void builder_isNavigable() {
         final JsonPath expected = JsonPath.builder().key("k1").key("k2").build();
         final JsonPath path = JsonPath.builder().key("k1").index(0).build();
