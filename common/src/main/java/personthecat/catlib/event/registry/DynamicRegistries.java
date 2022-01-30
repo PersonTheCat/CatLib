@@ -7,6 +7,8 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 
+import java.util.function.Consumer;
+
 public class DynamicRegistries {
 
     public static final RegistryHandle<Biome> BIOMES =
@@ -27,5 +29,12 @@ public class DynamicRegistries {
     private static <T> void updateRegistry(final RegistryHandle<T> handle,
             final RegistryAccess registries, final ResourceKey<Registry<T>> key) {
         ((DynamicRegistryHandle<T>) handle).updateRegistry(new MojangRegistryHandle<>(registries.registryOrThrow(key)));
+    }
+
+    public static <T> Consumer<Consumer<RegistryHandle<T>>> listen(final RegistryHandle<T> handle, final Object mutex) {
+        if (handle instanceof DynamicRegistryHandle) {
+            return consumer -> ((DynamicRegistryHandle<T>) handle).listen(mutex, consumer);
+        }
+        return consumer -> {};
     }
 }

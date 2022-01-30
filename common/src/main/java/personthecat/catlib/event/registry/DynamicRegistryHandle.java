@@ -10,11 +10,14 @@ import personthecat.catlib.util.RegistryUtils;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
 
+    private final Map<Object, BiConsumer<Object, RegistryHandle<T>>> synchronizer = new WeakHashMap<>();
     private volatile RegistryHandle<T> wrapped;
 
     private DynamicRegistryHandle(final RegistryHandle<T> wrapped) {
@@ -27,6 +30,17 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
 
     public synchronized void updateRegistry(final RegistryHandle<T> updated) {
         this.wrapped = updated;
+        this.synchronizer.forEach((mutex, listener) -> listener.accept(mutex, updated));
+    }
+
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+    public synchronized void listen(final Object mutex, final Consumer<RegistryHandle<T>> listener) {
+        this.synchronizer.put(mutex, (m, handle) -> {
+            // Prevent this lambda from strongly referencing the mutex.
+            synchronized (m) {
+                listener.accept(handle);
+            }
+        });
     }
 
     @Nullable

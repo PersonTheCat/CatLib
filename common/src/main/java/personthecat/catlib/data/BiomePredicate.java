@@ -55,13 +55,13 @@ public class BiomePredicate implements Predicate<Biome> {
 
     @Override
     public boolean test(final Biome biome) {
-        if (this.compiled == null) this.compiled = this.compile();
+        if (this.compiled == null) return this.init().contains(biome);
         return this.compiled.contains(biome);
     }
 
     @NotNull
     @SuppressWarnings("UnusedReturnValue")
-    public Set<Biome> compile() {
+    public synchronized Set<Biome> compile() {
         final Set<Biome> all = new HashSet<>();
         DynamicRegistries.BIOMES.forEach(all::add);
 
@@ -74,7 +74,12 @@ public class BiomePredicate implements Predicate<Biome> {
                 matching.add(biome);
             }
         });
-        return new InvertibleSet<>(matching, this.blacklist).optimize(all);
+        return this.compiled = new InvertibleSet<>(matching, this.blacklist).optimize(all);
+    }
+
+    private Set<Biome> init() {
+        DynamicRegistries.listen(DynamicRegistries.BIOMES, this).accept(registry -> this.compile());
+        return this.compile();
     }
 
     public boolean isEmpty() {

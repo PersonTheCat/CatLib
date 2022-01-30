@@ -6,7 +6,6 @@ import lombok.experimental.FieldNameConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
@@ -81,12 +80,12 @@ public class DimensionPredicate implements Predicate<DimensionType> {
 
     @Override
     public boolean test(final DimensionType type) {
-        if (this.compiled == null) this.compiled = this.compile();
+        if (this.compiled == null) return this.init().contains(type);
         return this.compiled.contains(type);
     }
 
     @NotNull
-    public Set<DimensionType> compile() {
+    public synchronized Set<DimensionType> compile() {
         final Set<DimensionType> all = new HashSet<>();
         DynamicRegistries.DIMENSION_TYPES.forEach(all::add);
 
@@ -99,7 +98,12 @@ public class DimensionPredicate implements Predicate<DimensionType> {
                 matching.add(type);
             }
         });
-        return new InvertibleSet<>(matching, this.blacklist).optimize(all);
+        return this.compiled = new InvertibleSet<>(matching, this.blacklist).optimize(all);
+    }
+
+    private Set<DimensionType> init() {
+        DynamicRegistries.listen(DynamicRegistries.DIMENSION_TYPES, this).accept(registry -> this.compile());
+        return this.compile();
     }
 
     public boolean isEmpty() {
