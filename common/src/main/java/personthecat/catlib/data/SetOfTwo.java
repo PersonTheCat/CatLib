@@ -3,11 +3,11 @@ package personthecat.catlib.data;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
+import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
 
-public class SetOfTwo<T> implements Set<T> {
+public class SetOfTwo<T> extends AbstractSet<T> {
 
     private final T one;
     private final T two;
@@ -100,8 +100,8 @@ public class SetOfTwo<T> implements Set<T> {
         @Override
         public T next() {
             int i = this.index++;
-            if (i == 0) return one;
-            return i == 1 ? two : null;
+            if (i == 1) return one;
+            return i == 2 ? two : null;
         }
     }
 }

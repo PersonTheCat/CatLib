@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class AllButTwoSet<T> implements Set<T> {
+public class AllButTwoSet<T> extends AbstractSet<T> {
 
     private final Set<T> wrapped;
     private final T one;

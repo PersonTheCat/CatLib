@@ -2,12 +2,9 @@ package personthecat.catlib.data;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
-public class InfinitySet<T> implements Set<T> {
+public class InfinitySet<T> extends AbstractSet<T> {
 
     private final Set<T> wrapped;
 

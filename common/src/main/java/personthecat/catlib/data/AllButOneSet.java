@@ -2,12 +2,9 @@ package personthecat.catlib.data;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
-public class AllButOneSet<T> implements Set<T> {
+public class AllButOneSet<T> extends AbstractSet<T> {
 
     private final Set<T> wrapped;
     private final T one;
