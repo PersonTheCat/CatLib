@@ -80,11 +80,12 @@ public class DimensionPredicate implements Predicate<DimensionType> {
 
     @Override
     public boolean test(final DimensionType type) {
-        if (this.compiled == null) return this.init().contains(type);
+        if (this.compiled == null) return this.compile().contains(type);
         return this.compiled.contains(type);
     }
 
     @NotNull
+    @SuppressWarnings("ConstantConditions")
     public synchronized Set<DimensionType> compile() {
         final Set<DimensionType> all = new HashSet<>();
         DynamicRegistries.DIMENSION_TYPES.forEach(all::add);
@@ -98,12 +99,19 @@ public class DimensionPredicate implements Predicate<DimensionType> {
                 matching.add(type);
             }
         });
-        return this.compiled = new InvertibleSet<>(matching, this.blacklist).optimize(all);
+        final boolean needsInit = this.compiled == null;
+        this.compiled = new InvertibleSet<>(matching, this.blacklist).optimize(all);
+
+        if (needsInit) {
+            DynamicRegistries.listen(DynamicRegistries.DIMENSION_TYPES, this).accept(registry -> this.compile());
+        }
+        return this.compiled;
     }
 
-    private Set<DimensionType> init() {
-        DynamicRegistries.listen(DynamicRegistries.DIMENSION_TYPES, this).accept(registry -> this.compile());
-        return this.compile();
+    @NotNull
+    public Set<DimensionType> getCompiled() {
+        if (this.compiled == null) return this.compile();
+        return this.compiled;
     }
 
     public boolean isEmpty() {
@@ -124,6 +132,23 @@ public class DimensionPredicate implements Predicate<DimensionType> {
 
     public boolean isNamesOnly() {
         return !this.blacklist && this.mods.isEmpty();
+    }
+
+    @Override
+    public int hashCode() {
+        if (this.compiled == null) return this.compile().hashCode();
+        return this.compiled.hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof DimensionPredicate) {
+            return this.getCompiled().equals(((DimensionPredicate) o).getCompiled());
+        }
+        return false;
     }
 
     public static class DimensionPredicateBuilder {

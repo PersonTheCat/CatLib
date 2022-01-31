@@ -55,12 +55,12 @@ public class BiomePredicate implements Predicate<Biome> {
 
     @Override
     public boolean test(final Biome biome) {
-        if (this.compiled == null) return this.init().contains(biome);
+        if (this.compiled == null) return this.compile().contains(biome);
         return this.compiled.contains(biome);
     }
 
     @NotNull
-    @SuppressWarnings("UnusedReturnValue")
+    @SuppressWarnings({"ConstantConditions", "UnusedReturnValue"})
     public synchronized Set<Biome> compile() {
         final Set<Biome> all = new HashSet<>();
         DynamicRegistries.BIOMES.forEach(all::add);
@@ -74,12 +74,19 @@ public class BiomePredicate implements Predicate<Biome> {
                 matching.add(biome);
             }
         });
-        return this.compiled = new InvertibleSet<>(matching, this.blacklist).optimize(all);
+        final boolean needsInit = this.compiled == null;
+        this.compiled = new InvertibleSet<>(matching, this.blacklist).optimize(all);
+
+        if (needsInit) {
+            DynamicRegistries.listen(DynamicRegistries.BIOMES, this).accept(registry -> this.compile());
+        }
+        return this.compiled;
     }
 
-    private Set<Biome> init() {
-        DynamicRegistries.listen(DynamicRegistries.BIOMES, this).accept(registry -> this.compile());
-        return this.compile();
+    @NotNull
+    public Set<Biome> getCompiled() {
+        if (this.compiled == null) return this.compile();
+        return this.compiled;
     }
 
     public boolean isEmpty() {
@@ -145,6 +152,23 @@ public class BiomePredicate implements Predicate<Biome> {
             categories.add(biome.getBiomeCategory(), biome);
         }
         return categories;
+    }
+
+    @Override
+    public int hashCode() {
+        if (this.compiled == null) return this.compile().hashCode();
+        return this.compiled.hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof BiomePredicate) {
+            return this.getCompiled().equals(((BiomePredicate) o).getCompiled());
+        }
+        return false;
     }
 
     public static class BiomePredicateBuilder {
