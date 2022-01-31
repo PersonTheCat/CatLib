@@ -24,7 +24,6 @@ import static personthecat.catlib.serialization.FieldDescriptor.defaulted;
 @Builder
 @NotThreadSafe
 @FieldNameConstants
-@AllArgsConstructor
 @RequiredArgsConstructor
 public class BiomePredicate implements Predicate<Biome> {
 
@@ -36,6 +35,8 @@ public class BiomePredicate implements Predicate<Biome> {
     @NotNull private final List<Biome.BiomeCategory> types;
 
     @Nullable private Set<Biome> compiled;
+
+    private int registryTracker = DynamicRegistries.BIOMES.getId();
 
     public static final BiomePredicate ALL_BIOMES = builder().build();
 
@@ -55,12 +56,11 @@ public class BiomePredicate implements Predicate<Biome> {
 
     @Override
     public boolean test(final Biome biome) {
-        if (this.compiled == null) return this.compile().contains(biome);
-        return this.compiled.contains(biome);
+        return this.getCompiled().contains(biome);
     }
 
     @NotNull
-    @SuppressWarnings({"ConstantConditions", "UnusedReturnValue"})
+    @SuppressWarnings("UnusedReturnValue")
     public synchronized Set<Biome> compile() {
         final Set<Biome> all = new HashSet<>();
         DynamicRegistries.BIOMES.forEach(all::add);
@@ -74,18 +74,15 @@ public class BiomePredicate implements Predicate<Biome> {
                 matching.add(biome);
             }
         });
-        final boolean needsInit = this.compiled == null;
-        this.compiled = new InvertibleSet<>(matching, this.blacklist).optimize(all);
-
-        if (needsInit) {
-            DynamicRegistries.listen(DynamicRegistries.BIOMES, this).accept(registry -> this.compile());
-        }
-        return this.compiled;
+        this.registryTracker = DynamicRegistries.BIOMES.getId();
+        return this.compiled = new InvertibleSet<>(matching, this.blacklist).optimize(all);
     }
 
     @NotNull
     public Set<Biome> getCompiled() {
-        if (this.compiled == null) return this.compile();
+        if (this.compiled == null || this.registryTracker != DynamicRegistries.BIOMES.getId()) {
+            return this.compile();
+        }
         return this.compiled;
     }
 
@@ -159,8 +156,7 @@ public class BiomePredicate implements Predicate<Biome> {
 
     @Override
     public int hashCode() {
-        if (this.compiled == null) return this.compile().hashCode();
-        return this.compiled.hashCode();
+        return this.getCompiled().hashCode();
     }
 
     @Override
@@ -180,7 +176,7 @@ public class BiomePredicate implements Predicate<Biome> {
             if (this.names == null) this.names = Collections.emptyList();
             if (this.mods == null) this.mods = Collections.emptyList();
             if (this.types == null) this.types = Collections.emptyList();
-            return new BiomePredicate(this.blacklist, this.names, this.mods, this.types, this.compiled);
+            return new BiomePredicate(this.blacklist, this.names, this.mods, this.types);
         }
     }
 }

@@ -31,7 +31,6 @@ import static personthecat.catlib.serialization.FieldDescriptor.defaultGet;
 @Builder
 @NotThreadSafe
 @FieldNameConstants
-@AllArgsConstructor
 @RequiredArgsConstructor
 public class DimensionPredicate implements Predicate<DimensionType> {
 
@@ -42,6 +41,8 @@ public class DimensionPredicate implements Predicate<DimensionType> {
     @NotNull private final List<String> mods;
 
     @Nullable private Set<DimensionType> compiled;
+
+    private int registryTracker = DynamicRegistries.DIMENSION_TYPES.getId();
 
     public static final DimensionPredicate ALL_DIMENSIONS = builder().build();
 
@@ -80,12 +81,10 @@ public class DimensionPredicate implements Predicate<DimensionType> {
 
     @Override
     public boolean test(final DimensionType type) {
-        if (this.compiled == null) return this.compile().contains(type);
-        return this.compiled.contains(type);
+        return this.getCompiled().contains(type);
     }
 
     @NotNull
-    @SuppressWarnings("ConstantConditions")
     public synchronized Set<DimensionType> compile() {
         final Set<DimensionType> all = new HashSet<>();
         DynamicRegistries.DIMENSION_TYPES.forEach(all::add);
@@ -99,18 +98,15 @@ public class DimensionPredicate implements Predicate<DimensionType> {
                 matching.add(type);
             }
         });
-        final boolean needsInit = this.compiled == null;
-        this.compiled = new InvertibleSet<>(matching, this.blacklist).optimize(all);
-
-        if (needsInit) {
-            DynamicRegistries.listen(DynamicRegistries.DIMENSION_TYPES, this).accept(registry -> this.compile());
-        }
-        return this.compiled;
+        this.registryTracker = DynamicRegistries.DIMENSION_TYPES.getId();
+        return this.compiled = new InvertibleSet<>(matching, this.blacklist).optimize(all);
     }
 
     @NotNull
     public Set<DimensionType> getCompiled() {
-        if (this.compiled == null) return this.compile();
+        if (this.compiled == null || this.registryTracker != DynamicRegistries.DIMENSION_TYPES.getId()) {
+            return this.compile();
+        }
         return this.compiled;
     }
 
@@ -143,8 +139,7 @@ public class DimensionPredicate implements Predicate<DimensionType> {
 
     @Override
     public int hashCode() {
-        if (this.compiled == null) return this.compile().hashCode();
-        return this.compiled.hashCode();
+        return this.getCompiled().hashCode();
     }
 
     @Override

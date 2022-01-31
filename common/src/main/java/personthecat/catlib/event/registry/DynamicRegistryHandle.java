@@ -90,4 +90,10 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     public Stream<T> stream() {
         return this.wrapped.stream();
     }
+
+    @Override
+    public int getId() {
+        if (this.wrapped != null) return this.wrapped.getId();
+        return RegistryHandle.super.getId();
+    }
 }

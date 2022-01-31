@@ -26,4 +26,8 @@ public interface RegistryHandle<T> extends Iterable<T> {
     default Stream<Map.Entry<ResourceKey<T>, T>> streamEntries() {
         return this.entrySet().stream();
     }
+
+    default int getId() {
+        return System.identityHashCode(this);
+    }
 }
