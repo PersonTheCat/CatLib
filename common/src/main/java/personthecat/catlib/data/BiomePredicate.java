@@ -24,6 +24,7 @@ import static personthecat.catlib.serialization.FieldDescriptor.defaulted;
 @Builder
 @NotThreadSafe
 @FieldNameConstants
+@AllArgsConstructor
 @RequiredArgsConstructor
 public class BiomePredicate implements Predicate<Biome> {
 
@@ -36,7 +37,7 @@ public class BiomePredicate implements Predicate<Biome> {
 
     @Nullable private Set<Biome> compiled;
 
-    private int registryTracker = DynamicRegistries.BIOMES.getId();
+    private int registryTracker;
 
     public static final BiomePredicate ALL_BIOMES = builder().build();
 

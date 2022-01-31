@@ -31,6 +31,7 @@ import static personthecat.catlib.serialization.FieldDescriptor.defaultGet;
 @Builder
 @NotThreadSafe
 @FieldNameConstants
+@AllArgsConstructor
 @RequiredArgsConstructor
 public class DimensionPredicate implements Predicate<DimensionType> {
 
@@ -42,7 +43,7 @@ public class DimensionPredicate implements Predicate<DimensionType> {
 
     @Nullable private Set<DimensionType> compiled;
 
-    private int registryTracker = DynamicRegistries.DIMENSION_TYPES.getId();
+    private int registryTracker;
 
     public static final DimensionPredicate ALL_DIMENSIONS = builder().build();
 
