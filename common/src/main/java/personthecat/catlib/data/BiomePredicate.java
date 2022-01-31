@@ -116,6 +116,9 @@ public class BiomePredicate implements Predicate<Biome> {
     }
 
     public BiomePredicate simplify() {
+        if (this.equals(ALL_BIOMES)) {
+            return ALL_BIOMES;
+        }
         final InvertibleSet<Biome> biomes = this.reconstruct();
         final MultiValueMap<Biome.BiomeCategory, Biome> categories = categorize(biomes);
         final List<ResourceLocation> names = new ArrayList<>();

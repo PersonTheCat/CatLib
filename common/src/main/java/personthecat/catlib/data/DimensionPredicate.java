@@ -134,6 +134,13 @@ public class DimensionPredicate implements Predicate<DimensionType> {
         return !this.blacklist && this.mods.isEmpty();
     }
 
+    public DimensionPredicate simplify() {
+        if (this.equals(ALL_DIMENSIONS)) {
+            return ALL_DIMENSIONS;
+        }
+        return this;
+    }
+
     @Override
     public int hashCode() {
         if (this.compiled == null) return this.compile().hashCode();
