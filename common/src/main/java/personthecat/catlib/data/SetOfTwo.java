@@ -100,8 +100,8 @@ public class SetOfTwo<T> extends AbstractSet<T> {
         @Override
         public T next() {
             int i = this.index++;
-            if (i == 1) return one;
-            return i == 2 ? two : null;
+            if (i == 0) return one;
+            return i == 1 ? two : null;
         }
     }
 }
