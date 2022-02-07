@@ -136,7 +136,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{b:true}");
         JsonTransformer.withPath("a").markRemoved("b", "1.0").updateAll(transformed);
 
-        assertEquals(parse("a:{#Removed in 1.0. You can delete this field.\nb:true}"), transformed);
+        assertEquals(parse("a:{\nb:true # Removed in 1.0. You can delete this field.\n}"), transformed);
     }
 
     @Test
