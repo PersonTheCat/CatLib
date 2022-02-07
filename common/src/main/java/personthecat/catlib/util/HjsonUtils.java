@@ -366,24 +366,13 @@ public class HjsonUtils {
      * it is any other value, the <em>reference</em> will be copied, meaning
      * the original comments will share the same address in memory.
      *
+     * @deprecated Use {@link JsonValue#shallowCopy} (method moved into Hjson)
      * @param value The value being copied.
      * @return A shallow copy of the original value.
      */
+    @Deprecated
     public static JsonValue shallowCopy(final JsonValue value) {
-        if (value.isArray()) {
-            final JsonArray copy = new JsonArray();
-            for (final JsonValue v2 : value.asArray()) {
-                copy.add(shallowCopy(v2));
-            }
-            return copy;
-        } else if (value.isObject()) {
-            final JsonObject copy = new JsonObject();
-            for (final JsonObject.Member member : value.asObject()) {
-                copy.add(member.getName(), shallowCopy(member.getValue()));
-            }
-            return copy;
-        }
-        return value;
+        return value.shallowCopy();
     }
 
     /**
