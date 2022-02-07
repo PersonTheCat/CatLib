@@ -22,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.*;
 import personthecat.catlib.data.JsonType;
-import personthecat.catlib.exception.Exceptions;
 import personthecat.catlib.exception.JsonFormatException;
 import personthecat.catlib.exception.UnreachableException;
 import personthecat.catlib.serialization.HjsonOps;
@@ -199,7 +198,7 @@ public class HjsonUtils {
      * </p>
      * <p>
      *   No {@link IOException}s will be thrown by this method. Instead, they will be
-     *   logged and simply returned for the calsler to optionally throw.
+     *   logged and simply returned for the caller to optionally throw.
      * </p>
      * <p>
      *   All other exceptions <b>will be thrown</b> by this method.
@@ -228,6 +227,7 @@ public class HjsonUtils {
      * @return The serialized data, or else {@link Optional#empty}.
      */
     @Deprecated
+    @SuppressWarnings("SpellCheckingInspection")
     public static <A> Optional<JsonValue> writeSupressing(final Codec<A> codec, final A a) {
         return writeSuppressing(codec, a);
     }
@@ -778,6 +778,7 @@ public class HjsonUtils {
         return getValue(json, field).map(JsonValue::asInt);
     }
 
+    @Deprecated
     public static Optional<Range> getRange(final JsonObject json, final String field) {
         return getValue(json, field)
             .map(HjsonUtils::asOrToArray)
@@ -786,6 +787,7 @@ public class HjsonUtils {
             .map(HjsonUtils::toRange);
     }
 
+    @Deprecated
     private static Range toRange(final int[] range) {
         if (range.length == 0) {
             return EmptyRange.get();
@@ -793,6 +795,7 @@ public class HjsonUtils {
         return range.length == 1 ? new Range(range[0]) : new Range(range[0], range[range.length - 1]);
     }
 
+    @Deprecated
     public static Optional<FloatRange> getFloatRange(final JsonObject json, final String field) {
         return getValue(json, field)
             .map(HjsonUtils::asOrToArray)
@@ -801,6 +804,7 @@ public class HjsonUtils {
             .map(HjsonUtils::toFloatRange);
     }
 
+    @Deprecated
     private static FloatRange toFloatRange(float[] range) {
         if (range.length == 0) {
             return new FloatRange(0F);
@@ -836,20 +840,23 @@ public class HjsonUtils {
     }
 
     public static JsonObject getObjectOrNew(final JsonObject json, final String field) {
-        if (!json.has(field)) {
-            json.set(field, new JsonObject());
+        JsonValue get = json.get(field);
+        if (get == null) {
+            json.set(field, get = new JsonObject());
         }
-        return getObject(json, field).orElseThrow(Exceptions::unreachable);
+        return get.asObject();
     }
 
     public static Optional<JsonValue> getValue(final JsonObject json, final String field) {
         return Optional.ofNullable(json.get(field));
     }
 
+    @Deprecated
     public static Optional<IntList> getIntList(final JsonObject json, final String field) {
         return getArray(json, field).map(HjsonUtils::toIntList);
     }
 
+    @Deprecated
     private static IntList toIntList(final JsonArray array) {
         final IntList ints = new IntArrayList();
         for (final JsonValue value : array) {
@@ -858,6 +865,7 @@ public class HjsonUtils {
         return ints;
     }
 
+    @Deprecated
     public static int[] toIntArray(final JsonArray array) {
         final int[] ints = new  int[array.size()];
         for (int i = 0; i < array.size(); i++) {
@@ -866,10 +874,12 @@ public class HjsonUtils {
         return ints;
     }
 
+    @Deprecated
     public static Optional<FloatList> getFloatList(final JsonObject json, final String field) {
         return getArray(json, field).map(HjsonUtils::toFloatList);
     }
 
+    @Deprecated
     private static FloatList toFloatList(final JsonArray array) {
         final FloatList floats = new FloatArrayList();
         for (final JsonValue value : array) {
@@ -878,6 +888,7 @@ public class HjsonUtils {
         return floats;
     }
 
+    @Deprecated
     public static float[] toFloatArray(final JsonArray array) {
         final float[] floats = new float[array.size()];
         for (int i = 0; i < array.size(); i++) {
@@ -886,10 +897,12 @@ public class HjsonUtils {
         return floats;
     }
 
+    @Deprecated
     public static Optional<List<String>> getStringArray(final JsonObject json, final String field) {
         return getValue(json, field).map(v -> toStringArray(asOrToArray(v)));
     }
 
+    @Deprecated
     public static List<String> toStringArray(JsonArray array) {
         final List<String> strings = new ArrayList<>();
         for (final JsonValue value : array) {
@@ -898,14 +911,17 @@ public class HjsonUtils {
         return strings;
     }
 
+    @Deprecated
     public static Optional<ResourceLocation> getId(final JsonObject json, final String field) {
         return getString(json, field).map(ResourceLocation::new);
     }
 
+    @Deprecated
     public static Optional<List<ResourceLocation>> getIds(final JsonObject json, final String field) {
         return getArray(json, field).map(HjsonUtils::toIds);
     }
 
+    @Deprecated
     public static List<ResourceLocation> toIds(final JsonArray array) {
         final List<ResourceLocation> ids = new ArrayList<>();
         for (final JsonValue value : array) {
@@ -914,27 +930,33 @@ public class HjsonUtils {
         return ids;
     }
 
+    @Deprecated
     public static Optional<BlockState> getState(final JsonObject json, final String field) {
         return getString(json, field).map(id -> parseBlockState(id).orElseThrow(() -> noBlockNamed(id)));
     }
 
+    @Deprecated
     public static Optional<List<BlockState>> getStateList(final JsonObject json, final String field) {
         return getStringArray(json, field).map(HjsonUtils::toStateList);
     }
 
+    @Deprecated
     private static List<BlockState> toStateList(final List<String> ids) {
         return ids.stream().map(id -> parseBlockState(id).orElseThrow(() -> noBlockNamed(id)))
             .collect(Collectors.toList());
     }
 
+    @Deprecated
     public static Optional<BlockPos> getPosition(JsonObject json, String field) {
         return getArray(json, field).map(HjsonUtils::toPosition);
     }
 
+    @Deprecated
     public static Optional<List<BlockPos>> getPositionList(JsonObject json, String field) {
         return getArray(json, field).map(HjsonUtils::toPositionList);
     }
 
+    @Deprecated
     public static BlockPos toPosition(final JsonArray coordinates) {
         // Expect exactly 3 elements.
         if (coordinates.size() != 3) {
@@ -944,6 +966,7 @@ public class HjsonUtils {
         return new BlockPos(coordinates.get(0).asInt(), coordinates.get(1).asInt(), coordinates.get(2).asInt());
     }
 
+    @Deprecated
     private static List<BlockPos> toPositionList(final JsonArray positions) {
         final List<BlockPos> list = new ArrayList<>();
         for (JsonValue position : positions) {
@@ -957,10 +980,12 @@ public class HjsonUtils {
         return list;
     }
 
+    @Deprecated
     public static Optional<BiomePredicate> getBiomePredicate(final JsonObject json, final String field) {
         return getObject(json, field).map(HjsonUtils::toBiomePredicate);
     }
 
+    @Deprecated
     public static BiomePredicate toBiomePredicate(final JsonValue json) {
         final BiomePredicate.BiomePredicateBuilder builder = BiomePredicate.builder();
 
@@ -977,10 +1002,12 @@ public class HjsonUtils {
         return builder.build();
     }
 
+    @Deprecated
     public static Optional<List<Biome>> getBiomeList(final JsonObject json, final String field) {
         return getValue(json, field).map(HjsonUtils::toBiomes);
     }
 
+    @Deprecated
     public static List<Biome> toBiomes(final JsonValue json) {
         final List<Biome> biomes = new ArrayList<>();
 
@@ -1006,10 +1033,12 @@ public class HjsonUtils {
         return biomes;
     }
 
+    @Deprecated
     public static Optional<List<Biome.BiomeCategory>> getBiomeTypes(final JsonObject json, final String field) {
         return getArray(json, field).map(HjsonUtils::toBiomeTypes);
     }
 
+    @Deprecated
     public static List<Biome.BiomeCategory> toBiomeTypes(final JsonArray array) {
         List<Biome.BiomeCategory> types = new ArrayList<>();
         for (final JsonValue value : array) {
@@ -1019,10 +1048,12 @@ public class HjsonUtils {
         return types;
     }
 
+    @Deprecated
     public static Optional<DimensionPredicate> getDimensionPredicate(final JsonObject json, final String field) {
         return getValue(json, field).map(HjsonUtils::toDimensions);
     }
 
+    @Deprecated
     public static DimensionPredicate toDimensions(final JsonValue json) {
         final DimensionPredicate.DimensionPredicateBuilder builder = DimensionPredicate.builder();
 
@@ -1036,6 +1067,7 @@ public class HjsonUtils {
         return builder.build();
     }
 
+    @Deprecated
     public static StructurePlaceSettings getPlacementSettings(final JsonObject json) {
         final StructurePlaceSettings settings = new StructurePlaceSettings();
         getFloat(json, "integrity").ifPresent(i -> settings.addProcessor(new BlockRotProcessor(i)));
@@ -1047,10 +1079,12 @@ public class HjsonUtils {
         return settings;
     }
 
+    @Deprecated
     public static <T extends Enum<T>> Optional<T> getEnumValue(final JsonObject json, final String field, final Class<T> clazz) {
         return getString(json, field).map(s -> assertEnumConstant(s, clazz));
     }
 
+    @Deprecated
     public static <T extends Enum<T>> Optional<List<T>> getEnumList(final JsonObject json, final String field, final Class<T> clazz) {
         return getValue(json, field).map(v -> toEnumArray(asOrToArray(v), clazz));
     }
