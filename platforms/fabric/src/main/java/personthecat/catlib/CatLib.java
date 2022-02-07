@@ -6,13 +6,9 @@ import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.ModificationPhase;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.Util;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import personthecat.catlib.command.CatLibCommands;
 import personthecat.catlib.command.CommandRegistrationContext;
-import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.command.DefaultLibCommands;
 import personthecat.catlib.command.arguments.*;
 import personthecat.catlib.config.HjsonConfigSerializer;
@@ -64,8 +60,7 @@ public class CatLib implements ModInitializer {
         ServerWorldEvents.UNLOAD.register((s, l) -> CommonWorldEvent.UNLOAD.invoker().accept(l));
         ServerPlayConnectionEvents.JOIN.register((h, tx, s) -> {
             if (McUtils.isClientSide() && LibErrorContext.hasErrors()) {
-                h.player.sendMessage(new TranslatableComponent("catlib.errorText.clickHere")
-                    .withStyle(Style.EMPTY.withClickEvent(CommandUtils.clickToRun("/catlib errors"))), Util.NIL_UUID);
+                LibErrorContext.broadcastErrors();
             }
             CommonPlayerEvent.LOGIN.invoker().accept(h.player, s);
         });

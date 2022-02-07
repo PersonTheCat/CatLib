@@ -1,8 +1,5 @@
 package personthecat.catlib;
 
-import net.minecraft.Util;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -63,8 +60,7 @@ public class CatLib {
             CommonWorldEvent.UNLOAD.invoker().accept(e.getWorld()));
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) -> {
             if (McUtils.isClientSide() && LibErrorContext.hasErrors()) {
-                e.getPlayer().sendMessage(new TranslatableComponent("catlib.errorText.clickHere")
-                    .withStyle(Style.EMPTY.withClickEvent(CommandUtils.clickToRun("/catlib errors"))), Util.NIL_UUID);
+                LibErrorContext.broadcastErrors();
             }
             CommonPlayerEvent.LOGIN.invoker().accept(e.getPlayer(), e.getPlayer().getServer());
         });

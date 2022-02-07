@@ -1,7 +1,15 @@
 package personthecat.catlib.event.error;
 
 import lombok.extern.log4j.Log4j2;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.jetbrains.annotations.ApiStatus;
+import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.data.MultiValueHashMap;
@@ -9,10 +17,12 @@ import personthecat.catlib.data.MultiValueMap;
 import personthecat.catlib.exception.FormattedException;
 import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.exception.ModLoadException;
+import personthecat.catlib.util.McUtils;
 import personthecat.fresult.functions.ThrowingRunnable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 @Log4j2
@@ -21,6 +31,8 @@ public class LibErrorContext {
     private static final Map<ModDescriptor, List<FormattedException>> COMMON_ERRORS = new ConcurrentHashMap<>();
     private static final Map<ModDescriptor, List<FormattedException>> FATAL_ERRORS = new ConcurrentHashMap<>();
     private static final Set<ModDescriptor> ERRED_MODS = ConcurrentHashMap.newKeySet();
+    private static final AtomicLong LAST_BROADCAST = new AtomicLong(System.currentTimeMillis());
+    private static final long BROADCAST_INTERVAL = 3000L;
 
     public static void warn(final ModDescriptor mod, final FormattedException e) {
         register(Severity.WARN, mod, e);
@@ -45,6 +57,10 @@ public class LibErrorContext {
             log.warn("Ignoring error at level: " + level, e);
         }
         ERRED_MODS.add(mod);
+
+        if (McUtils.isClientSide()) {
+            broadcastErrors();
+        }
     }
 
     public static boolean run(final ModDescriptor mod, final ThrowingRunnable<FormattedException> f) {
@@ -170,6 +186,22 @@ public class LibErrorContext {
             dispose();
         } else if (notify) {
             log.info("No errors in context. Server init complete!");
+        }
+    }
+
+    @ApiStatus.Internal
+    @Environment(EnvType.CLIENT)
+    public static void broadcastErrors() {
+        final LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) {
+            return;
+        }
+        final long currentUpdate = System.currentTimeMillis();
+        final long lastUpdate = LAST_BROADCAST.get();
+        if (currentUpdate - lastUpdate > BROADCAST_INTERVAL) {
+            player.sendMessage(new TranslatableComponent("catlib.errorText.clickHere")
+                .withStyle(Style.EMPTY.withClickEvent(CommandUtils.clickToRun("/catlib errors"))), Util.NIL_UUID);
+            LAST_BROADCAST.set(currentUpdate);
         }
     }
 
