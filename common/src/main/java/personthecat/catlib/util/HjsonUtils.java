@@ -219,6 +219,20 @@ public class HjsonUtils {
     }
 
     /**
+     * Deprecated version of {@link #writeSuppressing(Codec, Object)} with a typo.
+     *
+     * @deprecated Use {@link #writeSuppressing(Codec, Object)}.
+     * @param codec The codec responsible for the serialization.
+     * @param a The data being serialized.
+     * @param <A> The type of data being serialized.
+     * @return The serialized data, or else {@link Optional#empty}.
+     */
+    @Deprecated
+    public static <A> Optional<JsonValue> writeSupressing(final Codec<A> codec, final A a) {
+        return writeSuppressing(codec, a);
+    }
+
+    /**
      * Writes the input value as JSON, returning {@link Optional#empty} if any errors
      * occur in the process.
      *
@@ -227,7 +241,7 @@ public class HjsonUtils {
      * @param <A> The type of data being serialized.
      * @return The serialized data, or else {@link Optional#empty}.
      */
-    public static <A> Optional<JsonValue> writeSupressing(final Codec<A> codec, final A a) {
+    public static <A> Optional<JsonValue> writeSuppressing(final Codec<A> codec, final A a) {
         return codec.encodeStart(HjsonOps.INSTANCE, a).result();
     }
 
