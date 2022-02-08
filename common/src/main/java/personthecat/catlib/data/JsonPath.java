@@ -11,6 +11,7 @@ import personthecat.catlib.util.HjsonUtils;
 import personthecat.fresult.Result;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static personthecat.catlib.exception.Exceptions.cmdSyntax;
 
@@ -153,6 +154,50 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         }
         final String s = sb.toString();
         return s.startsWith(".") ? s.substring(1) : s;
+    }
+
+    /**
+     * Generates a list of every possible JSON path in this object.
+     *
+     * @param json The json containing the expected paths.
+     * @return A list of objects representing these paths.
+     */
+    public static List<JsonPath> getAllPaths(final JsonObject json) {
+        return toPaths(json.getAllPaths());
+    }
+
+    /**
+     * Generates a list of every used JSON path in this object.
+     *
+     * @param json The json containing the expected paths.
+     * @return A list of objects representing these paths.
+     */
+    public static List<JsonPath> getUsedPaths(final JsonObject json) {
+        return toPaths(json.getUsedPaths());
+    }
+
+    /**
+     * Generates a list of every unused JSON path in this object.
+     *
+     * @param json The json containing the expected paths.
+     * @return A list of objects representing these paths.
+     */
+    public static List<JsonPath> getUnusedPaths(final JsonObject json) {
+        return toPaths(json.getUnusedPaths());
+    }
+
+    private static List<JsonPath> toPaths(final List<String> raw) {
+        return raw.stream()
+            .map(JsonPath::parseUnchecked)
+            .collect(Collectors.toList());
+    }
+
+    private static JsonPath parseUnchecked(final String path) {
+        try {
+            return parse(path);
+        } catch (final CommandSyntaxException e) {
+            throw new IllegalStateException("JSON lib returned unusable path", e);
+        }
     }
 
     public JsonValue getLastContainer(final JsonObject json) {

@@ -1,7 +1,12 @@
 package personthecat.catlib.data;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import org.hjson.JsonObject;
+import org.hjson.JsonValue;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -22,6 +27,25 @@ public final class JsonPathTest {
         final String expected = "key.hello[1][0]";
         final JsonPath path = JsonPath.builder().key("key").key("hello").index(1).index(0).build();
         assertEquals(expected, path.toString());
+    }
+
+    @Test
+    public void toPaths_convertsComplexPaths() {
+        final String json = "a:{b:{}},c:[[{d:{}}],[{e:{}}]]";
+        final JsonObject subject = JsonValue.readHjson(json).asObject();
+
+        final List<JsonPath> expected = Arrays.asList(
+            JsonPath.builder().key("a").build(),
+            JsonPath.builder().key("a").key("b").build(),
+            JsonPath.builder().key("c").build(),
+            JsonPath.builder().key("c").index(0).build(),
+            JsonPath.builder().key("c").index(0).index(0).build(),
+            JsonPath.builder().key("c").index(0).index(0).key("d").build(),
+            JsonPath.builder().key("c").index(1).build(),
+            JsonPath.builder().key("c").index(1).index(0).build(),
+            JsonPath.builder().key("c").index(1).index(0).key("e").build()
+        );
+        assertEquals(expected, JsonPath.getAllPaths(subject));
     }
 
     @Test
