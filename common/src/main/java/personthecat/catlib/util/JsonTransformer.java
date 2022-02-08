@@ -1264,7 +1264,7 @@ public class JsonTransformer {
          * @return A <em>new</em> JSON object with the provided transforms applied.
          */
         public final JsonObject getUpdated(final JsonObject json) {
-            final JsonObject clone = json.shallowCopy().asObject();
+            final JsonObject clone = json.deepCopy().asObject();
             this.updateAll(clone);
             return clone;
         }
