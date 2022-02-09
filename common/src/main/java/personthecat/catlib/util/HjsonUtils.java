@@ -17,6 +17,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.templatesystem.BlockRotProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.GravityProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.hjson.*;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
@@ -358,6 +359,50 @@ public class HjsonUtils {
             }
         }
         return current;
+    }
+
+    /**
+     * Attempts to resolve the closest matching path in the given JSON data.
+     *
+     * <p>Essentially, this method accepts the canonicalized path of an expected value for the
+     * data being represented. It will account for the possibility that <b>object arrays may be
+     * expressed as singletons</b> and return the <em>actual</em> path, should any be used.</p>
+     *
+     * @param json The object being inspected.
+     * @param path The canonicalized path to the expected value
+     * @return The actual path to the value, or else the canonical path.
+     */
+    public static JsonPath getClosestMatch(final JsonObject json, final JsonPath path) {
+        final MutableObject<JsonValue> current = new MutableObject<>(json);
+        final JsonPath.JsonPathBuilder builder = JsonPath.builder();
+
+        for (final Either<String, Integer> component : path) {
+            component.ifLeft(key -> {
+                JsonValue value = current.getValue();
+                while (value.isArray() && !value.asArray().isEmpty()) {
+                    builder.index(0);
+                    value = value.asArray().get(0);
+                }
+                if (value.isObject()) {
+                    current.setValue(value.asObject().get(key));
+                    builder.key(key);
+                } else {
+                    current.setValue(null);
+                }
+            }).ifRight(index -> {
+                final JsonValue value = current.getValue();
+                if (value.isArray() && value.asArray().size() > index) {
+                    current.setValue(value.asArray().get(index));
+                    builder.index(index);
+                } else if (!(value.isObject() && index == 0)) {
+                    current.setValue(null);
+                }
+            });
+            if (current.getValue() == null) {
+                return path;
+            }
+        }
+        return builder.build();
     }
 
     /**

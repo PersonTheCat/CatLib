@@ -10,6 +10,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class JsonPathTest {
@@ -31,8 +33,7 @@ public final class JsonPathTest {
 
     @Test
     public void toPaths_convertsComplexPaths() {
-        final String json = "a:{b:{}},c:[[{d:{}}],[{e:{}}]]";
-        final JsonObject subject = JsonValue.readHjson(json).asObject();
+        final JsonObject subject = parse("a:{b:{}},c:[[{d:{}}],[{e:{}}]]");
 
         final List<JsonPath> expected = Arrays.asList(
             JsonPath.builder().key("a").build(),
@@ -46,6 +47,51 @@ public final class JsonPathTest {
             JsonPath.builder().key("c").index(1).index(0).key("e").build()
         );
         assertEquals(expected, JsonPath.getAllPaths(subject));
+    }
+
+    @Test
+    public void getClosestMatch_withSamePath_locatesMatch() {
+        final JsonObject subject = parse("a:{b:{}},c:[[{d:{}}]]");
+
+        final JsonPath canonical = JsonPath.builder().key("c").index(0).build();
+        final JsonPath match = canonical.getClosestMatch(subject);
+        assertEquals(canonical, match);
+        assertNotSame(canonical, match);
+    }
+
+    @Test
+    public void getClosestMatch_withSimilarPath_locatesMatch() {
+        final JsonObject subject = parse("a:{b:{}},c:[[{d:{}}]]");
+
+        final JsonPath canonical = JsonPath.builder().key("a").index(0).key("b").build();
+        final JsonPath expected = JsonPath.builder().key("a").key("b").build();
+        assertEquals(expected, canonical.getClosestMatch(subject));
+    }
+
+    @Test
+    public void getClosestMatch_withNestedArrays_locatesMatch() {
+        final JsonObject subject = parse("a:{b:{}},c:[[{d:{}}]]");
+
+        final JsonPath canonical = JsonPath.builder().key("c").index(0).index(0).index(0).key("d").build();
+        final JsonPath expected = JsonPath.builder().key("c").index(0).index(0).key("d").build();
+        assertEquals(expected, canonical.getClosestMatch(subject));
+    }
+
+    @Test
+    public void getClosestMatch_withNoMatch_returnsCanonical() {
+        final JsonObject subject = parse("a:{b:{}},c:[[{d:{}}]]");
+
+        final JsonPath canonical = JsonPath.builder().key("c").index(1).key("d").build();
+        assertSame(canonical, canonical.getClosestMatch(subject));
+    }
+
+    @Test
+    public void getClosestMatch_whenCanonicalIsShorterThanActual_locatesMatch() {
+        final JsonObject subject = parse("a:{b:{}},c:[[{d:{}}]]");
+
+        final JsonPath canonical = JsonPath.builder().key("c").key("d").build();
+        final JsonPath expected = JsonPath.builder().key("c").index(0).index(0).key("d").build();
+        assertEquals(expected, canonical.getClosestMatch(subject));
     }
 
     @Test
@@ -67,5 +113,9 @@ public final class JsonPathTest {
         final JsonPath path = JsonPath.builder().key("key").build();
         final JsonPath result = assertDoesNotThrow(() -> path.toBuilder().up(100).build());
         assertTrue(result.isEmpty());
+    }
+
+    private static JsonObject parse(final String json) {
+        return JsonValue.readHjson(json).asObject();
     }
 }
