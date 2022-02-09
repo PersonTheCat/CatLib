@@ -7,6 +7,7 @@ import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.exception.UnreachableException;
 import personthecat.catlib.util.HjsonUtils;
 import personthecat.fresult.Result;
 
@@ -44,6 +45,28 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
      */
     public static JsonPathBuilder builder() {
         return new JsonPathBuilder();
+    }
+
+    /**
+     * A lightweight, immutable alternative to {@link JsonPathBuilder}, specifically
+     * intended for tracking paths over time in scenarios where an actual {@link JsonPath}
+     * may not be needed.
+     *
+     * <p>For example, an application performing analysis on a body of JSON data
+     * might "track" the current path using one of these objects. If for some reason
+     * a specific path needs to be saved, the dev might call {@link Stub#capture()}
+     * to generate a proper {@link JsonPath}, which can be reflected on at a later
+     * time.
+     *
+     * <p>This is equivalent to using a regular {@link JsonPathBuilder}, while being
+     * modestly less expensive in that context. However, because it is immutable, it
+     * may be repeatedly passed into various other methods without the threat of any
+     * accidental mutations further down the stack.
+     *
+     * @return {@link Stub#EMPTY}, for building raw JSON paths.
+     */
+    public static Stub stub() {
+        return Stub.EMPTY;
     }
 
     /**
@@ -340,6 +363,66 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
 
         public JsonPath build() {
             return new JsonPath(this.path, this.raw.toString());
+        }
+
+        @Override
+        public int hashCode() {
+            return this.path.hashCode();
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (o instanceof JsonPathBuilder) {
+                return this.path.equals(((JsonPathBuilder) o).path);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * A lightweight, immutable builder designed for appending paths over time, wherein
+     * the more expensive {@link JsonPath} is typically unneeded. 
+     */
+    public static class Stub {
+
+        private static final Stub EMPTY = new Stub("");
+
+        private final String path;
+
+        private Stub(final String path) {
+            this.path = path;
+        }
+
+        public Stub key(final String key) {
+            if (this.path.isEmpty()) {
+                return new Stub(key);
+            }
+            return new Stub(this.path + "." + key);
+        }
+
+        public Stub index(final int index) {
+            return new Stub(this.path + "[" + index + "]");
+        }
+
+        public JsonPath capture() {
+            try {
+                return parse(this.path);
+            } catch (final CommandSyntaxException e) {
+                throw new UnreachableException();
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return this.path.hashCode();
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (o instanceof Stub) {
+                return this.path.equals(((Stub) o).path);
+            }
+            return false;
         }
     }
 }

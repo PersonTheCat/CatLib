@@ -115,6 +115,18 @@ public final class JsonPathTest {
         assertTrue(result.isEmpty());
     }
 
+    @Test
+    public void stub_isImmutable() {
+        final JsonPath.Stub stub = JsonPath.stub();
+        assertNotSame(stub, stub.key("immutable"));
+    }
+
+    @Test
+    public void stub_generatesValidPath() {
+        final JsonPath.Stub stub = JsonPath.stub().key("a").key("b").index(3).key("d");
+        assertEquals("a.b[3].d", stub.capture().toString());
+    }
+
     private static JsonObject parse(final String json) {
         return JsonValue.readHjson(json).asObject();
     }
