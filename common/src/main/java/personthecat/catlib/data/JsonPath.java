@@ -7,7 +7,6 @@ import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.exception.UnreachableException;
 import personthecat.catlib.util.HjsonUtils;
 import personthecat.fresult.Result;
 
@@ -243,6 +242,10 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         return new JsonPathBuilder(new ArrayList<>(this.path), new StringBuilder(this.raw));
     }
 
+    public Stub beginTracking() {
+        return new Stub(this.raw);
+    }
+
     public Collection<Either<String, Integer>> asCollection() {
         return Collections.unmodifiableCollection(this.path);
     }
@@ -408,7 +411,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
             try {
                 return parse(this.path);
             } catch (final CommandSyntaxException e) {
-                throw new UnreachableException();
+                throw new IllegalArgumentException("Invalid characters in stub: " + this.path);
             }
         }
 
