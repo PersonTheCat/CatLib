@@ -406,6 +406,114 @@ public class HjsonUtils {
     }
 
     /**
+     * Filters values from the given JSON object according to a list of expected paths.
+     *
+     * @param json  The JSON object and source being transformed.
+     * @param paths The paths expected to stay in the output.
+     * @return A transformed object containing only the expected paths.
+     */
+    public static JsonObject filter(final JsonObject json, final Collection<JsonPath> paths) {
+        return filter(json, paths, true);
+    }
+
+    /**
+     * Filters values from the given JSON object according to a list of expected paths.
+     *
+     * @param json      The JSON object and source being transformed.
+     * @param paths     The paths expected to stay in the output.
+     * @param whitelist Whether to whitelist or blacklist these paths.
+     * @return A transformed object containing only the expected paths.
+     */
+    public static JsonObject filter(final JsonObject json, final Collection<JsonPath> paths, final boolean whitelist) {
+        final JsonObject clone = (JsonObject) json.deepCopy();
+        // Flag each path as used so anything else will get removed.
+        paths.forEach(path -> path.getValue(clone));
+        return skip(clone, whitelist);
+    }
+
+    /**
+     * Generates a new {@link JsonObject} containing only the values that were or were not
+     * used in the original.
+     *
+     * @param json The original JSON object being transformed.
+     * @param used <code>true</code> to skip used values, <code>false</code> to skip unused.
+     * @return A <b>new</b> JSON object with these values trimmed out.
+     */
+    public static JsonObject skip(final JsonObject json, final boolean used) {
+        final JsonObject generated = (JsonObject) new JsonObject().copyComments(json);
+        final StringBuilder skipped = new StringBuilder();
+
+        for (final JsonObject.Member member : json) {
+            final JsonValue value = member.getValue();
+            final String name = member.getName();
+
+            if (value.isAccessed() == used) {
+                if (skipped.length() > 0) {
+                    value.appendComment("Skipped " + skipped);
+                    skipped.setLength(0);
+                }
+                if (value.isObject()) {
+                    generated.add(name, skip(value.asObject(), used));
+                } else if (value.isArray()) {
+                    generated.add(name, skip(value.asArray(), used));
+                } else {
+                    generated.add(name, value);
+                }
+            } else if (skipped.length() == 0) {
+                skipped.append(name);
+            } else {
+                skipped.append(", ").append(name);
+            }
+        }
+        if (skipped.length() > 0) {
+            generated.appendComment(CommentType.INTERIOR, CommentStyle.HASH, "Skipped " + skipped);
+        }
+        return generated;
+    }
+
+    /**
+     * Generates a new {@link JsonArray} containing only the values that were or were not
+     * used in the original.
+     *
+     * @param json The original JSON array being transformed.
+     * @param used <code>true</code> to skip used values, <code>false</code> to skip unused.
+     * @return A <b>new</b> JSON array with these values trimmed out.
+     */
+    public static JsonArray skip(final JsonArray json, final boolean used) {
+        final JsonArray generated = (JsonArray) new JsonArray().copyComments(json);
+        int lastIndex = 0;
+        int index = 0;
+
+        for (final JsonValue value : json) {
+            if (value.isAccessed() == used) {
+                if (index == lastIndex + 1) {
+                    value.appendComment("Skipped " + lastIndex);
+                } else if (index > lastIndex) {
+                    value.appendComment("Skipped " + lastIndex + " ~ " + (index - 1));
+                }
+                if (value.isObject()) {
+                    generated.add(skip(value.asObject(), used));
+                } else if (value.isArray()) {
+                    generated.add(skip(value.asArray(), used));
+                } else {
+                    generated.add(value);
+                }
+                lastIndex = index;
+            }
+            index++;
+        }
+        final int end = index - 1;
+        if (end == lastIndex + 1) {
+            generated.appendComment(
+                CommentType.INTERIOR, CommentStyle.HASH, "Skipped " + lastIndex);
+        } else if (end > lastIndex) {
+            generated.appendComment(
+                CommentType.INTERIOR, CommentStyle.HASH, "Skipped " + lastIndex + " ~ " + (end - 1));
+        }
+        return generated;
+    }
+
+    /**
      * Returns a "shallow" clone of the given value. In other words, if this
      * value is an object or array, a new container will be constructed. If
      * it is any other value, the <em>reference</em> will be copied, meaning
