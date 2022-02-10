@@ -54,7 +54,57 @@ public final class HjsonUtilsTest {
         assertEquals(expected, HjsonUtils.filter(json, keep));
     }
 
+    @Test
+    public void filter_onObjectWithComments_doesNotMangleComments() {
+        final JsonObject json = parse(
+            "{                        \n" +
+            "  a: {}                  \n" +
+            "  b: {}                  \n" +
+            "  c: {}                  \n" +
+            "  d: [                   \n" +
+            "    {}                   \n" +
+            "    {}                   \n" +
+            "    {}                   \n" +
+            "    # Generated value    \n" +
+            "    {                    \n" +
+            "      e: {}              \n" +
+            "      f: {}              \n" +
+            "    }                    \n" +
+            "    {}                   \n" +
+            "  ]                      \n" +
+            "  g: {}                  \n" +
+            "}                        \n");
+
+        final Collection<JsonPath> keep = Arrays.asList(
+            JsonPath.builder().key("d").index(3).key("e").build(),
+            JsonPath.builder().key("d").index(3).key("f").build()
+        );
+
+        final JsonObject expected = parse(
+            "{                        \n " +
+            "  # Skipped a, b, c      \n" +
+            "  d: [                   \n" +
+            "    # Generated value    \n" +
+            "    # Skipped 0 ~ 2      \n" +
+            "    {                    \n" +
+            "      e: {}              \n" +
+            "      f: {}              \n" +
+            "    }                    \n" +
+            "    # Skipped 3          \n" +
+            "  ]                      \n" +
+            "  # Skipped g            \n" +
+            "}                        \n");
+
+        assertEquals(expected, HjsonUtils.filter(json, keep));
+    }
+
     private static JsonObject parse(final String json) {
-        return JsonValue.readHjson(json).asObject();
+        return JsonValue.readHjson(trimLines(json)).asObject();
+    }
+
+    private static String trimLines(final String text) {
+        // The Hjson library might store extra spaces in comments
+        // This prevents that from affecting our test cases.
+        return text.replaceAll("\\s*\n", "\n");
     }
 }
