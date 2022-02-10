@@ -95,6 +95,30 @@ public final class JsonPathTest {
     }
 
     @Test
+    public void getLastAvailable_whenFullPathIsAvailable_returnsEnd() {
+        final JsonObject subject = parse("a:{b:[{c:{}}]}");
+        final JsonPath path = JsonPath.builder().key("a").key("b").index(0).key("c").build();
+
+        assertEquals(path.size() - 1, path.getLastAvailable(subject));
+    }
+
+    @Test
+    public void getLastAvailable_whenPartialPathIsPresent_returnsLastAvailable() {
+        final JsonObject subject = parse("a:{b:[]}");
+        final JsonPath path = JsonPath.builder().key("a").key("b").index(0).key("c").build();
+
+        assertEquals(1, path.getLastAvailable(subject));
+    }
+
+    @Test
+    public void getLastAvailable_whenNoneIsPresent_returnsNegativeOne() {
+        final JsonObject subject = parse("a:{b:[]}");
+        final JsonPath path = JsonPath.builder().key("x").key("y").key("z").build();
+
+        assertEquals(-1, path.getLastAvailable(subject));
+    }
+
+    @Test
     public void subPath_generatesPathSlice() {
         final JsonPath expected = JsonPath.builder().key("two").index(3).build();
         final JsonPath path = JsonPath.builder().index(1).key("two").index(3).key("four").build();

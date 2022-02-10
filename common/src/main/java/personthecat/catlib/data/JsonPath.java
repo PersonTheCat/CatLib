@@ -238,6 +238,10 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         return HjsonUtils.getClosestMatch(json, this);
     }
 
+    public int getLastAvailable(final JsonObject json) {
+        return HjsonUtils.getLastAvailable(json, this);
+    }
+
     public JsonPathBuilder toBuilder() {
         return new JsonPathBuilder(new ArrayList<>(this.path), new StringBuilder(this.raw));
     }

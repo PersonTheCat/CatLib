@@ -362,6 +362,51 @@ public class HjsonUtils {
     }
 
     /**
+     * Gets the index of the last available element in this path, or else -1.
+     *
+     * <p>For example, when given the following JSON object:</p>
+     * <pre>
+     *   a:{b:[]}
+     * </pre>
+     * <p>And the following path:</p>
+     * <pre>
+     *   a.b[0].c
+     * </pre>
+     * <p>An index of 1 (pointing to b) will be returned.</p>
+     *
+     * @param json The JSON object containing the data being inspected.
+     * @param path The path to the expected data, which may or may not exist.
+     * @return The index to the last matching element, or else -1.
+     */
+    public static int getLastAvailable(final JsonObject json, final JsonPath path) {
+        final MutableObject<JsonValue> current = new MutableObject<>(json);
+        int index = -1;
+
+        for (final Either<String, Integer> component : path) {
+            component.ifLeft(key -> {
+                final JsonValue value = current.getValue();
+                if (value.isObject()) {
+                    current.setValue(value.asObject().get(key));
+                } else {
+                    current.setValue(null);
+                }
+            }).ifRight(i -> {
+                final JsonValue value = current.getValue();
+                if (value.isArray() && i < value.asArray().size()) {
+                    current.setValue(value.asArray().get(i));
+                } else {
+                    current.setValue(null);
+                }
+            });
+            if (current.getValue() == null) {
+                return index;
+            }
+            index++;
+        }
+        return index;
+    }
+
+    /**
      * Attempts to resolve the closest matching path in the given JSON data.
      *
      * <p>Essentially, this method accepts the canonicalized path of an expected value for the
