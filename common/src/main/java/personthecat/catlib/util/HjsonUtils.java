@@ -413,7 +413,7 @@ public class HjsonUtils {
      * @return A transformed object containing only the expected paths.
      */
     public static JsonObject filter(final JsonObject json, final Collection<JsonPath> paths) {
-        return filter(json, paths, true);
+        return filter(json, paths, false);
     }
 
     /**
@@ -421,14 +421,14 @@ public class HjsonUtils {
      *
      * @param json      The JSON object and source being transformed.
      * @param paths     The paths expected to stay in the output.
-     * @param whitelist Whether to whitelist or blacklist these paths.
+     * @param blacklist Whether to optionally blacklist these paths.
      * @return A transformed object containing only the expected paths.
      */
-    public static JsonObject filter(final JsonObject json, final Collection<JsonPath> paths, final boolean whitelist) {
+    public static JsonObject filter(final JsonObject json, final Collection<JsonPath> paths, final boolean blacklist) {
         final JsonObject clone = (JsonObject) json.deepCopy();
         // Flag each path as used so anything else will get removed.
         paths.forEach(path -> path.getValue(clone));
-        return skip(clone, whitelist);
+        return skip(clone, blacklist);
     }
 
     /**
@@ -447,7 +447,7 @@ public class HjsonUtils {
             final JsonValue value = member.getValue();
             final String name = member.getName();
 
-            if (value.isAccessed() == used) {
+            if (value.isAccessed() != used) {
                 if (skipped.length() > 0) {
                     value.appendComment("Skipped " + skipped);
                     skipped.setLength(0);
@@ -485,7 +485,7 @@ public class HjsonUtils {
         int index = 0;
 
         for (final JsonValue value : json) {
-            if (value.isAccessed() == used) {
+            if (value.isAccessed() != used) {
                 if (index == lastIndex + 1) {
                     value.appendComment("Skipped " + lastIndex);
                 } else if (index > lastIndex) {

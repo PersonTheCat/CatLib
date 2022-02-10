@@ -14,7 +14,24 @@ public final class HjsonUtilsTest {
 
     @Test
     public void filter_generatesObject_withGivenPathsOnly() {
-        final JsonObject json = parse("a:{},b:{},c:{},d:[{},{},{},{e:{},f:{}},{}],g:{}");
+        final JsonObject json = parse(
+            "{                        \n" +
+            "  a: {}                  \n" +
+            "  b: {}                  \n" +
+            "  c: {}                  \n" +
+            "  d: [                   \n" +
+            "    {}                   \n" +
+            "    {}                   \n" +
+            "    {}                   \n" +
+            "    {                    \n" +
+            "      e: {}              \n" +
+            "      f: {}              \n" +
+            "    }                    \n" +
+            "    {}                   \n" +
+            "  ]                      \n" +
+            "  g: {}                  \n" +
+            "}                        \n");
+
         final Collection<JsonPath> keep = Arrays.asList(
             JsonPath.builder().key("d").index(3).key("e").build(),
             JsonPath.builder().key("d").index(3).key("f").build()
