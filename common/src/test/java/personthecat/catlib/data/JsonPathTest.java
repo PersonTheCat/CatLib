@@ -126,6 +126,15 @@ public final class JsonPathTest {
     }
 
     @Test
+    public void append_addsElementsFromOtherPath() {
+        final JsonPath pathA = JsonPath.builder().key("a").index(0).build();
+        final JsonPath pathB = JsonPath.builder().key("b").index(1).build();
+        final JsonPath expected = JsonPath.builder().key("a").index(0).key("b").index(1).build();
+
+        assertEquals(expected, pathA.append(pathB));
+    }
+
+    @Test
     public void builder_isNavigable() {
         final JsonPath expected = JsonPath.builder().key("k1").key("k2").build();
         final JsonPath path = JsonPath.builder().key("k1").index(0).build();

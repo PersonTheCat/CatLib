@@ -291,6 +291,18 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         return new JsonPath(this.subList(s, e));
     }
 
+    public JsonPath append(final JsonPath path) {
+        return this.append(path, 0, path.size());
+    }
+
+    public JsonPath append(final JsonPath path, final int startInclusive) {
+        return this.append(path, startInclusive, path.size());
+    }
+
+    public JsonPath append(final JsonPath path, final int startInclusive, final int endExclusive) {
+        return this.toBuilder().append(path, startInclusive, endExclusive).build();
+    }
+
     @NotNull
     @Override
     public Iterator<Either<String, Integer>> iterator() {
@@ -365,6 +377,13 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
             final int dot = this.raw.lastIndexOf(".");
             final int bracket = this.raw.lastIndexOf("[");
             this.raw.delete(Math.max(dot, bracket), this.raw.length());
+            return this;
+        }
+
+        public JsonPathBuilder append(final JsonPath path, final int startInclusive, final int endExclusive) {
+            for (int i = startInclusive; i < endExclusive; i++) {
+                path.get(i).ifLeft(this::key).ifRight(this::index);
+            }
             return this;
         }
 
