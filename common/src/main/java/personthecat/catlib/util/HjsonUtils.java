@@ -421,8 +421,8 @@ public class HjsonUtils {
         final MutableObject<JsonValue> current = new MutableObject<>(json);
         final JsonPath.JsonPathBuilder builder = JsonPath.builder();
 
-        for (final Either<String, Integer> component : path) {
-            component.ifLeft(key -> {
+        for (int i = 0; i < path.size(); i++) {
+            path.get(i).ifLeft(key -> {
                 JsonValue value = current.getValue();
                 while (value.isArray() && !value.asArray().isEmpty()) {
                     builder.index(0);
@@ -444,7 +444,7 @@ public class HjsonUtils {
                 }
             });
             if (current.getValue() == null) {
-                return path;
+                return builder.build().append(path, i);
             }
         }
         return builder.build();

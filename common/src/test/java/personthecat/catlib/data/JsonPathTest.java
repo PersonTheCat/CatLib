@@ -78,11 +78,11 @@ public final class JsonPathTest {
     }
 
     @Test
-    public void getClosestMatch_withNoMatch_returnsCanonical() {
+    public void getClosestMatch_withNoMatch_generatesOriginalPath() {
         final JsonObject subject = parse("a:{b:{}},c:[[{d:{}}]]");
 
         final JsonPath canonical = JsonPath.builder().key("c").index(1).key("d").build();
-        assertSame(canonical, canonical.getClosestMatch(subject));
+        assertEquals(canonical, canonical.getClosestMatch(subject));
     }
 
     @Test
@@ -91,6 +91,15 @@ public final class JsonPathTest {
 
         final JsonPath canonical = JsonPath.builder().key("c").key("d").build();
         final JsonPath expected = JsonPath.builder().key("c").index(0).index(0).key("d").build();
+        assertEquals(expected, canonical.getClosestMatch(subject));
+    }
+
+    @Test
+    public void getClosestMatch_withPartialPath_matchesPartially() {
+        final JsonObject subject = parse("a:{b:''}");
+
+        final JsonPath canonical = JsonPath.builder().key("a").index(0).key("b").key("c").build();
+        final JsonPath expected = JsonPath.builder().key("a").key("b").key("c").build();
         assertEquals(expected, canonical.getClosestMatch(subject));
     }
 
