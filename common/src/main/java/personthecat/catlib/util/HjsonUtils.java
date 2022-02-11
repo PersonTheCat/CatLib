@@ -547,13 +547,12 @@ public class HjsonUtils {
             }
             index++;
         }
-        final int end = index - 1;
-        if (end == lastIndex + 1) {
+        if (index == lastIndex + 1) {
             generated.appendComment(
                 CommentType.INTERIOR, CommentStyle.HASH, "Skipped " + lastIndex);
-        } else if (end > lastIndex) {
+        } else if (index > lastIndex) {
             generated.appendComment(
-                CommentType.INTERIOR, CommentStyle.HASH, "Skipped " + lastIndex + " ~ " + (end - 1));
+                CommentType.INTERIOR, CommentStyle.HASH, "Skipped " + lastIndex + " ~ " + (index - 1));
         }
         return generated;
     }
