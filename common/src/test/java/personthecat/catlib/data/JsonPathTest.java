@@ -1,6 +1,7 @@
 package personthecat.catlib.data;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import org.hjson.JsonLiteral;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import org.junit.jupiter.api.Test;
@@ -10,8 +11,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class JsonPathTest {
@@ -47,6 +48,35 @@ public final class JsonPathTest {
             JsonPath.builder().key("c").index(1).index(0).key("e").build()
         );
         assertEquals(expected, JsonPath.getAllPaths(subject));
+    }
+
+    @Test
+    public void getLastContainer_returnsParent() {
+        final JsonObject json = parse("a:{b:{c:{}}}");
+        final JsonPath path = JsonPath.builder().key("a").key("b").key("c").build();
+
+        final JsonObject get = path.getLastContainer(json).asObject();
+        assertNotNull(get.get("c"));
+    }
+
+    @Test
+    public void setValue_setsValueInLastContainer() {
+        final JsonObject json = parse("a:{b:{c:{}}}");
+        final JsonPath path = JsonPath.builder().key("a").key("b").key("c").build();
+        final JsonObject expected = parse("a:{b:{c:true}}");
+
+        path.setValue(json, JsonLiteral.jsonTrue());
+        assertEquals(expected, json);
+    }
+
+    @Test
+    public void setValue_doesNotDestroyData() {
+        final JsonObject json = parse("a:{b:{c:{}}}");
+        final JsonPath path = JsonPath.builder().key("a").index(0).build();
+        final JsonObject out = (JsonObject) json.deepCopy();
+
+        path.setValue(out, JsonLiteral.jsonTrue());
+        assertEquals(json, out);
     }
 
     @Test
