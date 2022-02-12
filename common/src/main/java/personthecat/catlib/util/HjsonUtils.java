@@ -494,7 +494,7 @@ public class HjsonUtils {
 
             if (value.isAccessed() != used) {
                 if (skipped.length() > 0) {
-                    value.appendComment("Skipped " + skipped);
+                    value.prependComment("Skipped " + skipped);
                     skipped.setLength(0);
                 }
                 if (value.isObject()) {
@@ -511,7 +511,7 @@ public class HjsonUtils {
             }
         }
         if (skipped.length() > 0) {
-            generated.appendComment(CommentType.INTERIOR, CommentStyle.HASH, "Skipped " + skipped);
+            generated.prependInteriorComment("Skipped " + skipped);
         }
         return generated;
     }
@@ -532,9 +532,9 @@ public class HjsonUtils {
         for (final JsonValue value : json) {
             if (value.isAccessed() != used) {
                 if (index == lastIndex + 1) {
-                    value.appendComment("Skipped " + lastIndex);
+                    value.prependComment("Skipped " + (index - 1));
                 } else if (index > lastIndex) {
-                    value.appendComment("Skipped " + lastIndex + " ~ " + (index - 1));
+                    value.prependComment("Skipped " + lastIndex + " ~ " + (index - 1));
                 }
                 if (value.isObject()) {
                     generated.add(skip(value.asObject(), used));
@@ -543,16 +543,14 @@ public class HjsonUtils {
                 } else {
                     generated.add(value);
                 }
-                lastIndex = index;
+                lastIndex = index + 1;
             }
             index++;
         }
         if (index == lastIndex + 1) {
-            generated.appendComment(
-                CommentType.INTERIOR, CommentStyle.HASH, "Skipped " + lastIndex);
+            generated.prependInteriorComment("Skipped " + (index - 1));
         } else if (index > lastIndex) {
-            generated.appendComment(
-                CommentType.INTERIOR, CommentStyle.HASH, "Skipped " + lastIndex + " ~ " + (index - 1));
+            generated.prependInteriorComment("Skipped " + lastIndex + " ~ " + (index - 1));
         }
         return generated;
     }

@@ -46,7 +46,7 @@ public final class HjsonUtilsTest {
             "      e: {}              \n" +
             "      f: {}              \n" +
             "    }                    \n" +
-            "    # Skipped 3          \n" +
+            "    # Skipped 4          \n" +
             "  ]                      \n" +
             "  # Skipped g            \n" +
             "}                        \n");
@@ -84,13 +84,13 @@ public final class HjsonUtilsTest {
             "{                        \n " +
             "  # Skipped a, b, c      \n" +
             "  d: [                   \n" +
-            "    # Generated value    \n" +
             "    # Skipped 0 ~ 2      \n" +
+            "    # Generated value    \n" +
             "    {                    \n" +
             "      e: {}              \n" +
             "      f: {}              \n" +
             "    }                    \n" +
-            "    # Skipped 3          \n" +
+            "    # Skipped 4          \n" +
             "  ]                      \n" +
             "  # Skipped g            \n" +
             "}                        \n");
