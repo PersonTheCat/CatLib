@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+
 import static personthecat.catlib.serialization.CodecUtils.dynamic;
 import static personthecat.catlib.serialization.DynamicField.extend;
 import static personthecat.catlib.serialization.DynamicField.field;
@@ -66,6 +68,14 @@ public class DynamicCodecTest {
         final JsonObject json = encode(SimpleObject.CODEC, o);
         assertNotNull(json);
         assertNull(json.get("a"));
+    }
+
+    @Test
+    public void simpleCodec_doesNotAccessExtraneousFields() {
+        final JsonObject json = parse("a:'test',b:1337,c:'unused'");
+        final SimpleObject o = decode(SimpleObject.CODEC, json);
+        assertNotNull(o);
+        assertEquals(Collections.singletonList("c"), json.getUnusedPaths());
     }
 
     @Test

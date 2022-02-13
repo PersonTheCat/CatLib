@@ -154,33 +154,28 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
                     return r;
                 }, element));
             }
-
-            map.entries().forEach(pair -> {
-                final DataResult<Pair<String, T>> key = Codec.STRING.decode(ops, pair.getFirst());
-
-                key.resultOrPartial(e -> failed.add(pair.getFirst())).ifPresent(k -> {
-                    final DynamicField<B, R, Object> field = (DynamicField<B, R, Object>) this.fields.get(k.getFirst());
-                    if (field != null && !field.isImplicit()) {
-                        if (pair.getSecond() == null) {
-                            if (field.isNullable()) {
-                                field.setter.accept(builder, null);
-                            }
-                            return;
+            for (final Map.Entry<String, DynamicField<B, R, ?>> entry : this.fields.entrySet()) {
+                final DynamicField<B, R, Object> field = (DynamicField<B, R, Object>) entry.getValue();
+                final T value = map.get(entry.getKey());
+                if (field != null && !field.isImplicit()) {
+                    if (value == null) {
+                        if (field.isNullable()) {
+                            field.setter.accept(builder, null);
                         }
-                        required.remove(field.key);
-                        Codec<Object> codec = field.codec;
-                        if (codec == null) codec = (Codec<Object>) this;
-                        final DataResult<Pair<Object, T>> element = codec.decode(ops,  pair.getSecond());
-
-                        element.error().ifPresent(e -> failed.add(pair.getSecond()));
-                        result.setValue(result.getValue().apply2stable((r, v) -> {
-                            field.setter.accept(builder, v.getFirst());
-                            return r;
-                        }, element));
+                        continue;
                     }
-                });
-            });
+                    required.remove(field.key);
+                    Codec<Object> codec = field.codec;
+                    if (codec == null) codec = (Codec<Object>) this;
+                    final DataResult<Pair<Object, T>> element = codec.decode(ops,  value);
 
+                    element.error().ifPresent(e -> failed.add(value));
+                    result.setValue(result.getValue().apply2stable((r, v) -> {
+                        field.setter.accept(builder, v.getFirst());
+                        return r;
+                    }, element));
+                }
+            }
             if (!required.isEmpty()) {
                 for (final String missing : required.keySet()) {
                     failed.add(ops.createString(missing));
