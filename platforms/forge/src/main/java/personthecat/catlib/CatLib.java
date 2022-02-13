@@ -60,7 +60,7 @@ public class CatLib {
             CommonWorldEvent.UNLOAD.invoker().accept(e.getWorld()));
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) -> {
             if (McUtils.isClientSide() && LibErrorContext.hasErrors()) {
-                LibErrorContext.broadcastErrors();
+                LibErrorContext.broadcastErrors(e.getPlayer());
             }
             CommonPlayerEvent.LOGIN.invoker().accept(e.getPlayer(), e.getPlayer().getServer());
         });

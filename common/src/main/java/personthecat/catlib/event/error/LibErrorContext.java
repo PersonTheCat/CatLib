@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.ApiStatus;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.config.LibConfig;
@@ -31,7 +32,7 @@ public class LibErrorContext {
     private static final Map<ModDescriptor, List<FormattedException>> COMMON_ERRORS = new ConcurrentHashMap<>();
     private static final Map<ModDescriptor, List<FormattedException>> FATAL_ERRORS = new ConcurrentHashMap<>();
     private static final Set<ModDescriptor> ERRED_MODS = ConcurrentHashMap.newKeySet();
-    private static final AtomicLong LAST_BROADCAST = new AtomicLong(System.currentTimeMillis());
+    private static final AtomicLong LAST_BROADCAST = new AtomicLong(0L);
     private static final long BROADCAST_INTERVAL = 3000L;
 
     public static void warn(final ModDescriptor mod, final FormattedException e) {
@@ -189,13 +190,18 @@ public class LibErrorContext {
         }
     }
 
+
+    @Environment(EnvType.CLIENT)
+    private static void broadcastErrors() {
+        final LocalPlayer player = Minecraft.getInstance().player;
+        if (player != null) {
+            broadcastErrors(player);
+        }
+    }
+
     @ApiStatus.Internal
     @Environment(EnvType.CLIENT)
-    public static void broadcastErrors() {
-        final LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) {
-            return;
-        }
+    public static void broadcastErrors(final Player player) {
         final long currentUpdate = System.currentTimeMillis();
         final long lastUpdate = LAST_BROADCAST.get();
         if (currentUpdate - lastUpdate > BROADCAST_INTERVAL) {

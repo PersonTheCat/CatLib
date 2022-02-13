@@ -60,7 +60,7 @@ public class CatLib implements ModInitializer {
         ServerWorldEvents.UNLOAD.register((s, l) -> CommonWorldEvent.UNLOAD.invoker().accept(l));
         ServerPlayConnectionEvents.JOIN.register((h, tx, s) -> {
             if (McUtils.isClientSide() && LibErrorContext.hasErrors()) {
-                LibErrorContext.broadcastErrors();
+                LibErrorContext.broadcastErrors(h.player);
             }
             CommonPlayerEvent.LOGIN.invoker().accept(h.player, s);
         });
