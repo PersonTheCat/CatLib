@@ -428,7 +428,7 @@ public class HjsonUtils {
                     builder.index(0);
                     value = value.asArray().get(0);
                 }
-                if (value.isObject()) {
+                if (value.isObject() && value.asObject().has(key)) {
                     current.setValue(value.asObject().get(key));
                     builder.key(key);
                 } else {

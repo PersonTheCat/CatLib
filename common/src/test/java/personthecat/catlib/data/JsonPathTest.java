@@ -134,6 +134,15 @@ public final class JsonPathTest {
     }
 
     @Test
+    public void getClosestMatch_withPartialPath_missingKey_matchesPartially() {
+        final JsonObject subject = parse("a:{b:{c:{}}}");
+
+        final JsonPath canonical = JsonPath.builder().key("a").key("b").index(0).key("c").key("d").build();
+        final JsonPath expected = JsonPath.builder().key("a").key("b").key("c").key("d").build();
+        assertEquals(expected, canonical.getClosestMatch(subject));
+    }
+
+    @Test
     public void getLastAvailable_whenFullPathIsAvailable_returnsEnd() {
         final JsonObject subject = parse("a:{b:[{c:{}}]}");
         final JsonPath path = JsonPath.builder().key("a").key("b").index(0).key("c").build();
