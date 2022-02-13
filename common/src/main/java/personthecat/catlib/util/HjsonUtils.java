@@ -611,10 +611,51 @@ public class HjsonUtils {
             if (get != null) {
                 if (get.isObject() && member.getValue().isObject()) {
                     setRecursivelyIfAbsent(get.asObject(), member.getValue().asObject());
+                } else if (get.isArray() && member.getValue().isArray()) {
+                    setRecursivelyIfAbsent(get.asArray(), member.getValue().asArray());
                 }
             } else if (!member.getValue().isNull()) {
                 json.set(member.getName(), member.getValue());
             }
+        }
+    }
+
+    /**
+     * Variant of {@link #setRecursivelyIfAbsent(JsonObject, JsonObject)} accepting arrays.
+     *
+     * @param json The target JSON being modified.
+     * @param toSet The data being copied into the target.
+     */
+    public static void setRecursivelyIfAbsent(final JsonArray json, final JsonArray toSet) {
+        final int len = Math.min(json.size(), toSet.size());
+        int i = 0;
+        while (i < len) {
+            final JsonValue get = json.get(i);
+            final JsonValue set = toSet.get(i);
+            if (get.isObject() && set.isObject()) {
+                setRecursivelyIfAbsent(get.asObject(), set.asObject());
+            } else if (get.isArray() && set.isArray()) {
+                setRecursivelyIfAbsent(get.asArray(), set.asArray());
+            }
+            i++;
+        }
+        while (i < toSet.size()) {
+            json.add(toSet.get(i));
+            i++;
+        }
+    }
+
+    /**
+     * Variant of {@link #setRecursivelyIfAbsent(JsonObject, JsonObject)} accepting unknown types.
+     *
+     * @param json The target JSON being modified.
+     * @param toSet The data being copied into the target.
+     */
+    public static void setRecursivelyIfAbsent(final JsonValue json, final JsonValue toSet) {
+        if (json.isObject() && toSet.isObject()) {
+            setRecursivelyIfAbsent(json.asObject(), toSet.asObject());
+        } else if (json.isArray() && toSet.isArray()) {
+            setRecursivelyIfAbsent(json.asArray(), toSet.asArray());
         }
     }
 
