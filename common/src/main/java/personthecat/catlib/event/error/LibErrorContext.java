@@ -3,6 +3,7 @@ package personthecat.catlib.event.error;
 import lombok.extern.log4j.Log4j2;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -206,7 +207,9 @@ public class LibErrorContext {
         final long lastUpdate = LAST_BROADCAST.get();
         if (currentUpdate - lastUpdate > BROADCAST_INTERVAL) {
             player.sendMessage(new TranslatableComponent("catlib.errorText.clickHere")
-                .withStyle(Style.EMPTY.withClickEvent(CommandUtils.clickToRun("/catlib errors"))), Util.NIL_UUID);
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.RED)
+                .withClickEvent(CommandUtils.clickToRun("/catlib errors"))),
+                    Util.NIL_UUID);
             LAST_BROADCAST.set(currentUpdate);
         }
     }
