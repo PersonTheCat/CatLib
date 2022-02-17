@@ -43,6 +43,9 @@ public class SimpleTextPage extends LibMenu {
         final int menuHeight = this.height - Y1 - Y0;
         final int linesPerPage = menuHeight / (this.font.lineHeight + 1);
         this.maxScroll = this.lines.size() - linesPerPage + 1;
+
+        this.previous.active = false;
+        this.next.active = false;
     }
 
     protected void resetLines() {

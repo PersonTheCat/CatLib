@@ -9,10 +9,7 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -22,7 +19,9 @@ import net.minecraft.world.level.GameType;
 import org.hjson.HjsonOptions;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
+import personthecat.catlib.client.gui.SimpleTextPage;
 import personthecat.catlib.command.arguments.HjsonArgument;
+import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.data.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.io.FileIO;
@@ -46,7 +45,6 @@ import static personthecat.catlib.util.PathUtils.extension;
 import static personthecat.catlib.util.PathUtils.noExtension;
 
 @UtilityClass
-@SuppressWarnings("unused")
 public class DefaultLibCommands {
 
     public static final String FILE_ARGUMENT = "file";
@@ -59,7 +57,7 @@ public class DefaultLibCommands {
     public static final String SCALE_ARGUMENT = "scale";
 
     /** The header displayed whenever the /display command runs. */
-    private static final String DISPLAY_HEADER = "--- {} ---\n";
+    private static final String DISPLAY_HEADER = "--- {} ---";
 
     /** The text formatting to be used for the display message header. */
     private static final Style DISPLAY_HEADER_STYLE = Style.EMPTY
@@ -303,9 +301,21 @@ public class DefaultLibCommands {
             .orElseGet(file.json);
 
         final String header = file.file.getParentFile().getName() + "/" + file.file.getName();
+        final Component headerComponent =
+            wrapper.createText(DISPLAY_HEADER, header).setStyle(DISPLAY_HEADER_STYLE);
+
+        final String details = json.toString(HjsonUtils.NO_CR);
+        final Component detailsComponent = wrapper.lintMessage(details);
+
+        final long numLines = details.chars().filter(c -> c == '\n').count();
+        if (numLines >= LibConfig.displayLength()) {
+            wrapper.setScreen(new SimpleTextPage(null, headerComponent, detailsComponent));
+            return;
+        }
         wrapper.generateMessage("")
-            .append(wrapper.createText(DISPLAY_HEADER, header).setStyle(DISPLAY_HEADER_STYLE))
-            .append(wrapper.lintMessage(json.toString(HjsonUtils.NO_CR)))
+            .append(headerComponent)
+            .append("\n")
+            .append(detailsComponent)
             .sendMessage();
     }
 

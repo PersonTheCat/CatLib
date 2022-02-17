@@ -10,11 +10,15 @@ public class LibConfig {
         return true;
     }
 
-    public static Severity getErrorLevel() {
+    public static Severity errorLevel() {
         return Severity.ERROR;
     }
 
     public static boolean wrapText() {
         return true;
+    }
+
+    public static int displayLength() {
+        return 35;
     }
 }

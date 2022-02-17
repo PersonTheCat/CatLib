@@ -27,13 +27,18 @@ public class LibConfig implements ConfigData {
     }
 
     @Overwrite
-    public static Severity getErrorLevel() {
+    public static Severity errorLevel() {
         return CONFIG.get().general.errorLevel;
     }
 
     @Overwrite
     public static boolean wrapText() {
         return CONFIG.get().general.wrapText;
+    }
+
+    @Overwrite
+    public static int displayLength() {
+        return CONFIG.get().general.displayLength;
     }
 
     private static class General {
@@ -46,5 +51,9 @@ public class LibConfig implements ConfigData {
 
         @Comment("Whether to wrap text on the error detail page. Hit W or space to toggle in game.")
         boolean wrapText = true;
+
+        @Comment("How many lines for the display command to render in the chat before opening a\n" +
+                 "dedicated screen. Set this to 0 to always open a screen.")
+        int displayLength = 35;
     }
 }

@@ -53,7 +53,7 @@ public class LibErrorContext {
 
         if (level == Severity.FATAL) {
             FATAL_ERRORS.computeIfAbsent(mod, m -> Collections.synchronizedList(new ArrayList<>())).add(e);
-        } else if (level.isAtLeast(LibConfig.getErrorLevel())) {
+        } else if (level.isAtLeast(LibConfig.errorLevel())) {
             COMMON_ERRORS.computeIfAbsent(mod, m -> Collections.synchronizedList(new ArrayList<>())).add(e);
         } else {
             log.warn("Ignoring error at level: " + level, e);
