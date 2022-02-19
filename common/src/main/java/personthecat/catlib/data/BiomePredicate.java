@@ -92,9 +92,10 @@ public class BiomePredicate implements Predicate<Biome> {
     }
 
     public boolean matches(final Biome biome, final ResourceLocation id) {
-        return this.matchesName(id)
-            && this.matchesMod(id)
-            && this.matchesType(biome.getBiomeCategory());
+        if (this.isEmpty()) return true;
+        return this.names.contains(id)
+            || this.mods.contains(id.getNamespace())
+            || this.types.contains(biome.getBiomeCategory());
     }
 
     public boolean matchesName(final ResourceLocation id) {

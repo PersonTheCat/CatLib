@@ -116,7 +116,8 @@ public class DimensionPredicate implements Predicate<DimensionType> {
     }
 
     public boolean matches(final DimensionType type, final ResourceLocation id) {
-        return this.matchesName(id) && this.matchesMod(id);
+        if (this.isEmpty()) return true;
+        return this.names.contains(id) || this.mods.contains(id.getNamespace());
     }
 
     public boolean matchesName(final ResourceLocation id) {
