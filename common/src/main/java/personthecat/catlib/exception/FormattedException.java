@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.client.gui.ErrorDetailPage;
+import personthecat.catlib.data.ModDescriptor;
+import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.StackTraceLinter;
 
@@ -58,6 +60,16 @@ public abstract class FormattedException extends Exception {
     }
 
     public void onErrorReceived(final Logger log) {}
+
+    public void onErrorReceived(final Severity level, final ModDescriptor mod, final Logger log) {
+        this.onErrorReceived(log);
+    }
+
+    public void onErrorIgnored(final Logger log) {}
+
+    public void onErrorIgnored(final Severity level, final ModDescriptor mod, final Logger log) {
+        this.onErrorIgnored(log);
+    }
 
     protected String readStacktrace() {
         final StringWriter sw = new StringWriter();

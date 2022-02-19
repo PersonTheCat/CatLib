@@ -49,7 +49,7 @@ public class LibErrorContext {
     }
 
     public static void register(final Severity level, final ModDescriptor mod, final FormattedException e) {
-        e.onErrorReceived(log);
+        e.onErrorReceived(level, mod, log);
 
         if (level == Severity.FATAL) {
             FATAL_ERRORS.computeIfAbsent(mod, m -> Collections.synchronizedList(new ArrayList<>())).add(e);
@@ -57,6 +57,7 @@ public class LibErrorContext {
             COMMON_ERRORS.computeIfAbsent(mod, m -> Collections.synchronizedList(new ArrayList<>())).add(e);
         } else {
             log.warn("Ignoring error at level: " + level, e);
+            e.onErrorIgnored(level, mod, log);
         }
         ERRED_MODS.add(mod);
 
