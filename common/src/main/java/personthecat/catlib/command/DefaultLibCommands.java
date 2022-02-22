@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import lombok.experimental.UtilityClass;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -27,6 +29,7 @@ import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.io.FileIO;
 import personthecat.catlib.util.HjsonUtils;
 import personthecat.catlib.util.JsonCombiner;
+import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.PathUtils;
 
 import java.io.File;
@@ -308,8 +311,8 @@ public class DefaultLibCommands {
         final Component detailsComponent = wrapper.lintMessage(details);
 
         final long numLines = details.chars().filter(c -> c == '\n').count();
-        if (numLines >= LibConfig.displayLength()) {
-            wrapper.setScreen(new SimpleTextPage(null, headerComponent, detailsComponent));
+        if (McUtils.isClientSide() && numLines >= LibConfig.displayLength()) {
+            loadTextPage(headerComponent, detailsComponent);
             return;
         }
         wrapper.generateMessage("")
@@ -317,6 +320,12 @@ public class DefaultLibCommands {
             .append("\n")
             .append(detailsComponent)
             .sendMessage();
+    }
+
+    @Environment(EnvType.CLIENT)
+    private static void loadTextPage(final Component headerComponent, final Component detailsComponent) {
+        final Minecraft mc = Minecraft.getInstance();
+        mc.setScreen(new SimpleTextPage(null, headerComponent, detailsComponent));
     }
 
     private static void update(final CommandContextWrapper wrapper) {
