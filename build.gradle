@@ -20,7 +20,11 @@ architectury {
 }
 
 subprojects {
+    apply plugin: 'architectury-plugin'
     apply plugin: "dev.architectury.loom"
+
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 
     loom {
         silentMojangMappingsLicense()
