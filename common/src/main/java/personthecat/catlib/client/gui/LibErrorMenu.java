@@ -5,6 +5,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.*;
 import org.jetbrains.annotations.Nullable;
@@ -63,8 +64,10 @@ public class LibErrorMenu extends LibMenu {
         this.mods = new CategorizedList(this, this.getModMenuLeft(), this.getModMenuRight(), this.createModButtons());
         this.mods.deselectAll();
         this.mods.selectButton(this.page);
-        this.children.add(this.current);
-        this.children.add(this.mods);
+        if (this.current != null) {
+            this.addRenderableWidget(this.current);
+        }
+        this.addRenderableWidget(this.mods);
         this.setFocused(this.current);
     }
 
@@ -249,10 +252,11 @@ public class LibErrorMenu extends LibMenu {
         this.updateMod(mod);
     }
 
+    @SuppressWarnings("unchecked")
     private void updateMod(ModDescriptor mod) {
-        this.children.remove(this.current);
+        this.children().remove(this.current);
         this.current = this.options.get(mod);
-        this.children.add(this.current);
+        ((List<GuiEventListener>) this.children()).add(this.current);
         this.setFocused(this.current);
 
         if (this.mods != null) {

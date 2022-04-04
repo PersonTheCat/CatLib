@@ -15,8 +15,7 @@ public class ErrorDetailPage extends SimpleTextPage {
     protected void init() {
         super.init();
 
-        if (this.parent instanceof LibErrorMenu) {
-            final LibErrorMenu menu = (LibErrorMenu) this.parent;
+        if (this.parent instanceof final LibErrorMenu menu) {
             this.previous.active = menu.hasPreviousError();
             this.next.active = menu.hasNextError();
         }
@@ -24,16 +23,14 @@ public class ErrorDetailPage extends SimpleTextPage {
 
     @Override
     protected void onPrevious() {
-        if (this.parent instanceof LibErrorMenu) {
-            final LibErrorMenu menu = (LibErrorMenu) this.parent;
+        if (this.parent instanceof final LibErrorMenu menu) {
             Minecraft.getInstance().setScreen(menu.previousError());
         }
     }
 
     @Override
     protected void onNext() {
-        if (this.parent instanceof LibErrorMenu) {
-            final LibErrorMenu menu = (LibErrorMenu) this.parent;
+        if (this.parent instanceof final LibErrorMenu menu) {
             Minecraft.getInstance().setScreen(menu.nextError());
         }
     }

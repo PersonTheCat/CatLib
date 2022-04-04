@@ -1,5 +1,6 @@
 package personthecat.catlib.command;
 
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
@@ -25,10 +26,10 @@ public class LibCommandRegistrar {
         COMMANDS.put(cmd, side);
     }
 
-    public static void copyInto(final Commands manager) {
+    public static void copyInto(final CommandDispatcher<CommandSourceStack> dispatcher) {
         final boolean dedicated = McUtils.isDedicatedServer();
         COMMANDS.forEach((cmd, side) -> {
-            if (side.canRegister(dedicated)) manager.getDispatcher().register(cmd);
+            if (side.canRegister(dedicated)) dispatcher.register(cmd);
         });
     }
 }

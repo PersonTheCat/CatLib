@@ -10,9 +10,9 @@ import personthecat.catlib.event.lifecycle.GameReadyEvent;
 
 @Mixin(Main.class)
 public class MainServerMixin {
-
+// This may have to go to WorldStem.load()
     @Inject(method = "main", at = @At(value = "INVOKE",
-        target = "Lnet/minecraft/core/RegistryAccess;builtin()Lnet/minecraft/core/RegistryAccess$RegistryHolder;"))
+        target = "Lnet/minecraft/core/RegistryAccess;builtinCopy()Lnet/minecraft/core/RegistryAccess$Writable;"))
     private static void modSetupComplete(final CallbackInfo ci) {
         LibErrorContext.outputServerErrors(true);
         GameReadyEvent.SERVER.invoker().run();

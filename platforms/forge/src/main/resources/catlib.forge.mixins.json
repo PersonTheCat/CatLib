@@ -1,12 +1,13 @@
-
 {
   "required": true,
   "package": "personthecat.catlib.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_16",
   "mixins": [
     "BiomeGenerationSettingsAccessor",
     "BiomeGenerationSettingsBuilderAccessor",
+    "BiomeSourceAccessor",
     "ForgeRegistryMixin",
+    "MinecraftServerMixin",
     "MojangRegistryMixin",
     "RegistryAccessMixin",
     "RegistryReadOpsMixin"

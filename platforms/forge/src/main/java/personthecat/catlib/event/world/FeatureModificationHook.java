@@ -32,7 +32,7 @@ public class FeatureModificationHook {
                 final BiomeGenerationSettingsBuilderAccessor builderAccessor = (BiomeGenerationSettingsBuilderAccessor) builder;
                 settingsAccessor.setCarvers(builderAccessor.getCarvers());
                 settingsAccessor.setFeatures(builderAccessor.getFeatures());
-                settingsAccessor.setStructureStarts(builder.getStructures());
+//                settingsAccessor.setStructureStarts(builder.getStructures());
             });
         }
     }

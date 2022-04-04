@@ -284,13 +284,7 @@ public class HjsonOps implements DynamicOps<JsonValue> {
         return "Hjson";
     }
 
-    private static final class HjsonMapLike implements MapLike<JsonValue> {
-
-        private final JsonObject object;
-
-        HjsonMapLike(final JsonObject object) {
-            this.object = object;
-        }
+    private record HjsonMapLike(JsonObject object) implements MapLike<JsonValue> {
 
         @Nullable
         @Override

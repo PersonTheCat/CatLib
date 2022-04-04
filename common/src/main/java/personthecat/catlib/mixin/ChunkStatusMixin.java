@@ -1,7 +1,5 @@
 package personthecat.catlib.mixin;
 
-import com.mojang.datafixers.util.Either;
-import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ThreadedLevelLightEngine;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -15,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import personthecat.catlib.util.DimInjector;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 @Mixin(value = ChunkStatus.class)
@@ -22,8 +21,9 @@ public class ChunkStatusMixin {
 
     @Inject(method = "generate", at = @At("HEAD"))
     public void injectDims(
-            ServerLevel l, ChunkGenerator g, StructureManager m, ThreadedLevelLightEngine e, Function<?, ?> f,
-            List<ChunkAccess> chunks, CallbackInfoReturnable<?> cir) {
+            Executor e, ServerLevel l, ChunkGenerator g, StructureManager s,
+            ThreadedLevelLightEngine le, Function<?, ?> f, List<ChunkAccess> chunks,
+            boolean b, CallbackInfoReturnable<?> cir) {
         chunks.forEach(chunk -> DimInjector.setType(chunk, l.dimensionType()));
     }
 }

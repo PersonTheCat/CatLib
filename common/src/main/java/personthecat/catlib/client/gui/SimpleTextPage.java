@@ -63,7 +63,7 @@ public class SimpleTextPage extends LibMenu {
 
             RenderSystem.enableBlend();
             this.font.drawShadow(stack, chars, this.left, t, 0xFFFFFF);
-            RenderSystem.disableAlphaTest();
+//            RenderSystem.disableAlphaTest();
             RenderSystem.disableBlend();
 
             if ((t += h) > this.height - Y1) {

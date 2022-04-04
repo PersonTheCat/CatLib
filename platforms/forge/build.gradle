@@ -1,8 +1,7 @@
-apply plugin: 'dev.architectury.loom'
 apply plugin: 'architectury-plugin'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 architectury {
     platformSetupLoomIde()
@@ -10,9 +9,10 @@ architectury {
 }
 
 loom {
-    silentMojangMappingsLicense()
-    mixinConfig 'catlib.forge.mixins.json'
-    mixinConfig 'catlib.common.mixins.json'
+    forge {
+        mixinConfig 'catlib.forge.mixins.json'
+        mixinConfig 'catlib.common.mixins.json'
+    }
 }
 
 dependencies {
@@ -28,8 +28,6 @@ dependencies {
         transitive = false
     }
 
-    minecraft "com.mojang:minecraft:$mc_version"
-    mappings minecraft.officialMojangMappings()
     forge "net.minecraftforge:forge:$mc_version-$forge_version"
 }
 

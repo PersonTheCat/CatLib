@@ -1,5 +1,4 @@
 import org.apache.tools.ant.filters.ReplaceTokens
-import personthecat.overwritevalidator.OverwriteValidator
 
 buildscript {
     repositories {
@@ -7,7 +6,6 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'com.github.PersonTheCat', name: 'OverwriteValidator', version: '1.8'
         classpath group: 'gradle.plugin.com.github.jengelman.gradle.plugins', name: 'shadow', version: '7.0.0'
     }
 }
@@ -21,12 +19,24 @@ architectury {
     minecraft = mc_version
 }
 
+subprojects {
+    apply plugin: "dev.architectury.loom"
+
+    loom {
+        silentMojangMappingsLicense()
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:$mc_version"
+        mappings loom.officialMojangMappings()
+    }
+}
+
 allprojects {
     apply plugin: 'com.github.johnrengelman.shadow'
     apply plugin: 'java'
     apply plugin: 'eclipse'
     apply plugin: 'maven-publish'
-    apply plugin: OverwriteValidator
 
     version = mod_version
 

@@ -61,7 +61,7 @@ public class DimensionPredicate implements Predicate<DimensionType> {
         .withEncoder(dp -> dp.isNamesOnly() ? ID_CODEC : OBJECT_CODEC);
 
     public boolean test(final LevelStem stem) {
-        return this.test(stem.type());
+        return this.test(stem.typeHolder().value());
     }
 
     public boolean test(final LevelReader level) {

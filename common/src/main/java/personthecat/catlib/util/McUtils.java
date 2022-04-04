@@ -18,6 +18,7 @@ import personthecat.catlib.exception.BiomeTypeNotFoundException;
 import personthecat.catlib.exception.BlockNotFoundException;
 import personthecat.catlib.exception.ItemNotFoundException;
 import personthecat.catlib.exception.MissingOverrideException;
+import personthecat.catlib.mixin.BiomeAccessor;
 import personthecat.fresult.Result;
 import personthecat.overwritevalidator.annotations.OverwriteTarget;
 import personthecat.overwritevalidator.annotations.PlatformMustInherit;
@@ -263,7 +264,7 @@ public class McUtils {
      */
     public static List<Biome> getBiomes(final Biome.BiomeCategory type) {
         return StreamSupport.stream(DynamicRegistries.BIOMES.spliterator(), false)
-            .filter(biome -> biome.getBiomeCategory().equals(type))
+            .filter(biome -> ((BiomeAccessor) (Object) biome).getBiomeCategory().equals(type))
             .collect(Collectors.toList());
     }
 }

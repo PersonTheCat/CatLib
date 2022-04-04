@@ -1,12 +1,12 @@
 package personthecat.catlib;
 
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.catlib.command.*;
 import personthecat.catlib.command.arguments.*;
@@ -27,7 +27,7 @@ public class CatLib {
     public CatLib() {
         LibConfig.register(ModLoadingContext.get().getActiveContainer());
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::initCommon);
-        MinecraftForge.EVENT_BUS.addListener(this::initServer);
+        MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
     }
 
     @SuppressWarnings("unused")
@@ -68,7 +68,7 @@ public class CatLib {
             CommonPlayerEvent.LOGOUT.invoker().accept(e.getPlayer(), e.getPlayer().getServer()));
     }
 
-    private void initServer(final FMLServerStartingEvent event) {
-        LibCommandRegistrar.copyInto(event.getServer().getCommands());
+    private void registerCommands(final RegisterCommandsEvent event) {
+        LibCommandRegistrar.copyInto(event.getDispatcher());
     }
 }

@@ -1,18 +1,11 @@
-apply plugin: 'dev.architectury.loom'
 apply plugin: 'architectury-plugin'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 architectury {
     platformSetupLoomIde()
     fabric()
-}
-
-loom {
-    silentMojangMappingsLicense()
-    mixinConfig 'catlib.fabric.mixins.json'
-    mixinConfig 'catlib.common.mixins.json'
 }
 
 dependencies {
@@ -28,8 +21,6 @@ dependencies {
         transitive = false;
     }
 
-    minecraft "com.mojang:minecraft:$mc_version"
-    mappings minecraft.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:$loader_version"
     modApi "net.fabricmc.fabric-api:fabric-api:$fabric_version"
     modApi "curse.maven:ClothConfig-319057:$cloth_maven_version"

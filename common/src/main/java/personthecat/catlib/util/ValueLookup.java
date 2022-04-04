@@ -45,6 +45,7 @@ public class ValueLookup {
         .put("FIRE", Material.FIRE)
         .put("DECORATION", Material.DECORATION)
         .put("WEB", Material.WEB)
+        .put("SCULK", Material.SCULK)
         .put("BUILDABLE_GLASS", Material.BUILDABLE_GLASS)
         .put("CLAY", Material.CLAY)
         .put("DIRT", Material.DIRT)
@@ -69,10 +70,12 @@ public class ValueLookup {
         .put("HEAVY_METAL", Material.HEAVY_METAL)
         .put("BARRIER", Material.BARRIER)
         .put("PISTON", Material.PISTON)
-        .put("CORAL", Material.CORAL)
+        .put("MOSS", Material.MOSS)
         .put("VEGETABLE", Material.VEGETABLE)
         .put("EGG", Material.EGG)
         .put("CAKE", Material.CAKE)
+        .put("AMETHYST", Material.AMETHYST)
+        .put("POWDER_SNOW", Material.POWDER_SNOW)
         .build();
 
     /** A map of every vanilla sound type to its name */

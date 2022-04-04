@@ -1,20 +1,13 @@
-apply plugin: 'dev.architectury.loom'
 apply plugin: 'architectury-plugin'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 architectury {
     it.common()
 }
 
-loom {
-    silentMojangMappingsLicense()
-}
-
 dependencies {
-    minecraft "com.mojang:minecraft:$mc_version"
-    mappings minecraft.officialMojangMappings()
     // Only needed for suppressing Fabric build spam
     modImplementation "net.fabricmc:fabric-loader:$loader_version"
 }

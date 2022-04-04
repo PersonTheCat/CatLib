@@ -8,6 +8,7 @@ import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.event.registry.DynamicRegistries;
+import personthecat.catlib.mixin.BiomeAccessor;
 import personthecat.catlib.serialization.CodecUtils;
 import personthecat.catlib.util.McUtils;
 
@@ -95,7 +96,7 @@ public class BiomePredicate implements Predicate<Biome> {
         if (this.isEmpty()) return true;
         return this.names.contains(id)
             || this.mods.contains(id.getNamespace())
-            || this.types.contains(biome.getBiomeCategory());
+            || this.types.contains(((BiomeAccessor) (Object) biome).getBiomeCategory());
     }
 
     public boolean matchesName(final ResourceLocation id) {
@@ -151,7 +152,7 @@ public class BiomePredicate implements Predicate<Biome> {
     private static MultiValueMap<Biome.BiomeCategory, Biome> categorize(final Collection<Biome> biomes) {
         final MultiValueMap<Biome.BiomeCategory, Biome> categories = new MultiValueHashMap<>();
         for (final Biome biome : biomes) {
-            categories.add(biome.getBiomeCategory(), biome);
+            categories.add(((BiomeAccessor) (Object) biome).getBiomeCategory(), biome);
         }
         return categories;
     }

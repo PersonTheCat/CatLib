@@ -22,8 +22,8 @@ public interface BiomeGenerationSettingsAccessor {
     @Accessor
     List<List<Supplier<ConfiguredFeature<?, ?>>>> getFeatures();
 
-    @Accessor
-    List<Supplier<ConfiguredStructureFeature<?, ?>>> getStructureStarts();
+//    @Accessor
+//    List<Supplier<ConfiguredStructureFeature<?, ?>>> getStructureStarts();
 
     @Mutable
     @Accessor
@@ -33,7 +33,7 @@ public interface BiomeGenerationSettingsAccessor {
     @Accessor
     void setFeatures(List<List<Supplier<ConfiguredFeature<?, ?>>>> features);
 
-    @Mutable
-    @Accessor
-    void setStructureStarts(List<Supplier<ConfiguredStructureFeature<?, ?>>> structures);
+//    @Mutable
+//    @Accessor
+//    void setStructureStarts(List<Supplier<ConfiguredStructureFeature<?, ?>>> structures);
 }

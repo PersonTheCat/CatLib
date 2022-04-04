@@ -9,12 +9,13 @@ import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
+import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.data.MultiValueMap;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEntry> {
+public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEntry>{
 
     private final List<ButtonEntry> buttons = new ArrayList<>();
 
@@ -88,9 +89,14 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
         }
 
         @Override
-        public void render(PoseStack stack, int i, int top, int left, int w, int h, int x, int y, boolean over, float partial) {
+        public void render(@NotNull PoseStack stack, int i, int top, int left, int w, int h, int x, int y, boolean over, float partial) {
             int height = top + (22 / 2) - (this.font.lineHeight / 2);
             drawCenteredString(stack, this.font, this.category, left + (w / 2), height, 16777215);
+        }
+
+        @Override
+        public Component getNarration() {
+            return new TranslatableComponent("narrator.select", this.category);
         }
     }
 
@@ -102,7 +108,7 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
         }
 
         @Override
-        public void render(PoseStack stack, int i, int top, int left, int w, int h, int x, int y, boolean over, float partial) {
+        public void render(@NotNull PoseStack stack, int i, int top, int left, int w, int h, int x, int y, boolean over, float partial) {
             this.widget.x = left + 4;
             this.widget.y = top;
             this.widget.setWidth(w - 18);
@@ -122,6 +128,11 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
         @Override
         void renderTooltip(PoseStack stack, int x, int y) {
             this.widget.renderToolTip(stack, x, y);
+        }
+
+        @Override
+        public Component getNarration() {
+            return new TranslatableComponent("narrator.select", this.widget.getMessage());
         }
     }
 

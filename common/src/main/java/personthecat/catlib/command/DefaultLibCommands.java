@@ -458,8 +458,7 @@ public class DefaultLibCommands {
     private static void test(final CommandContextWrapper wrapper) {
         final Player player = wrapper.getPlayer();
         if (player != null) {
-            player.setGameMode(GameType.SPECTATOR);
-
+            wrapper.setGameMode(GameType.SPECTATOR);
             final MobEffect nightVision = MobEffects.NIGHT_VISION;
             player.addEffect(new MobEffectInstance(nightVision, 999999999, 1, true, false));
         }
@@ -472,7 +471,7 @@ public class DefaultLibCommands {
                 .map(MinecraftServer::getDefaultGameType)
                 .orElse(GameType.CREATIVE);
 
-            player.setGameMode(mode);
+            wrapper.setGameMode(mode);
             player.removeEffect(MobEffects.NIGHT_VISION);
         }
     }
@@ -483,7 +482,7 @@ public class DefaultLibCommands {
         final Window window = Objects.requireNonNull(mc.getWindow(), "Not running client side");
         final Optional<Double> scaleArgument = wrapper.getOptional(SCALE_ARGUMENT, Double.class);
 
-        if (!max && !scaleArgument.isPresent()) {
+        if (!max && scaleArgument.isEmpty()) {
             wrapper.sendMessage("Current chat height: {}", cfg.chatHeightFocused);
             return;
         }
@@ -510,7 +509,7 @@ public class DefaultLibCommands {
         final Window window = Objects.requireNonNull(mc.getWindow(), "Not running client side");
         final Optional<Double> scaleArgument = wrapper.getOptional(SCALE_ARGUMENT, Double.class);
 
-        if (!max && !scaleArgument.isPresent()) {
+        if (!max && scaleArgument.isEmpty()) {
             wrapper.sendMessage("Current chat width: {}", cfg.chatWidth);
             return;
         }
@@ -542,7 +541,7 @@ public class DefaultLibCommands {
             return;
         }
         final Optional<JsonObject> json = HjsonUtils.readJson(source);
-        if (!json.isPresent()) {
+        if (json.isEmpty()) {
             wrapper.sendError("The file could not be read.");
             return;
         }

@@ -1,10 +1,10 @@
 {
   "required": true,
   "package": "personthecat.catlib.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_16",
   "mixins": [
     "BiomeModificationContextAccessor",
-    "RegistryReadOpsMixin"
+    "MinecraftServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

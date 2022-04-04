@@ -60,7 +60,7 @@ public class RegistryUtils {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> void createBuiltinRegistry(final ResourceKey<Registry<T>> key) {
         if (!BuiltinRegistries.REGISTRY.containsKey(key.location())) {
-            final Registry<T> dummyRegistry = new MappedRegistry<>(key, Lifecycle.experimental());
+            final Registry<T> dummyRegistry = new MappedRegistry<>(key, Lifecycle.experimental(), null);
             Registry.register((Registry) BuiltinRegistries.REGISTRY, key.location(), dummyRegistry);
         }
     }

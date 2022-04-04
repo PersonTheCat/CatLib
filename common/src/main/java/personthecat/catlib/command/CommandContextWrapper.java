@@ -8,6 +8,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.blocks.BlockInput;
@@ -16,9 +17,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -225,6 +228,17 @@ public class CommandContextWrapper {
 
     public Vec3 getPos() {
         return this.ctx.getSource().getPosition();
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    public void setGameMode(final GameType type) {
+        if (this.isClientSide()) {
+            if (this.getPlayer() instanceof LocalPlayer) {
+                Minecraft.getInstance().gameMode.setLocalMode(type);
+            }
+        } else if (this.getPlayer() instanceof ServerPlayer player) {
+            player.setGameMode(type);
+        }
     }
 
     public Level getLevel() {

@@ -21,8 +21,6 @@ import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.FeatureModificationContext;
 import personthecat.catlib.event.world.FeatureModificationEvent;
-import personthecat.catlib.event.world.RegistrySet;
-import personthecat.catlib.mixin.BiomeModificationContextAccessor;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
 
@@ -67,12 +65,10 @@ public class CatLib implements ModInitializer {
         ServerPlayConnectionEvents.DISCONNECT.register((h, s) -> CommonPlayerEvent.LOGOUT.invoker().accept(h.player, s));
     }
 
-    @SuppressWarnings("deprecation")
     private void setupBiomeModificationHook() {
         BiomeModifications.create(new ResourceLocation(LibReference.MOD_ID, "biome_updates"))
             .add(ModificationPhase.REMOVALS, s -> true, (s, m) -> {
-                final RegistrySet registries = new RegistrySet(((BiomeModificationContextAccessor) m).getRegistries());
-                FeatureModificationEvent.EVENT.invoker().accept(new FeatureModificationContext(s, registries));
+                FeatureModificationEvent.EVENT.invoker().accept(new FeatureModificationContext(s, m));
             });
     }
 }

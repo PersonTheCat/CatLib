@@ -73,6 +73,7 @@ public class RegistryUtils {
     @Nullable
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static RegistryHandle<?> findForge(final Class<?> clazz) {
+        // Deprecation: We'll have to manually implement this behavior to support annotations in 1.19.
         if (clazz == Biome.class) return new ForgeRegistryHandle<>((ForgeRegistry<?>) ForgeRegistries.BIOMES);
         final ForgeRegistry<?> registry = (ForgeRegistry<?>) RegistryManager.ACTIVE.getRegistry((Class) clazz);
         return registry != null ? new ForgeRegistryHandle<>(registry) : null;
