@@ -12,7 +12,6 @@ import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import org.hjson.JsonObject;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.CommandUtils;
-import personthecat.catlib.data.JsonType;
 import personthecat.catlib.data.Lazy;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
@@ -56,7 +55,7 @@ public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
     public Result parse(final StringReader reader) throws CommandSyntaxException {
         final File f = this.getter.parse(reader);
         final String ext = extension(f);
-        if (f.exists() && !(f.isDirectory() || JsonType.isSupported(ext))) {
+        if (f.exists() && !(f.isDirectory())) {/// || JsonType.isSupported(ext))) { todo
             throw cmdSyntax(reader, "Unsupported format");
         }
         return new Result(getter.dir, f);

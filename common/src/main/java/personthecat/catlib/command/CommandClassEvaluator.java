@@ -15,6 +15,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.annotations.CommandBuilder;
@@ -26,7 +27,6 @@ import personthecat.catlib.command.arguments.ListArgumentBuilder;
 import personthecat.catlib.command.arguments.RegistryArgument;
 import personthecat.catlib.command.LibCommandBuilder.CommandGenerator;
 import personthecat.catlib.command.function.CommandFunction;
-import personthecat.catlib.data.IntRef;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.exception.FormattedException;
@@ -178,11 +178,11 @@ public class CommandClassEvaluator {
 
         return (builder, utl) -> {
             ArgumentBuilder<CommandSourceStack, ?> nextArg = null;
-            final IntRef index = new IntRef(entries.size() - 1);
+            final MutableInt index = new MutableInt(entries.size() - 1);
             final Command<CommandSourceStack> cmd = utl.wrap(fn);
             boolean optional = true;
 
-            while (index.get() >= 0) {
+            while (index.getValue() >= 0) {
                 final ArgumentBuilder<CommandSourceStack, ?> argument;
                 try {
                     argument = createArgument(entries, nextArg, cmd, index);
@@ -194,8 +194,8 @@ public class CommandClassEvaluator {
                     argument.executes(cmd);
                     optional = false;
                 }
-                final ParsedNode entry = entries.get(index.get());
-                if (entry.optional || (entry.isList && index.get() == entries.size() - 1)) {
+                final ParsedNode entry = entries.get(index.getValue());
+                if (entry.optional || (entry.isList && index.getValue() == entries.size() - 1)) {
                     optional = true;
                 }
                 nextArg = nextArg != null ? argument.then(nextArg) : argument;
@@ -271,15 +271,15 @@ public class CommandClassEvaluator {
     @SuppressWarnings("unchecked")
     private ArgumentBuilder<CommandSourceStack, ?> createArgument(
             List<ParsedNode> entries, ArgumentBuilder<CommandSourceStack, ?> next,
-            Command<CommandSourceStack> cmd, IntRef index) throws FormattedException {
+            Command<CommandSourceStack> cmd, MutableInt index) throws FormattedException {
 
-        final ParsedNode entry = entries.get(index.get());
+        final ParsedNode entry = entries.get(index.getValue());
         final ArgumentBuilder<CommandSourceStack, ?> argument;
         final ArgumentDescriptor<?> descriptor = entry.arg;
         final ArgumentType<?> type = descriptor.getType();
 
         if (entry.isList) {
-            argument = createList(entries, next, cmd, index.get());
+            argument = createList(entries, next, cmd, index.getValue());
         } else if (descriptor.isLiteral()) {
             argument = Commands.literal(entry.name);
         } else {

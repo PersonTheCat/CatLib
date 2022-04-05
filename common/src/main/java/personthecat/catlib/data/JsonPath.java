@@ -20,7 +20,10 @@ import static personthecat.catlib.exception.Exceptions.cmdSyntax;
  *
  * <p>In other words, this object is a container holding keys and indices which
  * point to a value at some arbitrary depth in a JSON array or object.
+ *
+ * @deprecated Will be moved into the xjs ecosystem in the near future.
  */
+@Deprecated
 public class JsonPath implements Iterable<Either<String, Integer>> {
 
     private final List<Either<String, Integer>> path;

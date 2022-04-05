@@ -9,7 +9,6 @@ import org.hjson.*;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.data.*;
-import personthecat.catlib.data.JsonType;
 import personthecat.catlib.exception.JsonFormatException;
 import personthecat.catlib.exception.UnreachableException;
 import personthecat.catlib.serialization.HjsonOps;
@@ -189,11 +188,11 @@ public class HjsonUtils {
      */
     public static Result<Void, IOException> writeJson(final JsonObject json, final File file) {
         return Result.with(() -> new FileWriter(file), writer -> {
-            if (JsonType.isJson(file)) { // Write as json.
-                json.writeTo(writer, Stringify.FORMATTED);
-            } else { // Write as hjson.
-                json.writeTo(writer, FORMATTER);
-            }
+//            if (JsonType.isJson(file)) { // Write as json.
+//                json.writeTo(writer, Stringify.FORMATTED);
+//            } else { // Write as hjson.
+//                json.writeTo(writer, FORMATTER);
+//            }
         }).ifErr(e -> log.error("Writing file", e));
     }
 
