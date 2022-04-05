@@ -4,10 +4,8 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
-import org.hjson.JsonArray;
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import org.jetbrains.annotations.Nullable;
+import xjs.core.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,16 +14,16 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
-public class HjsonOps implements DynamicOps<JsonValue> {
+public class XjsOps implements DynamicOps<JsonValue> {
 
-    public static final HjsonOps INSTANCE = new HjsonOps(false);
-    public static final HjsonOps COMPRESSED = new HjsonOps(true);
+    public static final XjsOps INSTANCE = new XjsOps(false);
+    public static final XjsOps COMPRESSED = new XjsOps(true);
 
-    private static final JsonValue EMPTY = JsonValue.valueOf(null);
+    private static final JsonValue EMPTY = JsonLiteral.jsonNull();
 
     private final boolean compressed;
 
-    private HjsonOps(final boolean compressed) {
+    private XjsOps(final boolean compressed) {
         this.compressed = compressed;
     }
 
@@ -86,7 +84,7 @@ public class HjsonOps implements DynamicOps<JsonValue> {
 
     @Override
     public JsonValue createNumeric(final Number i) {
-        return JsonValue.valueOf(i.doubleValue());
+        return Json.value(i.doubleValue());
     }
 
     @Override
@@ -103,7 +101,7 @@ public class HjsonOps implements DynamicOps<JsonValue> {
 
     @Override
     public JsonValue createBoolean(final boolean value) {
-        return JsonValue.valueOf(value);
+        return Json.value(value);
     }
 
     @Override
@@ -120,7 +118,7 @@ public class HjsonOps implements DynamicOps<JsonValue> {
 
     @Override
     public JsonValue createString(final String value) {
-        return JsonValue.valueOf(value);
+        return Json.value(value);
     }
 
     @Override
@@ -140,7 +138,7 @@ public class HjsonOps implements DynamicOps<JsonValue> {
             values.forEach(result::add);
             return DataResult.success(result);
         } else if (list.isArray()) {
-            final JsonArray result = new JsonArray(list.asArray());
+            final JsonArray result = list.asArray().shallowCopy();
             values.forEach(result::add);
             return DataResult.success(result);
         }
@@ -188,12 +186,12 @@ public class HjsonOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<Stream<Pair<JsonValue, JsonValue>>> getMapValues(final JsonValue input) {
         if (input == null || !input.isObject()) {
-            return DataResult.error("Not an Hjson object: " + input);
+            return DataResult.error("Not an XJS object: " + input);
         }
         final Stream.Builder<Pair<JsonValue, JsonValue>> builder = Stream.builder();
         for (final JsonObject.Member member : input.asObject()) {
             final JsonValue value = member.getValue();
-            builder.add(Pair.of(JsonValue.valueOf(member.getName()), value.isNull() ? null : value));
+            builder.add(Pair.of(Json.value(member.getKey()), value.isNull() ? null : value));
         }
         return DataResult.success(builder.build());
     }
@@ -201,12 +199,12 @@ public class HjsonOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<Consumer<BiConsumer<JsonValue, JsonValue>>> getMapEntries(final JsonValue input) {
         if (input == null || !input.isObject()) {
-            return DataResult.error("Not an Hjson object: " + input);
+            return DataResult.error("Not an XJS object: " + input);
         }
         return DataResult.success(c -> {
             for (final JsonObject.Member member : input.asObject()) {
                 final JsonValue value = member.getValue();
-                c.accept(JsonValue.valueOf(member.getName()), value.isNull() ? null : value);
+                c.accept(Json.value(member.getKey()), value.isNull() ? null : value);
             }
         });
     }
@@ -214,9 +212,9 @@ public class HjsonOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<MapLike<JsonValue>> getMap(final JsonValue input) {
         if (input == null || !input.isObject()) {
-            return DataResult.error("Not an Hjson object: " + input);
+            return DataResult.error("Not an XJS object: " + input);
         }
-        return DataResult.success(new HjsonMapLike(input.asObject()));
+        return DataResult.success(new XJSMapLike(input.asObject()));
     }
 
     @Override
@@ -232,7 +230,7 @@ public class HjsonOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<Stream<JsonValue>> getStream(final JsonValue input) {
         if (input == null || !input.isArray()) {
-            return DataResult.error("Not an Hjson array: " + input);
+            return DataResult.error("Not an XJS array: " + input);
         }
         final Stream.Builder<JsonValue> builder = Stream.builder();
         for (final JsonValue value : input.asArray()) {
@@ -244,7 +242,7 @@ public class HjsonOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<Consumer<Consumer<JsonValue>>> getList(final JsonValue input) {
         if (input == null || !input.isArray()) {
-            return DataResult.error("Not an Hjson array: + " + input);
+            return DataResult.error("Not an XJS array: + " + input);
         }
         return DataResult.success(c -> {
             for (final JsonValue value : input.asArray()) {
@@ -265,8 +263,8 @@ public class HjsonOps implements DynamicOps<JsonValue> {
         if (input != null && input.isObject()) {
             final JsonObject result = new JsonObject();
             for (final JsonObject.Member member : input.asObject()) {
-                if (!member.getName().equals(key)) {
-                    result.add(member.getName(), member.getValue());
+                if (!member.getKey().equals(key)) {
+                    result.add(member.getKey(), member.getValue());
                 }
             }
             return result;
@@ -281,10 +279,10 @@ public class HjsonOps implements DynamicOps<JsonValue> {
 
     @Override
     public String toString() {
-        return "Hjson";
+        return "XJS";
     }
 
-    private record HjsonMapLike(JsonObject object) implements MapLike<JsonValue> {
+    private record XJSMapLike(JsonObject object) implements MapLike<JsonValue> {
 
         @Nullable
         @Override
@@ -305,14 +303,14 @@ public class HjsonOps implements DynamicOps<JsonValue> {
             final Stream.Builder<Pair<JsonValue, JsonValue>> builder = Stream.builder();
             for (final JsonObject.Member member : this.object) {
                 final JsonValue value = member.getValue();
-                builder.add(Pair.of(JsonValue.valueOf(member.getName()), value.isNull() ? null : value));
+                builder.add(Pair.of(Json.value(member.getKey()), value.isNull() ? null : value));
             }
             return builder.build();
         }
 
         @Override
         public String toString() {
-            return "HjsonMapLike[" + this.object + "]";
+            return "XJSMapLike[" + this.object + "]";
         }
     }
 

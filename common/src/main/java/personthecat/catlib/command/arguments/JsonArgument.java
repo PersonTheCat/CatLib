@@ -9,45 +9,45 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
-import org.hjson.JsonObject;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.data.Lazy;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.PathUtils;
+import xjs.core.JsonObject;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static personthecat.catlib.exception.Exceptions.cmdSyntax;
-import static personthecat.catlib.serialization.json.HjsonUtils.readSuppressing;
+import static personthecat.catlib.serialization.json.XjsUtils.readSuppressing;
 import static personthecat.catlib.util.PathUtils.extension;
 
 @SuppressWarnings("unused")
-public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
+public class JsonArgument implements ArgumentType<JsonArgument.Result> {
 
     public static void register() {
-        ArgumentTypes.register(LibReference.MOD_ID + ":hjson_argument", HjsonArgument.class,
-            new EmptyArgumentSerializer<>(() -> new HjsonArgument(McUtils.getConfigDir())));
+        ArgumentTypes.register(LibReference.MOD_ID + ":xjs_argument", JsonArgument.class,
+            new EmptyArgumentSerializer<>(() -> new JsonArgument(McUtils.getConfigDir())));
     }
 
     private final FileArgument getter;
 
-    public HjsonArgument(final File dir) {
+    public JsonArgument(final File dir) {
         this(new FileArgument(dir));
     }
 
-    public HjsonArgument(final File dir, final boolean recursive) {
+    public JsonArgument(final File dir, final boolean recursive) {
         this(new FileArgument(dir, recursive));
     }
 
-    public HjsonArgument(final File dir, @Nullable final File preferred, final boolean recursive) {
+    public JsonArgument(final File dir, @Nullable final File preferred, final boolean recursive) {
         this(new FileArgument(dir, preferred, recursive));
     }
 
-    protected HjsonArgument(final FileArgument getter) {
+    protected JsonArgument(final FileArgument getter) {
         this.getter = getter;
     }
 
@@ -63,7 +63,7 @@ public class HjsonArgument implements ArgumentType<HjsonArgument.Result> {
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> ctx, final SuggestionsBuilder builder) {
-        final Stream<String> neighbors = CommandUtils.getLastArg(ctx, HjsonArgument.class, Result.class)
+        final Stream<String> neighbors = CommandUtils.getLastArg(ctx, JsonArgument.class, Result.class)
             .map(result -> this.getter.suggestPaths(ctx, result.file))
             .orElseGet(() -> this.getter.suggestPaths(ctx));
         return SharedSuggestionProvider.suggest(neighbors, builder);

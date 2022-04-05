@@ -9,11 +9,11 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
-import org.hjson.JsonObject;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.serialization.json.JsonPath;
-import personthecat.catlib.serialization.json.HjsonUtils;
+import personthecat.catlib.serialization.json.XjsUtils;
 import personthecat.catlib.util.LibReference;
+import xjs.core.JsonObject;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -29,14 +29,14 @@ public class PathArgument implements ArgumentType<JsonPath> {
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> ctx, final SuggestionsBuilder builder) {
-        final Optional<JsonObject> json = CommandUtils.getLastArg(ctx, HjsonArgument.class, HjsonArgument.Result.class)
+        final Optional<JsonObject> json = CommandUtils.getLastArg(ctx, JsonArgument.class, JsonArgument.Result.class)
             .map(arg -> arg.json.get());
-        if (!json.isPresent()) {
+        if (json.isEmpty()) {
             return Suggestions.empty();
         }
         final JsonPath path = CommandUtils.getLastArg(ctx, PathArgument.class, JsonPath.class)
             .orElseGet(() -> new JsonPath(Collections.emptyList()));
-        return SharedSuggestionProvider.suggest(HjsonUtils.getPaths(json.get(), path), builder);
+        return SharedSuggestionProvider.suggest(XjsUtils.getPaths(json.get(), path), builder);
     }
 
     @Override

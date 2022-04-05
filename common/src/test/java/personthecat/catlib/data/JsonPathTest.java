@@ -1,11 +1,11 @@
 package personthecat.catlib.data;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import org.hjson.JsonLiteral;
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import org.junit.jupiter.api.Test;
 import personthecat.catlib.serialization.json.JsonPath;
+import xjs.core.Json;
+import xjs.core.JsonLiteral;
+import xjs.core.JsonObject;
 
 import java.util.Arrays;
 import java.util.List;
@@ -74,7 +74,7 @@ public final class JsonPathTest {
     public void setValue_doesNotDestroyData() {
         final JsonObject json = parse("a:{b:{c:{}}}");
         final JsonPath path = JsonPath.builder().key("a").index(0).build();
-        final JsonObject out = (JsonObject) json.deepCopy();
+        final JsonObject out = json.deepCopy();
 
         path.setValue(out, JsonLiteral.jsonTrue());
         assertEquals(json, out);
@@ -210,6 +210,6 @@ public final class JsonPathTest {
     }
 
     private static JsonObject parse(final String json) {
-        return JsonValue.readHjson(json).asObject();
+        return Json.parse(json).asObject().unformatted();
     }
 }

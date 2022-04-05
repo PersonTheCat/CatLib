@@ -4,7 +4,7 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
-import personthecat.catlib.config.HjsonConfigSerializer;
+import personthecat.catlib.config.XjsConfigSerializer;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
 
@@ -34,7 +34,7 @@ public class LibConfigImpl implements ConfigData {
     }
 
     static {
-        AutoConfig.register(LibConfigImpl.class, HjsonConfigSerializer::new);
+        AutoConfig.register(LibConfigImpl.class, XjsConfigSerializer::new);
         CONFIG = AutoConfig.getConfigHolder(LibConfigImpl.class).getConfig();
     }
 

@@ -1,7 +1,7 @@
 package personthecat.catlib.serialization.json;
 
-import org.hjson.JsonValue;
-import personthecat.catlib.command.arguments.HjsonArgument;
+import personthecat.catlib.command.arguments.JsonArgument;
+import xjs.core.JsonValue;
 
 import static personthecat.catlib.exception.Exceptions.runEx;
 
@@ -15,8 +15,8 @@ public class JsonCombiner {
      * @param to The name of the preset being written into.
      * @param path The path of the JSON data being merged.
      */
-    public static void combine(final HjsonArgument.Result from, final HjsonArgument.Result to, final JsonPath path) {
-        JsonValue fromValue = HjsonUtils.getLastContainer(from.json.get(), path);
+    public static void combine(final JsonArgument.Result from, final JsonArgument.Result to, final JsonPath path) {
+        JsonValue fromValue = XjsUtils.getLastContainer(from.json.get(), path);
         if (fromValue.isObject()) {
             final String key = path.get(path.size() - 1).left()
                 .orElseThrow(() -> runEx("Expected an object at end of path."));
@@ -26,7 +26,7 @@ public class JsonCombiner {
                 .orElseThrow(() -> runEx("Expected an array at end of path."));
             fromValue = fromValue.asArray().get(index);
         }
-        HjsonUtils.setValueFromPath(to.json.get(), path, fromValue);
-        HjsonUtils.writeJson(to.json.get(), to.file);
+        XjsUtils.setValueFromPath(to.json.get(), path, fromValue);
+        XjsUtils.writeJson(to.json.get(), to.file);
     }
 }

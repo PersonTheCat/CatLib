@@ -2,13 +2,14 @@ package personthecat.catlib.config;
 
 import me.shedaniel.autoconfig.util.Utils;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
-import org.hjson.JsonArray;
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.exception.NonSerializableObjectException;
-import personthecat.catlib.serialization.json.HjsonUtils;
+import personthecat.catlib.serialization.json.XjsUtils;
 import personthecat.catlib.util.Shorthand;
+import xjs.core.Json;
+import xjs.core.JsonArray;
+import xjs.core.JsonObject;
+import xjs.core.JsonValue;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -16,16 +17,16 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.*;
 
-class HjsonObjectMapper {
+class XjsObjectMapper {
 
     static void serializeObject(final Path p, final Object o) throws IOException, NonSerializableObjectException {
-        HjsonUtils.writeJson(toJsonObject(o), p.toFile()).throwIfErr();
+        XjsUtils.writeJson(toJsonObject(o), p.toFile()).throwIfErr();
     }
 
     static <T> T deserializeObject(final Path p, final Class<T> clazz) throws NonSerializableObjectException {
         final T t = Utils.constructUnsafely(clazz);
 
-        final Optional<JsonObject> read = HjsonUtils.readJson(p.toFile());
+        final Optional<JsonObject> read = XjsUtils.readJson(p.toFile());
         if (read.isEmpty()) return t;
         final JsonObject json = read.get();
         if (json.isEmpty()) return t;
@@ -39,17 +40,17 @@ class HjsonObjectMapper {
         if (o.getClass().isArray()) {
             return toJsonArray((Object[]) o);
         } else if (o.getClass().isEnum()) {
-            return JsonValue.valueOf(((Enum<?>) o).name());
+            return Json.value(((Enum<?>) o).name());
         } else if (o instanceof String) {
-            return JsonValue.valueOf((String) o);
+            return Json.value((String) o);
         } else if (o instanceof Integer) {
-            return JsonValue.valueOf(((Integer) o).intValue());
+            return Json.value((Integer) o);
         } else if (o instanceof Long) {
-          return JsonValue.valueOf(((Long) o).longValue());
+          return Json.value((Long) o);
         } else if (o instanceof Float || o instanceof Double) {
-            return JsonValue.valueOf(((Number) o).doubleValue());
+            return Json.value(((Number) o).doubleValue());
         } else if (o instanceof Boolean) {
-            return JsonValue.valueOf(((Boolean) o).booleanValue());
+            return Json.value((Boolean) o);
         } else if (o instanceof Collection) {
             return toJsonArray((Collection<?>) o);
         } else if (o instanceof Map) {
@@ -113,7 +114,7 @@ class HjsonObjectMapper {
     private static void writeObjectInto(final Object o, final JsonObject json) throws NonSerializableObjectException {
         final Class<?> clazz = o.getClass();
         for (final JsonObject.Member member : json) {
-            final Field f = getField(clazz, member.getName());
+            final Field f = getField(clazz, member.getKey());
             if (f == null) continue;
 
             final Object def = Utils.getUnsafely(f, o);
@@ -198,7 +199,7 @@ class HjsonObjectMapper {
         if (def == null) throw NonSerializableObjectException.defaultRequired();
 
         for (final JsonObject.Member member : value.asObject()) {
-            map.put(member.getName(), getValueByType(def.getClass(), def, member.getValue()));
+            map.put(member.getKey(), getValueByType(def.getClass(), def, member.getValue()));
         }
         return map;
     }

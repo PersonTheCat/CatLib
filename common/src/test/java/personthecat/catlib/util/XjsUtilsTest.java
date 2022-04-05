@@ -1,17 +1,18 @@
 package personthecat.catlib.util;
 
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import org.junit.jupiter.api.Test;
-import personthecat.catlib.serialization.json.HjsonUtils;
+import personthecat.catlib.serialization.json.XjsUtils;
 import personthecat.catlib.serialization.json.JsonPath;
+import xjs.core.Json;
+import xjs.core.JsonFormat;
+import xjs.core.JsonObject;
 
 import java.util.Arrays;
 import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public final class HjsonUtilsTest {
+public final class XjsUtilsTest {
 
     @Test
     public void filter_generatesObject_withGivenPathsOnly() {
@@ -40,19 +41,21 @@ public final class HjsonUtilsTest {
 
         final JsonObject expected = parse(
             "{                        \n " +
-            "  # Skipped a, b, c      \n" +
+            "  // Skipped a, b, c     \n" +
             "  d: [                   \n" +
-            "    # Skipped 0 ~ 2      \n" +
+            "    // Skipped 0 ~ 2     \n" +
             "    {                    \n" +
             "      e: {}              \n" +
             "      f: {}              \n" +
             "    }                    \n" +
-            "    # Skipped 4          \n" +
+            "    // Skipped 4         \n" +
             "  ]                      \n" +
-            "  # Skipped g            \n" +
+            "  // Skipped g           \n" +
             "}                        \n");
 
-        assertEquals(expected, HjsonUtils.filter(json, keep));
+        assertEquals(
+            expected.unformatted().toString(JsonFormat.XJS_FORMATTED),
+            XjsUtils.filter(json, keep).unformatted().toString(JsonFormat.XJS_FORMATTED));
     }
 
     @Test
@@ -66,7 +69,7 @@ public final class HjsonUtilsTest {
             "    {}                   \n" +
             "    {}                   \n" +
             "    {}                   \n" +
-            "    # Generated value    \n" +
+            "    // Generated value   \n" +
             "    {                    \n" +
             "      e: {}              \n" +
             "      f: {}              \n" +
@@ -83,28 +86,30 @@ public final class HjsonUtilsTest {
 
         final JsonObject expected = parse(
             "{                        \n " +
-            "  # Skipped a, b, c      \n" +
+            "  // Skipped a, b, c     \n" +
             "  d: [                   \n" +
-            "    # Skipped 0 ~ 2      \n" +
-            "    # Generated value    \n" +
+            "    // Skipped 0 ~ 2     \n" +
+            "    // Generated value   \n" +
             "    {                    \n" +
             "      e: {}              \n" +
             "      f: {}              \n" +
             "    }                    \n" +
-            "    # Skipped 4          \n" +
+            "    // Skipped 4         \n" +
             "  ]                      \n" +
-            "  # Skipped g            \n" +
+            "  // Skipped g           \n" +
             "}                        \n");
 
-        assertEquals(expected, HjsonUtils.filter(json, keep));
+        assertEquals(
+            expected.unformatted().toString(JsonFormat.XJS_FORMATTED),
+            XjsUtils.filter(json, keep).unformatted().toString(JsonFormat.XJS_FORMATTED));
     }
 
     private static JsonObject parse(final String json) {
-        return JsonValue.readHjson(trimLines(json)).asObject();
+        return Json.parse(trimLines(json)).asObject();
     }
 
     private static String trimLines(final String text) {
-        // The Hjson library might store extra spaces in comments
+        // The XJS library might store extra spaces in comments
         // This prevents that from affecting our test cases.
         return text.replaceAll("\\s*\n", "\n");
     }

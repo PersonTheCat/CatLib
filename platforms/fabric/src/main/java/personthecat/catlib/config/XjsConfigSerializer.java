@@ -10,21 +10,21 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class HjsonConfigSerializer<T extends ConfigData> implements ConfigSerializer<T> {
+public class XjsConfigSerializer<T extends ConfigData> implements ConfigSerializer<T> {
 
     private final Class<T> configClass;
     private final Path path;
 
-    public HjsonConfigSerializer(final Config definition, final Class<T> configClass) {
+    public XjsConfigSerializer(final Config definition, final Class<T> configClass) {
         this.configClass = configClass;
-        this.path = Utils.getConfigFolder().resolve(definition.name() + ".hjson");
+        this.path = Utils.getConfigFolder().resolve(definition.name() + ".xjs");
     }
 
     @Override
     public void serialize(final T t) throws SerializationException {
         try {
             Files.createDirectories(this.path.getParent());
-            HjsonObjectMapper.serializeObject(this.path, t);
+            XjsObjectMapper.serializeObject(this.path, t);
         } catch (final IOException | NonSerializableObjectException e) {
             throw new SerializationException(e);
         }
@@ -33,7 +33,7 @@ public class HjsonConfigSerializer<T extends ConfigData> implements ConfigSerial
     @Override
     public T deserialize() throws SerializationException {
         try {
-            return HjsonObjectMapper.deserializeObject(this.path, this.configClass);
+            return XjsObjectMapper.deserializeObject(this.path, this.configClass);
         } catch (final RuntimeException | NonSerializableObjectException e) {
             throw new SerializationException(e);
         }

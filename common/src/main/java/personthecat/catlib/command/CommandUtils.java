@@ -19,7 +19,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.TextComponent;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.FileArgument;
-import personthecat.catlib.command.arguments.HjsonArgument;
+import personthecat.catlib.command.arguments.JsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
@@ -165,13 +165,13 @@ public class CommandUtils {
     }
 
     /**
-     * Generates a {@link HjsonArgument} when provided a name. As with {@link #fileArg(String)},
+     * Generates a {@link JsonArgument} when provided a name. As with {@link #fileArg(String)},
      * the root folder of this argument will be supplied by the active {@link ModDescriptor}.
      *
      * @param name The name of the output argument node.
      * @return An argument builder for the given specs.
      */
-    public static RequiredArgumentBuilder<CommandSourceStack, HjsonArgument.Result> jsonFileArg(final String name) {
+    public static RequiredArgumentBuilder<CommandSourceStack, JsonArgument.Result> jsonFileArg(final String name) {
         return jsonFileArg(name, getDefaultRoot());
     }
 
@@ -182,7 +182,7 @@ public class CommandUtils {
      * @param mod The descriptor providing the root config folder for the current mod.
      * @return An argument builder for the given specs.
      */
-    public static RequiredArgumentBuilder<CommandSourceStack, HjsonArgument.Result> jsonFileArg(final String name, final ModDescriptor mod) {
+    public static RequiredArgumentBuilder<CommandSourceStack, JsonArgument.Result> jsonFileArg(final String name, final ModDescriptor mod) {
         return jsonFileArg(name, mod.getConfigFolder(), mod.getPreferredDirectory());
     }
 
@@ -193,8 +193,8 @@ public class CommandUtils {
      * @param root The root folder to be used by the file argument parser.
      * @return An argument builder for the given specs.
      */
-    public static RequiredArgumentBuilder<CommandSourceStack, HjsonArgument.Result> jsonFileArg(final String name, final File root) {
-        return Commands.argument(name, new HjsonArgument(root));
+    public static RequiredArgumentBuilder<CommandSourceStack, JsonArgument.Result> jsonFileArg(final String name, final File root) {
+        return Commands.argument(name, new JsonArgument(root));
     }
 
     /**
@@ -206,12 +206,12 @@ public class CommandUtils {
      * @param preferred The first directory to search through for recursive searches.
      * @return An argument builder for the given specs.
      */
-    public static RequiredArgumentBuilder<CommandSourceStack, HjsonArgument.Result> jsonFileArg(final String name, final File root, final @Nullable File preferred) {
-        return Commands.argument(name, new HjsonArgument(root, preferred, true));
+    public static RequiredArgumentBuilder<CommandSourceStack, JsonArgument.Result> jsonFileArg(final String name, final File root, final @Nullable File preferred) {
+        return Commands.argument(name, new JsonArgument(root, preferred, true));
     }
 
     /**
-     * Shorthand method for creating an Hjson path argument.
+     * Shorthand method for creating a JSON path argument.
      *
      * @param name The name of the output argument node.
      * @return An argument builder for the given specs.

@@ -44,22 +44,22 @@ public class ArgumentSuppliers {
     }
 
     /**
-     * Provides an {@link HjsonArgument} with the current mod's config folder as the root.
+     * Provides an {@link JsonArgument} with the current mod's config folder as the root.
      */
-    public static class HjsonFile implements ArgumentSupplier<HjsonArgument.Result> {
-        public ArgumentDescriptor<HjsonArgument.Result> get() {
+    public static class XjsFile implements ArgumentSupplier<JsonArgument.Result> {
+        public ArgumentDescriptor<JsonArgument.Result> get() {
             final ModDescriptor mod = getModDescriptorOrThrow();
-            return new ArgumentDescriptor<>(new HjsonArgument(mod.getConfigFolder(), mod.getPreferredDirectory(), true));
+            return new ArgumentDescriptor<>(new JsonArgument(mod.getConfigFolder(), mod.getPreferredDirectory(), true));
         }
     }
 
     /**
-     * Provides an {@link HjsonArgument} which does not search recursively.
+     * Provides an {@link JsonArgument} which does not search recursively.
      */
-    public static class SimpleHjsonFile implements ArgumentSupplier<HjsonArgument.Result> {
-        public ArgumentDescriptor<HjsonArgument.Result> get() {
+    public static class SimpleXjsFile implements ArgumentSupplier<JsonArgument.Result> {
+        public ArgumentDescriptor<JsonArgument.Result> get() {
             final ModDescriptor mod = getModDescriptorOrThrow();
-            return new ArgumentDescriptor<>(new HjsonArgument(mod.getConfigFolder(), false));
+            return new ArgumentDescriptor<>(new JsonArgument(mod.getConfigFolder(), false));
         }
     }
 

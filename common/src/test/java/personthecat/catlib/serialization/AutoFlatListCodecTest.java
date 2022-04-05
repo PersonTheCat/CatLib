@@ -2,12 +2,12 @@ package personthecat.catlib.serialization;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
-import org.hjson.JsonArray;
-import org.hjson.JsonValue;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import personthecat.catlib.serialization.codec.AutoFlatListCodec;
-import personthecat.catlib.serialization.codec.HjsonOps;
+import personthecat.catlib.serialization.codec.XjsOps;
+import xjs.core.Json;
+import xjs.core.JsonValue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,38 +21,38 @@ public class AutoFlatListCodecTest {
 
     @Test
     public final void encode_writesNormalList() {
-        assertEquals(new JsonArray().add(1).add(2).add(3), encode(Arrays.asList(1, 2, 3)));
+        assertEquals(Json.array(1, 2, 3), encode(Arrays.asList(1, 2, 3)));
     }
 
     @Test
     public final void encode_writesSingletonAsValue() {
-        assertEquals(JsonValue.valueOf(1), encode(Collections.singletonList(1)));
+        assertEquals(Json.value(1), encode(Collections.singletonList(1)));
     }
 
     @Test
     public final void decode_readsNormalList() {
-        assertEquals(Arrays.asList(1, 2, 3), decode(new JsonArray().add(1).add(2).add(3)));
+        assertEquals(Arrays.asList(1, 2, 3), decode(Json.array(1, 2, 3)));
     }
 
     @Test
     public final void decode_readsValueAsSingleton() {
-        assertEquals(Collections.singletonList(1), decode(JsonValue.valueOf(1)));
+        assertEquals(Collections.singletonList(1), decode(Json.value(1)));
     }
 
     @Test
     public final void decode_readsMultidimensionalArray() {
-        final JsonValue value = new JsonArray().add(new JsonArray().add(1).add(new JsonArray().add(2))).add(3);
+        final JsonValue value = Json.array().add(Json.array().add(1).add(Json.array().add(2))).add(3);
         assertEquals(Arrays.asList(1, 2, 3), decode(value));
     }
 
     @Nullable
     public static JsonValue encode(final List<Integer> value) {
-        return CODEC.encodeStart(HjsonOps.INSTANCE, value).get().left().orElse(null);
+        return CODEC.encodeStart(XjsOps.INSTANCE, value).get().left().orElse(null);
     }
 
     @Nullable
     private static List<Integer> decode(final JsonValue value) {
-        final Pair<List<Integer>, JsonValue> pair = CODEC.decode(HjsonOps.INSTANCE, value).get().left().orElse(null);
+        final Pair<List<Integer>, JsonValue> pair = CODEC.decode(XjsOps.INSTANCE, value).get().left().orElse(null);
         return pair != null ? pair.getFirst() : null;
     }
 }

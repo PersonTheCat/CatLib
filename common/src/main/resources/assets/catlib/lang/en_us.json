@@ -5,7 +5,6 @@
   "catlib.errorMenu.commands": "Command Errors",
   "catlib.errorText.unclosed": "This or a later opener is never closed",
   "catlib.errorText.unexpected": "This closer does not belong to any container",
-  "catlib.errorText.multilineKey": "Hjson does not allow multiline keys",
   "catlib.errorText.badCloser": "Consumed by unquoted string. Use quotes or a new line.",
   "catlib.errorText.commandClass": "Error evaluating command method: %s",
   "catlib.errorText.commandNode": "Error evaluating command node: %s",

@@ -5,20 +5,20 @@ import com.mojang.serialization.Codec;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.hjson.*;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.exception.JsonFormatException;
-import personthecat.catlib.exception.UnreachableException;
-import personthecat.catlib.serialization.codec.HjsonOps;
+import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
+import xjs.core.*;
+import xjs.exception.SyntaxException;
+import xjs.serialization.writer.JsonWriterOptions;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.*;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -31,13 +31,13 @@ import static personthecat.catlib.util.Shorthand.assertEnumConstant;
 import static personthecat.catlib.util.Shorthand.nullable;
 
 /**
- * A collection of convenience methods for interacting with Hjson objects. Unlike
+ * A collection of convenience methods for interacting with XJS objects. Unlike
  * the original methods inside of {@link JsonObject}, most of the utilities in this
  * class return values wrapped in {@link Optional}, instead of <code>null</code>.
  * <p>
- *   In a future version of this library (via PersonTheCat/hjson-java), JSON objects
- *   will support returning {@link Optional} out of the box, as well as the options
- *   to flatten arrays, support additional data types, and more. As a result, most
+ *   In a future version of this library (via Exjson/xjs-core), JSON objects will
+ *   support returning {@link Optional} out of the box, as well as the options to
+ *   flatten arrays, support additional data types, and more. As a result, most
  *   of these utilities will eventually be deprecated.
  * </p>
  */
@@ -45,7 +45,7 @@ import static personthecat.catlib.util.Shorthand.nullable;
 @UtilityClass
 @SuppressWarnings("unused")
 @ParametersAreNonnullByDefault
-public class HjsonUtils {
+public class XjsUtils {
 
     /**
      * The settings to be used when outputting JsonObjects to the disk.
@@ -54,13 +54,12 @@ public class HjsonUtils {
      *   in a common config file which applies to all mods.
      * </p>
      */
-    public static final HjsonOptions FORMATTER = new HjsonOptions()
-        .setAllowCondense(true)
-        .setAllowMultiVal(true)
-        .setCommentSpace(0)
-        .setSpace(2)
-        .setBracesSameLine(true)
-        .setOutputComments(true);
+    public static final JsonWriterOptions FORMATTER =
+        new JsonWriterOptions()
+            .setAllowCondense(true)
+            .setTabSize(2)
+            .setBracesSameLine(true)
+            .setOutputComments(true);
 
     /**
      * A second formatter and otherwise identical variant of {@link #FORMATTER} which
@@ -70,14 +69,13 @@ public class HjsonUtils {
      *   This formatter is <b>ideal for use with commands</b> for a cleaner chat output.
      * </p>
      */
-    public static final HjsonOptions NO_CR = new HjsonOptions()
-        .setAllowCondense(true)
-        .setAllowMultiVal(true)
-        .setCommentSpace(0)
-        .setSpace(2)
-        .setBracesSameLine(true)
-        .setOutputComments(true)
-        .setNewLine("\n");
+    public static final JsonWriterOptions NO_CR =
+        new JsonWriterOptions()
+            .setAllowCondense(true)
+            .setTabSize(2)
+            .setBracesSameLine(true)
+            .setOutputComments(true)
+            .setEol("\n");
 
     /**
      * Reads a {@link JsonObject} from the given file.
@@ -88,8 +86,8 @@ public class HjsonUtils {
     public static Optional<JsonObject> readJson(final File file) {
         return Result
             .define(FileNotFoundException.class, Result::WARN)
-            .and(ParseException.class, e -> { throw jsonFormatEx(file.getPath(), e); })
-            .suppress(() -> JsonObject.readHjson(new FileReader(file), FORMATTER).asObject())
+            .and(SyntaxException.class, e -> { throw jsonFormatEx(file.getPath(), e); })
+            .suppress(() -> Json.parse(file).asObject())
             .get();
     }
 
@@ -102,8 +100,8 @@ public class HjsonUtils {
     public static Optional<JsonObject> readJson(final InputStream is) {
         return Result
             .define(IOException.class, Result::WARN)
-            .and(ParseException.class, r -> { throw jsonFormatEx("Reading data"); })
-            .suppress(() -> JsonObject.readHjson(new InputStreamReader(is), FORMATTER).asObject())
+            .and(SyntaxException.class, r -> { throw jsonFormatEx("Reading data"); })
+            .suppress(() -> Json.parse(new InputStreamReader(is)).asObject())
             .get();
     }
 
@@ -115,8 +113,7 @@ public class HjsonUtils {
      * @return The deserialized object, or else {@link Optional#empty}.
      */
     public static Optional<JsonObject> readSuppressing(final File file) {
-        return Result.suppress(() -> JsonObject.readHjson(new FileReader(file), FORMATTER).asObject())
-            .get(Result::WARN);
+        return Result.suppress(() -> Json.parse(file).asObject()).get(Result::WARN);
     }
 
     /**
@@ -127,8 +124,7 @@ public class HjsonUtils {
      * @return The deserialized object, or else {@link Optional#empty}.
      */
     public static Optional<JsonObject> readSuppressing(final InputStream is) {
-        return Result.suppress(() -> JsonObject.readHjson(new InputStreamReader(is), FORMATTER).asObject())
-            .get(Result::WARN);
+        return Result.suppress(() -> Json.parse(new InputStreamReader(is)).asObject()).get(Result::WARN);
     }
 
     /**
@@ -137,8 +133,8 @@ public class HjsonUtils {
      * @param contents The raw JSON data being parsed.
      * @return The parsed JSON data, or else {@link Result#err} containing the exception.
      */
-    public static Result<JsonValue, ParseException> readValue(final String contents) {
-        return Result.<JsonValue, ParseException>of(() -> JsonObject.readHjson(contents)).ifErr(Result::IGNORE);
+    public static Result<JsonValue, SyntaxException> readValue(final String contents) {
+        return Result.<JsonValue, SyntaxException>of(() -> Json.parse(contents)).ifErr(Result::IGNORE);
     }
 
     /**
@@ -150,7 +146,7 @@ public class HjsonUtils {
      * @return The deserialized object, or else {@link Optional#empty}.
      */
     public static <T> Optional<T> readOptional(final Codec<T> codec, final JsonValue value) {
-        return codec.parse(HjsonOps.INSTANCE, value).result();
+        return codec.parse(XjsOps.INSTANCE, value).result();
     }
 
     /**
@@ -162,7 +158,7 @@ public class HjsonUtils {
      * @return The deserialized object.
      */
     public static <T> T readThrowing(final Codec<T> codec, final JsonValue value) {
-        return codec.parse(HjsonOps.INSTANCE, value).get().map(Function.identity(), partial -> {
+        return codec.parse(XjsOps.INSTANCE, value).get().map(Function.identity(), partial -> {
             throw new JsonFormatException(partial.message());
         });
     }
@@ -172,7 +168,7 @@ public class HjsonUtils {
      * is automatically determined by its extension.
      * <p>
      *   Any file extended with <code>.json</code> will be written in regular JSON
-     *   format. All other extensions will implicitly be treated as Hjson.
+     *   format. All other extensions will implicitly be treated as XJS.
      * </p>
      * <p>
      *   No {@link IOException}s will be thrown by this method. Instead, they will be
@@ -186,13 +182,8 @@ public class HjsonUtils {
      * @return A result which potentially contains an error.
      */
     public static Result<Void, IOException> writeJson(final JsonObject json, final File file) {
-        return Result.with(() -> new FileWriter(file), writer -> {
-//            if (JsonType.isJson(file)) { // Write as json. todo: JsonSerializationContext.auto...
-//                json.writeTo(writer, Stringify.FORMATTED);
-//            } else { // Write as hjson.
-//                json.writeTo(writer, FORMATTER);
-//            }
-        }).ifErr(e -> log.error("Writing file", e));
+        return Result.with(() -> new FileWriter(file), writer -> { json.write(file); })
+            .ifErr(e -> log.error("Writing file", e));
     }
 
     /**
@@ -205,7 +196,7 @@ public class HjsonUtils {
      * @return The serialized data, or else {@link Optional#empty}.
      */
     public static <A> Optional<JsonValue> writeSuppressing(final Codec<A> codec, final A a) {
-        return codec.encodeStart(HjsonOps.INSTANCE, a).result();
+        return codec.encodeStart(XjsOps.INSTANCE, a).result();
     }
 
     /**
@@ -218,7 +209,7 @@ public class HjsonUtils {
      * @return The serialized data.
      */
     public static <A> JsonValue writeThrowing(final Codec<A> codec, final A a) {
-        return codec.encodeStart(HjsonOps.INSTANCE, a).result()
+        return codec.encodeStart(XjsOps.INSTANCE, a).result()
             .orElseThrow(() -> new JsonFormatException("Writing object: " + a));
     }
 
@@ -228,7 +219,7 @@ public class HjsonUtils {
      *   For example,
      * </p>
      * <pre>{@code
-     *   HjsonTools.updateJson(file, json -> {
+     *   XJSTools.updateJson(file, json -> {
      *      json.set("hello", "world");
      *   });
      * }</pre>
@@ -301,11 +292,11 @@ public class HjsonUtils {
      * @param path The output of a {@link PathArgument}.
      * @return The value at this location, the original <code>json</code>, or else a new container.
      */
-    public static JsonValue getLastContainer(final JsonObject json, final JsonPath path) {
+    public static JsonContainer getLastContainer(final JsonObject json, final JsonPath path) {
         if (path.isEmpty()) {
             return json;
         }
-        JsonValue current = json;
+        JsonContainer current = json;
         for (int i = 0; i < path.size() - 1; i++) {
             final Either<String, Integer> val = path.get(i);
             final Either<String, Integer> peek = path.get(i + 1);
@@ -313,11 +304,13 @@ public class HjsonUtils {
             if (val.right().isPresent()) { // Index
                 current = getOrTryNew(current.asArray(), val.right().get(), peek);
             } else if (peek.left().isPresent()) { // Key -> key -> object
-                current = getObjectOrNew(current.asObject(), val.left()
-                    .orElseThrow(UnreachableException::new));
+                current = current.asObject()
+                    .getOptional(val.left().orElseThrow(), JsonFilter.OBJECT)
+                    .orElseGet(Json::object);
             } else { // Key -> index -> array
-                current = getArrayOrNew(current.asObject(), val.left()
-                    .orElseThrow(UnreachableException::new));
+                current = current.asObject()
+                    .getOptional(val.left().orElseThrow(), JsonFilter.ARRAY)
+                    .orElseGet(Json::array);
             }
         }
         return current;
@@ -432,7 +425,7 @@ public class HjsonUtils {
      * @return A transformed object containing only the expected paths.
      */
     public static JsonObject filter(final JsonObject json, final Collection<JsonPath> paths, final boolean blacklist) {
-        final JsonObject clone = (JsonObject) json.deepCopy();
+        final JsonObject clone = json.deepCopy();
         // Flag each path as used so anything else will get removed.
         paths.forEach(path -> path.getValue(clone));
         return skip(clone, blacklist);
@@ -447,14 +440,14 @@ public class HjsonUtils {
      * @return A <b>new</b> JSON object with these values trimmed out.
      */
     public static JsonObject skip(final JsonObject json, final boolean used) {
-        final JsonObject generated = (JsonObject) new JsonObject().copyComments(json);
+        final JsonObject generated = (JsonObject) new JsonObject().setDefaultMetadata(json);
         final StringBuilder skipped = new StringBuilder();
 
         for (final JsonObject.Member member : json) {
-            final JsonValue value = member.getValue();
-            final String name = member.getName();
+            final JsonValue value = member.visit();
+            final String name = member.getKey();
 
-            if (value.isAccessed() != used) {
+            if (member.getReference().isAccessed() != used) {
                 if (skipped.length() > 0) {
                     value.prependComment("Skipped " + skipped);
                     skipped.setLength(0);
@@ -473,7 +466,7 @@ public class HjsonUtils {
             }
         }
         if (skipped.length() > 0) {
-            generated.prependInteriorComment("Skipped " + skipped);
+            generated.prependComment(CommentType.INTERIOR, "Skipped " + skipped);
         }
         return generated;
     }
@@ -487,12 +480,13 @@ public class HjsonUtils {
      * @return A <b>new</b> JSON array with these values trimmed out.
      */
     public static JsonArray skip(final JsonArray json, final boolean used) {
-        final JsonArray generated = (JsonArray) new JsonArray().copyComments(json);
+        final JsonArray generated = (JsonArray) new JsonArray().setDefaultMetadata(json);
         int lastIndex = 0;
         int index = 0;
 
-        for (final JsonValue value : json) {
-            if (value.isAccessed() != used) {
+        for (final JsonReference reference : json.references()) {
+            final JsonValue value = reference.visit();
+            if (reference.isAccessed() != used) {
                 if (index == lastIndex + 1) {
                     value.prependComment("Skipped " + (index - 1));
                 } else if (index > lastIndex) {
@@ -510,9 +504,9 @@ public class HjsonUtils {
             index++;
         }
         if (index == lastIndex + 1) {
-            generated.prependInteriorComment("Skipped " + (index - 1));
+            generated.prependComment(CommentType.INTERIOR, "Skipped " + (index - 1));
         } else if (index > lastIndex) {
-            generated.prependInteriorComment("Skipped " + lastIndex + " ~ " + (index - 1));
+            generated.prependComment(CommentType.INTERIOR, "Skipped " + lastIndex + " ~ " + (index - 1));
         }
         return generated;
     }
@@ -554,7 +548,7 @@ public class HjsonUtils {
      */
     public static void setRecursivelyIfAbsent(final JsonObject json, final JsonObject toSet) {
         for (final JsonObject.Member member : toSet) {
-            final JsonValue get = json.get(member.getName());
+            final JsonValue get = json.get(member.getKey());
             if (get != null) {
                 if (get.isObject() && member.getValue().isObject()) {
                     setRecursivelyIfAbsent(get.asObject(), member.getValue().asObject());
@@ -562,7 +556,7 @@ public class HjsonUtils {
                     setRecursivelyIfAbsent(get.asArray(), member.getValue().asArray());
                 }
             } else if (!member.getValue().isNull()) {
-                json.set(member.getName(), member.getValue());
+                json.set(member.getKey(), member.getValue());
             }
         }
     }
@@ -665,7 +659,7 @@ public class HjsonUtils {
         final List<String> neighbors = new ArrayList<>();
         if (container.isObject()) {
             for (JsonObject.Member member : container.asObject()) {
-                final String name = member.getName();
+                final String name = member.getKey();
                 neighbors.add(dir.isEmpty() ? name : f("{}.{}", dir, name));
             }
         } else if (container.isArray()) {
@@ -685,12 +679,12 @@ public class HjsonUtils {
      * @param type The path element at this index, indicating either a key or an index.
      * @return Either a JSON object or array, whichever is at this location.
      */
-    private static JsonValue getOrTryNew(final JsonArray array, final int index, final Either<String, Integer> type) {
+    private static JsonContainer getOrTryNew(final JsonArray array, final int index, final Either<String, Integer> type) {
         if (index == array.size()) { // The value must be added.
             type.ifLeft(s -> array.add(new JsonObject()))
                 .ifRight(i -> array.add(new JsonArray()));
         } // if index >= newSize -> index out of bounds
-        return array.get(index);
+        return array.get(index).asContainer();
     }
 
     /**
@@ -729,7 +723,7 @@ public class HjsonUtils {
             } else {
                 final String key = either.left().get();
                 final JsonObject object = container.asObject();
-                object.set(key, value.copyComments(object.get(key)));
+                object.set(key, value);
             }
         } else if (either.right().isPresent()) { // Just to stop the linting.
             if (value == null) {
@@ -739,93 +733,9 @@ public class HjsonUtils {
             } else {
                 final int index = either.right().get();
                 final JsonArray array = container.asArray();
-                array.set(index, value.copyComments(array.get(index)));
+                setOrAdd(array, index, value);
             }
         }
-    }
-
-    /**
-     * Creates a new {@link JsonArray} from a collection of strings.
-     *
-     * @param strings The contents of the array.
-     * @return A regular {@link JsonArray}.
-     */
-    public static JsonArray stringArray(final Collection<String> strings) {
-        return createArray(strings, JsonArray::add);
-    }
-
-    /**
-     * Creates a new {@link JsonArray} from a collection of strings.
-     *
-     * @param ints The contents of the array.
-     * @return A regular {@link JsonArray}.
-     */
-    public static JsonArray intArray(final Collection<Integer> ints) {
-        return createArray(ints, JsonArray::add);
-    }
-
-    /**
-     * Creates a new {@link JsonArray} from a collection of doubles.
-     *
-     * @param doubles The contents of the array.
-     * @return A regular {@link JsonArray}.
-     */
-    public static JsonArray doubleArray(final Collection<Double> doubles) {
-        return createArray(doubles, JsonArray::add);
-    }
-
-    /**
-     * Creates a new {@link JsonArray} from a collection of floats.
-     *
-     * @param floats The contents of the array.
-     * @return A regular {@link JsonArray}.
-     */
-    public static JsonArray floatArray(final Collection<Float> floats) {
-        return createArray(floats, JsonArray::add);
-    }
-
-    /**
-     * Creates a new {@link JsonArray} from a collection of booleans.
-     *
-     * @param booleans The contents of the array.
-     * @return A regular {@link JsonArray}.
-     */
-    public static JsonArray boolArray(final Collection<Boolean> booleans) {
-        return createArray(booleans, JsonArray::add);
-    }
-
-    /**
-     * Creates a new {@link JsonArray} from a collection of {@link JsonValue}s.
-     *
-     * @param values The contents of the array.
-     * @return A regular {@link JsonArray}.
-     */
-    public static JsonArray valueArray(final Collection<? extends JsonValue> values) {
-        return createArray(values, JsonArray::add);
-    }
-
-    /**
-     * Creates a new {@link JsonArray} from a collection of any type.
-     *
-     * @param any The contents of the array.
-     * @return A regular {@link JsonArray}.
-     */
-    public static JsonArray anyArray(final Collection<?> any) {
-        return createArray(any, (a, o) -> a.add(JsonValue.valueOf(o)));
-    }
-
-    /**
-     * Generates a {@link JsonArray} containing values of the given type.
-     *
-     * @param values A collection of any type which the array will be constructed from.
-     * @param adder  Instructions for how to add the elements into the array.
-     * @param <T>    The type of values in the collection.
-     * @return A regular {@link JsonArray}.
-     */
-    public static <T> JsonArray createArray(final Collection<T> values, final BiConsumer<JsonArray, T> adder) {
-        final JsonArray array = new JsonArray();
-        values.forEach(t -> adder.accept(array, t));
-        return array;
     }
 
     /**
@@ -864,6 +774,22 @@ public class HjsonUtils {
     }
 
     /**
+     * Sets the value at the given index, or else if <code>index == array.size()</code>, adds it.
+     *
+     * @param array The array being added into.
+     * @param index The index of the value being set.
+     * @param value The value being set.
+     * @return <code>array</code>, for method chaining.
+     * @throws IndexOutOfBoundsException If <code>index &lt; 0 || index &gt; size</code>
+     */
+    public static JsonArray setOrAdd(final JsonArray array, final int index, final JsonValue value) {
+        if (index == array.size()) {
+            return array.add(value);
+        }
+        return array.set(index, value);
+    }
+
+    /**
      * Returns a list of {@link JsonObject}s from the given source.
      * <p>
      *   Note that the values in this array will be coerced into {@link JsonObject}s.
@@ -884,7 +810,7 @@ public class HjsonUtils {
      */
     public static List<JsonObject> getObjectArray(final JsonObject json, final String field) {
         final List<JsonObject> array = new ArrayList<>();
-        getValue(json, field).map(HjsonUtils::asOrToArray)
+        json.getOptional(field).map(JsonValue::intoArray)
             .ifPresent(a -> flatten(array, a));
         return array;
     }
@@ -930,8 +856,8 @@ public class HjsonUtils {
      */
     public static List<JsonObject> getRegularObjects(final JsonObject json, final String field) {
         final List<JsonObject> list = new ArrayList<>();
-        final JsonArray array = HjsonUtils.getValue(json, field)
-            .map(HjsonUtils::asOrToArray)
+        final JsonArray array = json.getOptional(field)
+            .map(JsonValue::intoArray)
             .orElseGet(JsonArray::new);
         flattenRegularObjects(list, array);
         return list;
@@ -953,51 +879,22 @@ public class HjsonUtils {
         }
     }
 
-    public static Optional<Boolean> getBool(final JsonObject json, final String field) {
-        return getValue(json, field).map(JsonValue::asBoolean);
-    }
-
-    public static Optional<Integer> getInt(final JsonObject json, final String field) {
-        return getValue(json, field).map(JsonValue::asInt);
-    }
-
-    public static Optional<Float> getFloat(final JsonObject json, final String field) {
-        return getValue(json, field).map(JsonValue::asFloat);
-    }
-
-    public static Optional<String> getString(final JsonObject json, final String field) {
-        return getValue(json, field).map(JsonValue::asString);
-    }
-
-    public static Optional<JsonArray> getArray(final JsonObject json, final String field) {
-        return getValue(json, field).map(HjsonUtils::asOrToArray);
-    }
-
-    public static JsonArray getArrayOrNew(final JsonObject json, final String field) {
-        if (!json.has(field)) {
-            json.set(field, new JsonArray());
+    public static JsonArray getOrCreateArray(final JsonObject json, final String field) {
+        if (json.get(field) instanceof JsonArray array) {
+            return array;
         }
-        return getArray(json, field).orElseThrow(UnreachableException::new);
+        final JsonArray array = Json.array();
+        json.set(field, array);
+        return array;
     }
 
-    public static JsonArray asOrToArray(final JsonValue value) {
-        return value.isArray() ? value.asArray() : new JsonArray().add(value);
-    }
-
-    public static Optional<JsonObject> getObject(final JsonObject json, final String field) {
-        return getValue(json, field).map(JsonValue::asObject);
-    }
-
-    public static JsonObject getObjectOrNew(final JsonObject json, final String field) {
-        JsonValue get = json.get(field);
-        if (get == null) {
-            json.set(field, get = new JsonObject());
+    public static JsonObject getOrCreateObject(final JsonObject json, final String field) {
+        if (json.get(field) instanceof JsonObject object) {
+            return object;
         }
-        return get.asObject();
-    }
-
-    public static Optional<JsonValue> getValue(final JsonObject json, final String field) {
-        return Optional.ofNullable(json.get(field));
+        final JsonObject object = Json.object();
+        json.set(field, object);
+        return object;
     }
 
     private static <T extends Enum<T>> List<T> toEnumArray(final JsonArray array, final Class<T> clazz) {

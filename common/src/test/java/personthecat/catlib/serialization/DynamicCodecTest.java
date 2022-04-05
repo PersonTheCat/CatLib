@@ -2,12 +2,14 @@ package personthecat.catlib.serialization;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
-import personthecat.catlib.serialization.codec.HjsonOps;
+import personthecat.catlib.serialization.codec.XjsOps;
+import personthecat.catlib.serialization.json.JsonTransformer;
+import xjs.core.Json;
+import xjs.core.JsonObject;
+import xjs.core.JsonValue;
 
 import java.util.Collections;
 
@@ -36,7 +38,7 @@ public class DynamicCodecTest {
 
     @Test
     public void simpleCodec_supportsMissingValues() {
-        final JsonObject json = parse("");
+        final JsonObject json = Json.object();
         final SimpleObject o = decode(SimpleObject.CODEC, json);
         assertNotNull(o);
         assertNull(o.a);
@@ -59,8 +61,8 @@ public class DynamicCodecTest {
         o.b = 1337;
         final JsonObject json = encode(SimpleObject.CODEC, o);
         assertNotNull(json);
-        assertEquals(JsonValue.valueOf("test"), json.get("a"));
-        assertEquals(JsonValue.valueOf(1337), json.get("b"));
+        assertEquals(Json.value("test"), json.get("a"));
+        assertEquals(Json.value(1337), json.get("b"));
     }
 
     @Test
@@ -101,7 +103,7 @@ public class DynamicCodecTest {
         o.a = "test";
         final JsonObject json = encode(NullableObject.CODEC, o);
         assertNotNull(json);
-        assertEquals(JsonValue.valueOf("test"), json.get("a"));
+        assertEquals(Json.value("test"), json.get("a"));
     }
 
     @Test
@@ -123,7 +125,7 @@ public class DynamicCodecTest {
 
     @Test
     public void requiredCodec_requiresFields() {
-        final JsonObject json = parse("");
+        final JsonObject json = Json.object();
         final RequiredObject o = decode(RequiredObject.CODEC, json);
         assertNull(o);
     }
@@ -134,7 +136,7 @@ public class DynamicCodecTest {
         o.a = "test";
         final JsonObject json = encode(RequiredObject.CODEC, o);
         assertNotNull(json);
-        assertEquals(JsonValue.valueOf("test"), json.get("a"));
+        assertEquals(Json.value("test"), json.get("a"));
     }
 
     @Test
@@ -152,7 +154,7 @@ public class DynamicCodecTest {
 
     @Test
     public void recursiveCodec_supportsTerminalValues() {
-        final JsonObject json = parse("");
+        final JsonObject json = Json.object();
         final RecursiveObject o = decode(RecursiveObject.CODEC, json);
         assertNotNull(o);
         assertNull(o.a);
@@ -168,7 +170,8 @@ public class DynamicCodecTest {
         o.b.b = new RecursiveObject();
         o.b.b.a = "t3";
         final JsonObject json = encode(RecursiveObject.CODEC, o);
-        assertEquals(parse("a:'t1',b:{a:'t2',b:{a:'t3'}}"), json);
+        JsonTransformer.all().sort().updateAll(json);
+        assertEquals(parse("a:t1,b:{a:t2,b:{a:t3}}"), json);
     }
 
     @Test
@@ -183,7 +186,7 @@ public class DynamicCodecTest {
 
     @Test
     public void extendingCodec_toleratesMissingField() {
-        final JsonObject json = parse("");
+        final JsonObject json = Json.object();
         final ExtendingObject o = decode(ExtendingObject.CODEC, json);
         assertNotNull(o);
         assertNull(o.a);
@@ -198,8 +201,8 @@ public class DynamicCodecTest {
         o.i.b = 1337;
         final JsonObject json = encode(ExtendingObject.CODEC, o);
         assertNotNull(json);
-        assertEquals(JsonValue.valueOf("test"), json.get("a"));
-        assertEquals(JsonValue.valueOf(1337), json.get("b"));
+        assertEquals(Json.value("test"), json.get("a"));
+        assertEquals(Json.value(1337), json.get("b"));
     }
 
     @Test
@@ -211,17 +214,17 @@ public class DynamicCodecTest {
     }
 
     private static JsonObject parse(final String json) {
-        return JsonObject.readHjson(json).asObject();
+        return Json.parse(json).asObject().unformatted();
     }
 
     @Nullable
     private static <T> T decode(final Codec<T> codec, final JsonValue value) {
-        final Pair<T, JsonValue> pair = codec.decode(HjsonOps.INSTANCE, value).get().left().orElse(null);
+        final Pair<T, JsonValue> pair = codec.decode(XjsOps.INSTANCE, value).get().left().orElse(null);
         return pair != null ? pair.getFirst() : null;
     }
 
     public static <T> JsonObject encode(final Codec<T> codec, final T value) {
-        final JsonValue json = codec.encodeStart(HjsonOps.INSTANCE, value).get().left().orElse(null);
+        final JsonValue json = codec.encodeStart(XjsOps.INSTANCE, value).get().left().orElse(null);
         return json != null ? json.asObject() : null;
     }
 

@@ -4,9 +4,11 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import personthecat.catlib.util.Shorthand;
+import xjs.core.CommentType;
+import xjs.core.Json;
+import xjs.core.JsonObject;
+import xjs.core.JsonValue;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -16,19 +18,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static personthecat.catlib.serialization.json.HjsonUtils.readJson;
-import static personthecat.catlib.serialization.json.HjsonUtils.writeJson;
+import static personthecat.catlib.serialization.json.XjsUtils.readJson;
+import static personthecat.catlib.serialization.json.XjsUtils.writeJson;
 
 /**
  * Contains the necessary procedures for handling a Forge-friendly configuration
- * based on Hjson, a human-friendly variant of JSON.
+ * based on XJS, an elegant and powerful JSON superset.
  * <p>
- *   One of the benefits of using Hjson over the Forge-preferred TOML is that string arrays
- *   in Hjson do not require double quotes. This provides a setup that a bit more similar
+ *   One of the benefits of using XJS over the Forge-preferred TOML is that string arrays
+ *   in XJS do not require double quotes. This provides a setup that a bit more similar
  *   to the older config formats used prior to MC 1.13.
  * </p>
  */
-public class HjsonFileConfig implements CommentedFileConfig  {
+public class XjsFileConfig implements CommentedFileConfig  {
 
     /** The main file which stores all data represented by this config. */
     private final File file;
@@ -43,43 +45,43 @@ public class HjsonFileConfig implements CommentedFileConfig  {
     private volatile boolean writing, closed;
 
     /** Constructs a new instance solely from the path to this config file. */
-    public HjsonFileConfig(String path) {
+    public XjsFileConfig(String path) {
         this(new File(path));
     }
 
     /** Constructs a new instance from the object representing this config file. */
-    public HjsonFileConfig(File file) {
+    public XjsFileConfig(File file) {
         this(file, loadContainer(file));
     }
 
     /** Constructs a new instance from an existing JSON object. */
-    public HjsonFileConfig(File file, JsonObject json) {
+    public XjsFileConfig(File file, JsonObject json) {
         this(file, getContainer(file, json));
     }
 
     /** Constructs a new instance with data that have been previously loaded. */
-    private HjsonFileConfig(File file, Container container) {
+    private XjsFileConfig(File file, Container container) {
         this.file = file;
         this.map = container.map;
         this.comments = container.comments;
     }
 
-    /** Converts all of this config's data into an Hjson object. */
-    private JsonObject toHjson() {
+    /** Converts all of this config's data into an XJS object. */
+    private JsonObject toXjs() {
         JsonObject json = new JsonObject();
         for (String key : map.keySet()) {
-            final JsonValue value = toHjson(map.get(key));
+            final JsonValue value = toXjs(map.get(key));
             Shorthand.getOptional(comments, key).ifPresent(value::setComment);
             json.set(key, value);
         }
         return json;
     }
 
-    /** Converts a raw value into an Hjson value. */
-    private static JsonValue toHjson(Object o) {
-        return o instanceof HjsonFileConfig
-            ? ((HjsonFileConfig) o).toHjson()
-            : JsonValue.valueOf(o);
+    /** Converts a raw value into an Xjs value. */
+    private static JsonValue toXjs(Object o) {
+        return o instanceof XjsFileConfig
+            ? ((XjsFileConfig) o).toXjs()
+            : Json.any(o);
     }
 
     /** Reads the json from the disk and parses its data into an ElectronWill-friendly format. */
@@ -87,11 +89,11 @@ public class HjsonFileConfig implements CommentedFileConfig  {
         return getContainer(file, readJson(file).orElse(new JsonObject()));
     }
 
-    /** Converts the input Hjson data into an ElectronWill-friendly format. */
+    /** Converts the input Xjs data into an ElectronWill-friendly format. */
     private static Container getContainer(File file, JsonObject json) {
         final Container container = new Container();
         for (JsonObject.Member member : json) {
-            put(file, container, member.getName(), member.getValue());
+            put(file, container, member.getKey(), member.getValue());
         }
         return container;
     }
@@ -99,28 +101,28 @@ public class HjsonFileConfig implements CommentedFileConfig  {
     /** Puts the JsonObject's raw value and comments into the container. */
     private static void put(File file, Container container, String key, JsonValue value) {
         container.map.put(key, toRaw(file, value));
-        container.comments.put(key, value.getBOLComment());
+        container.comments.put(key, value.getComment(CommentType.HEADER));
     }
 
-    /** Converts an Hjson value into its raw counterpart. */
+    /** Converts an Xjs value into its raw counterpart. */
     private static Object toRaw(File file, JsonValue value) {
         return value.isObject()
             ? toConfig(file, value.asObject())
-            : value.asRaw();
+            : value.unwrap();
     }
 
-    /** Converts the input Hjson object into a configuration. */
-    private static HjsonFileConfig toConfig(File file, JsonObject object) {
-        return new HjsonFileConfig(file, getContainer(file, object));
+    /** Converts the input Xjs object into a configuration. */
+    private static XjsFileConfig toConfig(File file, JsonObject object) {
+        return new XjsFileConfig(file, getContainer(file, object));
     }
 
     /** Returns the second to last object in the path, asserting that it is a configuration. */
-    private HjsonFileConfig getLastConfig(List<String> path) {
+    private XjsFileConfig getLastConfig(List<String> path) {
         Object val = this;
         for (int i = 0; i < path.size() - 1; i++) {
-            val = ((HjsonFileConfig) val).map.get(path.get(i));
+            val = ((XjsFileConfig) val).map.get(path.get(i));
         }
-        return (HjsonFileConfig) val;
+        return (XjsFileConfig) val;
     }
 
     /** Returns the last element of the input array. */
@@ -142,8 +144,8 @@ public class HjsonFileConfig implements CommentedFileConfig  {
     public void clearComments() {
         comments.clear();
         for (Object o : map.values()) {
-            if (o instanceof HjsonFileConfig) {
-                ((HjsonFileConfig) o).clearComments();
+            if (o instanceof XjsFileConfig) {
+                ((XjsFileConfig) o).clearComments();
             }
         }
     }
@@ -175,7 +177,7 @@ public class HjsonFileConfig implements CommentedFileConfig  {
     }
 
     /** Adds a value directly to the config, if it does not already exist. */
-    private static boolean add(HjsonFileConfig config, String key, Object value) {
+    private static boolean add(XjsFileConfig config, String key, Object value) {
         if (!config.map.containsKey(key)) {
             config.map.put(key, value);
             return true;
@@ -202,14 +204,14 @@ public class HjsonFileConfig implements CommentedFileConfig  {
 
     @Override
     public boolean contains(List<String> path) {
-        HjsonFileConfig config = this;
+        XjsFileConfig config = this;
         final int lastIndex = path.size() - 1;
         for (int i = 0; i < lastIndex; i++) {
             final String s = path.get(i);
             if (!config.map.containsKey(s)) {
                 return false;
             }
-            config = (HjsonFileConfig) config.map.get(s);
+            config = (XjsFileConfig) config.map.get(s);
         }
         return config.map.containsKey(path.get(lastIndex));
     }
@@ -236,7 +238,7 @@ public class HjsonFileConfig implements CommentedFileConfig  {
 
     @Override
     public CommentedConfig createSubConfig() {
-        return new HjsonFileConfig(file.getPath());
+        return new XjsFileConfig(file.getPath());
     }
 
     @Override
@@ -255,7 +257,7 @@ public class HjsonFileConfig implements CommentedFileConfig  {
             throw new IllegalStateException("Cannot save a closed file config.");
         }
         writing = true;
-        writeJson(toHjson(), file).expect("Error writing to config file.");
+        writeJson(toXjs(), file).expect("Error writing to config file.");
         writing = false;
     }
 

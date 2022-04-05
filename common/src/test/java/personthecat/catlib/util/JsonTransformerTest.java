@@ -2,11 +2,12 @@ package personthecat.catlib.util;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import org.junit.jupiter.api.Test;
 import personthecat.catlib.serialization.json.JsonTransformer;
 import personthecat.catlib.serialization.json.JsonTransformer.ObjectResolver;
+import xjs.core.Json;
+import xjs.core.JsonObject;
+import xjs.core.JsonValue;
 
 import java.util.List;
 
@@ -31,7 +32,7 @@ public final class JsonTransformerTest {
 
     @Test
     public void allResolver_resolvesAllObjects() {
-        final JsonObject subject = parse("a:{b:[{}{}]}");
+        final JsonObject subject = parse("a:{b:[{},{}]}");
         final List<JsonObject> resolved = JsonTransformer.all().collect(subject);
 
         assertEquals(4, resolved.size());
@@ -159,7 +160,7 @@ public final class JsonTransformerTest {
     @Test
     public void transform_appliesFunction() {
         final JsonObject transformed = parse("a:{b:'c'}");
-        JsonTransformer.withPath("a").transform("b", (k, v) -> Pair.of("k",  JsonValue.valueOf("v"))).updateAll(transformed);
+        JsonTransformer.withPath("a").transform("b", (k, v) -> Pair.of("k",  Json.value("v"))).updateAll(transformed);
 
         assertEquals(parse("a:{k:'v'}"), transformed);
     }
@@ -233,7 +234,7 @@ public final class JsonTransformerTest {
     @Test
     public void sort_sortsAllFields() {
         final JsonObject transformed = parse("a:1,b:2,c:3");
-        JsonTransformer.root().sort((m1, m2) -> m2.getName().compareTo(m1.getName())).updateAll(transformed);
+        JsonTransformer.root().sort((m1, m2) -> m2.getKey().compareTo(m1.getKey())).updateAll(transformed);
 
         assertEquals(parse("c:3,b:2,a:1"), transformed);
     }
@@ -305,6 +306,6 @@ public final class JsonTransformerTest {
     }
 
     private static JsonObject parse(final String json) {
-        return JsonValue.readHjson(json).asObject();
+        return Json.parse(json).asObject().unformatted();
     }
 }

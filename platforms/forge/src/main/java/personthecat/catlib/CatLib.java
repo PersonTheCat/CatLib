@@ -34,7 +34,7 @@ public class CatLib {
     private void initCommon(final FMLCommonSetupEvent event) {
         EnumArgument.register();
         FileArgument.register();
-        HjsonArgument.register();
+        JsonArgument.register();
         PathArgument.register();
         RegistryArgument.register();
 

@@ -29,7 +29,7 @@ import personthecat.catlib.command.CommandContextWrapper;
  * </p><pre>
  *     branch = @Node(
  *         name = "files",
- *         descriptor = ArgumentSuppliers.HjsonFile.class,
+ *         descriptor = ArgumentSuppliers.XjsFile.class,
  *         intoList = @ListInfo(size = 3)
  *     )
  * </pre><p>
@@ -88,7 +88,7 @@ public @interface Node {
      * and suggestions needed for this node. Note that this type <b>must provide a
      * no-argument constructor</b> to be valid.
      * <pre>
-     *     branch = @Node(name = "b", descriptor = ArgumentSuppliers.HjsonFile.class)
+     *     branch = @Node(name = "b", descriptor = ArgumentSuppliers.XjsFile.class)
      * </pre>
      */
     Class<? extends ArgumentSupplier<?>>[] descriptor() default {};

@@ -3,11 +3,12 @@ package personthecat.catlib.serialization.json;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Either;
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.fresult.Result;
+import xjs.core.JsonContainer;
+import xjs.core.JsonObject;
+import xjs.core.JsonValue;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -187,7 +188,9 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
      * @return A list of objects representing these paths.
      */
     public static List<JsonPath> getAllPaths(final JsonObject json) {
-        return toPaths(json.getAllPaths());
+        final List<String> strings = json.getUnusedPaths();
+        strings.addAll(json.getUsedPaths());
+        return toPaths(strings);
     }
 
     /**
@@ -224,24 +227,24 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         }
     }
 
-    public JsonValue getLastContainer(final JsonObject json) {
-        return HjsonUtils.getLastContainer(json, this);
+    public JsonContainer getLastContainer(final JsonObject json) {
+        return XjsUtils.getLastContainer(json, this);
     }
 
     public Optional<JsonValue> getValue(final JsonObject json) {
-        return HjsonUtils.getValueFromPath(json, this);
+        return XjsUtils.getValueFromPath(json, this);
     }
 
     public void setValue(final JsonObject json, final @Nullable JsonValue value) {
-        HjsonUtils.setValueFromPath(json, this, value);
+        XjsUtils.setValueFromPath(json, this, value);
     }
 
     public JsonPath getClosestMatch(final JsonObject json) {
-        return HjsonUtils.getClosestMatch(json, this);
+        return XjsUtils.getClosestMatch(json, this);
     }
 
     public int getLastAvailable(final JsonObject json) {
-        return HjsonUtils.getLastAvailable(json, this);
+        return XjsUtils.getLastAvailable(json, this);
     }
 
     public JsonPathBuilder toBuilder() {

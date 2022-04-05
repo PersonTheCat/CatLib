@@ -45,17 +45,15 @@ public class SyntaxLinter {
     public static final Pattern BOOLEAN_VALUE = Pattern.compile("(true|false)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
     public static final Pattern NUMERIC_VALUE = Pattern.compile("(\\d+(\\.\\d+)?)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
     public static final Pattern NULL_VALUE = Pattern.compile("(null)(?=\\s*,?\\s*(?:$|#|//|/\\*))", Pattern.MULTILINE);
-    public static final Pattern MULTILINE_KEY = Pattern.compile("\\n\\s*(\\w+)\\s*(?:\\n|#|//|/\\*)(\\s*\\w+):[^{}]*}", Pattern.DOTALL);
     public static final Pattern BAD_CLOSER = Pattern.compile("[a-zA-Z]\\w*(?<!true|false|null)[\\t ]*[]}]", Pattern.MULTILINE);
 
     protected static final Style UNCLOSED_ERROR = error("catlib.errorText.unclosed");
     protected static final Style UNEXPECTED_ERROR = error("catlib.errorText.unclosed");
-    protected static final Style MULTILINE_KEY_ERROR = error("catlib.errorText.multilineKey");
     protected static final Style BAD_CLOSER_ERROR = error("catlib.errorText.badCloser");
 
     protected static final Style RANDOM_COLOR = null;
 
-    public static final Highlighter[] HJSON_HIGHLIGHTERS = {
+    public static final Highlighter[] XJS_HIGHLIGHTERS = {
         new RegexHighlighter(MULTILINE_DOC, color(ChatFormatting.DARK_GREEN).withItalic(true)),
         new RegexHighlighter(LINE_TODO, color(ChatFormatting.YELLOW)),
         new RegexHighlighter(LINE_DOC, color(ChatFormatting.DARK_GREEN).withItalic(true)),
@@ -65,12 +63,11 @@ public class SyntaxLinter {
         new RegexHighlighter(BOOLEAN_VALUE, color(ChatFormatting.GOLD)),
         new RegexHighlighter(NUMERIC_VALUE, color(ChatFormatting.LIGHT_PURPLE)),
         new RegexHighlighter(NULL_VALUE, color(ChatFormatting.RED)),
-        new RegexHighlighter(MULTILINE_KEY, MULTILINE_KEY_ERROR, true),
         new RegexHighlighter(BAD_CLOSER, BAD_CLOSER_ERROR),
         UnbalancedTokenHighlighter.INSTANCE
     };
 
-    public static final SyntaxLinter DEFAULT_LINTER = new SyntaxLinter(HJSON_HIGHLIGHTERS);
+    public static final SyntaxLinter DEFAULT_LINTER = new SyntaxLinter(XJS_HIGHLIGHTERS);
 
     private static final Style[] RANDOM_COLORS = {
         color(ChatFormatting.YELLOW),

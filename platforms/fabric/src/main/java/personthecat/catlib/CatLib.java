@@ -30,7 +30,7 @@ public class CatLib implements ModInitializer {
 
         EnumArgument.register();
         FileArgument.register();
-        HjsonArgument.register();
+        JsonArgument.register();
         PathArgument.register();
         RegistryArgument.register();
 

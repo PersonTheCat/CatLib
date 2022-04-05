@@ -8,7 +8,7 @@ import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
 import personthecat.catlib.config.CustomModConfig;
-import personthecat.catlib.config.HjsonFileConfig;
+import personthecat.catlib.config.XjsFileConfig;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.forge.McUtilsImpl;
@@ -17,7 +17,7 @@ public class LibConfigImpl {
 
     private static final ForgeConfigSpec.Builder COMMON = new ForgeConfigSpec.Builder();
     private static final String FILENAME = McUtilsImpl.getConfigDir() + "/" + LibReference.MOD_ID;
-    private static final HjsonFileConfig COMMON_CFG = new HjsonFileConfig(FILENAME + ".hjson");
+    private static final XjsFileConfig COMMON_CFG = new XjsFileConfig(FILENAME + ".xjs");
 
     static { COMMON.push("general"); }
 

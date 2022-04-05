@@ -18,19 +18,19 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
-import org.hjson.HjsonOptions;
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import personthecat.catlib.client.gui.SimpleTextPage;
-import personthecat.catlib.command.arguments.HjsonArgument;
+import personthecat.catlib.command.arguments.JsonArgument;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.io.FileIO;
-import personthecat.catlib.serialization.json.HjsonUtils;
+import personthecat.catlib.serialization.json.XjsUtils;
 import personthecat.catlib.serialization.json.JsonCombiner;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.PathUtils;
+import xjs.core.Json;
+import xjs.core.JsonObject;
+import xjs.core.JsonValue;
 
 import java.io.File;
 import java.util.List;
@@ -82,9 +82,6 @@ public class DefaultLibCommands {
         .applyFormat(ChatFormatting.UNDERLINE)
         .withBold(true);
 
-    /** Require braces for objects when executing the update command. */
-    private static final HjsonOptions NO_EMIT_BRACES = new HjsonOptions().setParseLegacyRoot(false);
-
     /** The number of backups before a warning is displayed. */
     private static final int BACKUP_COUNT_WARNING = 10;
 
@@ -105,7 +102,7 @@ public class DefaultLibCommands {
             createCh(mod, global),
             createCw(mod, global),
             createToJson(mod, global),
-            createToHjson(mod, global)
+            createToXjs(mod, global)
         );
     }
 
@@ -280,17 +277,17 @@ public class DefaultLibCommands {
     public static LibCommandBuilder createToJson(final ModDescriptor mod, final boolean global) {
         return LibCommandBuilder.named("tojson")
             .arguments("<file>")
-            .append("Converts an Hjson file to a regular JSON file.")
+            .append("Converts an XJS file to a regular JSON file.")
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                     .executes(utl.wrap(ctx -> convert(ctx, true)))));
     }
 
-    public static LibCommandBuilder createToHjson(final ModDescriptor mod, final boolean global) {
-        return LibCommandBuilder.named("tohjson")
+    public static LibCommandBuilder createToXjs(final ModDescriptor mod, final boolean global) {
+        return LibCommandBuilder.named("toxjs")
             .arguments("<file>")
-            .append("Converts an Hjson file to a regular JSON file.")
+            .append("Converts a regular JSON into an XJS file.")
             .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
@@ -298,16 +295,16 @@ public class DefaultLibCommands {
     }
 
     private static void display(final CommandContextWrapper wrapper) {
-        final HjsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
+        final JsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
         final JsonValue json = wrapper.getOptional(PATH_ARGUMENT, JsonPath.class)
-            .flatMap(result -> HjsonUtils.getValueFromPath(file.json.get(), result))
+            .flatMap(result -> XjsUtils.getValueFromPath(file.json.get(), result))
             .orElseGet(file.json);
 
         final String header = file.file.getParentFile().getName() + "/" + file.file.getName();
         final Component headerComponent =
             wrapper.createText(DISPLAY_HEADER, header).setStyle(DISPLAY_HEADER_STYLE);
 
-        final String details = json.toString(HjsonUtils.NO_CR);
+        final String details = json.toString(XjsUtils.NO_CR);
         final Component detailsComponent = wrapper.lintMessage(details);
 
         final long numLines = details.chars().filter(c -> c == '\n').count();
@@ -329,21 +326,21 @@ public class DefaultLibCommands {
     }
 
     private static void update(final CommandContextWrapper wrapper) {
-        final HjsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
+        final JsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
         final JsonPath path = wrapper.getJsonPath(PATH_ARGUMENT);
 
         // Read the old and new values.
         final String toEscaped = wrapper.getString(VALUE_ARGUMENT);
         final String toLiteral = unEscape(toEscaped);
-        final JsonValue toValue = JsonValue.readHjson(toLiteral, NO_EMIT_BRACES);
-        final JsonValue fromValue = HjsonUtils.getValueFromPath(file.json.get(), path)
-            .orElseGet(() -> JsonValue.valueOf(null));
-        final String fromLiteral = fromValue.toString(HjsonUtils.NO_CR);
+        final JsonValue toValue = Json.parse(toLiteral);
+        final JsonValue fromValue = XjsUtils.getValueFromPath(file.json.get(), path)
+            .orElseGet(() -> Json.value(null));
+        final String fromLiteral = fromValue.toString(XjsUtils.NO_CR);
         final String fromEscaped = escape(fromLiteral);
 
         // Write the new value.
-        HjsonUtils.setValueFromPath(file.json.get(), path, toValue.isNull() ? null : toValue);
-        HjsonUtils.writeJson(file.json.get(), file.file)
+        XjsUtils.setValueFromPath(file.json.get(), path, toValue.isNull() ? null : toValue);
+        XjsUtils.writeJson(file.json.get(), file.file)
             .expect("Error writing to file: {}", file.file.getName());
 
         // Send feedback.
@@ -453,9 +450,9 @@ public class DefaultLibCommands {
     }
 
     private static void combine(final CommandContextWrapper wrapper) {
-        final HjsonArgument.Result from = wrapper.getJsonFile(FILE_ARGUMENT);
+        final JsonArgument.Result from = wrapper.getJsonFile(FILE_ARGUMENT);
         final JsonPath path = wrapper.getJsonPath(PATH_ARGUMENT);
-        final HjsonArgument.Result to = wrapper.getJsonFile(TO_ARGUMENT);
+        final JsonArgument.Result to = wrapper.getJsonFile(TO_ARGUMENT);
 
         if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), to.file, true)) {
             wrapper.sendError("Created > {} backups. Consider cleaning these out.", BACKUP_COUNT_WARNING);
@@ -549,14 +546,14 @@ public class DefaultLibCommands {
             wrapper.sendError("File is already in the desired format.");
             return;
         }
-        final Optional<JsonObject> json = HjsonUtils.readJson(source);
+        final Optional<JsonObject> json = XjsUtils.readJson(source);
         if (json.isEmpty()) {
             wrapper.sendError("The file could not be read.");
             return;
         }
-        final String extension = toJson ? "json" : "hjson";
+        final String extension = toJson ? "json" : "xjs";
         final File converted = new File(source.getParentFile(), noExtension(source) + extension);
-        HjsonUtils.writeJson(json.get(), converted).expect("Error writing file.");
+        XjsUtils.writeJson(json.get(), converted).expect("Error writing file.");
 
         if (!PathUtils.isIn(wrapper.getBackupsFolder(), source)) {
             FileIO.backup(wrapper.getBackupsFolder(), source, false);

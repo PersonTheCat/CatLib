@@ -1,10 +1,9 @@
 package personthecat.catlib.serialization.json;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hjson.JsonArray;
-import org.hjson.JsonObject;
-import org.hjson.JsonValue;
 import org.jetbrains.annotations.Nullable;
+import xjs.core.*;
+import xjs.transformer.JsonCollectors;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -108,6 +107,10 @@ import static personthecat.catlib.util.Shorthand.f;
  */
 @SuppressWarnings("unused")
 public class JsonTransformer {
+
+    // Todo: JsonFilter is still WIP and may get removed
+    private static final JsonFilter<Float> FLOAT = JsonFilter.NUMBER.map(Number::floatValue);
+    private static final JsonFilter<Integer> INTEGER = JsonFilter.NUMBER.map(Number::intValue);
 
     private JsonTransformer() {}
 
@@ -969,7 +972,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver sort() {
-            return this.sort(new JsonObject.MemberComparator());
+            return this.sort(Comparator.comparing(JsonObject.Member::getKey));
         }
 
         /**
@@ -1127,7 +1130,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver remove(final String key, final Object value) {
-            return this.remove(key, JsonValue.valueOf(value));
+            return this.remove(key, Json.any(value));
         }
 
         /**
@@ -1167,7 +1170,7 @@ public class JsonTransformer {
          */
         public final ObjectResolver remove(final JsonObject json) {
             for (final JsonObject.Member m : json) {
-                this.remove(m.getName(), m.getValue());
+                this.remove(m.getKey(), m.getValue());
             }
             return this;
         }
@@ -1341,7 +1344,7 @@ public class JsonTransformer {
 
         private void forEachContainer(final JsonObject container, final int index, final Consumer<JsonObject> fn) {
             if (index < path.length) {
-                for (JsonObject o : HjsonUtils.getRegularObjects(container, path[index])) {
+                for (JsonObject o : XjsUtils.getRegularObjects(container, path[index])) {
                     forEachContainer(o, index + 1, fn);
                 }
             } else if (index == path.length) {
@@ -1373,7 +1376,7 @@ public class JsonTransformer {
                 fn.accept(json);
             }
             for (final JsonObject.Member member : json) {
-                final String name = member.getName();
+                final String name = member.getKey();
                 final JsonValue value = member.getValue();
                 if (value.isObject()) {
                     forEachInObject(name, value.asObject(), fn);
@@ -1506,12 +1509,12 @@ public class JsonTransformer {
         private void convert(final JsonObject json) {
             if (json.has(minKey) || json.has(maxKey)) {
                 if (minDefault instanceof Double || minDefault instanceof Float) {
-                    final float min = HjsonUtils.getFloat(json, minKey).orElse(minDefault.floatValue());
-                    final float max = HjsonUtils.getFloat(json, maxKey).orElse(maxDefault.floatValue());
+                    final float min = json.getOptional(minKey, FLOAT).orElse(minDefault.floatValue());
+                    final float max = json.getOptional(maxKey, FLOAT).orElse(maxDefault.floatValue());
                     json.set(newKey, getRange(min, max));
                 } else {
-                    final int min = HjsonUtils.getInt(json, minKey).orElse(minDefault.intValue());
-                    final int max = HjsonUtils.getInt(json, maxKey).orElse(maxDefault.intValue());
+                    final int min = json.getOptional(minKey, INTEGER).orElse(minDefault.intValue());
+                    final int max = json.getOptional(maxKey, INTEGER).orElse(maxDefault.intValue());
                     json.set(newKey, getRange(min, max));
                 }
                 json.remove(minKey);
@@ -1521,16 +1524,16 @@ public class JsonTransformer {
 
         private JsonValue getRange(final float min, final float max) {
             if (min == max) {
-                return JsonValue.valueOf(min);
+                return Json.value(min);
             }
-            return new JsonArray().add(min).add(max).setCondensed(true);
+            return new JsonArray().add(min).add(max).condense();
         }
 
         private JsonValue getRange(final int min, final int max) {
             if (min == max) {
-                return JsonValue.valueOf(min);
+                return Json.value(min);
             }
-            return new JsonArray().add(min).add(max).setCondensed(true);
+            return new JsonArray().add(min).add(max).condense();
         }
     }
 
@@ -1553,8 +1556,8 @@ public class JsonTransformer {
         private void markRemoved(JsonObject json) {
             final JsonValue value = json.get(key);
             if (value != null) {
-                json.setCondensed(false);
-                value.setEOLComment(f("Removed in {}. You can delete this field.", version));
+                json.setLineLength(1);
+                value.setComment(CommentType.EOL, f("Removed in {}. You can delete this field.", version));
             }
         }
     }
@@ -1661,8 +1664,8 @@ public class JsonTransformer {
         private void copy(final JsonObject json) {
             final JsonValue source = json.get(from);
             if (source != null) {
-                final JsonArray array = HjsonUtils.getArrayOrNew(json, to);
-                for (final JsonValue value : HjsonUtils.asOrToArray(source)) {
+                final JsonArray array = XjsUtils.getOrCreateArray(json, to);
+                for (final JsonValue value : source.intoArray()) {
                     array.add(value);
                 }
                 json.remove(from);
@@ -1700,7 +1703,7 @@ public class JsonTransformer {
                     container.add(key, toMove);
                 } else if (merge) {
                     if (get.isObject() && toMove.isObject()) {
-                        toMove.asObject().forEach(m -> get.asObject().set(m.getName(), m.getValue()));
+                        toMove.asObject().forEach(m -> get.asObject().set(m.getKey(), m.getValue()));
                     } else if (get.isArray() && toMove.isArray()) {
                         toMove.asArray().forEach(v -> get.asArray().add(v));
                     } else {
@@ -1841,15 +1844,8 @@ public class JsonTransformer {
         }
 
         private void sort(final JsonObject json) {
-            final List<JsonObject.Member> members = new ArrayList<>();
-            for (final JsonObject.Member member : json) {
-                members.add(member);
-            }
-            members.sort(comparator);
-            json.clear();
-            for (final JsonObject.Member member : members) {
-                json.add(member.getName(), member.getValue());
-            }
+            final JsonObject sorted = json.stream().sorted(comparator).collect(JsonCollectors.member());
+            json.clear().addAll(sorted);
         }
     }
 
@@ -1869,7 +1865,7 @@ public class JsonTransformer {
         }
 
         private void setDefaults(final JsonObject json) {
-            HjsonUtils.setRecursivelyIfAbsent(json, this.defaults);
+            XjsUtils.setRecursivelyIfAbsent(json, this.defaults);
         }
     }
 
