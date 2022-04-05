@@ -1,14 +1,14 @@
 package personthecat.catlib.event.registry;
 
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
+import org.jetbrains.annotations.ApiStatus;
 import personthecat.catlib.event.LibEvent;
 import personthecat.catlib.exception.MissingOverrideException;
 import personthecat.catlib.exception.RegistryLookupException;
-import personthecat.overwritevalidator.annotations.OverwriteTarget;
-import personthecat.overwritevalidator.annotations.PlatformMustOverwrite;
 
-@OverwriteTarget(required = true)
 public class RegistryAddedEvent {
 
     /**
@@ -33,7 +33,7 @@ public class RegistryAddedEvent {
      * @param <T> The type of object in the registry.
      * @return A callback registrar for this registry.
      */
-    @PlatformMustOverwrite
+    @ExpectPlatform
     public static <T> LibEvent<RegistryAddedCallback<T>> get(final ResourceKey<Registry<T>> key) {
         throw new MissingOverrideException();
     }
@@ -54,7 +54,7 @@ public class RegistryAddedEvent {
      * @param f   The callback to fire in for every element in the registry.
      * @param <T> The type of object in the registry.
      */
-    @PlatformMustOverwrite
+    @ExpectPlatform
     public static <T> void withRetroactive(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         throw new MissingOverrideException();
     }
@@ -74,7 +74,7 @@ public class RegistryAddedEvent {
      * @param f   The callback to fire in for every element in the registry.
      * @param <T> The type of object in the registry.
      */
-    @PlatformMustOverwrite
+    @ExpectPlatform
     public static <T> void withDynamic(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         throw new MissingOverrideException();
     }
@@ -90,8 +90,19 @@ public class RegistryAddedEvent {
      * @param f   The callback to fire in for every element in the registry.
      * @param <T> The type of object in the registry.
      */
-    @PlatformMustOverwrite
+    @ExpectPlatform
     public static <T> void exhaustive(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
+        throw new MissingOverrideException();
+    }
+
+    /**
+     * Runs any platform-specific setup required on {@link RegistryAccessEvent}.
+     *
+     * @param access The dynamic registries after data packs are loaded.
+     */
+    @ExpectPlatform
+    @ApiStatus.Internal
+    public static void onRegistryAccess(final RegistryAccess access) {
         throw new MissingOverrideException();
     }
 }

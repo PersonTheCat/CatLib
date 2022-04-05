@@ -1,44 +1,41 @@
-package personthecat.catlib.config;
+package personthecat.catlib.config.fabric;
 
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
-import personthecat.catlib.data.Lazy;
+import personthecat.catlib.config.HjsonConfigSerializer;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
-import personthecat.overwritevalidator.annotations.InheritMissingMembers;
-import personthecat.overwritevalidator.annotations.Overwrite;
-import personthecat.overwritevalidator.annotations.OverwriteClass;
 
-@OverwriteClass
-@InheritMissingMembers
 @Config(name = LibReference.MOD_ID)
-public class LibConfig implements ConfigData {
+public class LibConfigImpl implements ConfigData {
 
     General general = new General();
 
-    private static final Lazy<LibConfig> CONFIG =
-        Lazy.of(() -> AutoConfig.getConfigHolder(LibConfig.class).getConfig());
+    private static final LibConfigImpl CONFIG;
 
-    @Overwrite
+    public static void register() {}
+
     public static boolean enableGlobalLibCommands() {
-        return CONFIG.get().general.enableGlobalLibCommands;
+        return CONFIG.general.enableGlobalLibCommands;
     }
 
-    @Overwrite
     public static Severity errorLevel() {
-        return CONFIG.get().general.errorLevel;
+        return CONFIG.general.errorLevel;
     }
 
-    @Overwrite
     public static boolean wrapText() {
-        return CONFIG.get().general.wrapText;
+        return CONFIG.general.wrapText;
     }
 
-    @Overwrite
     public static int displayLength() {
-        return CONFIG.get().general.displayLength;
+        return CONFIG.general.displayLength;
+    }
+
+    static {
+        AutoConfig.register(LibConfigImpl.class, HjsonConfigSerializer::new);
+        CONFIG = AutoConfig.getConfigHolder(LibConfigImpl.class).getConfig();
     }
 
     private static class General {

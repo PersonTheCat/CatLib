@@ -5,6 +5,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.world.BiomeGenerationSettingsBuilder;
 import org.jetbrains.annotations.ApiStatus;
+import personthecat.catlib.event.world.forge.FeatureModificationContextImpl;
 import personthecat.catlib.mixin.BiomeGenerationSettingsAccessor;
 import personthecat.catlib.mixin.BiomeGenerationSettingsBuilderAccessor;
 
@@ -17,7 +18,7 @@ public class FeatureModificationHook {
     @SuppressWarnings("ConstantConditions")
     public static void onRegistryAccess(final RegistryAccess holder) {
         if (!FeatureModificationEvent.EVENT.isEmpty()) {
-            final Consumer<FeatureModificationContext> event = FeatureModificationEvent.EVENT.invoker();
+            final Consumer<FeatureModificationContextImpl> event = FeatureModificationEvent.EVENT.invoker();
             final RegistrySet registries = new RegistrySet(holder);
             final Set<ResourceLocation> modifiedBiomes = ((RegistryAccessTracker) holder).getModifiedBiomes();
 
@@ -26,7 +27,7 @@ public class FeatureModificationHook {
                     return; // Don't double modify;
                 }
                 final BiomeGenerationSettingsBuilder builder = new BiomeGenerationSettingsBuilder(biome.getGenerationSettings());
-                event.accept(new FeatureModificationContext(biome, builder, registries));
+                event.accept(new FeatureModificationContextImpl(biome, builder, registries));
 
                 final BiomeGenerationSettingsAccessor settingsAccessor = (BiomeGenerationSettingsAccessor) biome.getGenerationSettings();
                 final BiomeGenerationSettingsBuilderAccessor builderAccessor = (BiomeGenerationSettingsBuilderAccessor) builder;

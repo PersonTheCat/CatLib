@@ -1,4 +1,4 @@
-package personthecat.catlib.event.world;
+package personthecat.catlib.event.world.fabric;
 
 import net.fabricmc.fabric.api.biome.v1.BiomeModificationContext;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
@@ -15,19 +15,16 @@ import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.feature.ConfiguredStructureFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import personthecat.catlib.event.world.FeatureModificationContext;
+import personthecat.catlib.event.world.RegistrySet;
 import personthecat.catlib.mixin.BiomeModificationContextAccessor;
-import personthecat.overwritevalidator.annotations.InheritMissingMembers;
-import personthecat.overwritevalidator.annotations.Overwrite;
-import personthecat.overwritevalidator.annotations.OverwriteClass;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-@OverwriteClass
-@InheritMissingMembers
-public class FeatureModificationContext {
+public class FeatureModificationContextImpl extends FeatureModificationContext {
 
     private final BiomeSelectionContext biome;
     private final BiomeModificationContext.GenerationSettingsContext modifications;
@@ -37,7 +34,7 @@ public class FeatureModificationContext {
     private final Registry<ConfiguredStructureFeature<?, ?>> structures;
     private final RegistryAccess registries;
 
-    public FeatureModificationContext(final BiomeSelectionContext biome, final BiomeModificationContext ctx) {
+    public FeatureModificationContextImpl(final BiomeSelectionContext biome, final BiomeModificationContext ctx) {
         final RegistrySet registries = new RegistrySet(((BiomeModificationContextAccessor) ctx).getRegistries());
         this.biome = biome;
         this.modifications = ctx.getGenerationSettings();
@@ -48,42 +45,42 @@ public class FeatureModificationContext {
         this.registries = registries.getRegistries();
     }
 
-    @Overwrite
+    @Override
     public Biome getBiome() {
         return this.biome.getBiome();
     }
 
-    @Overwrite
+    @Override
     public ResourceLocation getName() {
         return this.biome.getBiomeKey().location();
     }
 
-    @Overwrite
+    @Override
     public Registry<ConfiguredWorldCarver<?>> getCarverRegistry() {
         return this.carvers;
     }
 
-    @Overwrite
+    @Override
     public Registry<PlacedFeature> getFeatureRegistry() {
         return this.features;
     }
 
-    @Overwrite
+    @Override
     public Registry<ConfiguredStructureFeature<?, ?>> getStructureRegistry() {
         return this.structures;
     }
 
-    @Overwrite
+    @Override
     public RegistryAccess getRegistryAccess() {
         return this.registries;
     }
 
-    @Overwrite
+    @Override
     public Iterable<Holder<ConfiguredWorldCarver<?>>> getCarvers(final Carving step) {
         return this.generation.getCarvers(step);
     }
 
-    @Overwrite
+    @Override
     public HolderSet<PlacedFeature> getFeatures(final Decoration step) {
         final List<HolderSet<PlacedFeature>> features = this.generation.features();
         while (features.size() <= step.ordinal()) {
@@ -92,12 +89,12 @@ public class FeatureModificationContext {
         return this.generation.features().get(step.ordinal());
     }
 
-    @Overwrite
+    @Override
     public boolean removeCarver(final Carving step, final ResourceLocation id) {
         return this.modifications.removeCarver(step, ResourceKey.create(Registry.CONFIGURED_CARVER_REGISTRY, id));
     }
 
-    @Overwrite
+    @Override
     public boolean removeCarver(final Carving step, final Predicate<ConfiguredWorldCarver<?>> predicate) {
         for (final Map.Entry<ResourceKey<ConfiguredWorldCarver<?>>, ConfiguredWorldCarver<?>> entry : this.carvers.entrySet()) {
             if (predicate.test(entry.getValue())) {
@@ -107,12 +104,12 @@ public class FeatureModificationContext {
         return false;
     }
 
-    @Overwrite
+    @Override
     public boolean removeFeature(final Decoration step, final ResourceLocation id) {
         return this.modifications.removeFeature(step, ResourceKey.create(Registry.PLACED_FEATURE_REGISTRY, id));
     }
 
-    @Overwrite
+    @Override
     public boolean removeFeature(final Decoration step, final Predicate<PlacedFeature> predicate) {
          for (final Map.Entry<ResourceKey<PlacedFeature>, PlacedFeature> entry : this.features.entrySet()) {
              if (predicate.test(entry.getValue())) {
@@ -122,14 +119,14 @@ public class FeatureModificationContext {
          return false;
     }
 
-    @Overwrite
+    @Override
     public void addCarver(final Carving step, final ConfiguredWorldCarver<?> carver) {
         final ResourceKey<ConfiguredWorldCarver<?>> key = this.carvers.getResourceKey(carver)
             .orElseThrow(() -> new NullPointerException("Carvers must be registered prior to feature modification"));
         this.modifications.addCarver(step, key);
     }
 
-    @Overwrite
+    @Override
     public void addFeature(final Decoration step, final PlacedFeature feature) {
         final ResourceKey<PlacedFeature> key = this.features.getResourceKey(feature)
             .orElseThrow(() -> new NullPointerException("Features must be registered prior to feature modification"));

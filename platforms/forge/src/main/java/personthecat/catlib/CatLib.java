@@ -4,18 +4,20 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.catlib.command.*;
 import personthecat.catlib.command.arguments.*;
+import personthecat.catlib.command.forge.LibCommandRegistrarImpl;
 import personthecat.catlib.config.LibConfig;
+import personthecat.catlib.config.forge.LibConfigImpl;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.event.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
+import personthecat.catlib.event.registry.forge.RegistryAddedEventImpl;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.FeatureModificationHook;
 import personthecat.catlib.util.LibReference;
@@ -25,7 +27,7 @@ import personthecat.catlib.util.McUtils;
 public class CatLib {
 
     public CatLib() {
-        LibConfig.register(ModLoadingContext.get().getActiveContainer());
+        LibConfig.register();
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::initCommon);
         MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
     }
@@ -69,6 +71,6 @@ public class CatLib {
     }
 
     private void registerCommands(final RegisterCommandsEvent event) {
-        LibCommandRegistrar.copyInto(event.getDispatcher());
+        LibCommandRegistrarImpl.copyInto(event.getDispatcher());
     }
 }

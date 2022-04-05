@@ -53,9 +53,7 @@ public class BackupHelper {
         if (arr == null || arr.length == 0) return false;
         for (final File f : arr) {
             if (getNumber(f) >= count) {
-                if (!f.delete()) {
-                    throw Exceptions.resourceEx("Could not truncate backup: {}", f.getName());
-                }
+                FileIO.delete(f);
             }
         }
         return arr.length >= count;

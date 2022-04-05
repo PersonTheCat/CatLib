@@ -1,4 +1,4 @@
-package personthecat.catlib.util;
+package personthecat.catlib.util.forge;
 
 import lombok.experimental.UtilityClass;
 import net.minecraft.core.Registry;
@@ -15,29 +15,16 @@ import personthecat.catlib.event.registry.ForgeRegistryHandle;
 import personthecat.catlib.event.registry.MojangRegistryHandle;
 import personthecat.catlib.event.registry.RegistryHandle;
 import personthecat.catlib.exception.MissingElementException;
-import personthecat.catlib.exception.MissingOverrideException;
-import personthecat.overwritevalidator.annotations.Inherit;
-import personthecat.overwritevalidator.annotations.InheritMissingMembers;
-import personthecat.overwritevalidator.annotations.Overwrite;
-import personthecat.overwritevalidator.annotations.OverwriteClass;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @UtilityClass
-@OverwriteClass
-@InheritMissingMembers
-public class RegistryUtils {
+public class RegistryUtilsImpl {
 
     private static final Map<Class<?>, RegistryHandle<?>> REGISTRY_BY_TYPE = new ConcurrentHashMap<>();
 
-    @Inherit
-    public static <T> RegistryHandle<T> getHandle(final ResourceKey<Registry<T>> key) {
-        throw new MissingOverrideException();
-    }
-
-    @Overwrite
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<Registry<T>> key) {
         final IForgeRegistry<?> forgeRegistry = RegistryManager.ACTIVE.getRegistry(key.location());
@@ -56,7 +43,6 @@ public class RegistryUtils {
     }
 
     @NotNull
-    @Overwrite
     @SuppressWarnings("unchecked")
     public static <T> RegistryHandle<T> getByType(final Class<T> clazz) {
         return (RegistryHandle<T>) REGISTRY_BY_TYPE.computeIfAbsent(clazz, c -> {

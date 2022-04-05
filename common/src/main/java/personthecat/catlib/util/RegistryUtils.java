@@ -1,6 +1,7 @@
 package personthecat.catlib.util;
 
 import com.mojang.serialization.Lifecycle;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import lombok.experimental.UtilityClass;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
@@ -11,13 +12,10 @@ import personthecat.catlib.event.registry.RegistryHandle;
 import personthecat.catlib.exception.MissingElementException;
 import personthecat.catlib.exception.MissingOverrideException;
 import personthecat.catlib.exception.RegistryLookupException;
-import personthecat.overwritevalidator.annotations.OverwriteTarget;
-import personthecat.overwritevalidator.annotations.PlatformMustOverwrite;
 
 import java.util.Optional;
 
 @UtilityClass
-@OverwriteTarget(required = true)
 public class RegistryUtils {
 
     /**
@@ -46,7 +44,7 @@ public class RegistryUtils {
      * @param <T> The type of object contained within the registry.
      * @return A platform-agnostic representation of this registry, or else {@link Optional#empty}.
      */
-    @PlatformMustOverwrite
+    @ExpectPlatform
     public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<Registry<T>> key) {
         throw new MissingOverrideException();
     }
@@ -76,7 +74,7 @@ public class RegistryUtils {
      * @return A handle on the expected registry, guaranteed.
      */
     @NotNull
-    @PlatformMustOverwrite
+    @ExpectPlatform
     public static <T> RegistryHandle<T> getByType(final Class<T> clazz) {
         throw new MissingOverrideException();
     }

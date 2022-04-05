@@ -1,43 +1,39 @@
-package personthecat.catlib.event.registry;
+package personthecat.catlib.event.registry.fabric;
 
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import personthecat.catlib.event.LibEvent;
+import personthecat.catlib.event.registry.MojangRegistryHandle;
+import personthecat.catlib.event.registry.RegistryAddedCallback;
+import personthecat.catlib.event.registry.RegistryHandle;
 import personthecat.catlib.util.RegistryUtils;
-import personthecat.overwritevalidator.annotations.Overwrite;
-import personthecat.overwritevalidator.annotations.OverwriteClass;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@OverwriteClass
-public class RegistryAddedEvent {
+public class RegistryAddedEventImpl {
 
     private static final Map<ResourceKey<?>, LibEvent<RegistryAddedCallback<?>>> EVENT_MAP = new ConcurrentHashMap<>();
     private static final Map<ResourceKey<?>, LibEvent<RegistryAddedCallback<?>>> DYNAMIC_EVENT_MAP = new ConcurrentHashMap<>();
 
-    @Overwrite
     @SuppressWarnings("unchecked")
     public static <T> LibEvent<RegistryAddedCallback<T>> get(final ResourceKey<Registry<T>> key) {
         return (LibEvent<RegistryAddedCallback<T>>) (Object) EVENT_MAP.computeIfAbsent(key, k ->
             (LibEvent<RegistryAddedCallback<?>>) (Object) create(key));
     }
 
-    @Overwrite
     public static <T> void withRetroactive(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         get(key).register(f);
         runRetroactively(key, f);
     }
 
-    @Overwrite
     public static <T> void withDynamic(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         get(key).register(f);
         runDynamically(key, f);
     }
 
-    @Overwrite
     public static <T> void exhaustive(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         get(key).register(f);
         runRetroactively(key, f);
@@ -53,7 +49,6 @@ public class RegistryAddedEvent {
         });
     }
 
-    @SuppressWarnings("unchecked")
     private static <T> LibEvent<RegistryAddedCallback<T>> create(final ResourceKey<Registry<T>> key) {
         final RegistryHandle<T> handle = RegistryUtils.getHandle(key);
         final LibEvent<RegistryAddedCallback<T>> event = newEvent();
@@ -66,7 +61,6 @@ public class RegistryAddedEvent {
         return LibEvent.nonRecursive(callbacks -> (h, id, t) -> callbacks.forEach(c -> c.onRegistryAdded(h, id, t)));
     }
 
-    @SuppressWarnings("unchecked")
     private static <T> void runRetroactively(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         final RegistryHandle<T> handle = RegistryUtils.getHandle(key);
         handle.forEach((id, t) -> f.onRegistryAdded(handle, id, t));

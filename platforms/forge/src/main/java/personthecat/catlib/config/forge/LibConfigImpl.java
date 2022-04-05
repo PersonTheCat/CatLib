@@ -1,24 +1,22 @@
-package personthecat.catlib.config;
+package personthecat.catlib.config.forge;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.EnumValue;
 import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 import net.minecraftforge.fml.ModContainer;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
+import personthecat.catlib.config.CustomModConfig;
+import personthecat.catlib.config.HjsonFileConfig;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
-import personthecat.catlib.util.McUtils;
-import personthecat.overwritevalidator.annotations.InheritMissingMembers;
-import personthecat.overwritevalidator.annotations.Overwrite;
-import personthecat.overwritevalidator.annotations.OverwriteClass;
+import personthecat.catlib.util.forge.McUtilsImpl;
 
-@OverwriteClass
-@InheritMissingMembers
-public class LibConfig {
+public class LibConfigImpl {
 
     private static final ForgeConfigSpec.Builder COMMON = new ForgeConfigSpec.Builder();
-    private static final String FILENAME = McUtils.getConfigDir() + "/" + LibReference.MOD_ID;
+    private static final String FILENAME = McUtilsImpl.getConfigDir() + "/" + LibReference.MOD_ID;
     private static final HjsonFileConfig COMMON_CFG = new HjsonFileConfig(FILENAME + ".hjson");
 
     static { COMMON.push("general"); }
@@ -42,27 +40,24 @@ public class LibConfig {
 
     private static final ForgeConfigSpec COMMON_SPEC = COMMON.build();
 
-    @Overwrite
     public static boolean enableGlobalLibCommands() {
         return ENABLE_LIB_COMMANDS_VALUE.get();
     }
 
-    @Overwrite
     public static Severity errorLevel() {
         return ERROR_LEVEL_VALUE.get();
     }
 
-    @Overwrite
     public static boolean wrapText() {
         return WRAP_TEXT_VALUE.get();
     }
 
-    @Overwrite
     public static int displayLength() {
         return DISPLAY_LENGTH_VALUE.get();
     }
 
-    public static void register(final ModContainer ctx) {
+    public static void register() {
+        final ModContainer ctx = ModLoadingContext.get().getActiveContainer();
         ctx.addConfig(new CustomModConfig(ModConfig.Type.COMMON, COMMON_SPEC, ctx, COMMON_CFG));
     }
 }

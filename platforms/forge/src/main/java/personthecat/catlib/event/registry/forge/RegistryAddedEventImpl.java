@@ -1,24 +1,21 @@
-package personthecat.catlib.event.registry;
+package personthecat.catlib.event.registry.forge;
 
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import personthecat.catlib.event.LibEvent;
+import personthecat.catlib.event.registry.*;
 import personthecat.catlib.util.RegistryUtils;
-import personthecat.overwritevalidator.annotations.Overwrite;
-import personthecat.overwritevalidator.annotations.OverwriteClass;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
-@OverwriteClass
-public class RegistryAddedEvent {
+public class RegistryAddedEventImpl {
 
     private static final Map<ResourceKey<?>, LibEvent<RegistryAddedCallback<?>>> DYNAMIC_EVENT_MAP = new ConcurrentHashMap<>();
 
-    @Overwrite
     @SuppressWarnings("unchecked")
     public static <T> LibEvent<RegistryAddedCallback<T>> get(final ResourceKey<Registry<T>> key) {
         final RegistryHandle<T> handle = RegistryUtils.getHandle(key);
@@ -28,19 +25,16 @@ public class RegistryAddedEvent {
         return accessor.getRegistryAddedEvent();
     }
 
-    @Overwrite
     public static <T> void withRetroactive(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         get(key).register(f);
         runRetroactively(key, f);
     }
 
-    @Overwrite
     public static <T> void withDynamic(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         get(key).register(f);
         runDynamically(key, f);
     }
 
-    @Overwrite
     public static <T> void exhaustive(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         get(key).register(f);
         runRetroactively(key, f);

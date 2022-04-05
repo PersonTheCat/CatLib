@@ -1,6 +1,5 @@
 package personthecat.catlib;
 
-import me.shedaniel.autoconfig.AutoConfig;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.ModificationPhase;
@@ -11,7 +10,6 @@ import personthecat.catlib.command.CatLibCommands;
 import personthecat.catlib.command.CommandRegistrationContext;
 import personthecat.catlib.command.DefaultLibCommands;
 import personthecat.catlib.command.arguments.*;
-import personthecat.catlib.config.HjsonConfigSerializer;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.player.CommonPlayerEvent;
@@ -19,7 +17,7 @@ import personthecat.catlib.event.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
-import personthecat.catlib.event.world.FeatureModificationContext;
+import personthecat.catlib.event.world.fabric.FeatureModificationContextImpl;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
@@ -28,7 +26,7 @@ public class CatLib implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        AutoConfig.register(LibConfig.class, HjsonConfigSerializer::new);
+        LibConfig.register();
 
         EnumArgument.register();
         FileArgument.register();
@@ -68,7 +66,7 @@ public class CatLib implements ModInitializer {
     private void setupBiomeModificationHook() {
         BiomeModifications.create(new ResourceLocation(LibReference.MOD_ID, "biome_updates"))
             .add(ModificationPhase.REMOVALS, s -> true, (s, m) -> {
-                FeatureModificationEvent.EVENT.invoker().accept(new FeatureModificationContext(s, m));
+                FeatureModificationEvent.EVENT.invoker().accept(new FeatureModificationContextImpl(s, m));
             });
     }
 }
