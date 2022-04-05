@@ -2,21 +2,8 @@ package personthecat.catlib.util;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
-import it.unimi.dsi.fastutil.floats.FloatArrayList;
-import it.unimi.dsi.fastutil.floats.FloatList;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.structure.templatesystem.BlockRotProcessor;
-import net.minecraft.world.level.levelgen.structure.templatesystem.GravityProcessor;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.hjson.*;
 import org.jetbrains.annotations.Nullable;
@@ -36,18 +23,10 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.Optional.empty;
 import static personthecat.catlib.exception.Exceptions.jsonFormatEx;
-import static personthecat.catlib.exception.Exceptions.noBiomeNamed;
-import static personthecat.catlib.exception.Exceptions.noBiomeTypeNamed;
-import static personthecat.catlib.exception.Exceptions.noBlockNamed;
 import static personthecat.catlib.exception.Exceptions.unreachable;
-import static personthecat.catlib.util.McUtils.getBiome;
-import static personthecat.catlib.util.McUtils.getBiomes;
-import static personthecat.catlib.util.McUtils.getBiomeType;
-import static personthecat.catlib.util.McUtils.parseBlockState;
 import static personthecat.catlib.util.Shorthand.f;
 import static personthecat.catlib.util.Shorthand.full;
 import static personthecat.catlib.util.Shorthand.assertEnumConstant;
@@ -1014,40 +993,6 @@ public class HjsonUtils {
         return getValue(json, field).map(JsonValue::asInt);
     }
 
-    @Deprecated
-    public static Optional<Range> getRange(final JsonObject json, final String field) {
-        return getValue(json, field)
-            .map(HjsonUtils::asOrToArray)
-            .map(HjsonUtils::toIntArray)
-            .map(Shorthand::sort)
-            .map(HjsonUtils::toRange);
-    }
-
-    @Deprecated
-    private static Range toRange(final int[] range) {
-        if (range.length == 0) {
-            return EmptyRange.get();
-        }
-        return range.length == 1 ? new Range(range[0]) : new Range(range[0], range[range.length - 1]);
-    }
-
-    @Deprecated
-    public static Optional<FloatRange> getFloatRange(final JsonObject json, final String field) {
-        return getValue(json, field)
-            .map(HjsonUtils::asOrToArray)
-            .map(HjsonUtils::toFloatArray)
-            .map(Shorthand::sort)
-            .map(HjsonUtils::toFloatRange);
-    }
-
-    @Deprecated
-    private static FloatRange toFloatRange(float[] range) {
-        if (range.length == 0) {
-            return new FloatRange(0F);
-        }
-        return range.length == 1 ? new FloatRange(range[0]) : new FloatRange(range[0], range[range.length -1]);
-    }
-
     public static Optional<Float> getFloat(final JsonObject json, final String field) {
         return getValue(json, field).map(JsonValue::asFloat);
     }
@@ -1085,244 +1030,6 @@ public class HjsonUtils {
 
     public static Optional<JsonValue> getValue(final JsonObject json, final String field) {
         return Optional.ofNullable(json.get(field));
-    }
-
-    @Deprecated
-    public static Optional<IntList> getIntList(final JsonObject json, final String field) {
-        return getArray(json, field).map(HjsonUtils::toIntList);
-    }
-
-    @Deprecated
-    private static IntList toIntList(final JsonArray array) {
-        final IntList ints = new IntArrayList();
-        for (final JsonValue value : array) {
-            ints.add(value.asInt());
-        }
-        return ints;
-    }
-
-    @Deprecated
-    public static int[] toIntArray(final JsonArray array) {
-        final int[] ints = new  int[array.size()];
-        for (int i = 0; i < array.size(); i++) {
-            ints[i] = array.get(i).asInt();
-        }
-        return ints;
-    }
-
-    @Deprecated
-    public static Optional<FloatList> getFloatList(final JsonObject json, final String field) {
-        return getArray(json, field).map(HjsonUtils::toFloatList);
-    }
-
-    @Deprecated
-    private static FloatList toFloatList(final JsonArray array) {
-        final FloatList floats = new FloatArrayList();
-        for (final JsonValue value : array) {
-            floats.add(value.asFloat());
-        }
-        return floats;
-    }
-
-    @Deprecated
-    public static float[] toFloatArray(final JsonArray array) {
-        final float[] floats = new float[array.size()];
-        for (int i = 0; i < array.size(); i++) {
-            floats[i] = array.get(i).asFloat();
-        }
-        return floats;
-    }
-
-    @Deprecated
-    public static Optional<List<String>> getStringArray(final JsonObject json, final String field) {
-        return getValue(json, field).map(v -> toStringArray(asOrToArray(v)));
-    }
-
-    @Deprecated
-    public static List<String> toStringArray(JsonArray array) {
-        final List<String> strings = new ArrayList<>();
-        for (final JsonValue value : array) {
-            strings.add(value.asString());
-        }
-        return strings;
-    }
-
-    @Deprecated
-    public static Optional<ResourceLocation> getId(final JsonObject json, final String field) {
-        return getString(json, field).map(ResourceLocation::new);
-    }
-
-    @Deprecated
-    public static Optional<List<ResourceLocation>> getIds(final JsonObject json, final String field) {
-        return getArray(json, field).map(HjsonUtils::toIds);
-    }
-
-    @Deprecated
-    public static List<ResourceLocation> toIds(final JsonArray array) {
-        final List<ResourceLocation> ids = new ArrayList<>();
-        for (final JsonValue value : array) {
-            ids.add(new ResourceLocation(value.asString()));
-        }
-        return ids;
-    }
-
-    @Deprecated
-    public static Optional<BlockState> getState(final JsonObject json, final String field) {
-        return getString(json, field).map(id -> parseBlockState(id).orElseThrow(() -> noBlockNamed(id)));
-    }
-
-    @Deprecated
-    public static Optional<List<BlockState>> getStateList(final JsonObject json, final String field) {
-        return getStringArray(json, field).map(HjsonUtils::toStateList);
-    }
-
-    @Deprecated
-    private static List<BlockState> toStateList(final List<String> ids) {
-        return ids.stream().map(id -> parseBlockState(id).orElseThrow(() -> noBlockNamed(id)))
-            .collect(Collectors.toList());
-    }
-
-    @Deprecated
-    public static Optional<BlockPos> getPosition(JsonObject json, String field) {
-        return getArray(json, field).map(HjsonUtils::toPosition);
-    }
-
-    @Deprecated
-    public static Optional<List<BlockPos>> getPositionList(JsonObject json, String field) {
-        return getArray(json, field).map(HjsonUtils::toPositionList);
-    }
-
-    @Deprecated
-    public static BlockPos toPosition(final JsonArray coordinates) {
-        // Expect exactly 3 elements.
-        if (coordinates.size() != 3) {
-            throw jsonFormatEx("Relative coordinates must be specified in an array of 3 elements, e.g. [0, 0, 0].");
-        }
-        // Convert the array into a BlockPos object.
-        return new BlockPos(coordinates.get(0).asInt(), coordinates.get(1).asInt(), coordinates.get(2).asInt());
-    }
-
-    @Deprecated
-    private static List<BlockPos> toPositionList(final JsonArray positions) {
-        final List<BlockPos> list = new ArrayList<>();
-        for (JsonValue position : positions) {
-            if (position.isNumber()) {
-                return Collections.singletonList(toPosition(positions));
-            } else if (!position.isArray()) {
-                throw jsonFormatEx("Expected a list of positions, e.g. [[0, 0, 0], [1, 1, 1]].");
-            }
-            list.add(toPosition(position.asArray()));
-        }
-        return list;
-    }
-
-    @Deprecated
-    public static Optional<BiomePredicate> getBiomePredicate(final JsonObject json, final String field) {
-        return getObject(json, field).map(HjsonUtils::toBiomePredicate);
-    }
-
-    @Deprecated
-    public static BiomePredicate toBiomePredicate(final JsonValue json) {
-        final BiomePredicate.BiomePredicateBuilder builder = BiomePredicate.builder();
-
-        if (json.isObject()) {
-            final JsonObject o = json.asObject();
-            getIds(o, "names").ifPresent(builder::names);
-            getBiomeTypes(o, "types").ifPresent(builder::types);
-            getStringArray(o, "mods").ifPresent(builder::mods);
-            getBool(o, "blacklist").ifPresent(builder::blacklist);
-        } else {
-            builder.names(toIds(asOrToArray(json)));
-        }
-
-        return builder.build();
-    }
-
-    @Deprecated
-    public static Optional<List<Biome>> getBiomeList(final JsonObject json, final String field) {
-        return getValue(json, field).map(HjsonUtils::toBiomes);
-    }
-
-    @Deprecated
-    public static List<Biome> toBiomes(final JsonValue json) {
-        final List<Biome> biomes = new ArrayList<>();
-
-        if (json.isObject()) {
-            final JsonObject o = json.asObject();
-            // Get biomes by registry name.
-            getIds(o, "names").ifPresent(a -> {
-                for (final ResourceLocation id : a) {
-                    biomes.add(getBiome(id).orElseThrow(() -> noBiomeNamed(id.toString())));
-                }
-            });
-            // Get biomes by type.
-            getBiomeTypes(o, "types").ifPresent(a -> {
-                for (final Biome.BiomeCategory t : a) {
-                    biomes.addAll(getBiomes(t));
-                }
-            });
-        } else {
-            for (final ResourceLocation id : toIds(asOrToArray(json))) {
-                biomes.add(getBiome(id).orElseThrow(() -> noBiomeNamed(id.toString())));
-            }
-        }
-        return biomes;
-    }
-
-    @Deprecated
-    public static Optional<List<Biome.BiomeCategory>> getBiomeTypes(final JsonObject json, final String field) {
-        return getArray(json, field).map(HjsonUtils::toBiomeTypes);
-    }
-
-    @Deprecated
-    public static List<Biome.BiomeCategory> toBiomeTypes(final JsonArray array) {
-        List<Biome.BiomeCategory> types = new ArrayList<>();
-        for (final JsonValue value : array) {
-            final String s = value.asString();
-            types.add(getBiomeType(s).orElseThrow(() -> noBiomeTypeNamed(s)));
-        }
-        return types;
-    }
-
-    @Deprecated
-    public static Optional<DimensionPredicate> getDimensionPredicate(final JsonObject json, final String field) {
-        return getValue(json, field).map(HjsonUtils::toDimensions);
-    }
-
-    @Deprecated
-    public static DimensionPredicate toDimensions(final JsonValue json) {
-        final DimensionPredicate.DimensionPredicateBuilder builder = DimensionPredicate.builder();
-
-        if (json.isObject()) {
-            final JsonObject o = json.asObject();
-            getIds(o, "names").ifPresent(builder::names);
-            getStringArray(o, "mods").ifPresent(builder::mods);
-        } else {
-            builder.names(toIds(asOrToArray(json)));
-        }
-        return builder.build();
-    }
-
-    @Deprecated
-    public static StructurePlaceSettings getPlacementSettings(final JsonObject json) {
-        final StructurePlaceSettings settings = new StructurePlaceSettings();
-        getFloat(json, "integrity").ifPresent(i -> settings.addProcessor(new BlockRotProcessor(i)));
-        getEnumValue(json, "mirror", Mirror.class).ifPresent(settings::setMirror);
-        getBool(json, "ignoreEntities").ifPresent(settings::setIgnoreEntities);
-        getBool(json, "hasGravity").ifPresent(b ->
-            settings.addProcessor(new GravityProcessor(Heightmap.Types.MOTION_BLOCKING, 1)));
-
-        return settings;
-    }
-
-    @Deprecated
-    public static <T extends Enum<T>> Optional<T> getEnumValue(final JsonObject json, final String field, final Class<T> clazz) {
-        return getString(json, field).map(s -> assertEnumConstant(s, clazz));
-    }
-
-    @Deprecated
-    public static <T extends Enum<T>> Optional<List<T>> getEnumList(final JsonObject json, final String field, final Class<T> clazz) {
-        return getValue(json, field).map(v -> toEnumArray(asOrToArray(v), clazz));
     }
 
     private static <T extends Enum<T>> List<T> toEnumArray(final JsonArray array, final Class<T> clazz) {

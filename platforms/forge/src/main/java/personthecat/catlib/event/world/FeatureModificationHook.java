@@ -18,7 +18,7 @@ public class FeatureModificationHook {
     @SuppressWarnings("ConstantConditions")
     public static void onRegistryAccess(final RegistryAccess holder) {
         if (!FeatureModificationEvent.EVENT.isEmpty()) {
-            final Consumer<FeatureModificationContextImpl> event = FeatureModificationEvent.EVENT.invoker();
+            final Consumer<FeatureModificationContext> event = FeatureModificationEvent.EVENT.invoker();
             final RegistrySet registries = new RegistrySet(holder);
             final Set<ResourceLocation> modifiedBiomes = ((RegistryAccessTracker) holder).getModifiedBiomes();
 
@@ -33,7 +33,6 @@ public class FeatureModificationHook {
                 final BiomeGenerationSettingsBuilderAccessor builderAccessor = (BiomeGenerationSettingsBuilderAccessor) builder;
                 settingsAccessor.setCarvers(builderAccessor.getCarvers());
                 settingsAccessor.setFeatures(builderAccessor.getFeatures());
-//                settingsAccessor.setStructureStarts(builder.getStructures());
             });
         }
     }
