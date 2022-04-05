@@ -5,7 +5,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import org.junit.jupiter.api.Test;
-import personthecat.catlib.util.JsonTransformer.ObjectResolver;
+import personthecat.catlib.serialization.json.JsonTransformer;
+import personthecat.catlib.serialization.json.JsonTransformer.ObjectResolver;
 
 import java.util.List;
 
@@ -47,9 +48,9 @@ public final class JsonTransformerTest {
     }
 
     @Test
-    public void recursiveResolver_resolvesPathsRecursively() {
+    public void scanningResolver_resolvesPathsRecursively() {
         final JsonObject subject = parse("a:[{z:{z:{z:{}}}},{z:{}}],z:{}");
-        final List<JsonObject> resolved = JsonTransformer.recursive("z").collect(subject);
+        final List<JsonObject> resolved = JsonTransformer.scan("z").collect(subject);
 
         assertEquals(5, resolved.size());
     }

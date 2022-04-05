@@ -10,8 +10,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.*;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.ModDescriptor;
-import personthecat.catlib.data.MultiValueHashMap;
-import personthecat.catlib.data.MultiValueMap;
+import personthecat.catlib.data.collections.MultiValueHashMap;
+import personthecat.catlib.data.collections.MultiValueMap;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.exception.FormattedException;
 

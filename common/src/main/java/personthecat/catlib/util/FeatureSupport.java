@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
-import personthecat.catlib.event.registry.DynamicRegistries;
+import personthecat.catlib.registry.DynamicRegistries;
 
 import java.util.Map.Entry;
 import java.util.stream.Stream;

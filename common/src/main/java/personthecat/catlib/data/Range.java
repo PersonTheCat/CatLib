@@ -7,7 +7,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
-import personthecat.catlib.serialization.CodecUtils;
+import personthecat.catlib.serialization.codec.CodecUtils;
 
 import java.util.*;
 

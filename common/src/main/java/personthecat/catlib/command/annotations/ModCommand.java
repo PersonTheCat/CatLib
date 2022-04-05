@@ -4,7 +4,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import personthecat.catlib.command.CommandContextWrapper;
 import personthecat.catlib.command.CommandSide;
 import personthecat.catlib.command.CommandType;
-import personthecat.catlib.util.SyntaxLinter;
+import personthecat.catlib.linting.SyntaxLinter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -5,7 +5,7 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.floats.FloatLists;
 import lombok.EqualsAndHashCode;
-import personthecat.catlib.serialization.CodecUtils;
+import personthecat.catlib.serialization.codec.CodecUtils;
 
 import java.util.List;
 import java.util.Random;

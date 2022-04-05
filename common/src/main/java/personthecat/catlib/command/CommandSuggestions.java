@@ -10,8 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import org.hjson.JsonValue;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
-import personthecat.catlib.data.JsonPath;
-import personthecat.catlib.util.HjsonUtils;
+import personthecat.catlib.serialization.json.JsonPath;
+import personthecat.catlib.serialization.json.HjsonUtils;
 import personthecat.catlib.util.LibReference;
 
 import java.util.concurrent.CompletableFuture;

@@ -24,11 +24,11 @@ import org.hjson.JsonValue;
 import personthecat.catlib.client.gui.SimpleTextPage;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.config.LibConfig;
-import personthecat.catlib.data.JsonPath;
+import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.io.FileIO;
-import personthecat.catlib.util.HjsonUtils;
-import personthecat.catlib.util.JsonCombiner;
+import personthecat.catlib.serialization.json.HjsonUtils;
+import personthecat.catlib.serialization.json.JsonCombiner;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.PathUtils;
 

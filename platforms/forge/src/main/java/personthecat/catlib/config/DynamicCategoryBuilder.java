@@ -3,8 +3,8 @@ package personthecat.catlib.config;
 import com.electronwill.nightconfig.core.Config;
 import lombok.AllArgsConstructor;
 import net.minecraftforge.common.ForgeConfigSpec;
-import personthecat.catlib.data.MultiValueHashMap;
-import personthecat.catlib.data.MultiValueMap;
+import personthecat.catlib.data.collections.MultiValueHashMap;
+import personthecat.catlib.data.collections.MultiValueMap;
 
 import java.util.*;
 import java.util.stream.Collectors;

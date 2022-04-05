@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static personthecat.catlib.util.HjsonUtils.readJson;
-import static personthecat.catlib.util.HjsonUtils.writeJson;
+import static personthecat.catlib.serialization.json.HjsonUtils.readJson;
+import static personthecat.catlib.serialization.json.HjsonUtils.writeJson;
 
 /**
  * Contains the necessary procedures for handling a Forge-friendly configuration

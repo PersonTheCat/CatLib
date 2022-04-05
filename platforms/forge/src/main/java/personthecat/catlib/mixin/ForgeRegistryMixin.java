@@ -12,10 +12,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import personthecat.catlib.event.LibEvent;
-import personthecat.catlib.event.registry.ForgeRegistryHandle;
+import personthecat.catlib.registry.ForgeRegistryHandle;
 import personthecat.catlib.event.registry.RegistryAddedCallback;
 import personthecat.catlib.event.registry.RegistryEventAccessor;
-import personthecat.catlib.event.registry.RegistryHandle;
+import personthecat.catlib.registry.RegistryHandle;
 
 @Mixin(ForgeRegistry.class)
 public abstract class ForgeRegistryMixin<T extends IForgeRegistryEntry<T>> implements RegistryEventAccessor<T> {

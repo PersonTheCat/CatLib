@@ -5,10 +5,10 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import personthecat.catlib.event.LibEvent;
-import personthecat.catlib.event.registry.MojangRegistryHandle;
+import personthecat.catlib.registry.MojangRegistryHandle;
 import personthecat.catlib.event.registry.RegistryAddedCallback;
-import personthecat.catlib.event.registry.RegistryHandle;
-import personthecat.catlib.util.RegistryUtils;
+import personthecat.catlib.registry.RegistryHandle;
+import personthecat.catlib.registry.RegistryUtils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

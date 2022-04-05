@@ -4,7 +4,7 @@ import dev.architectury.injectables.annotations.ExpectPlatform;
 import lombok.experimental.UtilityClass;
 import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.NotNull;
-import personthecat.catlib.event.registry.DynamicRegistries;
+import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.exception.BiomeTypeNotFoundException;
 import personthecat.catlib.exception.MissingOverrideException;
 import personthecat.catlib.mixin.BiomeAccessor;

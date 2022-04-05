@@ -11,7 +11,7 @@ import personthecat.catlib.client.gui.ErrorDetailPage;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibStringUtils;
-import personthecat.catlib.util.StackTraceLinter;
+import personthecat.catlib.linting.StackTraceLinter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

@@ -11,8 +11,10 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.event.registry.DynamicRegistries;
-import personthecat.catlib.serialization.CodecUtils;
+import personthecat.catlib.data.collections.InfinitySet;
+import personthecat.catlib.data.collections.InvertibleSet;
+import personthecat.catlib.registry.DynamicRegistries;
+import personthecat.catlib.serialization.codec.CodecUtils;
 import personthecat.catlib.util.DimInjector;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -22,10 +24,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import static personthecat.catlib.serialization.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.CodecUtils.simpleEither;
-import static personthecat.catlib.serialization.FieldDescriptor.defaulted;
-import static personthecat.catlib.serialization.FieldDescriptor.defaultGet;
+import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
+import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.defaultGet;
 
 @Getter
 @Builder

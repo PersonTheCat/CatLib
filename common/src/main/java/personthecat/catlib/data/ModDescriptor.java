@@ -5,7 +5,7 @@ import lombok.Value;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.util.McUtils;
-import personthecat.catlib.util.SyntaxLinter;
+import personthecat.catlib.linting.SyntaxLinter;
 import personthecat.catlib.versioning.Version;
 
 import java.io.File;

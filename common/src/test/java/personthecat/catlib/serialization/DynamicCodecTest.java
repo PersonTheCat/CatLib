@@ -7,15 +7,16 @@ import org.hjson.JsonValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
+import personthecat.catlib.serialization.codec.HjsonOps;
 
 import java.util.Collections;
 
-import static personthecat.catlib.serialization.CodecUtils.dynamic;
-import static personthecat.catlib.serialization.DynamicField.extend;
-import static personthecat.catlib.serialization.DynamicField.field;
-import static personthecat.catlib.serialization.DynamicField.nullable;
-import static personthecat.catlib.serialization.DynamicField.recursive;
-import static personthecat.catlib.serialization.DynamicField.required;
+import static personthecat.catlib.serialization.codec.CodecUtils.dynamic;
+import static personthecat.catlib.serialization.codec.DynamicField.extend;
+import static personthecat.catlib.serialization.codec.DynamicField.field;
+import static personthecat.catlib.serialization.codec.DynamicField.nullable;
+import static personthecat.catlib.serialization.codec.DynamicField.recursive;
+import static personthecat.catlib.serialization.codec.DynamicField.required;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

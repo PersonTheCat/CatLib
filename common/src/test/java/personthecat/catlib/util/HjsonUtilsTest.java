@@ -3,7 +3,8 @@ package personthecat.catlib.util;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import org.junit.jupiter.api.Test;
-import personthecat.catlib.data.JsonPath;
+import personthecat.catlib.serialization.json.HjsonUtils;
+import personthecat.catlib.serialization.json.JsonPath;
 
 import java.util.Arrays;
 import java.util.Collection;

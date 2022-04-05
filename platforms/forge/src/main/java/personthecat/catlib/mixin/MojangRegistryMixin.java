@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import personthecat.catlib.event.LibEvent;
-import personthecat.catlib.event.registry.MojangRegistryHandle;
+import personthecat.catlib.registry.MojangRegistryHandle;
 import personthecat.catlib.event.registry.RegistryAddedCallback;
 import personthecat.catlib.event.registry.RegistryEventAccessor;
 

@@ -13,7 +13,7 @@ import personthecat.catlib.command.arguments.*;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.player.CommonPlayerEvent;
-import personthecat.catlib.event.registry.DynamicRegistries;
+import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;

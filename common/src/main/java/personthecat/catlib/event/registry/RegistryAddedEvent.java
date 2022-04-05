@@ -8,6 +8,7 @@ import org.jetbrains.annotations.ApiStatus;
 import personthecat.catlib.event.LibEvent;
 import personthecat.catlib.exception.MissingOverrideException;
 import personthecat.catlib.exception.RegistryLookupException;
+import personthecat.catlib.registry.RegistryHandle;
 
 public class RegistryAddedEvent {
 

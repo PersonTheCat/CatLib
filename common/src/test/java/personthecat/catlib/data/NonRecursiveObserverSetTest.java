@@ -1,6 +1,8 @@
 package personthecat.catlib.data;
 
 import org.junit.jupiter.api.Test;
+import personthecat.catlib.data.collections.NonRecursiveObserverSet;
+import personthecat.catlib.data.collections.ObserverSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;

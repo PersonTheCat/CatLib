@@ -10,7 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import org.jetbrains.annotations.NotNull;
-import personthecat.catlib.data.MultiValueMap;
+import personthecat.catlib.data.collections.MultiValueMap;
 
 import java.util.ArrayList;
 import java.util.List;

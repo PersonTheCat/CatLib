@@ -5,6 +5,7 @@ import org.hjson.JsonLiteral;
 import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import org.junit.jupiter.api.Test;
+import personthecat.catlib.serialization.json.JsonPath;
 
 import java.util.Arrays;
 import java.util.List;

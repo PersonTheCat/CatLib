@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static personthecat.catlib.exception.Exceptions.cmdSyntax;
-import static personthecat.catlib.util.HjsonUtils.readSuppressing;
+import static personthecat.catlib.serialization.json.HjsonUtils.readSuppressing;
 import static personthecat.catlib.util.PathUtils.extension;
 
 @SuppressWarnings("unused")

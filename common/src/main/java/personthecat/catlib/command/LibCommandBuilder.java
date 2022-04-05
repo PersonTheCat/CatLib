@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.McUtils;
-import personthecat.catlib.util.SyntaxLinter;
+import personthecat.catlib.linting.SyntaxLinter;
 import personthecat.fresult.Result;
 
 import javax.annotation.ParametersAreNonnullByDefault;

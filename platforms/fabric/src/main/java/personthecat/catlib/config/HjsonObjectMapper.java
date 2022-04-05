@@ -7,7 +7,7 @@ import org.hjson.JsonObject;
 import org.hjson.JsonValue;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.exception.NonSerializableObjectException;
-import personthecat.catlib.util.HjsonUtils;
+import personthecat.catlib.serialization.json.HjsonUtils;
 import personthecat.catlib.util.Shorthand;
 
 import java.io.IOException;

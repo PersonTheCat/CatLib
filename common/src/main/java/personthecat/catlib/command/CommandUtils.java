@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.HjsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
-import personthecat.catlib.data.JsonPath;
+import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.McUtils;
 

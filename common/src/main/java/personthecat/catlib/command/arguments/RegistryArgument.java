@@ -12,10 +12,10 @@ import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import net.minecraft.resources.ResourceLocation;
 import personthecat.catlib.data.Lazy;
-import personthecat.catlib.event.registry.CommonRegistries;
-import personthecat.catlib.event.registry.RegistryHandle;
+import personthecat.catlib.registry.CommonRegistries;
+import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.util.LibReference;
-import personthecat.catlib.util.RegistryUtils;
+import personthecat.catlib.registry.RegistryUtils;
 
 import java.util.List;
 import java.util.Map;

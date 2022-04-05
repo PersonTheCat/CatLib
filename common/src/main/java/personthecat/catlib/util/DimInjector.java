@@ -6,7 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.event.registry.DynamicRegistries;
+import personthecat.catlib.registry.DynamicRegistries;
 
 import java.util.Collections;
 import java.util.Set;

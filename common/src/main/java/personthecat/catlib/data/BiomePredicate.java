@@ -7,19 +7,23 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.event.registry.DynamicRegistries;
+import personthecat.catlib.data.collections.InfinitySet;
+import personthecat.catlib.data.collections.InvertibleSet;
+import personthecat.catlib.data.collections.MultiValueHashMap;
+import personthecat.catlib.data.collections.MultiValueMap;
+import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.mixin.BiomeAccessor;
-import personthecat.catlib.serialization.CodecUtils;
+import personthecat.catlib.serialization.codec.CodecUtils;
 import personthecat.catlib.util.McUtils;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.*;
 import java.util.function.Predicate;
 
-import static personthecat.catlib.serialization.CodecUtils.codecOf;
-import static personthecat.catlib.serialization.CodecUtils.simpleEither;
-import static personthecat.catlib.serialization.FieldDescriptor.defaultGet;
-import static personthecat.catlib.serialization.FieldDescriptor.defaulted;
+import static personthecat.catlib.serialization.codec.CodecUtils.codecOf;
+import static personthecat.catlib.serialization.codec.CodecUtils.simpleEither;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.defaultGet;
+import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 
 @Getter
 @Builder

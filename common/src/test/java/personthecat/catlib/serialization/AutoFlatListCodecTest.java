@@ -6,6 +6,8 @@ import org.hjson.JsonArray;
 import org.hjson.JsonValue;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
+import personthecat.catlib.serialization.codec.AutoFlatListCodec;
+import personthecat.catlib.serialization.codec.HjsonOps;
 
 import java.util.Arrays;
 import java.util.Collections;

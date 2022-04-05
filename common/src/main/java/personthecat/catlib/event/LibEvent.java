@@ -1,8 +1,8 @@
 package personthecat.catlib.event;
 
-import personthecat.catlib.data.NonRecursiveObserverSet;
-import personthecat.catlib.data.ObserverSet;
-import personthecat.catlib.data.SimpleObserverSet;
+import personthecat.catlib.data.collections.NonRecursiveObserverSet;
+import personthecat.catlib.data.collections.ObserverSet;
+import personthecat.catlib.data.collections.SimpleObserverSet;
 
 import java.util.function.Function;
 

@@ -6,23 +6,18 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import com.mojang.datafixers.util.Either;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import org.hjson.JsonObject;
 import personthecat.catlib.command.CommandUtils;
-import personthecat.catlib.data.JsonPath;
-import personthecat.catlib.util.HjsonUtils;
+import personthecat.catlib.serialization.json.JsonPath;
+import personthecat.catlib.serialization.json.HjsonUtils;
 import personthecat.catlib.util.LibReference;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-
-import static personthecat.catlib.exception.Exceptions.cmdSyntax;
 
 @SuppressWarnings("unused")
 public class PathArgument implements ArgumentType<JsonPath> {

@@ -6,7 +6,9 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import personthecat.catlib.event.LibEvent;
 import personthecat.catlib.event.registry.*;
-import personthecat.catlib.util.RegistryUtils;
+import personthecat.catlib.registry.ForgeRegistryHandle;
+import personthecat.catlib.registry.RegistryHandle;
+import personthecat.catlib.registry.RegistryUtils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,10 +20,10 @@ public class RegistryAddedEventImpl {
 
     @SuppressWarnings("unchecked")
     public static <T> LibEvent<RegistryAddedCallback<T>> get(final ResourceKey<Registry<T>> key) {
-        final RegistryHandle<T> handle = RegistryUtils.getHandle(key);
+        final personthecat.catlib.registry.RegistryHandle<T> handle = RegistryUtils.getHandle(key);
         final RegistryEventAccessor<T> accessor = handle instanceof ForgeRegistryHandle
             ? (RegistryEventAccessor<T>) ((ForgeRegistryHandle<?>) handle).getRegistry()
-            : (RegistryEventAccessor<T>) ((MojangRegistryHandle<?>) handle).getRegistry();
+            : (RegistryEventAccessor<T>) ((personthecat.catlib.registry.MojangRegistryHandle<?>) handle).getRegistry();
         return accessor.getRegistryAddedEvent();
     }
 
@@ -44,7 +46,7 @@ public class RegistryAddedEventImpl {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void onRegistryAccess(final RegistryAccess registries) {
         DYNAMIC_EVENT_MAP.forEach((key, event) -> {
-            final RegistryHandle<Object> registry = new MojangRegistryHandle(registries.registryOrThrow((ResourceKey) key));
+            final personthecat.catlib.registry.RegistryHandle<Object> registry = new personthecat.catlib.registry.MojangRegistryHandle(registries.registryOrThrow((ResourceKey) key));
             registry.forEach((id, t) -> ((LibEvent<RegistryAddedCallback<Object>>) (Object) event).invoker()
                 .onRegistryAdded(registry, id, t));
         });
