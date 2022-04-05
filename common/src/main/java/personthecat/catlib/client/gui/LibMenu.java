@@ -49,7 +49,6 @@ public class LibMenu extends Screen {
     }
 
     @Override
-//    @SuppressWarnings("deprecation")
     public void render(@NotNull PoseStack stack, int x, int y, float partial) {
         this.renderBackground(stack);
 
@@ -62,8 +61,6 @@ public class LibMenu extends Screen {
         this.renderDetails(stack, x, y, partial);
 
         RenderSystem.enableTexture();
-//        RenderSystem.shadeModel(7424);
-//        RenderSystem.enableAlphaTest();
         RenderSystem.disableBlend();
     }
 
@@ -103,8 +100,6 @@ public class LibMenu extends Screen {
         RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
-//        RenderSystem.disableAlphaTest();
-//        RenderSystem.shadeModel(7425);
         RenderSystem.disableTexture();
 
         builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);

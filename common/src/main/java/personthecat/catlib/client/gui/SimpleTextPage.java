@@ -54,7 +54,6 @@ public class SimpleTextPage extends LibMenu {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     protected void renderMenu(PoseStack stack, int x, int y, float partial) {
         final int h = this.font.lineHeight + 1;
         int t = Y0 + 6;
@@ -63,7 +62,6 @@ public class SimpleTextPage extends LibMenu {
 
             RenderSystem.enableBlend();
             this.font.drawShadow(stack, chars, this.left, t, 0xFFFFFF);
-//            RenderSystem.disableAlphaTest();
             RenderSystem.disableBlend();
 
             if ((t += h) > this.height - Y1) {
