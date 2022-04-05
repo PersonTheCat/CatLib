@@ -8,6 +8,7 @@ import org.jetbrains.annotations.ApiStatus;
 import personthecat.catlib.event.world.forge.FeatureModificationContextImpl;
 import personthecat.catlib.mixin.BiomeGenerationSettingsAccessor;
 import personthecat.catlib.mixin.BiomeGenerationSettingsBuilderAccessor;
+import personthecat.catlib.registry.RegistrySet;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -19,7 +20,7 @@ public class FeatureModificationHook {
     public static void onRegistryAccess(final RegistryAccess holder) {
         if (!FeatureModificationEvent.EVENT.isEmpty()) {
             final Consumer<FeatureModificationContext> event = FeatureModificationEvent.EVENT.invoker();
-            final RegistrySet registries = new RegistrySet(holder);
+            final personthecat.catlib.registry.RegistrySet registries = new RegistrySet(holder);
             final Set<ResourceLocation> modifiedBiomes = ((RegistryAccessTracker) holder).getModifiedBiomes();
 
             holder.registryOrThrow(Registry.BIOME_REGISTRY).forEach(biome -> {

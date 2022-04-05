@@ -13,7 +13,7 @@ import net.minecraft.world.level.levelgen.feature.ConfiguredStructureFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraftforge.common.world.BiomeGenerationSettingsBuilder;
 import personthecat.catlib.event.world.FeatureModificationContext;
-import personthecat.catlib.event.world.RegistrySet;
+import personthecat.catlib.registry.RegistrySet;
 
 import java.util.List;
 import java.util.function.Predicate;

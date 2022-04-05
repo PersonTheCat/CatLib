@@ -9,8 +9,7 @@
     "ForgeRegistryMixin",
     "MinecraftServerMixin",
     "MojangRegistryMixin",
-    "RegistryAccessMixin",
-    "RegistryReadOpsMixin"
+    "RegistryAccessMixin"
   ],
   "injectors": {
     "defaultRequire": 1

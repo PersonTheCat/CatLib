@@ -16,7 +16,7 @@ import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.feature.ConfiguredStructureFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import personthecat.catlib.event.world.FeatureModificationContext;
-import personthecat.catlib.event.world.RegistrySet;
+import personthecat.catlib.registry.RegistrySet;
 import personthecat.catlib.mixin.BiomeModificationContextAccessor;
 
 import java.util.Collections;

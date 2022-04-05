@@ -196,21 +196,6 @@ public class HjsonUtils {
     }
 
     /**
-     * Deprecated version of {@link #writeSuppressing(Codec, Object)} with a typo.
-     *
-     * @deprecated Use {@link #writeSuppressing(Codec, Object)}.
-     * @param codec The codec responsible for the serialization.
-     * @param a The data being serialized.
-     * @param <A> The type of data being serialized.
-     * @return The serialized data, or else {@link Optional#empty}.
-     */
-    @Deprecated
-    @SuppressWarnings("SpellCheckingInspection")
-    public static <A> Optional<JsonValue> writeSupressing(final Codec<A> codec, final A a) {
-        return writeSuppressing(codec, a);
-    }
-
-    /**
      * Writes the input value as JSON, returning {@link Optional#empty} if any errors
      * occur in the process.
      *
@@ -530,21 +515,6 @@ public class HjsonUtils {
             generated.prependInteriorComment("Skipped " + lastIndex + " ~ " + (index - 1));
         }
         return generated;
-    }
-
-    /**
-     * Returns a "shallow" clone of the given value. In other words, if this
-     * value is an object or array, a new container will be constructed. If
-     * it is any other value, the <em>reference</em> will be copied, meaning
-     * the original comments will share the same address in memory.
-     *
-     * @deprecated Use {@link JsonValue#shallowCopy} (method moved into Hjson)
-     * @param value The value being copied.
-     * @return A shallow copy of the original value.
-     */
-    @Deprecated
-    public static JsonValue shallowCopy(final JsonValue value) {
-        return value.shallowCopy();
     }
 
     /**

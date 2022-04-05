@@ -26,7 +26,7 @@ class HjsonObjectMapper {
         final T t = Utils.constructUnsafely(clazz);
 
         final Optional<JsonObject> read = HjsonUtils.readJson(p.toFile());
-        if (!read.isPresent()) return t;
+        if (read.isEmpty()) return t;
         final JsonObject json = read.get();
         if (json.isEmpty()) return t;
 

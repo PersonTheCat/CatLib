@@ -95,17 +95,6 @@ public class SyntaxLinter {
     }
 
     /**
-     * Deprecated constructor for backwards compatibility.
-     *
-     * @param targets The original target style mappings.
-     * @deprecated Use {@link SyntaxLinter#SyntaxLinter(Highlighter[])}
-     */
-    @Deprecated
-    public SyntaxLinter(final Target[] targets) {
-        this.highlighters = Highlighter.fromTargets(targets);
-    }
-
-    /**
      * Generates a formatted text component containing the input text the requested
      * highlights.
      *
@@ -176,20 +165,6 @@ public class SyntaxLinter {
     }
 
     /**
-     * A map of {@link Pattern} {@code ->} {@link Style}.
-     */
-    @Deprecated
-    public static class Target {
-        final Pattern pattern;
-        final Style style;
-
-        public Target(final Pattern pattern, final Style style) {
-            this.pattern = pattern;
-            this.style = style;
-        }
-    }
-
-    /**
      * This interface represents any object storing instructions for how to
      * highlight a body of text. It does not contain the text, nor should it
      * contain any mutable data for tracking the text. Rather, it should
@@ -197,16 +172,6 @@ public class SyntaxLinter {
      */
     public interface Highlighter {
         Instance get(String text);
-
-        @Deprecated
-        static Highlighter[] fromTargets(final Target[] targets) {
-            final Highlighter[] highlighters = new Highlighter[targets.length];
-            for (int i = 0; i < targets.length; i++) {
-                final Target target = targets[i];
-                highlighters[i] = new RegexHighlighter(target.pattern, target.style);
-            }
-            return highlighters;
-        }
 
         /**
          * This interface represents an object which tracks and applies
@@ -235,7 +200,7 @@ public class SyntaxLinter {
         final Style style;
         final boolean useGroups;
 
-        public RegexHighlighter(@RegEx final String pattern, final Style style) {
+        public RegexHighlighter(final @RegEx String pattern, final Style style) {
             this(Pattern.compile(pattern, Pattern.MULTILINE), style);
         }
 
@@ -359,32 +324,31 @@ public class SyntaxLinter {
                         continue;
                     }
                     switch (this.text.charAt(i)) {
-                        case '\\':
-                            esc = true;
-                            break;
-                        case '{':
+                        case '\\' -> esc = true;
+                        case '{' -> {
                             if (this.findClosing(i, braces, '{', '}') < 0) {
                                 this.unclosed.set(i);
                             }
                             braces++;
-                            break;
-                        case '[':
+                        }
+                        case '[' -> {
                             if (this.findClosing(i, brackets, '[', ']') < 0) {
                                 this.unclosed.set(i);
                             }
                             brackets++;
-                            break;
-                        case '}':
+                        }
+                        case '}' -> {
                             if (braces <= 0) {
                                 this.unexpected.set(i);
                             }
                             braces--;
-                            break;
-                        case ']':
+                        }
+                        case ']' -> {
                             if (brackets <= 0) {
                                 this.unexpected.set(i);
                             }
                             brackets--;
+                        }
                     }
                     i++;
                 }

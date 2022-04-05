@@ -192,7 +192,6 @@ public class LibErrorContext {
         }
     }
 
-
     @Environment(EnvType.CLIENT)
     private static void broadcastErrors() {
         final LocalPlayer player = Minecraft.getInstance().player;

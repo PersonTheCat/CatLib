@@ -1,4 +1,4 @@
-package personthecat.catlib.event.world;
+package personthecat.catlib.registry;
 
 import lombok.Getter;
 import net.minecraft.core.Registry;
