@@ -1865,7 +1865,7 @@ public class JsonTransformer {
         }
 
         private void setDefaults(final JsonObject json) {
-            XjsUtils.setRecursivelyIfAbsent(json, this.defaults);
+            json.setDefaults(this.defaults);
         }
     }
 

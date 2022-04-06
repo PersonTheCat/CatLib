@@ -304,7 +304,7 @@ public class DefaultLibCommands {
         final Component headerComponent =
             wrapper.createText(DISPLAY_HEADER, header).setStyle(DISPLAY_HEADER_STYLE);
 
-        final String details = json.toString(XjsUtils.NO_CR);
+        final String details = json.toString(XjsUtils.noCr());
         final Component detailsComponent = wrapper.lintMessage(details);
 
         final long numLines = details.chars().filter(c -> c == '\n').count();
@@ -335,7 +335,7 @@ public class DefaultLibCommands {
         final JsonValue toValue = Json.parse(toLiteral);
         final JsonValue fromValue = XjsUtils.getValueFromPath(file.json.get(), path)
             .orElseGet(() -> Json.value(null));
-        final String fromLiteral = fromValue.toString(XjsUtils.NO_CR);
+        final String fromLiteral = fromValue.toString(XjsUtils.noCr());
         final String fromEscaped = escape(fromLiteral);
 
         // Write the new value.

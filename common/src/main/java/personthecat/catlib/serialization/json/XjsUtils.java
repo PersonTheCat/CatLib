@@ -13,6 +13,7 @@ import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 import xjs.core.*;
 import xjs.exception.SyntaxException;
+import xjs.serialization.JsonSerializationContext;
 import xjs.serialization.writer.JsonWriterOptions;
 
 import javax.annotation.CheckReturnValue;
@@ -46,36 +47,6 @@ import static personthecat.catlib.util.Shorthand.nullable;
 @SuppressWarnings("unused")
 @ParametersAreNonnullByDefault
 public class XjsUtils {
-
-    /**
-     * The settings to be used when outputting JsonObjects to the disk.
-     * <p>
-     *   In a future version of this library, these settings will be configurable
-     *   in a common config file which applies to all mods.
-     * </p>
-     */
-    public static final JsonWriterOptions FORMATTER =
-        new JsonWriterOptions()
-            .setAllowCondense(true)
-            .setTabSize(2)
-            .setBracesSameLine(true)
-            .setOutputComments(true);
-
-    /**
-     * A second formatter and otherwise identical variant of {@link #FORMATTER} which
-     * does not output <code>\r</code> characters.
-     *
-     * <p>
-     *   This formatter is <b>ideal for use with commands</b> for a cleaner chat output.
-     * </p>
-     */
-    public static final JsonWriterOptions NO_CR =
-        new JsonWriterOptions()
-            .setAllowCondense(true)
-            .setTabSize(2)
-            .setBracesSameLine(true)
-            .setOutputComments(true)
-            .setEol("\n");
 
     /**
      * Reads a {@link JsonObject} from the given file.
@@ -226,16 +197,28 @@ public class XjsUtils {
      * <p>
      *   The output of this expression will be applied to the original file.
      * </p>
+     * @deprecated Use {@link Json#view}
      * @param file the file containing JSON data.
      * @param f Instructions for updating the JSON data.
      * @return A result which potentially contains an error.
      */
+    @Deprecated
     @CheckReturnValue
     public static Result<Void, IOException> updateJson(final File file, final Consumer<JsonObject> f) {
         // If #readJson returned empty, it's because the file didn't exist.
         final JsonObject json = readJson(file).orElseGet(JsonObject::new);
         f.accept(json);
         return writeJson(json, file);
+    }
+
+    /**
+     * Gets the default formatting options, guaranteed to never print a `\r` character,
+     * which Minecraft does not print correctly in-game.
+     *
+     * @return The default formatting options without <code>\r</code>.
+     */
+    public static JsonWriterOptions noCr() {
+        return JsonSerializationContext.getDefaultFormatting().setEol("\n");
     }
 
     /**
@@ -509,95 +492,6 @@ public class XjsUtils {
             generated.prependComment(CommentType.INTERIOR, "Skipped " + lastIndex + " ~ " + (index - 1));
         }
         return generated;
-    }
-
-    /**
-     * Updates every value in the given JSON with values from <code>toSet</code>. Any
-     * value not present in the original JSON will be copied from <code>toSet</code>.
-     * <p>
-     *   For example, when given the following JSON inputs:
-     * </p><pre>
-     *   {
-     *     "a": 1,
-     *     "b": {}
-     *   }
-     * </pre><p>
-     *   and
-     * </p><pre>
-     *   {
-     *     "a": 2,
-     *     "b": {
-     *        "c": 3
-     *     },
-     *     "d": 4
-     *   }
-     * </pre><p>
-     *   The <b>original JSON</b> will be updated as follows:
-     * </p><pre>
-     *   {
-     *     "a": 1,
-     *     "b": {
-     *       "c": 3
-     *     }
-     *     "d": 4
-     *   }
-     * </pre>
-     *
-     * @param json The target JSON being modified.
-     * @param toSet The data being copied into the target.
-     */
-    public static void setRecursivelyIfAbsent(final JsonObject json, final JsonObject toSet) {
-        for (final JsonObject.Member member : toSet) {
-            final JsonValue get = json.get(member.getKey());
-            if (get != null) {
-                if (get.isObject() && member.getValue().isObject()) {
-                    setRecursivelyIfAbsent(get.asObject(), member.getValue().asObject());
-                } else if (get.isArray() && member.getValue().isArray()) {
-                    setRecursivelyIfAbsent(get.asArray(), member.getValue().asArray());
-                }
-            } else if (!member.getValue().isNull()) {
-                json.set(member.getKey(), member.getValue());
-            }
-        }
-    }
-
-    /**
-     * Variant of {@link #setRecursivelyIfAbsent(JsonObject, JsonObject)} accepting arrays.
-     *
-     * @param json The target JSON being modified.
-     * @param toSet The data being copied into the target.
-     */
-    public static void setRecursivelyIfAbsent(final JsonArray json, final JsonArray toSet) {
-        final int len = Math.min(json.size(), toSet.size());
-        int i = 0;
-        while (i < len) {
-            final JsonValue get = json.get(i);
-            final JsonValue set = toSet.get(i);
-            if (get.isObject() && set.isObject()) {
-                setRecursivelyIfAbsent(get.asObject(), set.asObject());
-            } else if (get.isArray() && set.isArray()) {
-                setRecursivelyIfAbsent(get.asArray(), set.asArray());
-            }
-            i++;
-        }
-        while (i < toSet.size()) {
-            json.add(toSet.get(i));
-            i++;
-        }
-    }
-
-    /**
-     * Variant of {@link #setRecursivelyIfAbsent(JsonObject, JsonObject)} accepting unknown types.
-     *
-     * @param json The target JSON being modified.
-     * @param toSet The data being copied into the target.
-     */
-    public static void setRecursivelyIfAbsent(final JsonValue json, final JsonValue toSet) {
-        if (json.isObject() && toSet.isObject()) {
-            setRecursivelyIfAbsent(json.asObject(), toSet.asObject());
-        } else if (json.isArray() && toSet.isArray()) {
-            setRecursivelyIfAbsent(json.asArray(), toSet.asArray());
-        }
     }
 
     /**
@@ -879,6 +773,13 @@ public class XjsUtils {
         }
     }
 
+    /**
+     * Gets an array for the given key, or else adds a new array into the object and returns it.
+     *
+     * @param json  The JSON object being inspected.
+     * @param field The name of the array being queried.
+     * @return The existing or new array.
+     */
     public static JsonArray getOrCreateArray(final JsonObject json, final String field) {
         if (json.get(field) instanceof JsonArray array) {
             return array;
@@ -888,6 +789,13 @@ public class XjsUtils {
         return array;
     }
 
+    /**
+     * Gets and object for the given key, or else adds a new object into the container and returns it.
+     *
+     * @param json  The JSON object being inspected.
+     * @param field The name of the object being queried.
+     * @return The existing or new object.
+     */
     public static JsonObject getOrCreateObject(final JsonObject json, final String field) {
         if (json.get(field) instanceof JsonObject object) {
             return object;
