@@ -20,7 +20,7 @@ public class FeatureModificationHook {
     public static void onRegistryAccess(final RegistryAccess holder) {
         if (!FeatureModificationEvent.EVENT.isEmpty()) {
             final Consumer<FeatureModificationContext> event = FeatureModificationEvent.EVENT.invoker();
-            final personthecat.catlib.registry.RegistrySet registries = new RegistrySet(holder);
+            final RegistrySet registries = new RegistrySet(holder);
             final Set<ResourceLocation> modifiedBiomes = ((RegistryAccessTracker) holder).getModifiedBiomes();
 
             holder.registryOrThrow(Registry.BIOME_REGISTRY).forEach(biome -> {
