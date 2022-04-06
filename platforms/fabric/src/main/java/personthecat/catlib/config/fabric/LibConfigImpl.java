@@ -7,11 +7,17 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 import personthecat.catlib.config.XjsConfigSerializer;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
+import xjs.serialization.JsonSerializationContext;
+import xjs.serialization.writer.JsonWriterOptions;
 
 @Config(name = LibReference.MOD_ID)
 public class LibConfigImpl implements ConfigData {
 
+    @Comment("Miscellaneous settings to configure CatLib and its dependents.")
     General general = new General();
+
+    @Comment("Configures the style of any JSON, XJS, or other data file.")
+    Formatting formatting = new Formatting();
 
     private static final LibConfigImpl CONFIG;
 
@@ -37,6 +43,22 @@ public class LibConfigImpl implements ConfigData {
         AutoConfig.register(LibConfigImpl.class, XjsConfigSerializer::new);
         CONFIG = AutoConfig.getConfigHolder(LibConfigImpl.class).getConfig();
     }
+    
+    @Override
+    public void validatePostLoad() {
+        final JsonWriterOptions configured =
+            new JsonWriterOptions()
+                .setTabSize(this.formatting.tabSize)
+                .setMinSpacing(this.formatting.minSpacing)
+                .setMaxSpacing(this.formatting.maxSpacing)
+                .setLineSpacing(this.formatting.defaultSpacing)
+                .setAllowCondense(this.formatting.allowCondense)
+                .setOmitRootBraces(this.formatting.omitRootBraces)
+                .setOmitQuotes(this.formatting.omitQuotes)
+                .setOutputComments(this.formatting.outputComments)
+                .setBracesSameLine(this.formatting.bracesSameLine);
+        JsonSerializationContext.setDefaultFormatting(configured);
+    }
 
     private static class General {
 
@@ -52,5 +74,35 @@ public class LibConfigImpl implements ConfigData {
         @Comment("How many lines for the display command to render in the chat before opening a\n" +
                  "dedicated screen. Set this to 0 to always open a screen.")
         int displayLength = 35;
+    }
+
+    private static class Formatting {
+
+        @Comment("The number of spaces representing a single tab indent.")
+        int tabSize = 2;
+
+        @Comment("The minimum number of lines between values, ignoring single-line containers.")
+        int minSpacing = 1;
+
+        @Comment("The maximum number of lines between values.")
+        int maxSpacing = 3;
+
+        @Comment("The default number of lines between values (for generated configs).")
+        int defaultSpacing = 2;
+
+        @Comment("Whether to tolerate single-line containers.")
+        boolean allowCondense = true;
+
+        @Comment("Whether to skip printing root braces for any supported format (XJS, Hjson).")
+        boolean omitRootBraces = true;
+
+        @Comment("Whether to automatically remove quotes from generated configs (XJS, Hjson).")
+        boolean omitQuotes = true;
+
+        @Comment("Whether to print comments (this comment will be deleted).")
+        boolean outputComments = true;
+
+        @Comment("Whether to open containers on the same line (Java style instead of C# style).")
+        boolean bracesSameLine = true;
     }
 }

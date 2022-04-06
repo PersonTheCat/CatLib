@@ -12,6 +12,8 @@ import personthecat.catlib.config.XjsFileConfig;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.forge.McUtilsImpl;
+import xjs.serialization.JsonSerializationContext;
+import xjs.serialization.writer.JsonWriterOptions;
 
 public class LibConfigImpl {
 
@@ -19,24 +21,58 @@ public class LibConfigImpl {
     private static final String FILENAME = McUtilsImpl.getConfigDir() + "/" + LibReference.MOD_ID;
     private static final XjsFileConfig COMMON_CFG = new XjsFileConfig(FILENAME + ".xjs");
 
-    static { COMMON.push("general"); }
-
     private static final BooleanValue ENABLE_LIB_COMMANDS_VALUE = COMMON
         .comment("Whether to enable this library's provided commands as regular commands.")
-        .define("enableGlobalLibCommands", false);
+        .define("general.enableGlobalLibCommands", false);
 
     private static final EnumValue<Severity> ERROR_LEVEL_VALUE = COMMON
         .comment("The minimum error level to display in the error menu.")
-        .defineEnum("errorLevel", Severity.ERROR);
+        .defineEnum("general.errorLevel", Severity.ERROR);
 
     private static final BooleanValue WRAP_TEXT_VALUE = COMMON
         .comment("Whether to wrap text on the error detail page. Hit W or space to toggle in game.")
-        .define("wrapText", true);
+        .define("general.wrapText", true);
 
     private static final IntValue DISPLAY_LENGTH_VALUE = COMMON
         .comment("How many lines for the display command to render in the chat before opening a",
                  "dedicated screen. Set this to 0 to always open a screen.")
-        .defineInRange("displayLength", 35, 0, 100);
+        .defineInRange("general.displayLength", 35, 0, 100);
+
+    private static final IntValue TAB_SIZE_VALUE = COMMON
+        .comment("The number of spaces representing a single tab indent.")
+        .defineInRange("formatting.tabSize", 2, 0, Integer.MAX_VALUE);
+
+    private static final IntValue MIN_SPACING_VALUE = COMMON
+        .comment("The minimum number of lines between values, ignoring single-line containers.")
+        .defineInRange("formatting.minSpacing", 1, 1, Integer.MAX_VALUE);
+
+    private static final IntValue MAX_SPACING_VALUE = COMMON
+        .comment("The maximum number of lines between values.")
+        .defineInRange("formatting.maxSpacing", 3, 1, Integer.MAX_VALUE);
+
+    private static final IntValue DEFAULT_SPACING_VALUE = COMMON
+        .comment("The default number of lines between values (for generated configs.")
+        .defineInRange("formatting.defaultSpacing", 2, 1, Integer.MAX_VALUE);
+
+    private static final BooleanValue ALLOW_CONDENSE_VALUE = COMMON
+        .comment("Whether to tolerate single-line containers")
+        .define("formatting.allowCondense", true);
+
+    private static final BooleanValue OMIT_ROOT_BRACES_VALUE = COMMON
+        .comment("Whether to skip printing root braces for any supported format (XJS, Hjson).")
+        .define("formatting.omitRootBraces", true);
+
+    private static final BooleanValue OMIT_QUOTES_VALUE = COMMON
+        .comment("Whether to automatically remove quotes from generated configs (XJS, Hjson).")
+        .define("formatting.omitQuotes", true);
+
+    private static final BooleanValue OUTPUT_COMMENTS_VALUE = COMMON
+        .comment("Whether to print comments (this comment will be deleted).")
+        .define("formatting.outputComments", true);
+
+    private static final BooleanValue BRACES_SAME_LINE_VALUE = COMMON
+        .comment("Whether to open containers on the same line (Java style instead of C# style).")
+        .define("formatting.bracesSameLine", true);
 
     private static final ForgeConfigSpec COMMON_SPEC = COMMON.build();
 
@@ -58,6 +94,20 @@ public class LibConfigImpl {
 
     public static void register() {
         final ModContainer ctx = ModLoadingContext.get().getActiveContainer();
+        JsonSerializationContext.setDefaultFormatting(getFormatting());
         ctx.addConfig(new CustomModConfig(ModConfig.Type.COMMON, COMMON_SPEC, ctx, COMMON_CFG));
+    }
+
+    private static JsonWriterOptions getFormatting() {
+        return new JsonWriterOptions()
+            .setTabSize(TAB_SIZE_VALUE.get())
+            .setMinSpacing(MIN_SPACING_VALUE.get())
+            .setMaxSpacing(MAX_SPACING_VALUE.get())
+            .setLineSpacing(DEFAULT_SPACING_VALUE.get())
+            .setAllowCondense(ALLOW_CONDENSE_VALUE.get())
+            .setOmitRootBraces(OMIT_ROOT_BRACES_VALUE.get())
+            .setOmitQuotes(OMIT_ROOT_BRACES_VALUE.get())
+            .setOutputComments(OUTPUT_COMMENTS_VALUE.get())
+            .setBracesSameLine(BRACES_SAME_LINE_VALUE.get());
     }
 }
