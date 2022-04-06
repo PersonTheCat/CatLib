@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import personthecat.catlib.serialization.json.XjsUtils;
 import personthecat.catlib.serialization.json.JsonPath;
 import xjs.core.Json;
-import xjs.core.JsonFormat;
 import xjs.core.JsonObject;
 
 import java.util.Arrays;
@@ -53,9 +52,7 @@ public final class XjsUtilsTest {
             "  // Skipped g           \n" +
             "}                        \n");
 
-        assertEquals(
-            expected.unformatted().toString(JsonFormat.XJS_FORMATTED),
-            XjsUtils.filter(json, keep).unformatted().toString(JsonFormat.XJS_FORMATTED));
+        assertEquals(expected, XjsUtils.filter(json, keep));
     }
 
     @Test
@@ -99,9 +96,7 @@ public final class XjsUtilsTest {
             "  // Skipped g           \n" +
             "}                        \n");
 
-        assertEquals(
-            expected.unformatted().toString(JsonFormat.XJS_FORMATTED),
-            XjsUtils.filter(json, keep).unformatted().toString(JsonFormat.XJS_FORMATTED));
+        assertEquals(expected, XjsUtils.filter(json, keep));
     }
 
     private static JsonObject parse(final String json) {
