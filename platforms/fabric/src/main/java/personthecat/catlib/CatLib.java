@@ -1,8 +1,10 @@
 package personthecat.catlib;
 
+import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.ModificationPhase;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.resources.ResourceLocation;
@@ -12,6 +14,7 @@ import personthecat.catlib.command.DefaultLibCommands;
 import personthecat.catlib.command.arguments.*;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.event.error.LibErrorContext;
+import personthecat.catlib.event.lifecycle.ClientTickEvent;
 import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
@@ -22,7 +25,7 @@ import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
 
-public class CatLib implements ModInitializer {
+public class CatLib implements ModInitializer, ClientModInitializer {
 
     @Override
     public void onInitialize() {
@@ -61,6 +64,11 @@ public class CatLib implements ModInitializer {
             CommonPlayerEvent.LOGIN.invoker().accept(h.player, s);
         });
         ServerPlayConnectionEvents.DISCONNECT.register((h, s) -> CommonPlayerEvent.LOGOUT.invoker().accept(h.player, s));
+    }
+
+    @Override
+    public void onInitializeClient() {
+        ClientTickEvents.END_CLIENT_TICK.register(mc -> ClientTickEvent.END.invoker().accept(mc));
     }
 
     private void setupBiomeModificationHook() {

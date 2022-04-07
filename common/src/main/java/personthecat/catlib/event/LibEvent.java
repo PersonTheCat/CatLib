@@ -9,10 +9,12 @@ import java.util.function.Function;
 public class LibEvent<T> {
     private final ObserverSet<T> listeners;
     private final T invoker;
+    private final T emptyInvoker;
 
-    private LibEvent(final ObserverSet<T> listeners, final T invoker) {
+    private LibEvent(final ObserverSet<T> listeners, final T invoker, final T emptyInvoker) {
         this.listeners = listeners;
         this.invoker = invoker;
+        this.emptyInvoker = emptyInvoker;
     }
 
     public static <T> LibEvent<T> create(final Function<ObserverSet<T>, T> event) {
@@ -24,7 +26,8 @@ public class LibEvent<T> {
     }
 
     private static <T> LibEvent<T> create(final ObserverSet<T> listeners, final Function<ObserverSet<T>, T> event) {
-        return new LibEvent<>(listeners, event.apply(listeners));
+        final T invoker = event.apply(listeners);
+        return new LibEvent<>(listeners, invoker, invoker);
     }
 
     public LibEvent<T> register(final T listener) {

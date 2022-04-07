@@ -26,6 +26,9 @@ public class NonRecursiveObserverSet<O> extends SimpleObserverSet<O> {
 
     @Override
     public void forEach(final Consumer<O> fn) {
+        if (this.tracked.isEmpty()) {
+            return;
+        }
         for (final SimpleTrackedEntry<O> entry : new ArrayList<>(this.tracked)) {
             if (!(entry.isRemoved() || entry.isActive())) {
                 entry.setActive(true);

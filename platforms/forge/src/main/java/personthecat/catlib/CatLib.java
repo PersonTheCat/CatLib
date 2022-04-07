@@ -1,10 +1,13 @@
 package personthecat.catlib;
 
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.catlib.command.*;
@@ -12,6 +15,7 @@ import personthecat.catlib.command.arguments.*;
 import personthecat.catlib.command.forge.LibCommandRegistrarImpl;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.event.error.LibErrorContext;
+import personthecat.catlib.event.lifecycle.ClientTickEvent;
 import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
@@ -27,10 +31,10 @@ public class CatLib {
     public CatLib() {
         LibConfig.register();
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::initCommon);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::initClient);
         MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
     }
 
-    @SuppressWarnings("unused")
     private void initCommon(final FMLCommonSetupEvent event) {
         EnumArgument.register();
         FileArgument.register();
@@ -66,6 +70,11 @@ public class CatLib {
         });
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent e) ->
             CommonPlayerEvent.LOGOUT.invoker().accept(e.getPlayer(), e.getPlayer().getServer()));
+    }
+
+    private void initClient(final FMLClientSetupEvent event) {
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent e) ->
+            ClientTickEvent.END.invoker().accept(Minecraft.getInstance()));
     }
 
     private void registerCommands(final RegisterCommandsEvent event) {

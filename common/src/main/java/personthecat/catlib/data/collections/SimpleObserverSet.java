@@ -78,6 +78,9 @@ public class SimpleObserverSet<O> implements ObserverSet<O> {
 
     @Override
     public void forEach(final Consumer<O> fn) {
+        if (this.tracked.isEmpty()) {
+            return;
+        }
         for (final SimpleTrackedEntry<O> entry : new ArrayList<>(this.tracked)) {
             if (!entry.isRemoved()) {
                 fn.accept(entry.getObserver());

@@ -3,6 +3,7 @@ package personthecat.catlib.command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -26,6 +27,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import personthecat.catlib.command.arguments.JsonArgument;
+import personthecat.catlib.event.lifecycle.ClientTickEvent;
 import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.exception.CommandExecutionException;
@@ -42,6 +44,7 @@ import java.util.Optional;
 import static personthecat.catlib.exception.Exceptions.cmdEx;
 import static personthecat.catlib.util.Shorthand.f;
 
+@Log4j2
 @SuppressWarnings("unused")
 @AllArgsConstructor
 public class CommandContextWrapper {
@@ -196,7 +199,7 @@ public class CommandContextWrapper {
 
     @Environment(EnvType.CLIENT)
     public void setScreen(final Screen screen) {
-        Minecraft.getInstance().setScreen(screen);
+        ClientTickEvent.registerSingle(minecraft -> minecraft.setScreen(screen));
     }
 
     @Nullable

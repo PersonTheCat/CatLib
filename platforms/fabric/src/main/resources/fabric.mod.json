@@ -16,6 +16,9 @@
   "entrypoints": {
     "main": [
       "personthecat.catlib.CatLib"
+    ],
+    "client": [
+      "personthecat.catlib.CatLib"
     ]
   },
   "mixins": [

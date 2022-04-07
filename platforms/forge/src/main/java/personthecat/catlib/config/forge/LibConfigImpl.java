@@ -12,6 +12,7 @@ import personthecat.catlib.config.XjsFileConfig;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.forge.McUtilsImpl;
+import xjs.core.CommentStyle;
 import xjs.serialization.JsonSerializationContext;
 import xjs.serialization.writer.JsonWriterOptions;
 
@@ -74,6 +75,10 @@ public class LibConfigImpl {
         .comment("Whether to open containers on the same line (Java style instead of C# style).")
         .define("formatting.bracesSameLine", true);
 
+    private static final EnumValue<CommentStyle> COMMENT_STYLE_VALUE = COMMON
+        .comment("The default comment style to use for generated configs.")
+        .defineEnum("formatting.commentStyle", CommentStyle.LINE);
+
     private static final ForgeConfigSpec COMMON_SPEC = COMMON.build();
 
     public static boolean enableGlobalLibCommands() {
@@ -95,6 +100,9 @@ public class LibConfigImpl {
     public static void register() {
         final ModContainer ctx = ModLoadingContext.get().getActiveContainer();
         JsonSerializationContext.setDefaultFormatting(getFormatting());
+        JsonSerializationContext.setDefaultCommentStyle(COMMENT_STYLE_VALUE.get());
+        JsonSerializationContext.registerAlias("mcmeta", "json");
+        JsonSerializationContext.registerAlias("hjson", "xjs"); // temporary
         ctx.addConfig(new CustomModConfig(ModConfig.Type.COMMON, COMMON_SPEC, ctx, COMMON_CFG));
     }
 
@@ -106,7 +114,7 @@ public class LibConfigImpl {
             .setLineSpacing(DEFAULT_SPACING_VALUE.get())
             .setAllowCondense(ALLOW_CONDENSE_VALUE.get())
             .setOmitRootBraces(OMIT_ROOT_BRACES_VALUE.get())
-            .setOmitQuotes(OMIT_ROOT_BRACES_VALUE.get())
+            .setOmitQuotes(OMIT_QUOTES_VALUE.get())
             .setOutputComments(OUTPUT_COMMENTS_VALUE.get())
             .setBracesSameLine(BRACES_SAME_LINE_VALUE.get());
     }

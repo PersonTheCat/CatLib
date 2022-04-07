@@ -304,12 +304,12 @@ public class DefaultLibCommands {
         final Component headerComponent =
             wrapper.createText(DISPLAY_HEADER, header).setStyle(DISPLAY_HEADER_STYLE);
 
-        final String details = json.toString(XjsUtils.noCr());
+        final String details = json.setLinesAbove(0).toString(XjsUtils.noCr());
         final Component detailsComponent = wrapper.lintMessage(details);
 
         final long numLines = details.chars().filter(c -> c == '\n').count();
         if (McUtils.isClientSide() && numLines >= LibConfig.displayLength()) {
-            loadTextPage(headerComponent, detailsComponent);
+            loadTextPage(wrapper, headerComponent, detailsComponent);
             return;
         }
         wrapper.generateMessage("")
@@ -320,9 +320,9 @@ public class DefaultLibCommands {
     }
 
     @Environment(EnvType.CLIENT)
-    private static void loadTextPage(final Component headerComponent, final Component detailsComponent) {
-        final Minecraft mc = Minecraft.getInstance();
-        mc.setScreen(new SimpleTextPage(null, headerComponent, detailsComponent));
+    private static void loadTextPage(
+            final CommandContextWrapper wrapper, final Component header, final Component details) {
+        wrapper.setScreen(new SimpleTextPage(null, header, details));
     }
 
     private static void update(final CommandContextWrapper wrapper) {
@@ -332,10 +332,10 @@ public class DefaultLibCommands {
         // Read the old and new values.
         final String toEscaped = wrapper.getString(VALUE_ARGUMENT);
         final String toLiteral = unEscape(toEscaped);
-        final JsonValue toValue = Json.parse(toLiteral);
+        final JsonValue toValue = Json.parse(toLiteral).setLinesAbove(-1);
         final JsonValue fromValue = XjsUtils.getValueFromPath(file.json.get(), path)
             .orElseGet(() -> Json.value(null));
-        final String fromLiteral = fromValue.toString(XjsUtils.noCr());
+        final String fromLiteral = fromValue.setLinesAbove(0).toString(XjsUtils.noCr());
         final String fromEscaped = escape(fromLiteral);
 
         // Write the new value.

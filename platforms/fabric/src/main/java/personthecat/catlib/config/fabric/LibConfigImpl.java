@@ -7,6 +7,7 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 import personthecat.catlib.config.XjsConfigSerializer;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
+import xjs.core.CommentStyle;
 import xjs.serialization.JsonSerializationContext;
 import xjs.serialization.writer.JsonWriterOptions;
 
@@ -58,6 +59,9 @@ public class LibConfigImpl implements ConfigData {
                 .setOutputComments(this.formatting.outputComments)
                 .setBracesSameLine(this.formatting.bracesSameLine);
         JsonSerializationContext.setDefaultFormatting(configured);
+        JsonSerializationContext.setDefaultCommentStyle(this.formatting.commentStyle);
+        JsonSerializationContext.registerAlias("mcmeta", "json");
+        JsonSerializationContext.registerAlias("hjson", "xjs"); // temporary
     }
 
     private static class General {
@@ -104,5 +108,9 @@ public class LibConfigImpl implements ConfigData {
 
         @Comment("Whether to open containers on the same line (Java style instead of C# style).")
         boolean bracesSameLine = true;
+
+        @Comment("The default comment style to use for generated configs.\n" +
+                 "Supported types: LINE, HASH, BLOCK, LINE_DOC, MULTILINE_DOC")
+        CommentStyle commentStyle = CommentStyle.LINE;
     }
 }

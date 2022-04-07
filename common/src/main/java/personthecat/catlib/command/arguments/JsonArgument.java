@@ -16,6 +16,7 @@ import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.PathUtils;
 import xjs.core.JsonObject;
+import xjs.serialization.JsonSerializationContext;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
@@ -55,7 +56,7 @@ public class JsonArgument implements ArgumentType<JsonArgument.Result> {
     public Result parse(final StringReader reader) throws CommandSyntaxException {
         final File f = this.getter.parse(reader);
         final String ext = extension(f);
-        if (f.exists() && !(f.isDirectory())) {/// || JsonType.isSupported(ext))) { todo
+        if (f.exists() && !(f.isDirectory() || JsonSerializationContext.isKnownFormat(f))) {
             throw cmdSyntax(reader, "Unsupported format");
         }
         return new Result(getter.dir, f);
