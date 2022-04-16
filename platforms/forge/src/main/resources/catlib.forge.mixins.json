@@ -8,8 +8,7 @@
     "BiomeSourceAccessor",
     "ForgeRegistryMixin",
     "MinecraftServerMixin",
-    "MojangRegistryMixin",
-    "RegistryAccessMixin"
+    "MojangRegistryMixin"
   ],
   "injectors": {
     "defaultRequire": 1
