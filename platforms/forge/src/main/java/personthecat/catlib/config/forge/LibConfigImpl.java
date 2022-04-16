@@ -13,7 +13,7 @@ import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.forge.McUtilsImpl;
 import xjs.core.CommentStyle;
-import xjs.serialization.JsonSerializationContext;
+import xjs.serialization.JsonContext;
 import xjs.serialization.writer.JsonWriterOptions;
 
 public class LibConfigImpl {
@@ -99,10 +99,9 @@ public class LibConfigImpl {
 
     public static void register() {
         final ModContainer ctx = ModLoadingContext.get().getActiveContainer();
-        JsonSerializationContext.setDefaultFormatting(getFormatting());
-        JsonSerializationContext.setDefaultCommentStyle(COMMENT_STYLE_VALUE.get());
-        JsonSerializationContext.registerAlias("mcmeta", "json");
-        JsonSerializationContext.registerAlias("hjson", "xjs"); // temporary
+        JsonContext.setDefaultFormatting(getFormatting());
+        JsonContext.setDefaultCommentStyle(COMMENT_STYLE_VALUE.get());
+        JsonContext.registerAlias("mcmeta", "json");
         ctx.addConfig(new CustomModConfig(ModConfig.Type.COMMON, COMMON_SPEC, ctx, COMMON_CFG));
     }
 
@@ -111,7 +110,7 @@ public class LibConfigImpl {
             .setTabSize(TAB_SIZE_VALUE.get())
             .setMinSpacing(MIN_SPACING_VALUE.get())
             .setMaxSpacing(MAX_SPACING_VALUE.get())
-            .setLineSpacing(DEFAULT_SPACING_VALUE.get())
+            .setDefaultSpacing(DEFAULT_SPACING_VALUE.get())
             .setAllowCondense(ALLOW_CONDENSE_VALUE.get())
             .setOmitRootBraces(OMIT_ROOT_BRACES_VALUE.get())
             .setOmitQuotes(OMIT_QUOTES_VALUE.get())

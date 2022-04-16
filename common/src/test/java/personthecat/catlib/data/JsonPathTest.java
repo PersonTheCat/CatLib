@@ -67,17 +67,17 @@ public final class JsonPathTest {
         final JsonObject expected = parse("a:{b:{c:true}}");
 
         path.setValue(json, JsonLiteral.jsonTrue());
-        assertEquals(expected, json);
+        assertEquals(expected, json.setAllAccessed(false));
     }
 
     @Test
     public void setValue_doesNotDestroyData() {
         final JsonObject json = parse("a:{b:{c:{}}}");
         final JsonPath path = JsonPath.builder().key("a").index(0).build();
-        final JsonObject out = json.deepCopy();
+        final JsonObject out = (JsonObject) json.deepCopy();
 
         path.setValue(out, JsonLiteral.jsonTrue());
-        assertEquals(json, out);
+        assertEquals(json, out.setAllAccessed(false));
     }
 
     @Test
@@ -210,6 +210,6 @@ public final class JsonPathTest {
     }
 
     private static JsonObject parse(final String json) {
-        return Json.parse(json).asObject().unformatted();
+        return Json.parse(json).unformatted().asObject();
     }
 }

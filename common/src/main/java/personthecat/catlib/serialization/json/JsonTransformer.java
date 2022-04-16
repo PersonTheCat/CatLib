@@ -3,7 +3,7 @@ package personthecat.catlib.serialization.json;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import xjs.core.*;
-import xjs.transformer.JsonCollectors;
+import xjs.transform.JsonCollectors;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -107,10 +107,6 @@ import static personthecat.catlib.util.Shorthand.f;
  */
 @SuppressWarnings("unused")
 public class JsonTransformer {
-
-    // Todo: JsonFilter is still WIP and may get removed
-    private static final JsonFilter<Float> FLOAT = JsonFilter.NUMBER.map(Number::floatValue);
-    private static final JsonFilter<Integer> INTEGER = JsonFilter.NUMBER.map(Number::intValue);
 
     private JsonTransformer() {}
 
@@ -1509,12 +1505,12 @@ public class JsonTransformer {
         private void convert(final JsonObject json) {
             if (json.has(minKey) || json.has(maxKey)) {
                 if (minDefault instanceof Double || minDefault instanceof Float) {
-                    final float min = json.getOptional(minKey, FLOAT).orElse(minDefault.floatValue());
-                    final float max = json.getOptional(maxKey, FLOAT).orElse(maxDefault.floatValue());
+                    final float min = json.getOptional(minKey, JsonValue::asFloat).orElse(minDefault.floatValue());
+                    final float max = json.getOptional(maxKey, JsonValue::asFloat).orElse(maxDefault.floatValue());
                     json.set(newKey, getRange(min, max));
                 } else {
-                    final int min = json.getOptional(minKey, INTEGER).orElse(minDefault.intValue());
-                    final int max = json.getOptional(maxKey, INTEGER).orElse(maxDefault.intValue());
+                    final int min = json.getOptional(minKey, JsonValue::asInt).orElse(minDefault.intValue());
+                    final int max = json.getOptional(maxKey, JsonValue::asInt).orElse(maxDefault.intValue());
                     json.set(newKey, getRange(min, max));
                 }
                 json.remove(minKey);

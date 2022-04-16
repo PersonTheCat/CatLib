@@ -10,6 +10,7 @@ import personthecat.catlib.serialization.json.JsonTransformer;
 import xjs.core.Json;
 import xjs.core.JsonObject;
 import xjs.core.JsonValue;
+import xjs.core.PathFilter;
 
 import java.util.Collections;
 
@@ -78,7 +79,7 @@ public class DynamicCodecTest {
         final JsonObject json = parse("a:'test',b:1337,c:'unused'");
         final SimpleObject o = decode(SimpleObject.CODEC, json);
         assertNotNull(o);
-        assertEquals(Collections.singletonList("c"), json.getUnusedPaths());
+        assertEquals(Collections.singletonList("c"), json.getPaths(PathFilter.UNUSED));
     }
 
     @Test
@@ -214,7 +215,7 @@ public class DynamicCodecTest {
     }
 
     private static JsonObject parse(final String json) {
-        return Json.parse(json).asObject().unformatted();
+        return Json.parse(json).unformatted().asObject();
     }
 
     @Nullable

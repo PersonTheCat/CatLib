@@ -138,7 +138,7 @@ public class XjsOps implements DynamicOps<JsonValue> {
             values.forEach(result::add);
             return DataResult.success(result);
         } else if (list.isArray()) {
-            final JsonArray result = list.asArray().shallowCopy();
+            final JsonArray result = (JsonArray) list.asArray().shallowCopy();
             values.forEach(result::add);
             return DataResult.success(result);
         }

@@ -8,7 +8,7 @@ import personthecat.catlib.config.XjsConfigSerializer;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
 import xjs.core.CommentStyle;
-import xjs.serialization.JsonSerializationContext;
+import xjs.serialization.JsonContext;
 import xjs.serialization.writer.JsonWriterOptions;
 
 @Config(name = LibReference.MOD_ID)
@@ -52,16 +52,15 @@ public class LibConfigImpl implements ConfigData {
                 .setTabSize(this.formatting.tabSize)
                 .setMinSpacing(this.formatting.minSpacing)
                 .setMaxSpacing(this.formatting.maxSpacing)
-                .setLineSpacing(this.formatting.defaultSpacing)
+                .setDefaultSpacing(this.formatting.defaultSpacing)
                 .setAllowCondense(this.formatting.allowCondense)
                 .setOmitRootBraces(this.formatting.omitRootBraces)
                 .setOmitQuotes(this.formatting.omitQuotes)
                 .setOutputComments(this.formatting.outputComments)
                 .setBracesSameLine(this.formatting.bracesSameLine);
-        JsonSerializationContext.setDefaultFormatting(configured);
-        JsonSerializationContext.setDefaultCommentStyle(this.formatting.commentStyle);
-        JsonSerializationContext.registerAlias("mcmeta", "json");
-        JsonSerializationContext.registerAlias("hjson", "xjs"); // temporary
+        JsonContext.setDefaultFormatting(configured);
+        JsonContext.setDefaultCommentStyle(this.formatting.commentStyle);
+        JsonContext.registerAlias("mcmeta", "json");
     }
 
     private static class General {

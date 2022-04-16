@@ -11,9 +11,15 @@ import personthecat.catlib.exception.JsonFormatException;
 import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
-import xjs.core.*;
+import xjs.core.CommentType;
+import xjs.core.Json;
+import xjs.core.JsonArray;
+import xjs.core.JsonContainer;
+import xjs.core.JsonObject;
+import xjs.core.JsonReference;
+import xjs.core.JsonValue;
 import xjs.exception.SyntaxException;
-import xjs.serialization.JsonSerializationContext;
+import xjs.serialization.JsonContext;
 import xjs.serialization.writer.JsonWriterOptions;
 
 import javax.annotation.CheckReturnValue;
@@ -218,7 +224,7 @@ public class XjsUtils {
      * @return The default formatting options without <code>\r</code>.
      */
     public static JsonWriterOptions noCr() {
-        return JsonSerializationContext.getDefaultFormatting().setEol("\n");
+        return JsonContext.getDefaultFormatting().setEol("\n");
     }
 
     /**
@@ -288,11 +294,11 @@ public class XjsUtils {
                 current = getOrTryNew(current.asArray(), val.right().get(), peek);
             } else if (peek.left().isPresent()) { // Key -> key -> object
                 current = current.asObject()
-                    .getOptional(val.left().orElseThrow(), JsonFilter.OBJECT)
+                    .getOptional(val.left().orElseThrow(), JsonValue::asObject)
                     .orElseGet(Json::object);
             } else { // Key -> index -> array
                 current = current.asObject()
-                    .getOptional(val.left().orElseThrow(), JsonFilter.ARRAY)
+                    .getOptional(val.left().orElseThrow(), JsonValue::asArray)
                     .orElseGet(Json::array);
             }
         }
@@ -408,7 +414,7 @@ public class XjsUtils {
      * @return A transformed object containing only the expected paths.
      */
     public static JsonObject filter(final JsonObject json, final Collection<JsonPath> paths, final boolean blacklist) {
-        final JsonObject clone = json.deepCopy();
+        final JsonObject clone = (JsonObject) json.deepCopy();
         // Flag each path as used so anything else will get removed.
         paths.forEach(path -> path.getValue(clone));
         return skip(clone, blacklist);
@@ -427,7 +433,7 @@ public class XjsUtils {
         final StringBuilder skipped = new StringBuilder();
 
         for (final JsonObject.Member member : json) {
-            final JsonValue value = member.visit();
+            final JsonValue value = member.getOnly();
             final String name = member.getKey();
 
             if (member.getReference().isAccessed() != used) {
@@ -468,7 +474,7 @@ public class XjsUtils {
         int index = 0;
 
         for (final JsonReference reference : json.references()) {
-            final JsonValue value = reference.visit();
+            final JsonValue value = reference.getOnly();
             if (reference.isAccessed() != used) {
                 if (index == lastIndex + 1) {
                     value.prependComment("Skipped " + (index - 1));

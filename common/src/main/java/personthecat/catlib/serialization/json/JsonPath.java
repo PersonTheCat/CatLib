@@ -9,6 +9,7 @@ import personthecat.fresult.Result;
 import xjs.core.JsonContainer;
 import xjs.core.JsonObject;
 import xjs.core.JsonValue;
+import xjs.core.PathFilter;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,10 +21,7 @@ import static personthecat.catlib.exception.Exceptions.cmdSyntax;
  *
  * <p>In other words, this object is a container holding keys and indices which
  * point to a value at some arbitrary depth in a JSON array or object.
- *
- * @deprecated Will be moved into the xjs ecosystem in the near future.
  */
-@Deprecated
 public class JsonPath implements Iterable<Either<String, Integer>> {
 
     private final List<Either<String, Integer>> path;
@@ -188,9 +186,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
      * @return A list of objects representing these paths.
      */
     public static List<JsonPath> getAllPaths(final JsonObject json) {
-        final List<String> strings = json.getUnusedPaths();
-        strings.addAll(json.getUsedPaths());
-        return toPaths(strings);
+        return toPaths(json.getPaths());
     }
 
     /**
@@ -200,7 +196,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
      * @return A list of objects representing these paths.
      */
     public static List<JsonPath> getUsedPaths(final JsonObject json) {
-        return toPaths(json.getUsedPaths());
+        return toPaths(json.getPaths(PathFilter.USED));
     }
 
     /**
@@ -210,7 +206,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
      * @return A list of objects representing these paths.
      */
     public static List<JsonPath> getUnusedPaths(final JsonObject json) {
-        return toPaths(json.getUnusedPaths());
+        return toPaths(json.getPaths(PathFilter.UNUSED));
     }
 
     private static List<JsonPath> toPaths(final List<String> raw) {

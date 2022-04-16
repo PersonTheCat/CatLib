@@ -306,6 +306,6 @@ public final class JsonTransformerTest {
     }
 
     private static JsonObject parse(final String json) {
-        return Json.parse(json).asObject().unformatted();
+        return Json.parse(json).unformatted().asObject();
     }
 }
