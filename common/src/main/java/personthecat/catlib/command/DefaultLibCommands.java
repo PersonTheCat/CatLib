@@ -335,7 +335,7 @@ public class DefaultLibCommands {
         final JsonValue toValue = Json.parse(toLiteral).trim();
         final JsonValue fromValue = XjsUtils.getValueFromPath(file.json.get(), path)
             .orElseGet(() -> Json.value(null));
-        final String fromLiteral = fromValue.setLinesAbove(0).toString(XjsUtils.noCr());
+        final String fromLiteral = fromValue.unformatted().toString(XjsUtils.noCr());
         final String fromEscaped = escape(fromLiteral);
 
         // Write the new value.

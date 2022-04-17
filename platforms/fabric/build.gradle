@@ -4,17 +4,19 @@ architectury {
     fabric()
 }
 
+configurations {
+    commonImplementation
+    compileClasspath.extendsFrom commonImplementation
+    runtimeClasspath.extendsFrom commonImplementation
+    developmentFabric.extendsFrom commonImplementation
+}
+
 dependencies {
     bundle(project(path: "$common", configuration: 'transformProductionFabric')) {
         transitive = false
     }
-    implementation(project("$common")) {
+    commonImplementation(project(path: "$common", configuration: "namedElements")) {
         transitive = false
-    }
-    // Add this -> inconsistent class load order.
-    // Remove this -> inconsistent memory addresses.
-    developmentFabric(project("$common")) {
-        transitive = false;
     }
 
     modImplementation "net.fabricmc:fabric-loader:$loader_version"

@@ -10,6 +10,9 @@
     "MinecraftServerMixin",
     "MojangRegistryMixin"
   ],
+  "server": [
+    "MainServerMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   },

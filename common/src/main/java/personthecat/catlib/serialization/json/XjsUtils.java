@@ -244,7 +244,32 @@ public class XjsUtils {
             return;
         }
         final Either<String, Integer> lastVal = path.get(path.size() - 1);
-        setEither(getLastContainer(json, path), lastVal, value);
+        final JsonContainer parent = getLastContainer(json, path);
+        // This will ideally be handled by XJS in the future.
+        if (value != null && value.getLinesAbove() == -1 && condenseNewValue(path, parent)) {
+            value.setLinesAbove(0);
+        }
+        setEither(parent, lastVal, value);
+    }
+
+    /**
+     * Determines whether to format an incoming value as condensed.
+     *
+     * @param path      The path to the value being set.
+     * @param container The parent container for this new value.
+     * @return <code>true</code>, if the value should be condensed.
+     */
+    private static boolean condenseNewValue(final JsonPath path, final JsonContainer container) {
+        if (container.isEmpty()) {
+            return true;
+        }
+        final int s = path.size() == 1 && container.isObject() ? 1 : 0;
+        for (int i = s; i < container.size(); i++) {
+            if (container.getReference(i).getOnly().getLinesAbove() == 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -171,8 +171,9 @@ public class DynamicCodecTest {
         o.b.b = new RecursiveObject();
         o.b.b.a = "t3";
         final JsonObject json = encode(RecursiveObject.CODEC, o);
+        assertNotNull(json);
         JsonTransformer.all().sort().updateAll(json);
-        assertEquals(parse("a:t1,b:{a:t2,b:{a:t3}}"), json);
+        assertEquals(parse("a:t1,b:{a:t2,b:{a:t3}}"), json.unformatted());
     }
 
     @Test

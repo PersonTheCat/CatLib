@@ -7,9 +7,6 @@
     "ChunkStatusMixin",
     "ProtoChunkMixin"
   ],
-  "server": [
-    "MainServerMixin"
-  ],
   "client": [
     "TitleScreenMixin"
   ],

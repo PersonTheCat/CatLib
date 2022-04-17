@@ -71,7 +71,7 @@ public final class JsonTransformerTest {
             JsonTransformer.containing("b", JsonValue::isNumber).collect(subject);
 
         assertEquals(1, resolved.size());
-        assertEquals(1, resolved.get(0).get("b").asInt());
+        assertEquals(1, resolved.get(0).getAsserted("b").asInt());
     }
 
     @Test
@@ -90,7 +90,7 @@ public final class JsonTransformerTest {
             JsonTransformer.matching(null, (k, o) -> "a".equals(k)).collect(subject);
 
         assertEquals(1, resolved.size());
-        assertEquals(1, resolved.get(0).get("x").asInt());
+        assertEquals(1, resolved.get(0).getAsserted("x").asInt());
     }
 
     @Test
@@ -98,7 +98,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:[{x:1},{y:2},{z:3}]");
         JsonTransformer.withPath("a").history("x", "y", "z", "b").updateAll(transformed);
 
-        assertEquals(parse("a:[{b:1},{b:2},{b:3}]"), transformed);
+        assertEquals(parse("a:[{b:1},{b:2},{b:3}]"), transformed.unformatted());
     }
 
     @Test
@@ -106,7 +106,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{outer:{inner:{b:1}}}");
         JsonTransformer.withPath("a").collapse("outer", "inner").updateAll(transformed);
 
-        assertEquals(parse("a:{outer:{b:1}}"), transformed);
+        assertEquals(parse("a:{outer:{b:1}}"), transformed.unformatted());
     }
 
     @Test
@@ -114,7 +114,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{min:1,max:2}");
         JsonTransformer.withPath("a").toRange("min", 1, "max", 2, "val").updateAll(transformed);
 
-        assertEquals(parse("a:{val:[1,2]}"), transformed);
+        assertEquals(parse("a:{val:[1,2]}"), transformed.unformatted());
     }
 
     @Test
@@ -122,7 +122,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{max:2}");
         JsonTransformer.withPath("a").toRange("min", 1, "max", 2, "val").updateAll(transformed);
 
-        assertEquals(parse("a:{val:[1,2]}"), transformed);
+        assertEquals(parse("a:{val:[1,2]}"), transformed.unformatted());
     }
 
     @Test
@@ -130,7 +130,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{min:1,max:1}");
         JsonTransformer.withPath("a").toRange("min", 1, "max", 2, "val").updateAll(transformed);
 
-        assertEquals(parse("a:{val:1}"), transformed);
+        assertEquals(parse("a:{val:1}"), transformed.unformatted());
     }
 
     @Test
@@ -138,7 +138,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{b:true}");
         JsonTransformer.withPath("a").markRemoved("b", "1.0").updateAll(transformed);
 
-        assertEquals(parse("a:{\nb:true # Removed in 1.0. You can delete this field.\n}"), transformed);
+        assertEquals(parse("a:{\nb:true # Removed in 1.0. You can delete this field.\n}"), transformed.unformatted());
     }
 
     @Test
@@ -146,7 +146,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{b:'dog'}");
         JsonTransformer.withPath("a").renameValue("b", "dog", "cat").updateAll(transformed);
 
-        assertEquals(parse("a:{b:'cat'}"), transformed);
+        assertEquals(parse("a:{b:'cat'}"), transformed.unformatted());
     }
 
     @Test
@@ -154,7 +154,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{b:'horse'}");
         JsonTransformer.withPath("a").renameValue("b", "dog", "cat").updateAll(transformed);
 
-        assertEquals(parse("a:{b:'horse'}"), transformed);
+        assertEquals(parse("a:{b:'horse'}"), transformed.unformatted());
     }
 
     @Test
@@ -162,7 +162,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{b:'c'}");
         JsonTransformer.withPath("a").transform("b", (k, v) -> Pair.of("k",  Json.value("v"))).updateAll(transformed);
 
-        assertEquals(parse("a:{k:'v'}"), transformed);
+        assertEquals(parse("a:{k:'v'}"), transformed.unformatted());
     }
 
     @Test
@@ -188,7 +188,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{b:[2],c:[1]}");
         JsonTransformer.withPath("a").moveArray("b", "c").updateAll(transformed);
 
-        assertEquals(parse("a:{c:[1,2]}"), transformed);
+        assertEquals(parse("a:{c:[1,2]}"), transformed.unformatted());
     }
 
     @Test
@@ -196,7 +196,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{b:{c:24}}");
         JsonTransformer.root().relocate("a.b.c", "d.e.f").updateAll(transformed);
 
-        assertEquals(parse("a:{b:{}},d:{e:{f:24}}"), transformed);
+        assertEquals(parse("a:{b:{}},d:{e:{f:24}}"), transformed.unformatted());
     }
 
     @Test
@@ -204,7 +204,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{b:[4,5,6]},c:[1,2,3]");
         JsonTransformer.root().relocate("a.b", "c").updateAll(transformed);
 
-        assertEquals(parse("a:{},c:[1,2,3,4,5,6]"), transformed);
+        assertEquals(parse("a:{},c:[1,2,3,4,5,6]"), transformed.unformatted());
     }
 
     @Test
@@ -212,7 +212,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{b:{x:4,y:5,z:6}},c:{i:1,j:2,k:3}");
         JsonTransformer.root().relocate("a.b", "c").updateAll(transformed);
 
-        assertEquals(parse("a:{},c:{i:1,j:2,k:3,x:4,y:5,z:6}"), transformed);
+        assertEquals(parse("a:{},c:{i:1,j:2,k:3,x:4,y:5,z:6}"), transformed.unformatted());
     }
 
     @Test
@@ -220,7 +220,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:{b:1}");
         JsonTransformer.root().relocate("a.b.c.d", "e").updateAll(transformed);
 
-        assertEquals(parse("a:{b:1}"), transformed);
+        assertEquals(parse("a:{b:1}"), transformed.unformatted());
     }
 
     @Test
@@ -228,7 +228,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:1,first:8,b:2,last:9,c:3");
         JsonTransformer.root().reorder(singleton("first"), singleton("last")).updateAll(transformed);
 
-        assertEquals(parse("first:8,a:1,b:2,c:3,last:9"), transformed);
+        assertEquals(parse("first:8,a:1,b:2,c:3,last:9"), transformed.unformatted());
     }
 
     @Test
@@ -236,7 +236,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:1,b:2,c:3");
         JsonTransformer.root().sort((m1, m2) -> m2.getKey().compareTo(m1.getKey())).updateAll(transformed);
 
-        assertEquals(parse("c:3,b:2,a:1"), transformed);
+        assertEquals(parse("c:3,b:2,a:1"), transformed.unformatted());
     }
 
     @Test
@@ -245,7 +245,7 @@ public final class JsonTransformerTest {
         final JsonObject defaults = parse("a:1,n:{k:9},b:2");
         JsonTransformer.root().setDefaults(defaults).updateAll(transformed);
 
-        assertEquals(parse("a:1,n:{k:9},b:2"), transformed);
+        assertEquals(parse("a:1,n:{k:9},b:2"), transformed.unformatted());
     }
 
     @Test
@@ -254,7 +254,7 @@ public final class JsonTransformerTest {
         final JsonObject defaults = parse("a:4,b:5,c:6");
         JsonTransformer.root().setDefaults(defaults).updateAll(transformed);
 
-        assertEquals(parse("a:1,b:2,c:3"), transformed);
+        assertEquals(parse("a:1,b:2,c:3"), transformed.unformatted());
     }
 
     @Test
@@ -262,7 +262,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:1,b:2,c:3");
         JsonTransformer.root().remove("b", 2).updateAll(transformed);
 
-        assertEquals(parse("a:1,c:3"), transformed);
+        assertEquals(parse("a:1,c:3"), transformed.unformatted());
     }
 
     @Test
@@ -270,7 +270,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:1,b:2,c:3");
         JsonTransformer.root().remove("b", 1).updateAll(transformed);
 
-        assertEquals(parse("a:1,b:2,c:3"), transformed);
+        assertEquals(parse("a:1,b:2,c:3"), transformed.unformatted());
     }
 
     @Test
@@ -278,7 +278,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:1,b:2,c:3");
         JsonTransformer.root().remove(parse("b:2,c:3")).updateAll(transformed);
 
-        assertEquals(parse("a:1"), transformed);
+        assertEquals(parse("a:1"), transformed.unformatted());
     }
 
     @Test
@@ -286,7 +286,7 @@ public final class JsonTransformerTest {
         final JsonObject transformed = parse("a:1,b:2,c:3");
         JsonTransformer.root().remove("b").updateAll(transformed);
 
-        assertEquals(parse("a:1,c:3"), transformed);
+        assertEquals(parse("a:1,c:3"), transformed.unformatted());
     }
 
     @Test
@@ -295,7 +295,7 @@ public final class JsonTransformerTest {
         final ObjectResolver nested = JsonTransformer.root().history("a", "b");
         JsonTransformer.root().include(nested).updateAll(transformed);
 
-        assertEquals(parse("b:1"), transformed);
+        assertEquals(parse("b:1"), transformed.unformatted());
     }
 
     @Test

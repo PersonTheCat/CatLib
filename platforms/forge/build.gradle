@@ -11,16 +11,18 @@ loom {
     }
 }
 
+configurations {
+    commonImplmementation
+    compileClasspath.extendsFrom commonImplementation
+    runtimeClasspath.extendsFrom commonImplementation
+    developmentForge.extendsFrom commonImplementation
+}
+
 dependencies {
     bundle(project(path: "$common", configuration: 'transformProductionForge')) {
         transitive = false
     }
-    implementation(project("$common")) {
-        transitive = false
-    }
-    // Add this -> inconsistent class load order.
-    // Remove this -> inconsistent memory addresses.
-    developmentForge(project("$common")) {
+    commonImplementation(project(path: "$common", configuration: "namedElements")) {
         transitive = false
     }
 
