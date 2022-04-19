@@ -5,7 +5,9 @@
   "mixins": [
     "BiomeAccessor",
     "ChunkStatusMixin",
-    "ProtoChunkMixin"
+    "NamedHolderSetAccessor",
+    "ProtoChunkMixin",
+    "TagAccessor"
   ],
   "client": [
     "TitleScreenMixin"

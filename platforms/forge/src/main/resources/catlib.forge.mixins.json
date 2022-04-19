@@ -6,7 +6,9 @@
     "BiomeGenerationSettingsAccessor",
     "BiomeGenerationSettingsBuilderAccessor",
     "BiomeSourceAccessor",
+    "ForgeRegistryAccessor",
     "ForgeRegistryMixin",
+    "ForgeRegistryTagAccessor",
     "MinecraftServerMixin",
     "MojangRegistryMixin"
   ],

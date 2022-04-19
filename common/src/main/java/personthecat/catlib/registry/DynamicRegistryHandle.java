@@ -1,15 +1,14 @@
 package personthecat.catlib.registry;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -67,6 +66,21 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public boolean isRegistered(final ResourceLocation id) {
         return this.wrapped.isRegistered(id);
+    }
+
+    @Override
+    public @Nullable Holder<T> getHolder(final ResourceLocation id) {
+        return this.wrapped.getHolder(id);
+    }
+
+    @Override
+    public @Nullable Collection<T> getTag(final TagKey<T> key) {
+        return this.wrapped.getTag(key);
+    }
+
+    @Override
+    public ResourceKey<? extends Registry<T>> key() {
+        return this.wrapped.key();
     }
 
     @Override

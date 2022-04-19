@@ -2,15 +2,15 @@ package personthecat.catlib.registry;
 
 import it.unimi.dsi.fastutil.objects.ObjectIterators;
 import lombok.extern.log4j.Log4j2;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -26,15 +26,13 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
         return (RegistryHandle<T>) INSTANCE;
     }
 
-    @Nullable
     @Override
-    public ResourceLocation getKey(final T t) {
+    public @Nullable ResourceLocation getKey(final T t) {
         return null;
     }
 
-    @Nullable
     @Override
-    public T lookup(final ResourceLocation id) {
+    public @Nullable T lookup(final ResourceLocation id) {
         return null;
     }
 
@@ -53,6 +51,21 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public @Nullable Holder<T> getHolder(final ResourceLocation id) {
+        return null;
+    }
+
+    @Override
+    public @Nullable Collection<T> getTag(final TagKey<T> key) {
+        return null;
+    }
+
+    @Override
+    public @Nullable ResourceKey<? extends Registry<T>> key() {
+        return null;
+    }
+
+    @Override
     public Set<ResourceLocation> keySet() {
         return Collections.emptySet();
     }
@@ -62,9 +75,8 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
         return Collections.emptySet();
     }
 
-    @NotNull
     @Override
-    public Iterator<T> iterator() {
+    public @NotNull Iterator<T> iterator() {
         return ObjectIterators.emptyIterator();
     }
 

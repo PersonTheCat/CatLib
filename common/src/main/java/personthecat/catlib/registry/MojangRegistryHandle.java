@@ -1,18 +1,24 @@
 package personthecat.catlib.registry;
 
 import com.mojang.serialization.Lifecycle;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.mixin.NamedHolderSetAccessor;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MojangRegistryHandle<T> implements RegistryHandle<T> {
@@ -27,15 +33,13 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
         return this.registry;
     }
 
-    @Nullable
     @Override
-    public ResourceLocation getKey(final T t) {
+    public @Nullable ResourceLocation getKey(final T t) {
         return this.registry.getKey(t);
     }
 
-    @Nullable
     @Override
-    public T lookup(final ResourceLocation id) {
+    public @Nullable T lookup(final ResourceLocation id) {
         return this.registry.get(id);
     }
 
@@ -58,6 +62,27 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public @Nullable Holder<T> getHolder(final ResourceLocation id) {
+        return this.registry.getHolder(ResourceKey.create(this.registry.key(), id)).orElse(null);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public @Nullable Collection<T> getTag(final TagKey<T> key) {
+        final HolderSet.Named<T> tags = this.registry.getTag(key).orElse(null);
+        if (tags == null) return null;
+        return ((NamedHolderSetAccessor<T>) tags).getContents()
+            .stream()
+            .map(Holder::value)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public ResourceKey<? extends Registry<T>> key() {
+        return this.registry.key();
+    }
+
+    @Override
     public Set<ResourceLocation> keySet() {
         return this.registry.keySet();
     }
@@ -67,9 +92,8 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
         return this.registry.entrySet();
     }
 
-    @NotNull
     @Override
-    public Iterator<T> iterator() {
+    public @NotNull Iterator<T> iterator() {
         return this.registry.iterator();
     }
 
