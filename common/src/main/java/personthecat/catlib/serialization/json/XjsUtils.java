@@ -34,7 +34,6 @@ import static personthecat.catlib.exception.Exceptions.jsonFormatEx;
 import static personthecat.catlib.exception.Exceptions.unreachable;
 import static personthecat.catlib.util.Shorthand.f;
 import static personthecat.catlib.util.Shorthand.full;
-import static personthecat.catlib.util.Shorthand.assertEnumConstant;
 import static personthecat.catlib.util.Shorthand.nullable;
 
 /**
@@ -203,12 +202,10 @@ public class XjsUtils {
      * <p>
      *   The output of this expression will be applied to the original file.
      * </p>
-     * @deprecated Use {@link Json#view}
      * @param file the file containing JSON data.
      * @param f Instructions for updating the JSON data.
      * @return A result which potentially contains an error.
      */
-    @Deprecated
     @CheckReturnValue
     public static Result<Void, IOException> updateJson(final File file, final Consumer<JsonObject> f) {
         // If #readJson returned empty, it's because the file didn't exist.
@@ -834,13 +831,5 @@ public class XjsUtils {
         final JsonObject object = Json.object();
         json.set(field, object);
         return object;
-    }
-
-    private static <T extends Enum<T>> List<T> toEnumArray(final JsonArray array, final Class<T> clazz) {
-        final List<T> list = new ArrayList<>();
-        for (final JsonValue value : array) {
-            list.add(assertEnumConstant(value.asString(), clazz));
-        }
-        return list;
     }
 }
