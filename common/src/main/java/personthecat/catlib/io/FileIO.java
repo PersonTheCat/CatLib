@@ -525,7 +525,7 @@ public class FileIO {
     @CheckReturnValue
     public static Optional<InputStream> getResource(final String path) {
         final String file = path.startsWith("/") ? path : "/" + path;
-        return nullable(FileIO.class.getResourceAsStream(file));
+        return nullable(FileIO.class.getClassLoader().getResourceAsStream(file));
     }
 
     /**
