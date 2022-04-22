@@ -9,6 +9,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(ForgeRegistry.class)
 public interface ForgeRegistryAccessor<T> {
 
-    @Accessor
+    @Accessor(remap = false)
     ResourceKey<Registry<T>> getKey();
 }

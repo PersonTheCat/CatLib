@@ -8,6 +8,6 @@ import java.util.List;
 @Mixin(targets = "net.minecraftforge.registries.ForgeRegistryTag")
 public interface ForgeRegistryTagAccessor<T> {
 
-    @Accessor
+    @Accessor(remap = false)
     List<T> getContents();
 }
