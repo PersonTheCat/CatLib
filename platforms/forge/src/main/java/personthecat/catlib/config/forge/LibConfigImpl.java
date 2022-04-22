@@ -45,15 +45,15 @@ public class LibConfigImpl {
 
     private static final IntValue MIN_SPACING_VALUE = COMMON
         .comment("The minimum number of lines between values, ignoring single-line containers.")
-        .defineInRange("formatting.minSpacing", 1, 1, Integer.MAX_VALUE);
+        .defineInRange("formatting.minSpacing", 1, 0, Integer.MAX_VALUE);
 
     private static final IntValue MAX_SPACING_VALUE = COMMON
         .comment("The maximum number of lines between values.")
-        .defineInRange("formatting.maxSpacing", 3, 1, Integer.MAX_VALUE);
+        .defineInRange("formatting.maxSpacing", 3, 0, Integer.MAX_VALUE);
 
     private static final IntValue DEFAULT_SPACING_VALUE = COMMON
         .comment("The default number of lines between values (for generated configs.")
-        .defineInRange("formatting.defaultSpacing", 2, 1, Integer.MAX_VALUE);
+        .defineInRange("formatting.defaultSpacing", 1, 0, Integer.MAX_VALUE);
 
     private static final BooleanValue ALLOW_CONDENSE_VALUE = COMMON
         .comment("Whether to tolerate single-line containers")
@@ -74,6 +74,10 @@ public class LibConfigImpl {
     private static final BooleanValue BRACES_SAME_LINE_VALUE = COMMON
         .comment("Whether to open containers on the same line (Java style instead of C# style).")
         .define("formatting.bracesSameLine", true);
+
+    private static final BooleanValue SMART_SPACING_VALUE = COMMON
+        .comment("Whether to insert extra lines around commented values and containers.")
+        .define("formatting.smartSpacing", true);
 
     private static final EnumValue<CommentStyle> COMMENT_STYLE_VALUE = COMMON
         .comment("The default comment style to use for generated configs.")
@@ -115,6 +119,7 @@ public class LibConfigImpl {
             .setOmitRootBraces(OMIT_ROOT_BRACES_VALUE.get())
             .setOmitQuotes(OMIT_QUOTES_VALUE.get())
             .setOutputComments(OUTPUT_COMMENTS_VALUE.get())
-            .setBracesSameLine(BRACES_SAME_LINE_VALUE.get());
+            .setBracesSameLine(BRACES_SAME_LINE_VALUE.get())
+            .setSmartSpacing(SMART_SPACING_VALUE.get());
     }
 }

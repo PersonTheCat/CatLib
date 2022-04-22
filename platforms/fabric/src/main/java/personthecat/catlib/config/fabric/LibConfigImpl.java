@@ -57,7 +57,8 @@ public class LibConfigImpl implements ConfigData {
                 .setOmitRootBraces(this.formatting.omitRootBraces)
                 .setOmitQuotes(this.formatting.omitQuotes)
                 .setOutputComments(this.formatting.outputComments)
-                .setBracesSameLine(this.formatting.bracesSameLine);
+                .setBracesSameLine(this.formatting.bracesSameLine)
+                .setSmartSpacing(this.formatting.smartSpacing);
         JsonContext.setDefaultFormatting(configured);
         JsonContext.setDefaultCommentStyle(this.formatting.commentStyle);
         JsonContext.registerAlias("mcmeta", "json");
@@ -91,7 +92,7 @@ public class LibConfigImpl implements ConfigData {
         int maxSpacing = 3;
 
         @Comment("The default number of lines between values (for generated configs).")
-        int defaultSpacing = 2;
+        int defaultSpacing = 1;
 
         @Comment("Whether to tolerate single-line containers.")
         boolean allowCondense = true;
@@ -107,6 +108,9 @@ public class LibConfigImpl implements ConfigData {
 
         @Comment("Whether to open containers on the same line (Java style instead of C# style).")
         boolean bracesSameLine = true;
+
+        @Comment("Whether to insert extra lines around commented values and containers.")
+        boolean smartSpacing = true;
 
         @Comment("The default comment style to use for generated configs.\n" +
                  "Supported types: LINE, HASH, BLOCK, LINE_DOC, MULTILINE_DOC")
