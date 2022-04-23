@@ -3,6 +3,7 @@ package personthecat.catlib.registry;
 import it.unimi.dsi.fastutil.objects.ObjectIterators;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -56,8 +57,8 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public @Nullable Collection<T> getTag(final TagKey<T> key) {
-        return null;
+    public Map<TagKey<T>, HolderSet.Named<T>> getTags() {
+        return Collections.emptyMap();
     }
 
     @Override

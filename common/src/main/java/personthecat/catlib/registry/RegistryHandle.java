@@ -1,6 +1,7 @@
 package personthecat.catlib.registry;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -8,6 +9,7 @@ import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -21,15 +23,19 @@ public interface RegistryHandle<T> extends Iterable<T> {
     void forEach(final BiConsumer<ResourceLocation, T> f);
     boolean isRegistered(final ResourceLocation id);
     @Nullable Holder<T> getHolder(final ResourceLocation id);
-    @Nullable Collection<T> getTag(final TagKey<T> key);
+    Map<TagKey<T>, HolderSet.Named<T>> getTags();
     @Nullable ResourceKey<? extends Registry<T>> key();
     Set<ResourceLocation> keySet();
     Set<Map.Entry<ResourceKey<T>, T>> entrySet();
     Stream<T> stream();
 
-    default @Nullable Collection<T> getTag(final ResourceLocation id) {
+    default Collection<T> getTag(final TagKey<T> key) {
+        return this.getTags().get(key).stream().map(Holder::value).toList();
+    }
+
+    default Collection<T> getTag(final ResourceLocation id) {
         final ResourceKey<? extends Registry<T>> key = this.key();
-        return key != null ? this.getTag(TagKey.create(key, id)) : null;
+        return key != null ? this.getTag(TagKey.create(key, id)) : Collections.emptySet();
     }
 
     default ResourceKey<? extends Registry<T>> keyOrThrow() {

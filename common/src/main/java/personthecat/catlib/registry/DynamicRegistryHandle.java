@@ -1,6 +1,7 @@
 package personthecat.catlib.registry;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -74,8 +75,8 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public @Nullable Collection<T> getTag(final TagKey<T> key) {
-        return this.wrapped.getTag(key);
+    public Map<TagKey<T>, HolderSet.Named<T>> getTags() {
+        return this.wrapped.getTags();
     }
 
     @Override

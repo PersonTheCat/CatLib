@@ -3,6 +3,7 @@ package personthecat.catlib.registry;
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
@@ -10,15 +11,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.mixin.NamedHolderSetAccessor;
+import personthecat.catlib.mixin.MappedRegistryAccessor;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MojangRegistryHandle<T> implements RegistryHandle<T> {
@@ -68,13 +67,11 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public @Nullable Collection<T> getTag(final TagKey<T> key) {
-        final HolderSet.Named<T> tags = this.registry.getTag(key).orElse(null);
-        if (tags == null) return null;
-        return ((NamedHolderSetAccessor<T>) tags).getContents()
-            .stream()
-            .map(Holder::value)
-            .collect(Collectors.toList());
+    public Map<TagKey<T>, HolderSet.Named<T>> getTags() {
+        if (this.registry instanceof MappedRegistry<T> mapped) {
+            return ((MappedRegistryAccessor<T>) mapped).getTagsDirectly();
+        }
+        throw new UnsupportedOperationException("Unsupported registry in handle: " + this.registry.getClass());
     }
 
     @Override

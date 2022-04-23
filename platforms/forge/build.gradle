@@ -6,6 +6,7 @@ architectury {
 
 loom {
     forge {
+        accessTransformer 'src/main/resources/META-INF/accesstransformer.cfg'
         mixinConfig 'catlib.forge.mixins.json'
         mixinConfig 'catlib.common.mixins.json'
     }

@@ -1,18 +1,15 @@
 package personthecat.catlib.registry;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistryEntry;
-import net.minecraftforge.registries.tags.ITag;
-import net.minecraftforge.registries.tags.ITagManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.mixin.ForgeRegistryAccessor;
-import personthecat.catlib.mixin.ForgeRegistryTagAccessor;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -64,18 +61,13 @@ public class ForgeRegistryHandle<T extends IForgeRegistryEntry<T>> implements Re
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public @Nullable Collection<T> getTag(final TagKey<T> key) {
-        final ITagManager<T> manager = this.registry.tags();
-        if (manager == null) return null;
-        final ITag<T> tag = manager.getTag(key);
-        return ((ForgeRegistryTagAccessor<T>) tag).getContents();
+    public Map<TagKey<T>, HolderSet.Named<T>> getTags() {
+        return this.registry.getHolderHelper().map(h -> h.tags).orElse(Collections.emptyMap());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public ResourceKey<? extends Registry<T>> key() {
-        return ((ForgeRegistryAccessor<T>) this.registry).getKey();
+        return this.registry.key;
     }
 
     @Override
