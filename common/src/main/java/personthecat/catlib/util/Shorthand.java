@@ -1,6 +1,7 @@
 package personthecat.catlib.util;
 
 import lombok.experimental.UtilityClass;
+import net.minecraft.util.Mth;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
