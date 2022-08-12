@@ -5,19 +5,14 @@ import com.mojang.serialization.Codec;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.exception.JsonFormatException;
 import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
-import xjs.core.CommentType;
-import xjs.core.Json;
-import xjs.core.JsonArray;
-import xjs.core.JsonContainer;
-import xjs.core.JsonObject;
-import xjs.core.JsonReference;
-import xjs.core.JsonValue;
+import xjs.core.*;
 import xjs.exception.SyntaxException;
 import xjs.serialization.JsonContext;
 import xjs.serialization.writer.JsonWriterOptions;
@@ -171,7 +166,8 @@ public class XjsUtils {
      * @param <A> The type of data being serialized.
      * @return The serialized data, or else {@link Optional#empty}.
      */
-    public static <A> Optional<JsonValue> writeSuppressing(final Codec<A> codec, final A a) {
+    public static <A> Optional<JsonValue> writeSuppressing(final Codec<A> codec, final @Nullable A a) {
+        if (a == null) return Optional.of(JsonLiteral.jsonNull());
         return codec.encodeStart(XjsOps.INSTANCE, a).result();
     }
 
@@ -184,7 +180,8 @@ public class XjsUtils {
      * @param <A> The type of data being serialized.
      * @return The serialized data.
      */
-    public static <A> JsonValue writeThrowing(final Codec<A> codec, final A a) {
+    public static <A> JsonValue writeThrowing(final Codec<A> codec, final @Nullable A a) {
+        if (a == null) return JsonLiteral.jsonNull();
         return codec.encodeStart(XjsOps.INSTANCE, a).result()
             .orElseThrow(() -> new JsonFormatException("Writing object: " + a));
     }
