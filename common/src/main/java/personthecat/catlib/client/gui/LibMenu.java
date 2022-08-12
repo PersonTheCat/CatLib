@@ -50,10 +50,10 @@ public class LibMenu extends Screen {
         this.addRenderableWidget(this.next);
     }
 
-    @SuppressWarnings("ConstantConditions")
     public LibMenu loadImmediately() {
-        final Window window = this.minecraft.getWindow();
-        this.init(this.minecraft, window.getGuiScaledWidth(), window.getGuiScaledHeight());
+        final Minecraft minecraft = Minecraft.getInstance();
+        final Window window = minecraft.getWindow();
+        this.init(minecraft, window.getGuiScaledWidth(), window.getGuiScaledHeight());
         return this;
     }
 
