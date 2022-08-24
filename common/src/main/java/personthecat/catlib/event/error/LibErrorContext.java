@@ -58,6 +58,7 @@ public class LibErrorContext {
         } else {
             log.warn("Ignoring error at level: " + level, e);
             e.onErrorIgnored(level, mod, log);
+            return;
         }
         ERRED_MODS.add(mod);
 
