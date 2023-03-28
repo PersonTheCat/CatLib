@@ -2,7 +2,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 buildscript {
     repositories {
-        maven { url = "https://jitpack.io" }
         mavenCentral()
     }
     dependencies {
@@ -47,9 +46,7 @@ allprojects {
     repositories {
         // More convenient access to CF mods.
         maven { url 'https://www.cursemaven.com' }
-
-        // So we can conveniently read dependencies from GH.
-        maven { url 'https://jitpack.io' }
+        mavenLocal()
         mavenCentral()
     }
 
@@ -59,11 +56,11 @@ allprojects {
     }
 
     dependencies {
-        bundle group: 'com.github.PersonTheCat', name: 'FastNoise', version: '0.8'
-        bundle group: 'com.github.PersonTheCat', name: 'FResult', version: '2.0-BETA-5'
-        bundle group: 'com.github.Exjson', name: 'xjs-core', version: '0.17'
-        bundle group: 'com.github.Exjson', name: 'xjs-compat', version: '0.2'
-        bundle group: 'com.github.Exjson', name: 'xjs-jel', version: '0.1'
+        bundle group: 'com.personthecat', name: 'fastnoise', version: '0.9'
+        bundle group: 'com.personthecat', name: 'fresult', version: '3.0'
+        bundle group: 'org.exjson', name: 'xjs-core', version: '0.36'
+        bundle group: 'org.exjson', name: 'xjs-compat', version: '0.7'
+        bundle group: 'org.exjson', name: 'xjs-jel', version: '0.16'
 
         compileOnly group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
         compileOnly group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
