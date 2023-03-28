@@ -5,13 +5,13 @@ import com.mojang.serialization.Codec;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.exception.JsonFormatException;
 import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
+import xjs.comments.CommentType;
 import xjs.core.*;
 import xjs.exception.SyntaxException;
 import xjs.serialization.JsonContext;
@@ -57,7 +57,7 @@ public class XjsUtils {
     public static Optional<JsonObject> readJson(final File file) {
         return Result
             .define(FileNotFoundException.class, Result::WARN)
-            .and(SyntaxException.class, e -> { throw jsonFormatEx(file.getPath(), e); })
+            .define(SyntaxException.class, e -> { throw jsonFormatEx(file.getPath(), e); })
             .suppress(() -> Json.parse(file).asObject())
             .get();
     }
@@ -71,8 +71,8 @@ public class XjsUtils {
     public static Optional<JsonObject> readJson(final InputStream is) {
         return Result
             .define(IOException.class, Result::WARN)
-            .and(SyntaxException.class, r -> { throw jsonFormatEx("Reading data"); })
-            .suppress(() -> Json.parse(new InputStreamReader(is)).asObject())
+            .define(SyntaxException.class, r -> { throw jsonFormatEx("Reading data"); })
+            .suppress(() -> Json.parse(is).asObject())
             .get();
     }
 
@@ -95,7 +95,7 @@ public class XjsUtils {
      * @return The deserialized object, or else {@link Optional#empty}.
      */
     public static Optional<JsonObject> readSuppressing(final InputStream is) {
-        return Result.suppress(() -> Json.parse(new InputStreamReader(is)).asObject()).get(Result::WARN);
+        return Result.suppress(() -> Json.parse(is).asObject()).get(Result::WARN);
     }
 
     /**

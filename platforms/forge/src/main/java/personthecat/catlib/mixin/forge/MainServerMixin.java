@@ -1,4 +1,4 @@
-package personthecat.catlib.mixin;
+package personthecat.catlib.mixin.forge;
 
 import com.mojang.datafixers.util.Pair;
 import joptsimple.OptionSet;

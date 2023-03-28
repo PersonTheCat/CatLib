@@ -6,7 +6,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import personthecat.catlib.event.LibEvent;
 import personthecat.catlib.event.registry.*;
-import personthecat.catlib.registry.ForgeRegistryHandle;
+import personthecat.catlib.registry.forge.ForgeRegistryHandle;
 import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.registry.RegistryUtils;
 

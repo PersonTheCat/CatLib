@@ -1,4 +1,4 @@
-package personthecat.catlib.exception;
+package personthecat.catlib.exception.fabric;
 
 public class NonSerializableObjectException extends Exception {
     private NonSerializableObjectException(final String msg) {

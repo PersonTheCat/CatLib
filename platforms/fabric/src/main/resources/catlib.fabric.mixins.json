@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "personthecat.catlib.mixin",
+  "package": "personthecat.catlib.mixin.fabric",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
     "BiomeModificationContextAccessor",

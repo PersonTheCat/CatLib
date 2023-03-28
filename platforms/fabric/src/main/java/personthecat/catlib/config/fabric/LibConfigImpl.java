@@ -4,10 +4,9 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
-import personthecat.catlib.config.XjsConfigSerializer;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
-import xjs.core.CommentStyle;
+import xjs.comments.CommentStyle;
 import xjs.serialization.JsonContext;
 import xjs.serialization.writer.JsonWriterOptions;
 

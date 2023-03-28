@@ -1,4 +1,4 @@
-package personthecat.catlib.mixin;
+package personthecat.catlib.mixin.fabric;
 
 import net.fabricmc.fabric.impl.biome.modification.BiomeModificationContextImpl;
 import net.minecraft.core.RegistryAccess;

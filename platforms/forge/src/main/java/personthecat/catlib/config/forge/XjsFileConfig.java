@@ -1,11 +1,11 @@
-package personthecat.catlib.config;
+package personthecat.catlib.config.forge;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
 import personthecat.catlib.util.Shorthand;
-import xjs.core.CommentType;
+import xjs.comments.CommentType;
 import xjs.core.Json;
 import xjs.core.JsonObject;
 import xjs.core.JsonValue;

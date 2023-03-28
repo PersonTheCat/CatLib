@@ -1,4 +1,4 @@
-package personthecat.catlib.mixin;
+package personthecat.catlib.mixin.forge;
 
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistryEntry;
@@ -12,9 +12,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import personthecat.catlib.event.LibEvent;
-import personthecat.catlib.registry.ForgeRegistryHandle;
+import personthecat.catlib.registry.forge.ForgeRegistryHandle;
 import personthecat.catlib.event.registry.RegistryAddedCallback;
-import personthecat.catlib.event.registry.RegistryEventAccessor;
+import personthecat.catlib.event.registry.forge.RegistryEventAccessor;
 import personthecat.catlib.registry.RegistryHandle;
 
 @Mixin(ForgeRegistry.class)

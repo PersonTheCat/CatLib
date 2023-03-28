@@ -7,12 +7,10 @@ import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
-import personthecat.catlib.config.CustomModConfig;
-import personthecat.catlib.config.XjsFileConfig;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.forge.McUtilsImpl;
-import xjs.core.CommentStyle;
+import xjs.comments.CommentStyle;
 import xjs.serialization.JsonContext;
 import xjs.serialization.writer.JsonWriterOptions;
 

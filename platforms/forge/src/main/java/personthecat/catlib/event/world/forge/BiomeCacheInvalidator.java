@@ -1,10 +1,10 @@
-package personthecat.catlib.event.world;
+package personthecat.catlib.event.world.forge;
 
 import com.google.common.base.Suppliers;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.WorldData;
 import org.jetbrains.annotations.ApiStatus;
-import personthecat.catlib.mixin.BiomeSourceAccessor;
+import personthecat.catlib.mixin.forge.BiomeSourceAccessor;
 
 import java.util.stream.Collectors;
 

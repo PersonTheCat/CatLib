@@ -1,4 +1,4 @@
-package personthecat.catlib.mixin;
+package personthecat.catlib.mixin.fabric;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.MinecraftServer;

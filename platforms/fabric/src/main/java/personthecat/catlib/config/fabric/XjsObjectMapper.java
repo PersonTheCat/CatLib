@@ -1,9 +1,9 @@
-package personthecat.catlib.config;
+package personthecat.catlib.config.fabric;
 
 import me.shedaniel.autoconfig.util.Utils;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.exception.NonSerializableObjectException;
+import personthecat.catlib.exception.fabric.NonSerializableObjectException;
 import personthecat.catlib.serialization.json.XjsUtils;
 import personthecat.catlib.util.Shorthand;
 import xjs.core.Json;

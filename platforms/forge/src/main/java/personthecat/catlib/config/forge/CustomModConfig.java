@@ -1,4 +1,4 @@
-package personthecat.catlib.config;
+package personthecat.catlib.config.forge;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;

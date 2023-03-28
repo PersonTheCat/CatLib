@@ -1,10 +1,10 @@
-package personthecat.catlib.config;
+package personthecat.catlib.config.fabric;
 
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.serializer.ConfigSerializer;
 import me.shedaniel.autoconfig.util.Utils;
-import personthecat.catlib.exception.NonSerializableObjectException;
+import personthecat.catlib.exception.fabric.NonSerializableObjectException;
 
 import java.io.IOException;
 import java.nio.file.Files;

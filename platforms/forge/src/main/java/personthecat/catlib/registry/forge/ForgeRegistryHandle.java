@@ -1,4 +1,4 @@
-package personthecat.catlib.registry;
+package personthecat.catlib.registry.forge;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -10,6 +10,7 @@ import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.registry.RegistryHandle;
 
 import java.util.*;
 import java.util.function.BiConsumer;

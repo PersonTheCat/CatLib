@@ -1,4 +1,4 @@
-package personthecat.catlib;
+package personthecat.catlib.forge;
 
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
@@ -21,7 +21,7 @@ import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
-import personthecat.catlib.event.world.FeatureModificationHook;
+import personthecat.catlib.event.world.forge.FeatureModificationHook;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
 

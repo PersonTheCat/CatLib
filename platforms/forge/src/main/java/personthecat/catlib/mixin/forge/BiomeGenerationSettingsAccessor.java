@@ -1,4 +1,4 @@
-package personthecat.catlib.mixin;
+package personthecat.catlib.mixin.forge;
 
 import net.minecraft.core.HolderSet;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;

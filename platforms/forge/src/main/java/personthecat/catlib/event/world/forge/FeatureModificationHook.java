@@ -1,4 +1,4 @@
-package personthecat.catlib.event.world;
+package personthecat.catlib.event.world.forge;
 
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Holder;
@@ -12,9 +12,11 @@ import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraftforge.common.world.BiomeGenerationSettingsBuilder;
 import org.jetbrains.annotations.ApiStatus;
+import personthecat.catlib.event.world.FeatureModificationContext;
+import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.event.world.forge.FeatureModificationContextImpl;
-import personthecat.catlib.mixin.BiomeGenerationSettingsAccessor;
-import personthecat.catlib.mixin.BiomeGenerationSettingsBuilderAccessor;
+import personthecat.catlib.mixin.forge.BiomeGenerationSettingsAccessor;
+import personthecat.catlib.mixin.forge.BiomeGenerationSettingsBuilderAccessor;
 import personthecat.catlib.mixin.DirectHolderSetAccessor;
 import personthecat.catlib.mixin.NamedHolderSetAccessor;
 import personthecat.catlib.registry.RegistrySet;

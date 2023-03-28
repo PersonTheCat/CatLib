@@ -11,7 +11,6 @@ import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.registry.ForgeRegistryHandle;
 import personthecat.catlib.registry.MojangRegistryHandle;
 import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.exception.MissingElementException;

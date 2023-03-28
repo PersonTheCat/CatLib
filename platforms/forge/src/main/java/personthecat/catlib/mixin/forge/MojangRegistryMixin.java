@@ -1,4 +1,4 @@
-package personthecat.catlib.mixin;
+package personthecat.catlib.mixin.forge;
 
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.MappedRegistry;
@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import personthecat.catlib.event.LibEvent;
 import personthecat.catlib.registry.MojangRegistryHandle;
 import personthecat.catlib.event.registry.RegistryAddedCallback;
-import personthecat.catlib.event.registry.RegistryEventAccessor;
+import personthecat.catlib.event.registry.forge.RegistryEventAccessor;
 
 @Mixin(MappedRegistry.class)
 public abstract class MojangRegistryMixin<T> extends Registry<T> implements RegistryEventAccessor<T> {

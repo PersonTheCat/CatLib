@@ -1,4 +1,4 @@
-package personthecat.catlib.mixin;
+package personthecat.catlib.mixin.forge;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.MinecraftServer;
@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
-import personthecat.catlib.event.world.BiomeCacheInvalidator;
+import personthecat.catlib.event.world.forge.BiomeCacheInvalidator;
 
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin {

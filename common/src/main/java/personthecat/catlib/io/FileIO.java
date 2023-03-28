@@ -561,7 +561,7 @@ public class FileIO {
     @CheckReturnValue
     private static OptionalResult<String, IOException> readString(final InputStream is) {
         return Result.<InputStream, IOException>with(() -> is)
-            .and(() -> new BufferedReader(new InputStreamReader(is)))
+            .with(() -> new BufferedReader(new InputStreamReader(is)))
             .nullable(FileIO::read)
             .ifErr(e -> log.error("Reading string", e));
     }

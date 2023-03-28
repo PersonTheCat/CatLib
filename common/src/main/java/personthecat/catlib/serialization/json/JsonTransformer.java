@@ -2,6 +2,7 @@ package personthecat.catlib.serialization.json;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
+import xjs.comments.CommentType;
 import xjs.core.*;
 import xjs.transform.JsonCollectors;
 
