@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "personthecat.catlib.mixin.fabric",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "BiomeModificationContextAccessor",
+    "BiomeModificationContextAccessorTest",
+    "MinecraftServerMixin"
+  ],
+  "server": [
+    "MainServerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

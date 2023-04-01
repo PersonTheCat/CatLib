@@ -1,7 +1,7 @@
 modLoader="javafml"
 loaderVersion="[34,)"
 issueTrackerURL="${mod_issues}"
-license="GNUv3"
+license="GPLv3"
 
 [[mods]]
 modId="${mod_id}"

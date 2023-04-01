@@ -1,13 +1,3 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'gradle.plugin.com.github.jengelman.gradle.plugins', name: 'shadow', version: '7.0.0'
-    }
-}
 
 plugins {
     id 'architectury-plugin' version "$architectury_version"
@@ -19,11 +9,7 @@ architectury {
 }
 
 subprojects {
-    apply plugin: 'architectury-plugin'
     apply plugin: 'dev.architectury.loom'
-
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
 
     loom {
         silentMojangMappingsLicense()
@@ -32,35 +18,12 @@ subprojects {
     dependencies {
         minecraft "com.mojang:minecraft:$mc_version"
         mappings loom.officialMojangMappings()
-    }
-}
 
-allprojects {
-    apply plugin: 'com.github.johnrengelman.shadow'
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
-    apply plugin: 'maven-publish'
-
-    version = mod_version
-
-    repositories {
-        // More convenient access to CF mods.
-        maven { url 'https://www.cursemaven.com' }
-        mavenLocal()
-        mavenCentral()
-    }
-
-    configurations {
-        bundle { transitive = false }
-        implementation.extendsFrom bundle
-    }
-
-    dependencies {
-        bundle group: 'com.personthecat', name: 'fastnoise', version: '0.9'
-        bundle group: 'com.personthecat', name: 'fresult', version: '3.0'
-        bundle group: 'org.exjson', name: 'xjs-core', version: '0.36'
-        bundle group: 'org.exjson', name: 'xjs-compat', version: '0.7'
-        bundle group: 'org.exjson', name: 'xjs-jel', version: '0.16'
+        implementation group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
+        implementation group: 'com.personthecat', name: 'fresult', version: fresult_version
+        implementation group: 'org.exjson', name: 'xjs-core', version: xjs_core_version
+        implementation group: 'org.exjson', name: 'xjs-compat', version: xjs_compat_version
+        implementation group: 'org.exjson', name: 'xjs-jel', version: xjs_jel_version
 
         compileOnly group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
         compileOnly group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
@@ -75,31 +38,25 @@ allprojects {
         testImplementation group: 'org.mockito', name: 'mockito-inline', version: '3.+'
         testImplementation group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
     }
+}
 
-    task processSource(type: Sync) {
-        from sourceSets.main.java
-        inputs.properties(mod_version: mod_version, mod_id: mod_id, mod_name: mod_name)
-        filesMatching(['**/LibReference.java']) {
-            filter(ReplaceTokens, tokens: [MOD_VERSION: mod_version, MOD_ID: mod_id, MOD_NAME: mod_name])
-        }
-        into "$buildDir/src"
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'architectury-plugin'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    archivesBaseName = "$archive_base-$platform"
+    version mod_version
+
+    repositories {
+        // More convenient access to CF mods.
+        maven { url 'https://www.cursemaven.com' }
+        mavenLocal()
+        mavenCentral()
     }
-
-    compileJava {
-        source = processSource.outputs
-        options.compilerArgs << '-parameters'
-    }
-
-    jar {
-        archivesBaseName = "$archive_base-$platform"
-    }
-
-    shadowJar {
-        configurations = [project.configurations.bundle]
-        classifier = ''
-    }
-
-    build.dependsOn shadowJar
 
     tasks.withType(Test) {
         useJUnitPlatform()
@@ -109,5 +66,80 @@ allprojects {
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        javadoc.options.addStringOption('Xdoclint:none', '-quiet')
+        classifier 'javadoc'
+        from 'build/docs/javadoc'
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        duplicatesStrategy DuplicatesStrategy.INCLUDE
+        classifier 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives jar
+        archives javadocJar
+        archives sourcesJar
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    if (enable_publishing == 'true') {
+        publishing {
+            repositories {
+                maven {
+                    name = 'OSSRH'
+                    url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+                    credentials {
+                        username = project.findProperty('ossrh.username') ?: System.getenv('OSSRH_USERNAME')
+                        password = project.findProperty('ossrh.password') ?: System.getenv('OSSRH_PASSWORD')
+                    }
+                }
+            }
+            publications {
+                mavenJava(MavenPublication) {
+                    groupId = group
+                    artifactId = pom_artifact_id
+                    version = version
+
+                    pom {
+                        name = pom_name
+                        description = pom_description
+                        url = pom_url
+                        licenses {
+                            license {
+                                name = pom_license_name
+                                url = pom_license_url
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = pom_developer
+                                name = pom_developer_name
+                                email = pom_developer_email
+                            }
+                        }
+                        scm {
+                            connection = pom_scm_connection
+                            developerConnection = pom_scm_developer_connection
+                            url = pom_scm_url
+                        }
+                    }
+
+                    from components.java
+                }
+            }
+        }
+
+        signing {
+            sign publishing.publications.mavenJava
+        }
     }
 }

@@ -18,6 +18,4 @@ pluginManagement {
 
 rootProject.name = 'CatLib'
 
-include 'common', 'platforms:forge', 'platforms:fabric'
-
-startParameter.excludedTaskNames += [':build', ':platforms:build']
+include 'common', 'forge', 'fabric', 'fabric-like', 'quilt'

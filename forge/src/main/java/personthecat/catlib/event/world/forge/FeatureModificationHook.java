@@ -14,7 +14,6 @@ import net.minecraftforge.common.world.BiomeGenerationSettingsBuilder;
 import org.jetbrains.annotations.ApiStatus;
 import personthecat.catlib.event.world.FeatureModificationContext;
 import personthecat.catlib.event.world.FeatureModificationEvent;
-import personthecat.catlib.event.world.forge.FeatureModificationContextImpl;
 import personthecat.catlib.mixin.forge.BiomeGenerationSettingsAccessor;
 import personthecat.catlib.mixin.forge.BiomeGenerationSettingsBuilderAccessor;
 import personthecat.catlib.mixin.DirectHolderSetAccessor;

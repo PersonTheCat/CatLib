@@ -1,87 +1,54 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import dev.architectury.plugin.TransformingTask
 
 plugins {
-    id 'maven-publish'
-    id 'signing'
+    id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
 architectury {
-    it.common()
+    common(rootProject.enabled_platforms.split(","))
+}
+
+configurations {
+    bundle { transitive = false }
+    implementation.extendsFrom bundle
 }
 
 dependencies {
     // Only needed for suppressing Fabric build spam
     modImplementation "net.fabricmc:fabric-loader:$loader_version"
+
+    bundle group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
+    bundle group: 'com.personthecat', name: 'fresult', version: fresult_version
+    bundle group: 'org.exjson', name: 'xjs-core', version: xjs_core_version
+    bundle group: 'org.exjson', name: 'xjs-compat', version: xjs_compat_version
+    bundle group: 'org.exjson', name: 'xjs-jel', version: xjs_jel_version
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    javadoc.options.addStringOption('Xdoclint:none', '-quiet')
-    classifier 'javadoc'
-    from 'build/docs/javadoc'
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    duplicatesStrategy DuplicatesStrategy.INCLUDE
-    classifier 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives jar
-    archives javadocJar
-    archives sourcesJar
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-publishing {
-    repositories {
-        maven {
-            name = 'OSSRH'
-            url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
-            credentials {
-                username = project.findProperty('ossrh.username') ?: System.getenv('OSSRH_USERNAME')
-                password = project.findProperty('ossrh.password') ?: System.getenv('OSSRH_PASSWORD')
-            }
-        }
+task processSource(type: Sync) {
+    from sourceSets.main.java
+    inputs.properties(mod_version: mod_version, mod_id: mod_id, mod_name: mod_name)
+    filesMatching(['**/LibReference.java']) {
+        filter(ReplaceTokens, tokens: [MOD_VERSION: mod_version, MOD_ID: mod_id, MOD_NAME: mod_name])
     }
-    publications {
-        mavenJava(MavenPublication) {
-            groupId = group
-            artifactId = pom_artifact_id
-            version = version
+    into "$buildDir/src"
+}
 
-            pom {
-                name = pom_name
-                description = pom_description
-                url = pom_url
-                licenses {
-                    license {
-                        name = pom_license_name
-                        url = pom_license_url
-                    }
-                }
-                developers {
-                    developer {
-                        id = pom_developer
-                        name = pom_developer_name
-                        email = pom_developer_email
-                    }
-                }
-                scm {
-                    connection = pom_scm_connection
-                    developerConnection = pom_scm_developer_connection
-                    url = pom_scm_url
-                }
-            }
+compileJava {
+    source = processSource.outputs
+    options.compilerArgs << '-parameters'
+}
 
-            from components.java
-        }
+shadowJar {
+    configurations = [project.configurations.bundle]
+    classifier ''
+}
+
+tasks.withType(TransformingTask) {
+    if (it.name.startsWith('transformProduction')) {
+        it.dependsOn shadowJar
+        input = shadowJar.archiveFile
     }
 }
 
-signing {
-    sign publishing.publications.mavenJava
-}
+build.dependsOn shadowJar
