@@ -14,11 +14,12 @@ import java.util.function.Predicate;
 import static personthecat.catlib.util.Shorthand.f;
 
 /**
- * This class contains a series of high level utilities to be used for updating old JSON presets
+ * <p>This class contains a series of high level utilities to be used for updating old JSON presets
  * to contain the current field names and syntax standards. It is designed to be used in a builder
  * pattern and can handle renaming fields and collapsing nested objects into single objects.
  * <br><br>
- * <h3>Renaming Values:</h3>
+ * <strong>Renaming Values:</strong>
+ * <br>
  * <p>
  *   For example, when given the following JSON data:
  * </p>
@@ -57,7 +58,7 @@ import static personthecat.catlib.util.Shorthand.f;
  *     ]
  *   }
  * }</pre>
- * <h3>Marking Fields as Removed</h3>
+ * <strong>Marking Fields as Removed</strong>
  * <p>
  *   For another example, when given the following JSON data:
  * </p>
@@ -98,7 +99,7 @@ import static personthecat.catlib.util.Shorthand.f;
  *     }
  *   }
  * }</pre>
- * <h3>Author's Note:</h3>
+ * <strong>Author's Note:</strong>
  * <p>
  *   I am especially fond of this class. If you would like additional transformations
  *   to be supported by the library, <b>please</b> create an issue on

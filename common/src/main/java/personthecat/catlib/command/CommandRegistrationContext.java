@@ -29,9 +29,7 @@ import static net.minecraft.commands.Commands.literal;
 import static personthecat.catlib.util.Shorthand.f;
 
 /**
- * <h3>
- *   A helper used for generating and registering commands for the current mod.
- * </h3>
+ * A helper used for generating and registering commands for the current mod.
  * <p>
  *   To use this context, generate a series of {@link LibCommandBuilder}s and
  *   pass them into the context via {@link #addCommand} <b>after</b> the context

@@ -15,10 +15,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "personthecat.catlib.CatLib"
+      "personthecat.catlib.fabric.CatLib"
     ],
     "client": [
-      "personthecat.catlib.CatLib"
+      "personthecat.catlib.fabric.CatLib"
     ]
   },
   "mixins": [
