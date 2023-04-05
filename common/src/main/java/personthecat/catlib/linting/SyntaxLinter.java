@@ -53,21 +53,11 @@ public class SyntaxLinter {
 
     protected static final Style RANDOM_COLOR = null;
 
-    public static final Highlighter[] XJS_HIGHLIGHTERS = {
-        new RegexHighlighter(MULTILINE_DOC, color(ChatFormatting.DARK_GREEN).withItalic(true)),
-        new RegexHighlighter(LINE_TODO, color(ChatFormatting.YELLOW)),
-        new RegexHighlighter(LINE_DOC, color(ChatFormatting.DARK_GREEN).withItalic(true)),
-        new RegexHighlighter(MULTILINE_COMMENT, color(ChatFormatting.GRAY)),
-        new RegexHighlighter(LINE_COMMENT, color(ChatFormatting.GRAY)),
-        new RegexHighlighter(KEY, color(ChatFormatting.AQUA)),
-        new RegexHighlighter(BOOLEAN_VALUE, color(ChatFormatting.GOLD)),
-        new RegexHighlighter(NUMERIC_VALUE, color(ChatFormatting.LIGHT_PURPLE)),
-        new RegexHighlighter(NULL_VALUE, color(ChatFormatting.RED)),
-        new RegexHighlighter(BAD_CLOSER, BAD_CLOSER_ERROR),
-        UnbalancedTokenHighlighter.INSTANCE
+    public static final Highlighter[] JEL_HIGHLIGHTERS = {
+        new JelHighlighter()
     };
 
-    public static final SyntaxLinter DEFAULT_LINTER = new SyntaxLinter(XJS_HIGHLIGHTERS);
+    public static final SyntaxLinter DEFAULT_LINTER = new SyntaxLinter(JEL_HIGHLIGHTERS);
 
     private static final Style[] RANDOM_COLORS = {
         color(ChatFormatting.YELLOW),
