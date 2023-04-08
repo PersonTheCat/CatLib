@@ -18,8 +18,9 @@ import personthecat.catlib.event.lifecycle.GameReadyEvent;
 @Mixin(Main.class)
 public class MainServerMixin {
 
+    // could memoize this event on RegistryAccess#builtinCopy, but another mod could call it first
     @Inject(
-        method = "m_206537_",
+        method = "lambda$main$3",
         at = @At(value = "INVOKE",
         target = "Lnet/minecraft/core/RegistryAccess;builtinCopy()Lnet/minecraft/core/RegistryAccess$Writable;"))
     private static void modSetupComplete(

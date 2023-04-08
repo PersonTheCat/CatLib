@@ -18,7 +18,7 @@ import personthecat.catlib.event.lifecycle.GameReadyEvent;
 @Mixin(Main.class)
 public class MainServerMixin {
 
-    // on forge: m_206537_
+    // on forge: lambda$main$3
     @Inject(
         method = "method_40373",
         at = @At(value = "INVOKE",

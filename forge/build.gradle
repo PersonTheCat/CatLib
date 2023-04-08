@@ -17,7 +17,7 @@ loom {
 }
 
 configurations {
-    commonImplmementation
+    common
     shadowCommon
     compileClasspath.extendsFrom common
     runtimeClasspath.extendsFrom common
@@ -28,9 +28,19 @@ dependencies {
     shadowCommon(project(path: ':common', configuration: 'transformProductionForge')) {
         transitive = false
     }
-    common(project(path: ':common', configuration: 'shadow')) {
-        transitive = false
+
+    // hack to force shadowed libraries onto the forge runtime classpath without mod errors
+    // it may be possible to fix this by shadowing the libraries directly here. tbd
+    if (project.gradle.startParameter.taskNames.contains('build')) {
+        compileClasspath(project(path: ':common', configuration: 'namedElements')) {
+            transitive = false
+        }
+    } else {
+        common(project(path: ':common', configuration: 'shadow')) {
+            transitive = false
+        }
     }
+
     forge "net.minecraftforge:forge:$mc_version-$forge_version"
 }
 
@@ -56,13 +66,13 @@ remapJar {
 jar {
     manifest {
         attributes([
-            "Specification-Title": mod_name,
-            "Specification-Vendor": mod_vendor,
-            "Specification-Version": mod_version,
-            "Implementation-Title": mod_id,
-            "Implementation-Version": mod_version,
-            "Implementation-Vendor": mod_vendor,
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Specification-Title": mod_name,
+                "Specification-Vendor": mod_vendor,
+                "Specification-Version": mod_version,
+                "Implementation-Title": mod_id,
+                "Implementation-Version": mod_version,
+                "Implementation-Vendor": mod_vendor,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
     classifier 'dev'
