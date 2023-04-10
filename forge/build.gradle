@@ -29,9 +29,12 @@ dependencies {
         transitive = false
     }
 
+    def taskNames = project.gradle.startParameter.taskNames
     // hack to force shadowed libraries onto the forge runtime classpath without mod errors
     // it may be possible to fix this by shadowing the libraries directly here. tbd
-    if (project.gradle.startParameter.taskNames.contains('build')) {
+    if (taskNames.contains('build')
+            || taskNames.contains('publish')
+            || taskNames.contains('publishToMavenLocal')) {
         compileClasspath(project(path: ':common', configuration: 'namedElements')) {
             transitive = false
         }
