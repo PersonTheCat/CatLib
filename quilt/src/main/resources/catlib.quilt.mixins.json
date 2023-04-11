@@ -5,10 +5,7 @@
   "mixins": [
     "BiomeModificationContextAccessor",
     "MinecraftServerMixin"
-  ],
-  "server": [
-    "MainServerMixin"
-  ],
+  ],,
   "injectors": {
     "defaultRequire": 1
   },

@@ -13,6 +13,9 @@
   "client": [
     "TitleScreenMixin"
   ],
+  "server": [
+    "WorldStemServerMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   },
