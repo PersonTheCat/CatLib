@@ -19,11 +19,11 @@ subprojects {
         minecraft "com.mojang:minecraft:$mc_version"
         mappings loom.officialMojangMappings()
 
-        implementation group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
-        implementation group: 'com.personthecat', name: 'fresult', version: fresult_version
-        implementation group: 'org.exjson', name: 'xjs-core', version: xjs_core_version
-        implementation group: 'org.exjson', name: 'xjs-compat', version: xjs_compat_version
-        implementation group: 'org.exjson', name: 'xjs-jel', version: xjs_jel_version
+        api group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
+        api group: 'com.personthecat', name: 'fresult', version: fresult_version
+        api group: 'org.exjson', name: 'xjs-core', version: xjs_core_version
+        api group: 'org.exjson', name: 'xjs-compat', version: xjs_compat_version
+        api group: 'org.exjson', name: 'xjs-jel', version: xjs_jel_version
 
         compileOnly group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
         compileOnly group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
