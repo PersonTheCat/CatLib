@@ -22,12 +22,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import static personthecat.catlib.linting.SyntaxLinter.color;
 import static personthecat.catlib.linting.SyntaxLinter.error;
 import static personthecat.catlib.linting.SyntaxLinter.stc;
 
 public class JelHighlighter implements SyntaxLinter.Highlighter {
+
+    public static final Object TODO_MARKER = new Object();
+    public static final Pattern TODO_PATTERN =
+        Pattern.compile("^\\s*todo\\s*:.*", Pattern.CASE_INSENSITIVE);
 
     public static final Map<Object, Style> DEFAULT_STYLE_MAP =
         ImmutableMap.<Object, Style>builder()
@@ -51,6 +56,7 @@ public class JelHighlighter implements SyntaxLinter.Highlighter {
             .put(CommentStyle.HASH, color(ChatFormatting.GRAY).withItalic(true))
             .put(CommentStyle.LINE_DOC, color(ChatFormatting.GREEN).withItalic(true))
             .put(CommentStyle.MULTILINE_DOC, color(ChatFormatting.GREEN).withItalic(true))
+            .put(TODO_MARKER, color(ChatFormatting.YELLOW).withItalic(true))
             .build();
 
     protected final Map<Object, Style> styleMap;
@@ -97,6 +103,9 @@ public class JelHighlighter implements SyntaxLinter.Highlighter {
 
     protected static Object trueType(final Span<?> span) {
         if (span instanceof CommentToken c) {
+            if (TODO_PATTERN.matcher(c.parsed()).matches()) {
+                return TODO_MARKER;
+            }
             return c.commentStyle();
         } else if (span.type() == TokenType.WORD && span instanceof ParsedToken p) {
             return switch (p.parsed()) {
