@@ -11,7 +11,7 @@
     "homepage": "${mod_download}",
     "sources": "${mod_sources}"
   },
-  "license": "GNUv3",
+  "license": "${pom_license_name}",
   "environment": "*",
   "entrypoints": {
     "main": [
