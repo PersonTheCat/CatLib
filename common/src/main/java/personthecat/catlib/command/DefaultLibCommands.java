@@ -11,6 +11,7 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -476,7 +477,7 @@ public class DefaultLibCommands {
         final Player player = wrapper.getPlayer();
         if (player != null) {
             wrapper.setGameMode(GameType.SPECTATOR);
-            final MobEffect nightVision = MobEffects.NIGHT_VISION;
+            final Holder<MobEffect> nightVision = MobEffects.NIGHT_VISION;
             player.addEffect(new MobEffectInstance(nightVision, 999999999, 1, true, false));
         }
     }

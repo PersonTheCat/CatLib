@@ -13,7 +13,6 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
@@ -81,7 +80,7 @@ public class CatLib {
     }
 
     private void initClient(final FMLClientSetupEvent event) {
-        NeoForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent e) ->
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ClientTickEvent e) ->
             ClientTickEvent.END.invoker().accept(Minecraft.getInstance()));
     }
 

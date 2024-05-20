@@ -28,15 +28,15 @@ public class CodecSupport {
 
     private static final Map<Class<?>, Function<Object, Codec<?>>> CODECS_BY_TYPE =
         ImmutableMap.<Class<?>, Function<Object, Codec<?>>>builder()
-            .put(ConfiguredFeature.class, cf -> ((ConfiguredFeature<?, ?>) cf).feature().configuredCodec())
-            .put(ConfiguredWorldCarver.class, cc -> ((ConfiguredWorldCarver<?>) cc).worldCarver().configuredCodec())
+            .put(ConfiguredFeature.class, cf -> ((ConfiguredFeature<?, ?>) cf).feature().configuredCodec().codec())
+            .put(ConfiguredWorldCarver.class, cc -> ((ConfiguredWorldCarver<?>) cc).worldCarver().configuredCodec().codec())
             .put(WorldGenSettings.class, s -> WorldGenSettings.CODEC)
             .put(WorldOptions.class, o -> WorldOptions.CODEC.codec())
             .put(WorldDimensions.class, d -> WorldDimensions.CODEC.codec())
-            .put(Structure.class, s -> ((Structure) s).type().codec())
+            .put(Structure.class, s -> ((Structure) s).type().codec().codec())
             .put(SoundType.class, t -> ValueLookup.SOUND_CODEC)
             .put(MapColor.class, c -> ValueLookup.COLOR_CODEC)
-            .put(DensityFunction.class, f -> ((DensityFunction) f).codec().codec())
+            .put(DensityFunction.class, f -> ((DensityFunction) f).codec().codec().codec())
             .build();
 
     /**

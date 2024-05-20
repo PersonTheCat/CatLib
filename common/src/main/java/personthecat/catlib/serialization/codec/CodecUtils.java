@@ -101,9 +101,7 @@ public class CodecUtils {
     }
 
     public static <A, T> A readThrowing(final Codec<A> codec, final DynamicOps<T> ops, final T prefix) {
-        return codec.parse(ops, prefix).get().map(Function.identity(), partial -> {
-            throw new JsonFormatException(partial.message());
-        });
+        return codec.parse(ops, prefix).getOrThrow(JsonFormatException::new);
     }
 
     public static <T> EasyMapReader<T> easyReader(final DynamicOps<T> ops, final T prefix) {

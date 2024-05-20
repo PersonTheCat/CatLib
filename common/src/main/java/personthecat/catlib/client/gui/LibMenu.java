@@ -57,7 +57,7 @@ public class LibMenu extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics graphics, int x, int y, float partial) {
-        this.renderBackground(graphics, x, y, partial);
+        super.render(graphics, x, y, partial);
         this.renderMenu(graphics, x, y, partial);
         this.renderDetails(graphics, x, y, partial);
     }
@@ -66,7 +66,6 @@ public class LibMenu extends Screen {
 
     protected void renderDetails(GuiGraphics graphics, int x, int y, float partial) {
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 16777215);
-        super.render(graphics, x, y, partial);
     }
 
     @Override

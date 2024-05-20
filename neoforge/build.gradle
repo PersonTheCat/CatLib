@@ -37,20 +37,20 @@ dependencies {
     shadowCommon(project(path: ':common', configuration: 'transformProductionNeoForge')) {
         transitive = false
     }
-//    def taskNames = project.gradle.startParameter.taskNames
-//    // hack to force shadowed libraries onto the forge runtime classpath without mod errors
-//    // it may be possible to fix this by shadowing the libraries directly here. tbd
-//    if (taskNames.contains('build')
-//            || taskNames.contains('publish')
-//            || taskNames.contains('publishToMavenLocal')) {
-//        compileClasspath(project(path: ':common', configuration: 'namedElements')) {
-//            transitive = false
-//        }
-//    } else {
+    def taskNames = project.gradle.startParameter.taskNames
+    // hack to force shadowed libraries onto the forge runtime classpath without mod errors
+    // it may be possible to fix this by shadowing the libraries directly here. tbd
+    if (taskNames.contains('build')
+            || taskNames.contains('publish')
+            || taskNames.contains('publishToMavenLocal')) {
+        compileClasspath(project(path: ':common', configuration: 'namedElements')) {
+            transitive = false
+        }
+    } else {
         common(project(path: ':common', configuration: 'shadow')) {
             transitive = false
         }
-//    }
+    }
     neoForge "net.neoforged:neoforge:$neo_version"
 }
 
@@ -59,7 +59,7 @@ compileJava {
 }
 
 processResources {
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
         expand project.properties
     }
 }

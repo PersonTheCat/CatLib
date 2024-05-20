@@ -32,8 +32,6 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
             }
             ws.forEach(this::addButton);
         });
-        this.setRenderBackground(false);
-
         this.setX(x0);
         this.setY(BORDER);
         this.width = x1 - x0;
@@ -79,6 +77,12 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
     protected int getScrollbarPosition() {
         return (this.width + this.getX()) - 6;
     }
+
+    @Override
+    protected void renderListBackground(GuiGraphics graphics) {}
+
+    @Override
+    protected void renderListSeparators(GuiGraphics guiGraphics) {}
 
     @Override
     public int getRowWidth() {

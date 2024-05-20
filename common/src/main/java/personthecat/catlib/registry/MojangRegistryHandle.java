@@ -1,10 +1,10 @@
 package personthecat.catlib.registry;
 
-import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
@@ -49,7 +49,7 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     @SuppressWarnings("unchecked")
     public <V extends T> V register(final ResourceLocation id, final V v) {
         final Holder.Reference<T> reference = ((WritableRegistry<T>) this.registry)
-            .register(ResourceKey.create(this.registry.key(), id), v, Lifecycle.stable());
+            .register(ResourceKey.create(this.registry.key(), id), v, RegistrationInfo.BUILT_IN);
         // support convenient custom registries on fabric
         ((ReferenceAccessor<T>) reference).invokeBindValue(v);
         return v;

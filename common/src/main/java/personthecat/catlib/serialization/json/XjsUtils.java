@@ -125,9 +125,7 @@ public class XjsUtils {
      * @return The deserialized object.
      */
     public static <T> T readThrowing(final Codec<T> codec, final JsonValue value) {
-        return codec.parse(XjsOps.INSTANCE, value).get().map(Function.identity(), partial -> {
-            throw new JsonFormatException(partial.message());
-        });
+        return codec.parse(XjsOps.INSTANCE, value).getOrThrow(JsonFormatException::new);
     }
 
     /**

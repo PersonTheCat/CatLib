@@ -38,8 +38,7 @@ public class RegistryUtilsImpl {
         mapNeo(ItemDisplayContext.class, Keys.DISPLAY_CONTEXTS, NeoForgeRegistries.DISPLAY_CONTEXTS);
         mapNeo(IngredientType.class, Keys.INGREDIENT_TYPES, NeoForgeRegistries.INGREDIENT_TYPES);
         mapNeo(null, Keys.CONDITION_CODECS, NeoForgeRegistries.CONDITION_SERIALIZERS);
-        mapNeo(null, Keys.ENTITY_PREDICATE_SERIALIZERS, NeoForgeRegistries.ENTITY_PREDICATE_SERIALIZERS);
-        mapNeo(null, Keys.ITEM_PREDICATE_SERIALIZERS, NeoForgeRegistries.ITEM_PREDICATE_SERIALIZERS);
+        mapNeo(null, Keys.ENTITY_DATA_SERIALIZERS, NeoForgeRegistries.ENTITY_DATA_SERIALIZERS);
         mapNeo(AttachmentType.class, Keys.ATTACHMENT_TYPES, NeoForgeRegistries.ATTACHMENT_TYPES);
     }
 

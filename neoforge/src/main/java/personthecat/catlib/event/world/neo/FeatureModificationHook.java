@@ -1,6 +1,6 @@
 package personthecat.catlib.event.world.neo;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
@@ -20,7 +20,7 @@ import java.util.Objects;
 @ParametersAreNonnullByDefault
 public class FeatureModificationHook implements BiomeModifier {
     public static final BiomeModifier INSTANCE = new FeatureModificationHook();
-    public static final Codec<BiomeModifier> CODEC = Codec.unit(INSTANCE);
+    public static final MapCodec<BiomeModifier> CODEC = MapCodec.unit(INSTANCE);
 
     private FeatureModificationHook() {}
 
@@ -44,7 +44,7 @@ public class FeatureModificationHook implements BiomeModifier {
     }
 
     @Override
-    public @NotNull Codec<? extends BiomeModifier> codec() {
+    public @NotNull MapCodec<? extends BiomeModifier> codec() {
         return CODEC;
     }
 }

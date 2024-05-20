@@ -177,9 +177,7 @@ public class EasyMapReader<T> {
         }
 
         private <A> A getOrThrow(final Codec<A> codec, final T t) {
-            return codec.parse(this.ops, t).get().map(Function.identity(), partial -> {
-                throw new EasyMapException(partial.message());
-            });
+            return codec.parse(this.ops, t).getOrThrow(EasyMapException::new);
         }
     }
 

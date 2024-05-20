@@ -26,8 +26,8 @@ subprojects {
 
         compileOnly group: 'org.jetbrains', name: 'annotations', version: '24.1.0'
 
-        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
-        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.32'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.32'
 
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.2'
         testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.10.2'
@@ -35,8 +35,8 @@ subprojects {
         testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.+'
         testImplementation group: 'org.mockito', name: 'mockito-inline', version: '3.+'
         testImplementation group: 'org.jetbrains', name: 'annotations', version: '24.1.0'
-        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
-        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.32'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.32'
     }
 }
 
@@ -46,8 +46,8 @@ allprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
 
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
     archivesBaseName = "$archive_base-$platform"
     version mod_version
 
