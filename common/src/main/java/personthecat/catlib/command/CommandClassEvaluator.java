@@ -10,8 +10,6 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.ArrayUtils;
@@ -32,7 +30,6 @@ import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.exception.FormattedException;
 import personthecat.catlib.exception.UncheckedFormattedException;
 import personthecat.catlib.util.LibStringUtils;
-import personthecat.catlib.util.Shorthand;
 import personthecat.catlib.util.unsafe.CachingReflectionHelper;
 import personthecat.fresult.functions.ThrowingBiConsumer;
 
@@ -409,7 +406,7 @@ public class CommandClassEvaluator {
         for (final Mapping<?, ?> mapping : AUTOMATIC_MAPPINGS) {
             if (type.isAssignableFrom(mapping.to)) {
                 if (ctx.getOptional(name + "0", mapping.from).isPresent()) {
-                    return Shorthand.map((List) ctx.getList(name, mapping.from), mapping.mapper);
+                    return ((List) ctx.getList(name, mapping.from)).stream().map(mapping.mapper).toList();
                 }
                 break;
             }
@@ -497,17 +494,17 @@ public class CommandClassEvaluator {
 
         @Override
         public @NotNull Component getDisplayMessage() {
-            return new TextComponent(this.getFullMethod());
+            return Component.literal(this.getFullMethod());
         }
 
         @Override
         public @Nullable Component getTooltip() {
-            return new TranslatableComponent(this.getMessage(), this.method.getName());
+            return Component.translatable(this.getMessage(), this.method.getName());
         }
 
         @Override
         public @NotNull Component getTitleMessage() {
-            return new TranslatableComponent(GENERIC_ERROR, this.getFullMethod());
+            return Component.translatable(GENERIC_ERROR, this.getFullMethod());
         }
 
         private String getFullMethod() {
@@ -530,17 +527,17 @@ public class CommandClassEvaluator {
 
         @Override
         public @NotNull Component getDisplayMessage() {
-            return new TranslatableComponent(DISPLAY_NODE, this.name);
+            return Component.translatable(DISPLAY_NODE, this.name);
         }
 
         @Override
         public @Nullable Component getTooltip() {
-            return new TranslatableComponent(LIST_NODE, this.name);
+            return Component.translatable(LIST_NODE, this.name);
         }
 
         @Override
         public @NotNull Component getTitleMessage() {
-            return new TranslatableComponent(COMMAND_NODE, this.name);
+            return Component.translatable(COMMAND_NODE, this.name);
         }
     }
 }

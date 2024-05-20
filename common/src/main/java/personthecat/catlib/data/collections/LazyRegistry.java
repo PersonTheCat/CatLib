@@ -3,11 +3,11 @@ package personthecat.catlib.data.collections;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import oshi.annotation.concurrent.ThreadSafe;
 import personthecat.catlib.data.Lazy;
 import personthecat.catlib.data.ResettableLazy;
 import personthecat.catlib.exception.MissingElementException;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;

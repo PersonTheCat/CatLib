@@ -2,16 +2,16 @@ package personthecat.catlib.serialization.json;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
-import xjs.comments.CommentType;
-import xjs.core.*;
-import xjs.transform.JsonCollectors;
+import xjs.data.comments.CommentType;
+import xjs.data.*;
+import xjs.data.transform.JsonCollectors;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.util.LibUtil.f;
 
 /**
  * <p>This class contains a series of high level utilities to be used for updating old JSON presets

@@ -6,7 +6,9 @@ plugins {
 }
 
 architectury {
-    common(rootProject.enabled_platforms.split(","))
+    common(rootProject.enabled_platforms.split(",")) {
+        it.platformPackage "neoforge", "forge"
+    }
 }
 
 configurations {
@@ -20,9 +22,8 @@ dependencies {
 
     bundle group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
     bundle group: 'com.personthecat', name: 'fresult', version: fresult_version
-    bundle group: 'org.exjson', name: 'xjs-core', version: xjs_core_version
+    bundle group: 'org.exjson', name: 'xjs-data', version: xjs_data_version
     bundle group: 'org.exjson', name: 'xjs-compat', version: xjs_compat_version
-    bundle group: 'org.exjson', name: 'xjs-jel', version: xjs_jel_version
 }
 
 task processSource(type: Sync) {
@@ -41,11 +42,12 @@ compileJava {
 
 shadowJar {
     configurations = [project.configurations.bundle]
-    classifier ''
+    archiveClassifier.set ''
 }
 
 tasks.withType(TransformingTask) {
     if (it.name.startsWith('transformProduction')) {
+        it.dependsOn remapJar
         it.dependsOn shadowJar
         input = shadowJar.archiveFile
     }

@@ -1,7 +1,6 @@
 package personthecat.catlib.exception;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,12 +14,12 @@ public class GenericFormattedException extends FormattedException {
 
     public GenericFormattedException(final Throwable cause, final String tooltip) {
         super(cause);
-        this.tooltip = new TextComponent(tooltip);
+        this.tooltip = Component.literal(tooltip);
     }
 
     @Override
     public @NotNull Component getDisplayMessage() {
-        return new TextComponent(createMsg(this.getCause()));
+        return Component.literal(createMsg(this.getCause()));
     }
 
     @Override

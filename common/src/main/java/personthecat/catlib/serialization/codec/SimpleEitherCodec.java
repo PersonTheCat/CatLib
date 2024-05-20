@@ -51,7 +51,7 @@ public class SimpleEitherCodec<A> implements Codec<A> {
         }
         final String m1 = r1.error().get().message();
         final String m2 = r2.error().get().message();
-        return DataResult.error("Fix either: [\"" + m1 + "\",\"" + m2 + "\"]");
+        return DataResult.error(() -> "Fix either: [\"" + m1 + "\",\"" + m2 + "\"]");
     }
 
     @SuppressWarnings("unchecked")

@@ -173,8 +173,9 @@ public class ConfigTracker<T extends Serializable> {
         private static void checkEqualsImplementation(final Object o) {
             try {
                 final Class<?> type = o.getClass();
-                assert type.getMethod("equals", Object.class).getDeclaringClass() != Object.class
-                    : type.getSimpleName() + " must provide explicit equals implementation";
+                if (type.getMethod("equals", Object.class).getDeclaringClass() == Object.class) {
+                    throw new AssertionError(type.getSimpleName() + " must provide explicit equals implementation");
+                }
             } catch (final NoSuchMethodException ignored) {
                 throw new UnreachableException();
             }

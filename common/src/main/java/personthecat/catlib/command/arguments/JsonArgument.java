@@ -1,22 +1,22 @@
 package personthecat.catlib.command.arguments;
 
+import com.google.gson.JsonPrimitive;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.synchronization.ArgumentTypes;
-import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.data.Lazy;
-import personthecat.catlib.util.LibReference;
-import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.PathUtils;
-import xjs.core.JsonObject;
-import xjs.serialization.JsonContext;
+import xjs.data.JsonObject;
+import xjs.data.serialization.JsonContext;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
@@ -28,11 +28,7 @@ import static personthecat.catlib.util.PathUtils.extension;
 
 @SuppressWarnings("unused")
 public class JsonArgument implements ArgumentType<JsonArgument.Result> {
-
-    public static void register() {
-        ArgumentTypes.register(LibReference.MOD_ID + ":xjs_argument", JsonArgument.class,
-            new EmptyArgumentSerializer<>(() -> new JsonArgument(McUtils.getConfigDir())));
-    }
+    public static final ArgumentTypeInfo<JsonArgument, Info.Template> INFO = new Info();
 
     private final FileArgument getter;
 
@@ -71,7 +67,6 @@ public class JsonArgument implements ArgumentType<JsonArgument.Result> {
     }
 
     public static class Result {
-
         private final File root;
         public final File file;
         public final Lazy<JsonObject> json;
@@ -88,6 +83,67 @@ public class JsonArgument implements ArgumentType<JsonArgument.Result> {
 
         public Stream<String> getNeighbors() {
             return PathUtils.getSimpleContents(root, file);
+        }
+    }
+
+    private static class Info implements ArgumentTypeInfo<JsonArgument, Info.Template> {
+
+        @Override
+        public void serializeToNetwork(Template template, FriendlyByteBuf buf) {
+            buf.writeUtf(template.dir);
+            if (template.preferred != null) {
+                buf.writeBoolean(true);
+                buf.writeUtf(template.preferred);
+            } else {
+                buf.writeBoolean(false);
+            }
+            buf.writeBoolean(template.recursive);
+        }
+
+        @Override
+        public Template deserializeFromNetwork(FriendlyByteBuf buf) {
+            return new Template(
+                buf.readUtf(),
+                buf.readBoolean() ? buf.readUtf() : null,
+                buf.readBoolean());
+        }
+
+        @Override
+        public void serializeToJson(Template template, com.google.gson.JsonObject json) {
+            json.addProperty("dir", template.dir);
+            json.addProperty("preferred", template.preferred);
+            json.add("recursive", new JsonPrimitive(template.recursive));
+        }
+
+        @Override
+        public Template unpack(JsonArgument ja) {
+            return new Template(
+                ja.getter.dir.getAbsolutePath(),
+                ja.getter.preferred != null ? ja.getter.preferred.getAbsolutePath() : null,
+                ja.getter.recursive);
+        }
+
+        private class Template implements ArgumentTypeInfo.Template<JsonArgument> {
+            private final String dir;
+            private final @Nullable String preferred;
+            private final boolean recursive;
+
+            private Template(String dir, @Nullable String preferred, boolean recursive) {
+                this.dir = dir;
+                this.preferred = preferred;
+                this.recursive = recursive;
+            }
+
+            @Override
+            public JsonArgument instantiate(CommandBuildContext ctx) {
+                return new JsonArgument(
+                    new File(this.dir), this.preferred != null ? new File(this.preferred) : null, this.recursive);
+            }
+
+            @Override
+            public ArgumentTypeInfo<JsonArgument, ?> type() {
+                return Info.this;
+            }
         }
     }
 }

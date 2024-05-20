@@ -1,23 +1,21 @@
 package personthecat.catlib.mixin;
 
-import com.mojang.datafixers.util.Pair;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.server.WorldStem;
-import net.minecraft.server.WorldStem.WorldDataSupplier;
-import net.minecraft.world.level.storage.WorldData;
+import net.minecraft.server.WorldLoader;
+import net.minecraft.server.WorldLoader.DataLoadOutput;
+import net.minecraft.server.WorldLoader.WorldDataSupplier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.lifecycle.GameReadyEvent;
 
-@Mixin(WorldStem.class)
+@Mixin(WorldLoader.class)
 public class WorldStemServerMixin {
 
-    @ModifyVariable(method = "load", at = @At(value = "HEAD"), index = 2)
-    private static WorldDataSupplier injectCatlibEvent(final WorldDataSupplier supplier) {
-        return (manager, config) -> {
-            final Pair<WorldData, RegistryAccess.Frozen> ret = supplier.get(manager, config);
+    @ModifyArg(method = "load", at = @At(value = "HEAD"), index = 1)
+    private static <D> WorldDataSupplier<D> injectCatlibEvent(final WorldDataSupplier<D> supplier) {
+        return (ctx) -> {
+            final DataLoadOutput<D> ret = supplier.get(ctx);
             modSetupComplete();
             return ret;
         };

@@ -7,11 +7,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
-import personthecat.catlib.util.Shorthand;
+import personthecat.catlib.util.LibUtil;
 
 import java.io.File;
 
-import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.util.LibUtil.f;
 
 @Log4j2
 @UtilityClass
@@ -50,7 +50,7 @@ public class Exceptions {
     }
 
     /**
-     * Shorthand for a {@link RuntimeException} using {@link Shorthand#f}.
+     * Shorthand for a {@link RuntimeException} using {@link LibUtil#f}.
      *
      * @param x The string template being interpolated.
      * @param args The interpolated arguments replacing <code>{}</code>.
@@ -80,7 +80,7 @@ public class Exceptions {
     }
 
     /**
-     * Shorthand for a {@link ResourceException} using {@link Shorthand#f}.
+     * Shorthand for a {@link ResourceException} using {@link LibUtil#f}.
      *
      * @param x The string template being interpolated.
      * @param args The interpolated arguments replacing <code>{}</code>.
@@ -112,7 +112,7 @@ public class Exceptions {
     }
 
     /**
-     * Shorthand for a {@link ModSetupException} using {@link Shorthand#f}.
+     * Shorthand for a {@link ModSetupException} using {@link LibUtil#f}.
      *
      * @param x The string template being interpolated.
      * @param args The interpolated arguments replacing <code>{}</code>.
@@ -154,7 +154,7 @@ public class Exceptions {
     }
 
     /**
-     * Shorthand for a regular {@link JsonFormatException} using {@link Shorthand#f}.
+     * Shorthand for a regular {@link JsonFormatException} using {@link LibUtil#f}.
      *
      * @param x The string template being interpolated.
      * @param args The interpolated arguments replacing <code>{}</code>.
@@ -186,7 +186,7 @@ public class Exceptions {
     }
 
     /**
-     * Shorthand for a regular {@link MissingElementException} using {@link Shorthand#f}.
+     * Shorthand for a regular {@link MissingElementException} using {@link LibUtil#f}.
      *
      * @param x The string template being interpolated.
      * @param args The interpolated arguments replacing <code>{}</code>.
@@ -221,7 +221,7 @@ public class Exceptions {
     }
 
     /**
-     * Shorthand for a regular {@link CommandExecutionException} using {@link Shorthand#f}.
+     * Shorthand for a regular {@link CommandExecutionException} using {@link LibUtil#f}.
      *
      * @param x The string template being interpolated.
      * @param args The interpolated arguments replacing <code>{}</code>.

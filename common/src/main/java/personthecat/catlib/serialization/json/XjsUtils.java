@@ -5,20 +5,19 @@ import com.mojang.serialization.Codec;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.exception.JsonFormatException;
 import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
-import xjs.comments.CommentType;
-import xjs.core.*;
-import xjs.exception.SyntaxException;
-import xjs.serialization.JsonContext;
-import xjs.serialization.writer.JsonWriterOptions;
+import xjs.data.comments.CommentType;
+import xjs.data.*;
+import xjs.data.exception.SyntaxException;
+import xjs.data.serialization.JsonContext;
+import xjs.data.serialization.writer.JsonWriterOptions;
 
-import javax.annotation.CheckReturnValue;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
@@ -27,9 +26,7 @@ import java.util.function.Function;
 import static java.util.Optional.empty;
 import static personthecat.catlib.exception.Exceptions.jsonFormatEx;
 import static personthecat.catlib.exception.Exceptions.unreachable;
-import static personthecat.catlib.util.Shorthand.f;
-import static personthecat.catlib.util.Shorthand.full;
-import static personthecat.catlib.util.Shorthand.nullable;
+import static personthecat.catlib.util.LibUtil.f;
 
 /**
  * A collection of convenience methods for interacting with XJS objects. Unlike
@@ -45,7 +42,6 @@ import static personthecat.catlib.util.Shorthand.nullable;
 @Log4j2
 @UtilityClass
 @SuppressWarnings("unused")
-@ParametersAreNonnullByDefault
 public class XjsUtils {
 
     /**
@@ -617,11 +613,11 @@ public class XjsUtils {
      */
     private static Optional<JsonValue> getEither(final JsonValue container, final Either<String, Integer> either) {
         if (either.left().isPresent()) {
-            return nullable(container.asObject().get(either.left().get()));
+            return Optional.ofNullable(container.asObject().get(either.left().get()));
         } else if (either.right().isPresent()) {
             final JsonArray array = container.asArray();
             final int index = either.right().get();
-            return index < array.size() ? full(array.get(index)) : empty();
+            return index < array.size() ? Optional.of(array.get(index)) : empty();
         }
         throw unreachable();
     }

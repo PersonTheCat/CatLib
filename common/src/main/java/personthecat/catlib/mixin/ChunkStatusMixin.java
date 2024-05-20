@@ -5,7 +5,7 @@ import net.minecraft.server.level.ThreadedLevelLightEngine;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.ChunkStatus;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,9 +21,9 @@ public class ChunkStatusMixin {
 
     @Inject(method = "generate", at = @At("HEAD"))
     public void injectDims(
-            Executor e, ServerLevel l, ChunkGenerator g, StructureManager s,
+            Executor e, ServerLevel l, ChunkGenerator g, StructureTemplateManager s,
             ThreadedLevelLightEngine le, Function<?, ?> f, List<ChunkAccess> chunks,
-            boolean b, CallbackInfoReturnable<?> cir) {
+            CallbackInfoReturnable<?> cir) {
         chunks.forEach(chunk -> DimInjector.setType(chunk, l.dimensionType()));
     }
 }

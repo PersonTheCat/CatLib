@@ -12,6 +12,7 @@ import personthecat.catlib.exception.UnreachableException;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -103,20 +104,23 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
     @SuppressWarnings("unchecked")
     public <T> DataResult<T> encode(final A input, final DynamicOps<T> ops, final T prefix) {
         if (input == null) {
-            return DataResult.error("Input is null");
+            return DataResult.error(() -> "Input is null");
         }
         final R reader = this.in.apply(input);
         final Map<T, T> map = new HashMap<>();
         final List<T> errors = new ArrayList<>();
 
         for (final DynamicField<B, R, ?> field : this.fields.values()) {
-            Codec<Object> type = (Codec<Object>) field.codec;
-            if (type == null) type = (Codec<Object>) this;
-
             final Object value = field.getter.apply(reader);
             if (value == null) {
                 continue;
             }
+            final Predicate<Object> filter = (Predicate<Object>) field.outputFilter;
+            if (filter != null && !filter.test(value)) {
+                continue;
+            }
+            Codec<Object> type = (Codec<Object>) field.codec;
+            if (type == null) type = (Codec<Object>) this;
             if (field.isImplicit()) {
                 type.encode(value, ops, prefix)
                     .resultOrPartial(e -> errors.add(ops.createString(e)))
@@ -131,7 +135,7 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
             }
         }
         if (!errors.isEmpty()) {
-            return DataResult.error("Error encoding builder", ops.createList(errors.stream()));
+            return DataResult.error(() -> "Error encoding builder", ops.createList(errors.stream()));
         }
         return ops.mergeToMap(prefix, map);
     }
@@ -180,7 +184,7 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
                 for (final String missing : required.keySet()) {
                     failed.add(ops.createString(missing));
                 }
-                result.setValue(DataResult.error("Required values are missing"));
+                result.setValue(DataResult.error(() -> "Required values are missing"));
             }
             final Pair<A, T> pair = Pair.of(this.out.apply(builder), ops.createList(failed.build()));
             return result.getValue().map(unit -> pair).setPartial(pair);
@@ -196,6 +200,11 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
             this.builder = builder;
             this.in = in;
             this.out = out;
+        }
+
+        @SuppressWarnings("unchecked")
+        public final DynamicCodec<B, R, A> create(final List<DynamicField<B, R, ?>> fields) {
+            return this.create(fields.toArray(DynamicField[]::new));
         }
 
         @SafeVarargs

@@ -52,6 +52,7 @@ public class RegistryAddedEventImpl {
         });
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     private static <T> void runRetroactively(final ResourceKey<Registry<T>> key, final RegistryAddedCallback<T> f) {
         final RegistryHandle<T> handle = RegistryUtils.getHandle(key);
         final boolean locked = handle instanceof ForgeRegistryHandle && ((ForgeRegistryHandle<?>) handle).getRegistry().isLocked();

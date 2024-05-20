@@ -1,6 +1,7 @@
 package personthecat.catlib.io;
 
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.exception.DirectoryNotCreatedException;
@@ -13,8 +14,6 @@ import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 import personthecat.fresult.functions.ThrowingConsumer;
 
-import javax.annotation.CheckReturnValue;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
@@ -32,13 +31,10 @@ import static java.util.Optional.empty;
 import static personthecat.catlib.exception.Exceptions.directoryNotCreated;
 import static personthecat.catlib.exception.Exceptions.runEx;
 import static personthecat.catlib.exception.Exceptions.resourceEx;
-import static personthecat.catlib.util.Shorthand.f;
-import static personthecat.catlib.util.Shorthand.full;
-import static personthecat.catlib.util.Shorthand.nullable;
+import static personthecat.catlib.util.LibUtil.f;
 
 @Log4j2
 @UtilityClass
-@ParametersAreNonnullByDefault
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class FileIO {
 
@@ -142,7 +138,7 @@ public class FileIO {
     @NotNull
     @CheckReturnValue
     public static File[] listFiles(final File dir) {
-        return nullable(dir.listFiles()).orElseGet(() -> new File[0]);
+        return Optional.ofNullable(dir.listFiles()).orElseGet(() -> new File[0]);
     }
 
     /**
@@ -156,7 +152,7 @@ public class FileIO {
     @NotNull
     @CheckReturnValue
     public static File[] listFiles(final File dir, final FileFilter filter) {
-        return nullable(dir.listFiles(filter)).orElse(new File[0]);
+        return Optional.ofNullable(dir.listFiles(filter)).orElse(new File[0]);
     }
 
     /**
@@ -250,7 +246,7 @@ public class FileIO {
                         return found;
                     }
                 } else if (filter.accept(f)) {
-                    return full(f);
+                    return Optional.of(f);
                 }
             }
         }
@@ -293,7 +289,7 @@ public class FileIO {
                         return found;
                     }
                 } else if (filter.accept(f)) {
-                    return full(f);
+                    return Optional.of(f);
                 }
             }
         }
@@ -525,7 +521,7 @@ public class FileIO {
     @CheckReturnValue
     public static Optional<InputStream> getResource(final String path) {
         final String file = path.startsWith("/") ? path : "/" + path;
-        return nullable(FileIO.class.getClassLoader().getResourceAsStream(file));
+        return Optional.ofNullable(FileIO.class.getClassLoader().getResourceAsStream(file));
     }
 
     /**

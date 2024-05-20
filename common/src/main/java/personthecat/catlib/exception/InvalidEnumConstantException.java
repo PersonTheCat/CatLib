@@ -2,7 +2,7 @@ package personthecat.catlib.exception;
 
 import java.util.Arrays;
 
-import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.util.LibUtil.f;
 
 public class InvalidEnumConstantException extends RuntimeException {
     public InvalidEnumConstantException(final String name, final Class<? extends Enum<?>> clazz) {

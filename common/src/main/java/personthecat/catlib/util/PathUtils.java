@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static personthecat.catlib.io.FileIO.listFiles;
-import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.util.LibUtil.f;
 
 /** A collection of tools used for interacting with file paths and {@link ResourceLocation}s. */
 @UtilityClass

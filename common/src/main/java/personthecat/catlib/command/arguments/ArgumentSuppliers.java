@@ -7,7 +7,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import lombok.experimental.UtilityClass;
 import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.CommandRegistrationContext;
-import personthecat.catlib.command.CommandSuggestions;
+import personthecat.catlib.command.LibSuggestions;
 import personthecat.catlib.data.ModDescriptor;
 
 /**
@@ -68,7 +68,7 @@ public class ArgumentSuppliers {
      */
     public static class AnyValue implements ArgumentSupplier<String> {
         public ArgumentDescriptor<String> get() {
-            return new ArgumentDescriptor<>(StringArgumentType.greedyString(), CommandSuggestions.ANY_VALUE);
+            return new ArgumentDescriptor<>(StringArgumentType.greedyString(), LibSuggestions.ANY_VALUE);
         }
     }
 
@@ -77,7 +77,7 @@ public class ArgumentSuppliers {
      */
     public static class AnyInt implements ArgumentSupplier<Integer> {
         public ArgumentDescriptor<Integer> get() {
-            return new ArgumentDescriptor<>(IntegerArgumentType.integer(), CommandSuggestions.ANY_INT);
+            return new ArgumentDescriptor<>(IntegerArgumentType.integer(), LibSuggestions.ANY_INT);
         }
     }
 
@@ -86,7 +86,7 @@ public class ArgumentSuppliers {
      */
     public static class AnyDouble implements ArgumentSupplier<Double> {
         public ArgumentDescriptor<Double> get() {
-            return new ArgumentDescriptor<>(DoubleArgumentType.doubleArg(), CommandSuggestions.ANY_DECIMAL);
+            return new ArgumentDescriptor<>(DoubleArgumentType.doubleArg(), LibSuggestions.ANY_DECIMAL);
         }
     }
 

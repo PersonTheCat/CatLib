@@ -6,10 +6,10 @@ import com.mojang.datafixers.util.Either;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.fresult.Result;
-import xjs.core.JsonContainer;
-import xjs.core.JsonObject;
-import xjs.core.JsonValue;
-import xjs.core.PathFilter;
+import xjs.data.JsonContainer;
+import xjs.data.JsonObject;
+import xjs.data.JsonValue;
+import xjs.data.PathFilter;
 
 import java.util.*;
 import java.util.stream.Collectors;

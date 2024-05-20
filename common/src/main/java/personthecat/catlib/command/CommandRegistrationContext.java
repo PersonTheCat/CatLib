@@ -2,22 +2,21 @@ package personthecat.catlib.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
+import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.annotations.CommandBuilder;
+import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.McUtils;
-import personthecat.fresult.Result;
 
-import javax.annotation.CheckReturnValue;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,7 +25,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static net.minecraft.commands.Commands.literal;
-import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.command.CommandUtils.arg;
+import static personthecat.catlib.util.LibUtil.f;
 
 /**
  * A helper used for generating and registering commands for the current mod.
@@ -85,7 +85,6 @@ import static personthecat.catlib.util.Shorthand.f;
  * </p>
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-@ParametersAreNonnullByDefault
 public class CommandRegistrationContext {
 
     /** The text formatting to be used for the command usage header. */
@@ -272,7 +271,7 @@ public class CommandRegistrationContext {
      * @return <code>this</code>, for method chaining.
      */
     public CommandRegistrationContext addLibCommands() {
-        this.commands.addAll(DefaultLibCommands.createAll(this.mod, false));
+        this.commands.addAll(DefaultLibCommands.createAll(this.mod));
         return this;
     }
 
@@ -368,13 +367,16 @@ public class CommandRegistrationContext {
      * @return A generated {@link LiteralArgumentBuilder} for the current mod.
      */
     private LiteralArgumentBuilder<CommandSourceStack> generateBasicModCommand(final List<LibCommandBuilder> commands) {
-        final List<TextComponent> message = this.createHelpMessage(commands);
-        final Command<CommandSourceStack> helpCommand = this.createHelp(message);
-
-        return literal(this.mod.getCommandPrefix()).executes(helpCommand)
-            .then(literal(HELP_ARGUMENT).executes(helpCommand)
-                .then(CommandUtils.arg(PAGE_ARGUMENT, 1, message.size()).executes(helpCommand)));
-    }
+        final List<Component> message = this.createHelpMessage(commands);
+        final CommandFunction helpCommand = this.createHelp(message);
+        return LibCommandBuilder.named(this.mod.getCommandPrefix())
+            .generate((builder, utl) -> {
+                final Command<CommandSourceStack> cmd = utl.wrap(helpCommand);
+                return builder.executes(cmd)
+                    .then(literal(HELP_ARGUMENT).executes(cmd)
+                        .then(arg(PAGE_ARGUMENT, 1, message.size()).executes(cmd)));
+            }).getCommand();
+    } // todo: add previous / next buttons
 
     /**
      * Generates the basic help command to used by the current mod.
@@ -382,23 +384,11 @@ public class CommandRegistrationContext {
      * @param pages The generated text components corresponding to each help page.
      * @return The command to be executed when provided an optional page number.
      */
-    private Command<CommandSourceStack> createHelp(final List<TextComponent> pages) {
+    private CommandFunction createHelp(final List<Component> pages) {
         return ctx -> {
-            final CommandSourceStack source = ctx.getSource();
-            source.sendSuccess(pages.get(this.getHelpPage(ctx) - 1), true);
-            return 0;
+            final int page = ctx.getOptional(PAGE_ARGUMENT, Integer.class).orElse(1) - 1;
+            ctx.sendMessage(() -> pages.get(page));
         };
-    }
-
-    /**
-     * Gets the help page argument from the current {@link CommandContext}.
-     *
-     * @param ctx The regular command context exposed to Brigadier commands.
-     * @return The requested page number, or else 1.
-     */
-    private int getHelpPage(final CommandContext<CommandSourceStack> ctx) {
-        return Result.suppress(() -> ctx.getArgument(PAGE_ARGUMENT, Integer.class))
-            .orElseGet(e -> 1);
     }
 
     /**
@@ -408,14 +398,14 @@ public class CommandRegistrationContext {
      * @param commands Every command builder applicable for the current context.
      * @return The generated list of formatted help pages.
      */
-    private List<TextComponent> createHelpMessage(final List<LibCommandBuilder> commands) {
+    private List<Component> createHelpMessage(final List<LibCommandBuilder> commands) {
         final List<List<HelpCommandInfo>> pages = this.createHelpPages(commands);
-        final List<TextComponent> messages = new ArrayList<>();
+        final List<Component> messages = new ArrayList<>();
         final boolean anyGlobal = this.isAnyGlobal(commands);
 
         for (int i = 0; i < pages.size(); i++) {
             final List<HelpCommandInfo> page = pages.get(i);
-            final TextComponent message = new TextComponent(""); // No formatting.
+            final MutableComponent message = Component.empty(); // No formatting.
             message.append(this.createHeader(i + 1, pages.size()));
 
             for (final HelpCommandInfo info : page) {
@@ -473,10 +463,10 @@ public class CommandRegistrationContext {
      *
      * @param page The current page number.
      * @param numPages The last page number.
-     * @return The formatted header as a {@link TextComponent}.
+     * @return The formatted header as a {@link Component}.
      */
-    private TextComponent createHeader(final int page, final int numPages) {
-        return (TextComponent) new TextComponent(f(USAGE_HEADER, this.mod.getName(), page, numPages))
+    private Component createHeader(final int page, final int numPages) {
+        return Component.literal(f(USAGE_HEADER, this.mod.getName(), page, numPages))
             .setStyle(HEADER_STYLE);
     }
 
@@ -487,17 +477,17 @@ public class CommandRegistrationContext {
      *
      * @param anyGlobal Whether any command in the context is a global command.
      * @param info The raw help info corresponding to the current command.
-     * @return The formatted help info as a {@link TextComponent}.
+     * @return The formatted help info as a {@link Component}.
      */
-    private TextComponent createUsageText(final boolean anyGlobal, final HelpCommandInfo info) {
+    private Component createUsageText(final boolean anyGlobal, final HelpCommandInfo info) {
         final String prefix = info.isGlobal() || !anyGlobal ? "" : this.mod.getCommandPrefix() + " ";
         final String command = prefix + info.getName() + " " + info.getArguments();
 
-        final TextComponent text = new TextComponent(command);
+        final MutableComponent text = Component.literal(command);
         final List<String> lines = LibStringUtils.wrapLines(info.getDescription(), this.usageLineLength);
-        text.append(new TextComponent(" :\n " + lines.get(0)).setStyle(USAGE_STYLE));
+        text.append(Component.literal(" :\n " + lines.get(0)).setStyle(USAGE_STYLE));
         for (int i = 1; i < lines.size(); i++) {
-            text.append(new TextComponent("\n  " + lines.get(i)).setStyle(USAGE_STYLE));
+            text.append(Component.literal("\n  " + lines.get(i)).setStyle(USAGE_STYLE));
         }
         return text;
     }

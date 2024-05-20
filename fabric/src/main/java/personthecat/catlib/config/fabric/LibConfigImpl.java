@@ -6,9 +6,9 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
-import xjs.comments.CommentStyle;
-import xjs.serialization.JsonContext;
-import xjs.serialization.writer.JsonWriterOptions;
+import xjs.data.comments.CommentStyle;
+import xjs.data.serialization.JsonContext;
+import xjs.data.serialization.writer.JsonWriterOptions;
 
 @Config(name = LibReference.MOD_ID)
 public class LibConfigImpl implements ConfigData {
@@ -23,8 +23,8 @@ public class LibConfigImpl implements ConfigData {
 
     public static void register() {}
 
-    public static boolean enableGlobalLibCommands() {
-        return CONFIG.general.enableGlobalLibCommands;
+    public static boolean enableCatlibCommands() {
+        return CONFIG.general.enableCatlibCommands;
     }
 
     public static Severity errorLevel() {
@@ -40,7 +40,7 @@ public class LibConfigImpl implements ConfigData {
     }
 
     static {
-        AutoConfig.register(LibConfigImpl.class, XjsConfigSerializer::new);
+        AutoConfig.register(LibConfigImpl.class, DjsConfigSerializer::new);
         CONFIG = AutoConfig.getConfigHolder(LibConfigImpl.class).getConfig();
     }
     
@@ -65,8 +65,8 @@ public class LibConfigImpl implements ConfigData {
 
     private static class General {
 
-        @Comment("Whether to enable this library's provided commands as regular commands.")
-        boolean enableGlobalLibCommands = false;
+        @Comment("Whether to enable this library's provided commands as subcommands of /catlib.")
+        boolean enableCatlibCommands = false;
 
         @Comment("The minimum error level to display in the error menu. (warn, error, fatal)")
         Severity errorLevel = Severity.ERROR;

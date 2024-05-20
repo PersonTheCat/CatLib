@@ -1,7 +1,10 @@
 package personthecat.catlib.serialization.codec;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapDecoder;
+import com.mojang.serialization.MapEncoder;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import personthecat.catlib.mixin.RecordCodecBuilderAccessor;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -17,6 +20,23 @@ public abstract class FieldDescriptor<O, T, R> {
     }
 
     public abstract R r(final T t);
+
+    public T getReturn(final O o) {
+        return this.accessor().getter().apply(o);
+    }
+
+    public MapEncoder<T> getEncoder(final O o) {
+        return this.accessor().encoder().apply(o);
+    }
+
+    public MapDecoder<T> getDecoder() {
+        return this.accessor().decoder();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected RecordCodecBuilderAccessor<O, T> accessor() {
+        return (RecordCodecBuilderAccessor<O, T>) (Object) this.f;
+    }
 
     public static <O, T> FieldDescriptor<O, T, T> field(final Codec<T> type, final String name, final Function<O, T> getter) {
         return passthrough(type.fieldOf(name).forGetter(getter));

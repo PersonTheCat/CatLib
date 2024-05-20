@@ -1,7 +1,7 @@
 package personthecat.catlib.mixin.forge;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistry;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 import net.minecraftforge.registries.RegistryManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,8 +17,9 @@ import personthecat.catlib.event.registry.RegistryAddedCallback;
 import personthecat.catlib.event.registry.forge.RegistryEventAccessor;
 import personthecat.catlib.registry.RegistryHandle;
 
+@SuppressWarnings("UnstableApiUsage")
 @Mixin(ForgeRegistry.class)
-public abstract class ForgeRegistryMixin<T extends IForgeRegistryEntry<T>> implements RegistryEventAccessor<T> {
+public abstract class ForgeRegistryMixin<T> implements RegistryEventAccessor<T> {
 
     @Final
     @Shadow(remap = false)
@@ -28,11 +29,12 @@ public abstract class ForgeRegistryMixin<T extends IForgeRegistryEntry<T>> imple
     private LibEvent<RegistryAddedCallback<T>> registryAddedEvent = null;
 
     @SuppressWarnings({"ConstantConditions", "unchecked"})
-    @Inject(method = "add(ILnet/minecraftforge/registries/IForgeRegistryEntry;Ljava/lang/String;)I", at = @At("RETURN"), remap = false)
+    @Inject(method = "add(ILnet/minecraft/resources/ResourceLocation;Ljava/lang/Object;Ljava/lang/String;)I", at = @At("RETURN"), remap = false)
     void onAdd(int id, T t, String owner, CallbackInfoReturnable<Integer> ci) {
         if (this.registryAddedEvent != null && this.stage == RegistryManager.ACTIVE ) {
             final RegistryHandle<T> handle = new ForgeRegistryHandle<>((ForgeRegistry<T>) (Object) this);
-            this.registryAddedEvent.invoker().onRegistryAdded(handle, t.getRegistryName(), t);
+            final ResourceLocation location = handle.getKey(t);
+            this.registryAddedEvent.invoker().onRegistryAdded(handle, location, t);
         }
     }
 

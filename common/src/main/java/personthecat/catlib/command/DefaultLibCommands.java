@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.*;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -21,6 +22,11 @@ import net.minecraft.world.level.GameType;
 import personthecat.catlib.client.gui.SimpleTextPage;
 import personthecat.catlib.command.arguments.JsonArgument;
 import personthecat.catlib.config.LibConfig;
+import personthecat.catlib.linting.ResourceArrayLinter;
+import personthecat.catlib.linting.SyntaxLinter;
+import personthecat.catlib.registry.DynamicRegistries;
+import personthecat.catlib.registry.RegistryHandle;
+import personthecat.catlib.serialization.codec.CodecSupport;
 import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.io.FileIO;
@@ -28,22 +34,26 @@ import personthecat.catlib.serialization.json.XjsUtils;
 import personthecat.catlib.serialization.json.JsonCombiner;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.PathUtils;
-import xjs.core.Json;
-import xjs.core.JsonObject;
-import xjs.core.JsonValue;
+import xjs.data.Json;
+import xjs.data.JsonObject;
+import xjs.data.JsonValue;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static net.minecraft.commands.Commands.literal;
-import static personthecat.catlib.command.CommandSuggestions.CURRENT_JSON;
+import static personthecat.catlib.command.LibSuggestions.CURRENT_JSON;
 import static personthecat.catlib.command.CommandUtils.arg;
+import static personthecat.catlib.command.CommandUtils.clickToRun;
 import static personthecat.catlib.command.CommandUtils.fileArg;
 import static personthecat.catlib.command.CommandUtils.greedyArg;
+import static personthecat.catlib.command.CommandUtils.idArg;
 import static personthecat.catlib.command.CommandUtils.jsonFileArg;
 import static personthecat.catlib.command.CommandUtils.jsonPathArg;
+import static personthecat.catlib.command.CommandUtils.registryArg;
 import static personthecat.catlib.util.PathUtils.extension;
 import static personthecat.catlib.util.PathUtils.noExtension;
 
@@ -58,6 +68,8 @@ public class DefaultLibCommands {
     public static final String NAME_ARGUMENT = "name";
     public static final String MAX_ARGUMENT = "max";
     public static final String SCALE_ARGUMENT = "scale";
+    public static final String REGISTRY_ARGUMENT = "registry";
+    public static final String ITEM_ARGUMENT = "item";
 
     /** The header displayed whenever the /display command runs. */
     private static final String DISPLAY_HEADER = "--- {} ---";
@@ -78,39 +90,39 @@ public class DefaultLibCommands {
     /** The text formatting used for the undo button. */
     private static final Style UNDO_STYLE = Style.EMPTY
         .withColor(ChatFormatting.GRAY)
-        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("Click to undo.")))
+        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to undo.")))
         .applyFormat(ChatFormatting.UNDERLINE)
         .withBold(true);
 
     /** The number of backups before a warning is displayed. */
     private static final int BACKUP_COUNT_WARNING = 10;
 
-    public static List<LibCommandBuilder> createAll(final ModDescriptor mod, final boolean global) {
+    public static List<LibCommandBuilder> createAll(final ModDescriptor mod) {
         return Lists.newArrayList(
-            createDisplay(mod, global),
-            createUpdate(mod, global),
-            createBackup(mod, global),
-            createCopy(mod, global),
-            createMove(mod, global),
-            createDelete(mod, global),
-            createClean(mod, global),
-            createRename(mod, global),
-            createOpen(mod, global),
-            createCombine(mod, global),
-            createTest(mod, global),
-            createUnTest(mod, global),
-            createCh(mod, global),
-            createCw(mod, global),
-            createToJson(mod, global),
-            createToXjs(mod, global)
+            createDisplay(mod),
+            createUpdate(mod),
+            createTest(mod),
+            createUnTest(mod),
+            createDebug(mod),
+            createBackup(mod),
+            createCopy(mod),
+            createMove(mod),
+            createDelete(mod),
+            createClean(mod),
+            createRename(mod),
+            createOpen(mod),
+            createCombine(mod),
+            createCh(mod),
+            createCw(mod),
+            createToJson(mod),
+            createToXjs(mod)
         );
     }
 
-    public static LibCommandBuilder createDisplay(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createDisplay(final ModDescriptor mod) {
         return LibCommandBuilder.named("display")
             .arguments("<file> [<path>]")
             .append("Outputs the contents of any JSON file to the chat.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(jsonFileArg(FILE_ARGUMENT, mod)
                     .executes(utl.wrap(DefaultLibCommands::display))
@@ -119,12 +131,11 @@ public class DefaultLibCommands {
             );
     }
 
-    public static LibCommandBuilder createUpdate(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createUpdate(final ModDescriptor mod) {
         return LibCommandBuilder.named("update")
             .arguments("<file> [<path>] [<value>]")
             .append("Manually update a JSON value. Omit the value or")
             .append("path to display the current contents.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(jsonFileArg(FILE_ARGUMENT, mod)
                     .executes(utl.wrap(DefaultLibCommands::display))
@@ -135,23 +146,49 @@ public class DefaultLibCommands {
             );
     }
 
-    public static LibCommandBuilder createBackup(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createTest(final ModDescriptor mod) {
+        return LibCommandBuilder.named("test")
+            .append("Applies night vision and spectator mode for easy cave viewing.")
+            .generate((builder, utl) ->
+                builder.executes(utl.wrap(DefaultLibCommands::test)));
+    }
+
+    public static LibCommandBuilder createUnTest(final ModDescriptor mod) {
+        return LibCommandBuilder.named("untest")
+            .append("Removes night vision and puts you in the default game mode.")
+            .generate((builder, utl) ->
+                builder.executes(utl.wrap(DefaultLibCommands::unTest)));
+    }
+
+    public static LibCommandBuilder createDebug(final ModDescriptor mod) {
+        return LibCommandBuilder.named("debug")
+            .arguments("<registry> [<item>]")
+            .append("Dumps registry details to the chat")
+            .linter(ResourceArrayLinter.class)
+            .generate((builder, utl) ->
+                builder.executes(utl.wrap(DefaultLibCommands::debug))
+                    .then(registryArg(REGISTRY_ARGUMENT, DynamicRegistries.rootKey())
+                        .executes(utl.wrap(DefaultLibCommands::debug))
+                    .then(idArg(ITEM_ARGUMENT)
+                        .suggests(LibSuggestions.PREVIOUS_IDS)
+                        .executes(utl.wrap(DefaultLibCommands::debug)))));
+    }
+
+    public static LibCommandBuilder createBackup(final ModDescriptor mod) {
         return LibCommandBuilder.named("backup")
             .arguments("<file>")
             .append("Copies a file to the current mod's backup folder.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                     .executes(utl.wrap(DefaultLibCommands::backup)))
             );
     }
 
-    public static LibCommandBuilder createCopy(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createCopy(final ModDescriptor mod) {
         return LibCommandBuilder.named("copy")
             .arguments("<file> <to>")
             .append("Copies a file from one location to another.")
             .append("Accepts either a directory or a file as <to>.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                 .then(fileArg(DIRECTORY_ARGUMENT, mod)
@@ -159,12 +196,11 @@ public class DefaultLibCommands {
             );
     }
 
-    public static LibCommandBuilder createMove(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createMove(final ModDescriptor mod) {
         return LibCommandBuilder.named("move")
             .arguments("<file> <to>")
             .append("Moves a file from one location to another.")
             .append("Accepts either a directory or a file as <to>.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                 .then(fileArg(DIRECTORY_ARGUMENT, mod)
@@ -172,35 +208,32 @@ public class DefaultLibCommands {
             );
     }
 
-    public static LibCommandBuilder createDelete(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createDelete(final ModDescriptor mod) {
         return LibCommandBuilder.named("delete")
             .arguments("<file>")
             .append("Moves a file to the current mod's backup folder.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                     .executes(utl.wrap(DefaultLibCommands::delete)))
             );
     }
 
-    public static LibCommandBuilder createClean(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createClean(final ModDescriptor mod) {
         return LibCommandBuilder.named("clean")
             .arguments("<directory>")
             .append("Moves all files in the given directory to the mod's")
             .append("backup folder. Else, deletes the contents of the")
             .append("mod's backup folder.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder.executes(utl.wrap(DefaultLibCommands::clean))
                 .then(fileArg(DIRECTORY_ARGUMENT, mod)
                     .executes(utl.wrap(DefaultLibCommands::clean)))
             );
     }
 
-    public static LibCommandBuilder createRename(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createRename(final ModDescriptor mod) {
         return LibCommandBuilder.named("rename")
             .arguments("<file> <to>")
             .append("Renames a file without needing a path or extension.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                 .then(Commands.argument(NAME_ARGUMENT, StringArgumentType.word())
@@ -208,22 +241,20 @@ public class DefaultLibCommands {
             );
     }
 
-    public static LibCommandBuilder createOpen(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createOpen(final ModDescriptor mod) {
         return LibCommandBuilder.named("open")
             .arguments("[<name>]")
             .append("Opens a file or directory in your default editor.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                     .executes(utl.wrap(DefaultLibCommands::open)))
             );
     }
 
-    public static LibCommandBuilder createCombine(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createCombine(final ModDescriptor mod) {
         return LibCommandBuilder.named("combine")
             .arguments("<file> <path> <to>")
             .append("Copies the given path from the first preset into the second preset.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .generate((builder, utl) -> builder
                 .then(jsonFileArg(FILE_ARGUMENT, mod)
                 .then(jsonPathArg(PATH_ARGUMENT)
@@ -232,28 +263,11 @@ public class DefaultLibCommands {
             );
     }
 
-    public static LibCommandBuilder createTest(final ModDescriptor mod, final boolean global) {
-        return LibCommandBuilder.named("test")
-            .append("Applies night vision and spectator mode for easy cave viewing.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
-                .generate((builder, utl) ->
-                    builder.executes(utl.wrap(DefaultLibCommands::test)));
-    }
-
-    public static LibCommandBuilder createUnTest(final ModDescriptor mod, final boolean global) {
-        return LibCommandBuilder.named("untest")
-            .append("Removes night vision and puts you in the default game mode.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
-            .generate((builder, utl) ->
-                builder.executes(utl.wrap(DefaultLibCommands::unTest)));
-    }
-
-    public static LibCommandBuilder createCh(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createCh(final ModDescriptor mod) {
         return LibCommandBuilder.named("ch")
             .arguments("[<scale|max>]")
             .append("Allows you to expand your chat height beyond the")
             .append("default limit of 1.0.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .side(CommandSide.CLIENT)
             .generate((builder, utl) -> builder.executes(utl.wrap(ctx -> ch(ctx, false)))
                 .then(literal(MAX_ARGUMENT).executes(utl.wrap(ctx -> ch(ctx, true))))
@@ -261,12 +275,11 @@ public class DefaultLibCommands {
             );
     }
 
-    public static LibCommandBuilder createCw(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createCw(final ModDescriptor mod) {
         return LibCommandBuilder.named("cw")
             .arguments("[<scale|max>]")
             .append("Allows you to expand your chat width beyond the")
             .append("default limit of 1.0.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
             .side(CommandSide.CLIENT)
             .generate((builder, utl) -> builder.executes(utl.wrap(ctx -> cw(ctx, false)))
                 .then(literal(MAX_ARGUMENT).executes(utl.wrap(ctx -> cw(ctx, true))))
@@ -274,21 +287,19 @@ public class DefaultLibCommands {
             );
     }
 
-    public static LibCommandBuilder createToJson(final ModDescriptor mod, final boolean global) {
+    public static LibCommandBuilder createToJson(final ModDescriptor mod) {
         return LibCommandBuilder.named("tojson")
             .arguments("<file>")
-            .append("Converts an XJS file to a regular JSON file.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
+            .append("Converts a DJS, Hjson, ubjson, or other supported format to a regular JSON file.")
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                     .executes(utl.wrap(ctx -> convert(ctx, true)))));
     }
 
-    public static LibCommandBuilder createToXjs(final ModDescriptor mod, final boolean global) {
-        return LibCommandBuilder.named("toxjs")
+    public static LibCommandBuilder createToXjs(final ModDescriptor mod) {
+        return LibCommandBuilder.named("todjs")
             .arguments("<file>")
-            .append("Converts a regular JSON into an XJS file.")
-            .type(global ? CommandType.GLOBAL : CommandType.MOD)
+            .append("Converts a regular JSON into a DJS file.")
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
                     .executes(utl.wrap(ctx -> convert(ctx, false)))));
@@ -353,11 +364,11 @@ public class DefaultLibCommands {
             .sendMessage();
     }
 
-    private static TextComponent generateUndo(final String input, final String from, final String to) {
+    private static Component generateUndo(final String input, final String from, final String to) {
         final int index = input.lastIndexOf(to);
         final String command = (input.substring(0, index) + from).replace("\"\"", "\"");
-        final ClickEvent undo = new ClickEvent(ClickEvent.Action.RUN_COMMAND, command);
-        return (TextComponent) new TextComponent("[UNDO]").setStyle(UNDO_STYLE.withClickEvent(undo));
+        final ClickEvent undo = clickToRun("/" + command);
+        return Component.literal("[UNDO]").setStyle(UNDO_STYLE.withClickEvent(undo));
     }
 
     private static String escape(final String literal) {
@@ -482,6 +493,29 @@ public class DefaultLibCommands {
         }
     }
 
+    private static void debug(final CommandContextWrapper wrapper) {
+        RegistryHandle<?> handle = wrapper.getOptional(REGISTRY_ARGUMENT, RegistryHandle.class).orElse(null);
+        if (handle == null) {
+            handle = DynamicRegistries.get(DynamicRegistries.rootKey());
+        }
+        final ResourceLocation id = wrapper.getOptional(ITEM_ARGUMENT, ResourceLocation.class).orElse(null);
+        if (id == null) {
+            wrapper.sendLintedMessage(Arrays.toString(handle.keySet().toArray()));
+            return;
+        }
+        final Object item = handle.lookup(id);
+        if (item == null) {
+            wrapper.sendError("No such item in registry");
+            return;
+        }
+        final String s = CodecSupport.anyToString(item);
+        if (s != null) {
+            wrapper.sendMessage(SyntaxLinter.DEFAULT_LINTER.lint(s.replaceAll("\r\n", "\n")));
+        } else {
+            wrapper.sendMessage(item.toString());
+        }
+    }
+
     private static void ch(final CommandContextWrapper wrapper, final boolean max) {
         final Minecraft mc = Minecraft.getInstance();
         final Options cfg = mc.options;
@@ -489,24 +523,24 @@ public class DefaultLibCommands {
         final Optional<Double> scaleArgument = wrapper.getOptional(SCALE_ARGUMENT, Double.class);
 
         if (!max && scaleArgument.isEmpty()) {
-            wrapper.sendMessage("Current chat height: {}", cfg.chatHeightFocused);
+            wrapper.sendMessage("Current chat height: {}", cfg.chatHeightFocused().get());
             return;
         }
 
         final double possible = (window.getGuiScaledHeight() - 20.0) / 180.0;
         if (max) {
-            cfg.chatHeightFocused = possible;
+            cfg.chatHeightFocused().set(possible);
         } else {
             final double height = (scaleArgument.get() * 180.0 + 20.0) * window.getGuiScale();
             if (height > window.getHeight()) {
                 wrapper.sendError("Max size is {} with your current window and scale.", possible);
                 return;
             }
-            cfg.chatHeightFocused = scaleArgument.get();
+            cfg.chatHeightFocused().set(scaleArgument.get());
         }
         cfg.save();
 
-        wrapper.sendMessage("Updated chat height: {}", cfg.chatHeightFocused);
+        wrapper.sendMessage("Updated chat height: {}", cfg.chatHeightFocused().get());
     }
 
     private static void cw(final CommandContextWrapper wrapper, final boolean max) {
@@ -516,24 +550,24 @@ public class DefaultLibCommands {
         final Optional<Double> scaleArgument = wrapper.getOptional(SCALE_ARGUMENT, Double.class);
 
         if (!max && scaleArgument.isEmpty()) {
-            wrapper.sendMessage("Current chat width: {}", cfg.chatWidth);
+            wrapper.sendMessage("Current chat width: {}", cfg.chatWidth().get());
             return;
         }
 
         final double possible = (double) window.getGuiScaledWidth() / 320.0;
         if (max) {
-            cfg.chatWidth = possible;
+            cfg.chatWidth().set(possible);
         } else {
             final double width = scaleArgument.get() * 320.0 * window.getGuiScale();
             if (width > window.getWidth()) {
                 wrapper.sendError("Max size is {} with your current window and scale.", possible);
                 return;
             }
-            cfg.chatWidth = scaleArgument.get();
+            cfg.chatWidth().set(scaleArgument.get());
         }
         cfg.save();
 
-        wrapper.sendMessage("Updated chat width: {}", cfg.chatWidth);
+        wrapper.sendMessage("Updated chat width: {}", cfg.chatWidth().get());
     }
 
     private static void convert(final CommandContextWrapper wrapper, final boolean toJson) {
@@ -551,7 +585,7 @@ public class DefaultLibCommands {
             wrapper.sendError("The file could not be read.");
             return;
         }
-        final String extension = toJson ? "json" : "xjs";
+        final String extension = toJson ? "json" : "djs";
         final File converted = new File(source.getParentFile(), noExtension(source) + extension);
         XjsUtils.writeJson(json.get(), converted).expect("Error writing file.");
 

@@ -15,7 +15,6 @@ public class LibCommandRegistrarImpl {
 
     private static final Map<LiteralArgumentBuilder<CommandSourceStack>, CommandSide> COMMANDS = new ConcurrentHashMap<>();
 
-    @SuppressWarnings("unused")
     public static void registerCommand(final LiteralArgumentBuilder<CommandSourceStack> cmd, final CommandSide side) {
         COMMANDS.put(cmd, side);
     }

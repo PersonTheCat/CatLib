@@ -5,21 +5,43 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 @SuppressWarnings("unused")
 public class DynamicField<B, R, T> {
     final @Nullable Codec<T> codec;
+    final @Nullable Predicate<T> outputFilter;
     final String key;
     final Function<R, T> getter;
     final BiConsumer<B, T> setter;
     final Type type;
 
-    public DynamicField(final @Nullable Codec<T> codec, final String key, final Function<R, T> getter, final BiConsumer<B, T> setter) {
+    public DynamicField(
+            final @Nullable Codec<T> codec,
+            final String key,
+            final Function<R, T> getter,
+            final BiConsumer<B, T> setter) {
         this(codec, key, getter, setter, Type.IGNORE_NULL);
     }
 
-    public DynamicField(final @Nullable Codec<T> codec, final String key, final Function<R, T> getter, final BiConsumer<B, T> setter, final Type type) {
+    public DynamicField(
+            final @Nullable Codec<T> codec,
+            final String key,
+            final Function<R, T> getter,
+            final BiConsumer<B, T> setter,
+            final Type type) {
+        this(codec, key, getter, setter, type, null);
+    }
+
+    public DynamicField(
+            final @Nullable Codec<T> codec,
+            final String key,
+            final Function<R, T> getter,
+            final BiConsumer<B, T> setter,
+            final Type type,
+            final @Nullable Predicate<T> outputFilter) {
         this.codec = codec;
+        this.outputFilter = outputFilter;
         this.key = key;
         this.getter = getter;
         this.setter = setter;
@@ -61,6 +83,14 @@ public class DynamicField<B, R, T> {
 
     public BiConsumer<B, T> setter() {
         return this.setter;
+    }
+
+    public @Nullable Predicate<T> getOutputFilter() {
+        return this.outputFilter;
+    }
+
+    public DynamicField<B, R, T> withOutputFilter(final Predicate<T> filter) {
+        return new DynamicField<>(this.codec, this.key, this.getter, this.setter, this.type, filter);
     }
 
     public boolean isImplicit() {

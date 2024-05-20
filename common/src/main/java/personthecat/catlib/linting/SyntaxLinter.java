@@ -2,10 +2,12 @@ package personthecat.catlib.linting;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.contents.PlainTextContents;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import org.intellij.lang.annotations.RegExp;
+import org.jetbrains.annotations.Nullable;
+import oshi.annotation.concurrent.ThreadSafe;
 
-import javax.annotation.Nullable;
-import javax.annotation.RegEx;
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -53,11 +55,21 @@ public class SyntaxLinter {
 
     protected static final Style RANDOM_COLOR = null;
 
-    public static final Highlighter[] JEL_HIGHLIGHTERS = {
-        new JelHighlighter()
+    public static final Highlighter[] COMMON_HIGHLIGHTERS = {
+        new RegexHighlighter(MULTILINE_DOC, color(ChatFormatting.DARK_GREEN).withItalic(true)),
+        new RegexHighlighter(LINE_TODO, color(ChatFormatting.YELLOW)),
+        new RegexHighlighter(LINE_DOC, color(ChatFormatting.DARK_GREEN).withItalic(true)),
+        new RegexHighlighter(MULTILINE_COMMENT, color(ChatFormatting.GRAY)),
+        new RegexHighlighter(LINE_COMMENT, color(ChatFormatting.GRAY)),
+        new RegexHighlighter(KEY, color(ChatFormatting.AQUA)),
+        new RegexHighlighter(BOOLEAN_VALUE, color(ChatFormatting.GOLD)),
+        new RegexHighlighter(NUMERIC_VALUE, color(ChatFormatting.LIGHT_PURPLE)),
+        new RegexHighlighter(NULL_VALUE, color(ChatFormatting.RED)),
+        new RegexHighlighter(BAD_CLOSER, BAD_CLOSER_ERROR),
+        UnbalancedTokenHighlighter.INSTANCE
     };
 
-    public static final SyntaxLinter DEFAULT_LINTER = new SyntaxLinter(JEL_HIGHLIGHTERS);
+    public static final SyntaxLinter DEFAULT_LINTER = new SyntaxLinter(COMMON_HIGHLIGHTERS);
 
     private static final Style[] RANDOM_COLORS = {
         color(ChatFormatting.YELLOW),
@@ -89,7 +101,7 @@ public class SyntaxLinter {
      * @return A linted text output containing the original message.
      */
     public Component lint(final String text) {
-        final TextComponent formatted = new TextComponent("");
+        final MutableComponent formatted = Component.empty();
         final Context ctx = new Context(text, this.highlighters);
 
         Highlighter.Instance h;
@@ -122,23 +134,23 @@ public class SyntaxLinter {
     }
 
     /**
-     * Shorthand for a regular, formattable {@link TextComponent}.
+     * Shorthand for a regular, formattable {@link Component} with {@link PlainTextContents}.
      *
      * @param s The text being wrapped.
      * @return A wrapped, formattable output containing the original message.
      */
-    public static TextComponent stc(final String s) {
-        return new TextComponent(s);
+    public static MutableComponent stc(final String s) {
+        return Component.literal(s);
     }
 
     /**
-     * Shorthand for a {@link TranslatableComponent}.
+     * Shorthand for a {@link Component} with {@link TranslatableContents}.
      *
      * @param s The text being wrapped.
      * @return A wrapped, formattable output containing the translated message.
      */
-    public static TranslatableComponent translate(final String s) {
-        return new TranslatableComponent(s);
+    public static MutableComponent translate(final String s) {
+        return Component.translatable(s);
     }
 
     /**
@@ -187,7 +199,7 @@ public class SyntaxLinter {
         final Style style;
         final boolean useGroups;
 
-        public RegexHighlighter(final @RegEx String pattern, final Style style) {
+        public RegexHighlighter(final @RegExp String pattern, final Style style) {
             this(Pattern.compile(pattern, Pattern.MULTILINE), style);
         }
 
@@ -252,7 +264,7 @@ public class SyntaxLinter {
 
             @Override
             public Component replacement() {
-                return new TextComponent(this.text.substring(this.start(), this.end())).setStyle(this.getStyle());
+                return Component.literal(this.text.substring(this.start(), this.end())).setStyle(this.getStyle());
             }
 
             private Style getStyle() {

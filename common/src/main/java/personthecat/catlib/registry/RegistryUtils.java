@@ -5,7 +5,7 @@ import dev.architectury.injectables.annotations.ExpectPlatform;
 import lombok.experimental.UtilityClass;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
-import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.exception.MissingElementException;
@@ -22,7 +22,7 @@ public class RegistryUtils {
      * is useful for two reason:
      *
      * <ul>
-     *   <li>To dynamically acquire a registry from either {@link Registry} or {@link BuiltinRegistries}</li>
+     *   <li>To dynamically acquire a registry from either {@link Registry} or {@link BuiltInRegistries}</li>
      *   <li>On Forge, to acquire either of the above or the preferred Forge registry.</li>
      * </ul>
      *
@@ -44,27 +44,27 @@ public class RegistryUtils {
      * @return A platform-agnostic representation of this registry, or else {@link Optional#empty}.
      */
     @ExpectPlatform
-    public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<Registry<T>> key) {
+    public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<? extends Registry<T>> key) {
         throw new MissingOverrideException();
     }
 
     /**
-     * Inserts a registry of this type into {@link BuiltinRegistries#REGISTRY}.
+     * Inserts a registry of this type into {@link BuiltInRegistries#REGISTRY}.
      *
      * @param key The key of the registry being added.
      * @param <T> The type of object contained within the registry.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <T> void createBuiltinRegistry(final ResourceKey<Registry<T>> key) {
-        if (!BuiltinRegistries.REGISTRY.containsKey(key.location())) {
-            final Registry<T> dummyRegistry = new MappedRegistry<>(key, Lifecycle.experimental(), null);
-            Registry.register((Registry) BuiltinRegistries.REGISTRY, key.location(), dummyRegistry);
+    public static <T> void createBuiltinRegistry(final ResourceKey<? extends Registry<T>> key) {
+        if (!BuiltInRegistries.REGISTRY.containsKey(key.location())) {
+            final Registry<T> dummyRegistry = new MappedRegistry<>(key, Lifecycle.experimental());
+            Registry.register((Registry) BuiltInRegistries.REGISTRY, key.location(), dummyRegistry);
         }
     }
 
     /**
      * Acquires a handle on a registry when given the element type. For example, when
-     * given <code>Biome.class</code>, will return {@link BuiltinRegistries#BIOME}.
+     * given <code>BiomeSource.class</code>, will return {@link BuiltInRegistries#BIOME_SOURCE}.
      * On the Forge platform, this method will return the equivalent Forge registry.
      *
      * @throws MissingElementException if the expected registry is not found.

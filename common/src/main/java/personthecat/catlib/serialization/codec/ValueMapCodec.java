@@ -37,7 +37,7 @@ public class ValueMapCodec<A> implements Codec<Map<String, A>> {
                 .ifPresent(t -> map.put(ops.createString(entry.getKey()), t));
         }
         if (!errors.isEmpty()) {
-            return DataResult.error("Error encoding map", ops.createList(errors.stream()));
+            return DataResult.error(() -> "Error encoding map", ops.createList(errors.stream()));
         }
         return ops.mergeToMap(prefix, map);
     }

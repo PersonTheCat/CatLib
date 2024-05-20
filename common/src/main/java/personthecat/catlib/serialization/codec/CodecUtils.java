@@ -5,11 +5,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.NotNull;
+import personthecat.catlib.data.BiomeType;
+import personthecat.catlib.data.IdList;
 import personthecat.catlib.exception.JsonFormatException;
-import personthecat.catlib.util.Shorthand;
+import personthecat.catlib.util.LibUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,8 +32,8 @@ public class CodecUtils {
     public static final Codec<List<String>> STRING_LIST = easyList(Codec.STRING);
     public static final Codec<List<Integer>> INT_LIST = easyList(Codec.INT);
     public static final Codec<List<Float>> FLOAT_LIST = easyList(Codec.FLOAT);
-    public static final Codec<List<ResourceLocation>> ID_LIST = easyList(ResourceLocation.CODEC);
-    public static final Codec<List<Biome.BiomeCategory>> CATEGORY_LIST = easyList(ofEnum(Biome.BiomeCategory.class));
+    public static final Codec<List<BiomeType>> CATEGORY_LIST = easyList(ofEnum(BiomeType.class));
+    @Deprecated public static final Codec<List<ResourceLocation>> ID_LIST = easyList(ResourceLocation.CODEC);
 
     public static <A> ValueMapCodec<A> mapOf(final Codec<A> codec) {
         return new ValueMapCodec<>(codec);
@@ -60,6 +63,10 @@ public class CodecUtils {
         );
     }
 
+    public static <A> Codec<IdList<A>> idList(final ResourceKey<? extends Registry<A>> key) {
+        return IdList.codecOf(key);
+    }
+
     public static <A> Codec<List<A>> autoFlatten(final @NotNull Codec<A> codec) {
         return new AutoFlatListCodec<>(codec);
     }
@@ -73,8 +80,8 @@ public class CodecUtils {
 
         return Codec.STRING.flatXmap(
             name -> {
-                final E c = Shorthand.getEnumConstant(name, e).orElse(null);
-                return c == null ? DataResult.error("Unknown key: " + name + ". Expected one of " + names) : DataResult.success(c);
+                final E c = LibUtil.getEnumConstant(name, e).orElse(null);
+                return c == null ? DataResult.error(() -> "Unknown key: " + name + ". Expected one of " + names) : DataResult.success(c);
             },
             constant -> DataResult.success(constant.name())
         );

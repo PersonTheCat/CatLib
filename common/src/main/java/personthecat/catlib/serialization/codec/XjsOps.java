@@ -5,7 +5,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
 import org.jetbrains.annotations.Nullable;
-import xjs.core.*;
+import xjs.data.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +66,7 @@ public class XjsOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<Number> getNumberValue(final JsonValue input) {
         if (input == null || input.isNull()) {
-            return DataResult.error("Not a number: null");
+            return DataResult.error(() -> "Not a number: null");
         } else if (input.isNumber()) {
             return DataResult.success(input.asDouble());
         } else if (input.isBoolean()) {
@@ -76,10 +76,10 @@ public class XjsOps implements DynamicOps<JsonValue> {
             try {
                 return DataResult.success(Integer.parseInt(input.asString()));
             } catch (final NumberFormatException e) {
-                return DataResult.error("Not a number: " + e + " " + input);
+                return DataResult.error(() -> "Not a number: " + e + " " + input);
             }
         }
-        return DataResult.error("Not a number: " + input);
+        return DataResult.error(() -> "Not a number: " + input);
     }
 
     @Override
@@ -90,13 +90,13 @@ public class XjsOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<Boolean> getBooleanValue(final JsonValue input) {
         if (input == null || input.isNull()) {
-            return DataResult.error("Not a boolean: null");
+            return DataResult.error(() -> "Not a boolean: null");
         } else if (input.isBoolean()) {
             return DataResult.success(input.asBoolean());
         } else if (input.isNumber()) {
             return DataResult.success(input.asDouble() != 0);
         }
-        return DataResult.error("Not a boolean: " + input);
+        return DataResult.error(() -> "Not a boolean: " + input);
     }
 
     @Override
@@ -107,13 +107,13 @@ public class XjsOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<String> getStringValue(final JsonValue input) {
         if (input == null || input.isNull()) {
-            return DataResult.error("Not a string: null");
+            return DataResult.error(() -> "Not a string: null");
         } else if (input.isString()) {
             return DataResult.success(input.asString());
         } else if (this.compressed && input.isNumber()) {
             return DataResult.success(String.valueOf(input.asDouble()));
         }
-        return DataResult.error("Not a string: " + input);
+        return DataResult.error(() -> "Not a string: " + input);
     }
 
     @Override
@@ -128,7 +128,7 @@ public class XjsOps implements DynamicOps<JsonValue> {
         } else if (list.isArray()) {
             return DataResult.success(new JsonArray().addAll(list.asArray()).add(value));
         }
-        return DataResult.error("mergeToList called with not a list: " + list, list);
+        return DataResult.error(() -> "mergeToList called with not a list: " + list, list);
     }
 
     @Override
@@ -142,16 +142,16 @@ public class XjsOps implements DynamicOps<JsonValue> {
             values.forEach(result::add);
             return DataResult.success(result);
         }
-        return DataResult.error("mergeToList called with not a list: " + list, list);
+        return DataResult.error(() -> "mergeToList called with not a list: " + list, list);
     }
 
     @Override
     public DataResult<JsonValue> mergeToMap(final JsonValue map, final JsonValue key, final JsonValue value) {
         if (!(map == null || map.isObject() || map.isNull())) {
-            return DataResult.error("mergeToMap called with not a map: " + map, map);
+            return DataResult.error(() -> "mergeToMap called with not a map: " + map, map);
         } else if (!(key.isString() || (this.compressed && isPrimitiveLike(key)))) {
             final String msg = "key is not a string: " + key;
-            return map != null ? DataResult.error(msg, map) : DataResult.error(msg);
+            return map != null ? DataResult.error(() -> msg, map) : DataResult.error(() -> msg);
         }
         if (map == null || map.isNull()) {
             return DataResult.success(new JsonObject().add(asPrimitiveString(key), value));
@@ -162,7 +162,7 @@ public class XjsOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<JsonValue> mergeToMap(final JsonValue map, MapLike<JsonValue> values) {
         if (!(map == null || map.isObject() || map.isNull())) {
-            return DataResult.error("mergeToMap called with not a map: " + map, map);
+            return DataResult.error(() -> "mergeToMap called with not a map: " + map, map);
         }
         final JsonObject output = new JsonObject();
         if (map != null && map.isObject()) {
@@ -178,7 +178,7 @@ public class XjsOps implements DynamicOps<JsonValue> {
             }
         });
         if (!missed.isEmpty()) {
-            return DataResult.error("some keys are not strings: " + missed, output);
+            return DataResult.error(() -> "some keys are not strings: " + missed, output);
         }
         return DataResult.success(output);
     }
@@ -186,7 +186,7 @@ public class XjsOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<Stream<Pair<JsonValue, JsonValue>>> getMapValues(final JsonValue input) {
         if (input == null || !input.isObject()) {
-            return DataResult.error("Not an XJS object: " + input);
+            return DataResult.error(() -> "Not an XJS object: " + input);
         }
         final Stream.Builder<Pair<JsonValue, JsonValue>> builder = Stream.builder();
         for (final JsonObject.Member member : input.asObject()) {
@@ -199,7 +199,7 @@ public class XjsOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<Consumer<BiConsumer<JsonValue, JsonValue>>> getMapEntries(final JsonValue input) {
         if (input == null || !input.isObject()) {
-            return DataResult.error("Not an XJS object: " + input);
+            return DataResult.error(() -> "Not an XJS object: " + input);
         }
         return DataResult.success(c -> {
             for (final JsonObject.Member member : input.asObject()) {
@@ -212,7 +212,7 @@ public class XjsOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<MapLike<JsonValue>> getMap(final JsonValue input) {
         if (input == null || !input.isObject()) {
-            return DataResult.error("Not an XJS object: " + input);
+            return DataResult.error(() -> "Not an XJS object: " + input);
         }
         return DataResult.success(new XJSMapLike(input.asObject()));
     }
@@ -230,7 +230,7 @@ public class XjsOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<Stream<JsonValue>> getStream(final JsonValue input) {
         if (input == null || !input.isArray()) {
-            return DataResult.error("Not an XJS array: " + input);
+            return DataResult.error(() -> "Not an XJS array: " + input);
         }
         final Stream.Builder<JsonValue> builder = Stream.builder();
         for (final JsonValue value : input.asArray()) {
@@ -242,7 +242,7 @@ public class XjsOps implements DynamicOps<JsonValue> {
     @Override
     public DataResult<Consumer<Consumer<JsonValue>>> getList(final JsonValue input) {
         if (input == null || !input.isArray()) {
-            return DataResult.error("Not an XJS array: + " + input);
+            return DataResult.error(() -> "Not an XJS array: + " + input);
         }
         return DataResult.success(c -> {
             for (final JsonValue value : input.asArray()) {

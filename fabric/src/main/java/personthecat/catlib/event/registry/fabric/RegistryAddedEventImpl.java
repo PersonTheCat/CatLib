@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class RegistryAddedEventImpl {
-
     private static final Map<ResourceKey<?>, LibEvent<RegistryAddedCallback<?>>> EVENT_MAP = new ConcurrentHashMap<>();
     private static final Map<ResourceKey<?>, LibEvent<RegistryAddedCallback<?>>> DYNAMIC_EVENT_MAP = new ConcurrentHashMap<>();
 

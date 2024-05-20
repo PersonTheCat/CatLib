@@ -1,7 +1,7 @@
 package personthecat.catlib.serialization.json;
 
 import personthecat.catlib.command.arguments.JsonArgument;
-import xjs.core.JsonValue;
+import xjs.data.JsonValue;
 
 import static personthecat.catlib.exception.Exceptions.runEx;
 

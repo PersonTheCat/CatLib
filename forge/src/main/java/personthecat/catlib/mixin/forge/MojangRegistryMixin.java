@@ -16,14 +16,10 @@ import personthecat.catlib.event.registry.RegistryAddedCallback;
 import personthecat.catlib.event.registry.forge.RegistryEventAccessor;
 
 @Mixin(MappedRegistry.class)
-public abstract class MojangRegistryMixin<T> extends Registry<T> implements RegistryEventAccessor<T> {
+public abstract class MojangRegistryMixin<T> implements Registry<T>, RegistryEventAccessor<T> {
 
     @Nullable
     private LibEvent<RegistryAddedCallback<T>> registryAddedEvent = null;
-
-    protected MojangRegistryMixin(final ResourceKey<? extends Registry<T>> key, final Lifecycle lifecycle) {
-        super(key, lifecycle);
-    }
 
     @Inject(method = "register", at = @At("RETURN"))
     public <V extends T> void onRegister(ResourceKey<T> key, V v, Lifecycle lifecycle, CallbackInfoReturnable<V> ci) {

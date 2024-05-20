@@ -1,7 +1,7 @@
 package personthecat.catlib.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -54,14 +54,14 @@ public class SimpleTextPage extends LibMenu {
     }
 
     @Override
-    protected void renderMenu(PoseStack stack, int x, int y, float partial) {
+    protected void renderMenu(GuiGraphics graphics, int x, int y, float partial) {
         final int h = this.font.lineHeight + 1;
         int t = Y0 + 6;
         for (int i = this.scroll; i < this.lines.size(); i++) {
             final FormattedCharSequence chars = this.lines.get(i);
 
             RenderSystem.enableBlend();
-            this.font.drawShadow(stack, chars, this.left, t, 0xFFFFFF);
+            graphics.drawString(this.font, chars, this.left, t, 0xFFFFFF);
             RenderSystem.disableBlend();
 
             if ((t += h) > this.height - Y1) {
@@ -71,8 +71,8 @@ public class SimpleTextPage extends LibMenu {
     }
 
     @Override
-    protected void renderDetails(PoseStack stack, int x, int y, float partial) {
-        super.renderDetails(stack, x, y, partial);
+    protected void renderDetails(GuiGraphics graphics, int x, int y, float partial) {
+        super.renderDetails(graphics, x, y, partial);
         if (y < Y0 + 6 || y > this.height - Y1 || x < 6 || x > this.width - 6) {
             return;
         }
@@ -97,12 +97,12 @@ public class SimpleTextPage extends LibMenu {
         }
         final Component tooltip = hover.getValue(HoverEvent.Action.SHOW_TEXT);
         if (tooltip != null) {
-            this.renderTooltip(stack, tooltip, x, y);
+            this.setTooltipForNextRenderPass(tooltip);
         }
     }
 
     @Override
-    public boolean mouseScrolled(double x, double y, double d) {
+    public boolean mouseScrolled(double x, double y, double h, double d) {
         if (d > 0.0) {
             if (this.scroll > 0) {
                 this.scroll--;

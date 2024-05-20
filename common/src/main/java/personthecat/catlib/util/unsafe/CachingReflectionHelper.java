@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.util.LibUtil.f;
 
 @SuppressWarnings("unused")
 public class CachingReflectionHelper {

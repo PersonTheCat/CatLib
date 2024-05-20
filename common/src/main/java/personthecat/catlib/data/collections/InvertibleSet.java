@@ -1,9 +1,8 @@
 package personthecat.catlib.data.collections;
 
 import org.jetbrains.annotations.NotNull;
+import oshi.annotation.concurrent.Immutable;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -19,7 +18,6 @@ import java.util.function.Function;
  */
 @Immutable
 @SuppressWarnings("unused")
-@ParametersAreNonnullByDefault
 public class InvertibleSet<T> implements Set<T> {
 
     private final boolean blacklist;

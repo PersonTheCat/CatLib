@@ -1,23 +1,23 @@
 package personthecat.catlib.command;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
 
-import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.util.LibUtil.f;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class PendingMessageWrapper {
     final CommandContextWrapper ctx;
-    final TextComponent msg;
+    final MutableComponent msg;
 
-    protected PendingMessageWrapper(final CommandContextWrapper ctx, final TextComponent msg) {
+    protected PendingMessageWrapper(final CommandContextWrapper ctx, final MutableComponent msg) {
         this.ctx = ctx;
         this.msg = msg;
     }
 
     public PendingMessageWrapper append(final String msg) {
-        this.msg.append(new TextComponent(msg));
+        this.msg.append(Component.literal(msg));
         return this;
     }
 
@@ -26,7 +26,7 @@ public class PendingMessageWrapper {
     }
 
     public PendingMessageWrapper append(final String msg, final Style style) {
-        this.msg.append(new TextComponent(msg).setStyle(style));
+        this.msg.append(Component.literal(msg).setStyle(style));
         return this;
     }
 

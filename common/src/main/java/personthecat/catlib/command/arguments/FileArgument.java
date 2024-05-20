@@ -1,19 +1,20 @@
 package personthecat.catlib.command.arguments;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.synchronization.ArgumentTypes;
-import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.io.FileIO;
-import personthecat.catlib.util.LibReference;
-import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.PathUtils;
 
 import java.io.File;
@@ -29,11 +30,7 @@ import static personthecat.catlib.util.PathUtils.noExtension;
  * Generates references to files on the fly on the command line.
  */
 public class FileArgument implements ArgumentType<File> {
-
-    public static void register() {
-        ArgumentTypes.register(LibReference.MOD_ID + ":file_argument", FileArgument.class,
-            new EmptyArgumentSerializer<>(() -> new FileArgument(McUtils.getConfigDir())));
-    }
+    public static final ArgumentTypeInfo<FileArgument, Info.Template> INFO = new Info();
 
     public final File dir;
     @Nullable public final File preferred;
@@ -124,5 +121,66 @@ public class FileArgument implements ArgumentType<File> {
                 f -> test.getName().equals(noExtension(f))).orElse(test);
         }
         return test;
+    }
+
+    private static class Info implements ArgumentTypeInfo<FileArgument, Info.Template> {
+
+        @Override // todo: this leaks user directories to the server, fix by making file arg relative
+        public void serializeToNetwork(Template template, FriendlyByteBuf buf) {
+            buf.writeUtf(template.dir);
+            if (template.preferred != null) {
+                buf.writeBoolean(true);
+                buf.writeUtf(template.preferred);
+            } else {
+                buf.writeBoolean(false);
+            }
+            buf.writeBoolean(template.recursive);
+        }
+
+        @Override
+        public Template deserializeFromNetwork(FriendlyByteBuf buf) {
+            return new Template(
+                buf.readUtf(),
+                buf.readBoolean() ? buf.readUtf() : null,
+                buf.readBoolean());
+        }
+
+        @Override
+        public void serializeToJson(Template template, JsonObject json) {
+            json.addProperty("dir", template.dir);
+            json.addProperty("preferred", template.preferred);
+            json.add("recursive", new JsonPrimitive(template.recursive));
+        }
+
+        @Override
+        public Template unpack(FileArgument fa) {
+            return new Template(
+                fa.dir.getAbsolutePath(),
+                fa.preferred != null ? fa.preferred.getAbsolutePath() : null,
+                fa.recursive);
+        }
+
+        private class Template implements ArgumentTypeInfo.Template<FileArgument> {
+            private final String dir;
+            private final @Nullable String preferred;
+            private final boolean recursive;
+
+            private Template(String dir, @Nullable String preferred, boolean recursive) {
+                this.dir = dir;
+                this.preferred = preferred;
+                this.recursive = recursive;
+            }
+
+            @Override
+            public FileArgument instantiate(CommandBuildContext ctx) {
+                return new FileArgument(
+                    new File(this.dir), this.preferred != null ? new File(this.preferred) : null, this.recursive);
+            }
+
+            @Override
+            public ArgumentTypeInfo<FileArgument, ?> type() {
+                return Info.this;
+            }
+        }
     }
 }

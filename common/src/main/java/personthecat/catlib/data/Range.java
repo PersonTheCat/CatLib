@@ -11,8 +11,8 @@ import personthecat.catlib.serialization.codec.CodecUtils;
 
 import java.util.*;
 
-import static personthecat.catlib.util.Shorthand.f;
-import static personthecat.catlib.util.Shorthand.numBetween;
+import static personthecat.catlib.util.LibUtil.f;
+import static personthecat.catlib.util.LibUtil.numBetween;
 
 @EqualsAndHashCode
 @SuppressWarnings("unused")
@@ -91,7 +91,7 @@ public class Range implements Iterable<Integer> {
     public <T> DataResult<T> validate(final T t, final Range... ranges) {
         for (final Range range : ranges) {
             if (!(this.contains(range.min) && this.contains(range.max))) {
-                return DataResult.error(f("Value outside of range: [{}~{}] is not in [{}~{}]",
+                return DataResult.error(() -> f("Value outside of range: [{}~{}] is not in [{}~{}]",
                     range.min, range.max, this.min, this.max));
             }
         }

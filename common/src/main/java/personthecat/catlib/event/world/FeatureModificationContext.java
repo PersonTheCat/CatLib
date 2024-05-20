@@ -9,8 +9,8 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep.Carving;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
-import net.minecraft.world.level.levelgen.feature.ConfiguredStructureFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.structure.Structure;
 
 import java.util.function.Predicate;
 
@@ -24,13 +24,13 @@ public abstract class FeatureModificationContext {
 
     public abstract Registry<PlacedFeature> getFeatureRegistry();
 
-    public abstract Registry<ConfiguredStructureFeature<?, ?>> getStructureRegistry();
+    public abstract Registry<Structure> getStructureRegistry();
 
     public abstract RegistryAccess getRegistryAccess();
 
     public abstract Iterable<Holder<ConfiguredWorldCarver<?>>> getCarvers(final Carving step);
 
-    public abstract HolderSet<PlacedFeature> getFeatures(final Decoration step);
+    public abstract Iterable<Holder<PlacedFeature>> getFeatures(final Decoration step);
 
     public boolean removeCarver(final ResourceLocation id) {
         boolean anyRemoved = false;

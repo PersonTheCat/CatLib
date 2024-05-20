@@ -2,38 +2,85 @@ package personthecat.catlib.registry;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import personthecat.catlib.exception.MissingElementException;
 
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class DynamicRegistries {
 
-    public static final RegistryHandle<Biome> BIOMES =
-        DynamicRegistryHandle.createHandle(Registry.BIOME_REGISTRY);
+    private static final RegistryHandle<RegistryHandle<?>> REGISTRY =
+        RegistryHandle.createVanilla(ResourceKey.createRegistryKey(Registries.ROOT_REGISTRY_NAME));
 
-    public static final RegistryHandle<DimensionType> DIMENSION_TYPES =
-        DynamicRegistryHandle.createHandle(Registry.DIMENSION_TYPE_REGISTRY);
+    public static final RegistryHandle<Biome> BIOMES = createAndRegister(Registries.BIOME);
+    public static final RegistryHandle<DimensionType> DIMENSION_TYPES = createAndRegister(Registries.DIMENSION_TYPE);
+    public static final RegistryHandle<ConfiguredFeature<?, ?>> CONFIGURED_FEATURES = createAndRegister(Registries.CONFIGURED_FEATURE);
+    public static final RegistryHandle<PlacedFeature> PLACED_FEATURES = createAndRegister(Registries.PLACED_FEATURE);
 
-    public static final RegistryHandle<ConfiguredFeature<?, ?>> CONFIGURED_FEATURES =
-        DynamicRegistryHandle.createHandle(Registry.CONFIGURED_FEATURE_REGISTRY);
+    static { // auto-load any we don't have static references to
+        BuiltInRegistries.REGISTRY.keySet()
+            .stream()
+            .filter(Predicate.not(REGISTRY::isRegistered))
+            .map(ResourceKey::createRegistryKey)
+            .forEach(DynamicRegistries::createAndRegister);
+    }
 
-    public static final RegistryHandle<PlacedFeature> PLACED_FEATURES =
-        DynamicRegistryHandle.createHandle(Registry.PLACED_FEATURE_REGISTRY);
-
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static void updateRegistries(final RegistryAccess registries) {
-        updateRegistry(BIOMES, registries, Registry.BIOME_REGISTRY);
-        updateRegistry(DIMENSION_TYPES, registries, Registry.DIMENSION_TYPE_REGISTRY);
-        updateRegistry(CONFIGURED_FEATURES, registries, Registry.CONFIGURED_FEATURE_REGISTRY);
-        updateRegistry(PLACED_FEATURES, registries, Registry.PLACED_FEATURE_REGISTRY);
+        registries.registries().forEach(entry -> {
+            final ResourceKey<? extends Registry<?>> key = entry.key();
+            RegistryHandle<?> handle = REGISTRY.lookup(key.location());
+            if (handle == null) {
+                handle = createAndRegister((ResourceKey) key);
+            }
+            updateRegistry(handle, registries, (ResourceKey) key);
+        });
+    }
+
+    public static void onSeverClosed() {
+        REGISTRY.stream().forEach(handle ->
+            ((DynamicRegistryHandle<?>) handle).updateRegistry(DummyRegistryHandle.getInstance()));
+    }
+
+    private static <T> RegistryHandle<T> createAndRegister(final ResourceKey<? extends Registry<T>> key) {
+        final RegistryHandle<T> handle = DynamicRegistryHandle.createHandle(key);
+        REGISTRY.register(key.location(), handle);
+        return handle;
     }
 
     private static <T> void updateRegistry(final RegistryHandle<T> handle,
-            final RegistryAccess registries, final ResourceKey<Registry<T>> key) {
+            final RegistryAccess registries, final ResourceKey<? extends Registry<T>> key) {
         ((DynamicRegistryHandle<T>) handle).updateRegistry(new MojangRegistryHandle<>(registries.registryOrThrow(key)));
+    }
+
+    public static ResourceKey<? extends Registry<RegistryHandle<?>>> rootKey() {
+        return REGISTRY.key();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> RegistryHandle<T> get(final ResourceKey<? extends Registry<T>> key) {
+        return (RegistryHandle<T>) ((rootKey().equals(key)) ? REGISTRY : REGISTRY.lookup(key.location()));
+    }
+
+    public static <T> RegistryHandle<T> getOrCreate(final ResourceKey<? extends Registry<T>> key) {
+        return Optional.ofNullable(get(key)).orElseGet(() -> createAndRegister(key));
+    }
+
+    public static <T> RegistryHandle<T> getOrThrow(final ResourceKey<? extends Registry<T>> key) {
+        return Optional.ofNullable(get(key)).orElseThrow(() ->
+            new MissingElementException("Registry unknown or not ready: " + key.location()));
+    }
+
+    public static <T> RegistryHandle<T> getByType(final Class<T> type) {
+        return get(RegistryUtils.getByType(type).key());
     }
 
     public static <T> Consumer<Consumer<RegistryHandle<T>>> listen(final RegistryHandle<T> handle, final Object mutex) {

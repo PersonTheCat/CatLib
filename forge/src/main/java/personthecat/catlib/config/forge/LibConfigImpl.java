@@ -1,5 +1,6 @@
 package personthecat.catlib.config.forge;
 
+import com.electronwill.nightconfig.core.EnumGetMethod;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.EnumValue;
@@ -10,23 +11,23 @@ import net.minecraftforge.fml.config.ModConfig;
 import personthecat.catlib.event.error.Severity;
 import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.forge.McUtilsImpl;
-import xjs.comments.CommentStyle;
-import xjs.serialization.JsonContext;
-import xjs.serialization.writer.JsonWriterOptions;
+import xjs.data.comments.CommentStyle;
+import xjs.data.serialization.JsonContext;
+import xjs.data.serialization.writer.JsonWriterOptions;
 
 public class LibConfigImpl {
 
     private static final ForgeConfigSpec.Builder COMMON = new ForgeConfigSpec.Builder();
     private static final String FILENAME = McUtilsImpl.getConfigDir() + "/" + LibReference.MOD_ID;
-    private static final XjsFileConfig COMMON_CFG = new XjsFileConfig(FILENAME + ".xjs");
+    private static final DjsFileConfig COMMON_CFG = new DjsFileConfig(FILENAME + ".djs");
 
     private static final BooleanValue ENABLE_LIB_COMMANDS_VALUE = COMMON
         .comment("Whether to enable this library's provided commands as regular commands.")
-        .define("general.enableGlobalLibCommands", false);
+        .define("general.enableCatlibCommands", false);
 
     private static final EnumValue<Severity> ERROR_LEVEL_VALUE = COMMON
         .comment("The minimum error level to display in the error menu.")
-        .defineEnum("general.errorLevel", Severity.ERROR);
+        .defineEnum("general.errorLevel", Severity.ERROR, EnumGetMethod.NAME_IGNORECASE);
 
     private static final BooleanValue WRAP_TEXT_VALUE = COMMON
         .comment("Whether to wrap text on the error detail page. Hit W or space to toggle in game.")
@@ -79,11 +80,9 @@ public class LibConfigImpl {
 
     private static final EnumValue<CommentStyle> COMMENT_STYLE_VALUE = COMMON
         .comment("The default comment style to use for generated configs.")
-        .defineEnum("formatting.commentStyle", CommentStyle.LINE);
+        .defineEnum("formatting.commentStyle", CommentStyle.LINE, EnumGetMethod.NAME_IGNORECASE);
 
-    private static final ForgeConfigSpec COMMON_SPEC = COMMON.build();
-
-    public static boolean enableGlobalLibCommands() {
+    public static boolean enableCatlibCommands() {
         return ENABLE_LIB_COMMANDS_VALUE.get();
     }
 
@@ -101,10 +100,13 @@ public class LibConfigImpl {
 
     public static void register() {
         final ModContainer ctx = ModLoadingContext.get().getActiveContainer();
+        ctx.addConfig(new CustomModConfig(ModConfig.Type.COMMON, COMMON.build(), ctx, COMMON_CFG));
+    }
+
+    public static void updateJsonContext() {
         JsonContext.setDefaultFormatting(getFormatting());
         JsonContext.setDefaultCommentStyle(COMMENT_STYLE_VALUE.get());
         JsonContext.registerAlias("mcmeta", "json");
-        ctx.addConfig(new CustomModConfig(ModConfig.Type.COMMON, COMMON_SPEC, ctx, COMMON_CFG));
     }
 
     private static JsonWriterOptions getFormatting() {

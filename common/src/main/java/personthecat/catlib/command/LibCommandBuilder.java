@@ -12,9 +12,9 @@ import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.linting.SyntaxLinter;
+import personthecat.catlib.util.unsafe.CachingReflectionHelper;
 import personthecat.fresult.Result;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,7 +65,6 @@ import java.util.Objects;
  */
 @Log4j2
 @AllArgsConstructor
-@ParametersAreNonnullByDefault
 public final class LibCommandBuilder {
     private final LiteralArgumentBuilder<CommandSourceStack> command;
     private final HelpCommandInfo info;
@@ -197,6 +196,17 @@ public final class LibCommandBuilder {
         }
 
         /**
+         * Variant of {@link #linter(SyntaxLinter)} accepting the type of linter
+         * to use.
+         *
+         * @param clazz The type of syntax linter to use.
+         * @return <code>this</code>, for method chaining.
+         */
+        public Template linter(final Class<? extends SyntaxLinter> clazz) {
+            return this.linter(CachingReflectionHelper.tryInstantiate(clazz));
+        }
+
+        /**
          * Configures this command's mod descriptor which will be used by the
          * registration context and certain argument types to provide a customized
          * experience to the command function.
@@ -239,10 +249,10 @@ public final class LibCommandBuilder {
             if (this.linter == null) this.linter = this.mod.getDefaultLinter();
 
             final LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal(this.name);
-            final BuilderUtil util = new BuilderUtil(this.wrappers, this.linter, this.mod);
             final HelpCommandInfo helpInfo = new HelpCommandInfo(this.name, this.arguments, this.description, this.type);
 
             if (this.side.canRegister(McUtils.isDedicatedServer())) {
+                final BuilderUtil util = new BuilderUtil(this.wrappers, this.linter, this.mod);
                 return new LibCommandBuilder(generator.apply(builder, util), helpInfo, this.type, this.side);
             }
             return new LibCommandBuilder(builder, helpInfo, this.type, this.side);

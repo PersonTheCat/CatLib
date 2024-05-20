@@ -4,11 +4,10 @@ import lombok.extern.log4j.Log4j2;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.ApiStatus;
 import personthecat.catlib.command.CommandUtils;
@@ -207,10 +206,9 @@ public class LibErrorContext {
         final long currentUpdate = System.currentTimeMillis();
         final long lastUpdate = LAST_BROADCAST.get();
         if (currentUpdate - lastUpdate > BROADCAST_INTERVAL) {
-            player.sendMessage(new TranslatableComponent("catlib.errorText.clickHere")
+            player.sendSystemMessage(Component.translatable("catlib.errorText.clickHere")
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.RED)
-                .withClickEvent(CommandUtils.clickToRun("/catlib errors"))),
-                    Util.NIL_UUID);
+                .withClickEvent(CommandUtils.clickToRun("/catlib errors"))));
             LAST_BROADCAST.set(currentUpdate);
         }
     }

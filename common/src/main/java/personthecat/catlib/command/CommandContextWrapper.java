@@ -15,8 +15,8 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -26,6 +26,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.JsonArgument;
 import personthecat.catlib.event.lifecycle.ClientTickEvent;
 import personthecat.catlib.serialization.json.JsonPath;
@@ -34,15 +35,16 @@ import personthecat.catlib.exception.CommandExecutionException;
 import personthecat.catlib.util.PathUtils;
 import personthecat.catlib.linting.SyntaxLinter;
 import personthecat.fresult.Result;
+import personthecat.fresult.Void;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static personthecat.catlib.exception.Exceptions.cmdEx;
-import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.util.LibUtil.f;
 
 @Log4j2
 @SuppressWarnings("unused")
@@ -92,8 +94,9 @@ public class CommandContextWrapper {
         return this.get(key, JsonPath.class);
     }
 
-    public <T> Optional<T> getOptional(final String key, final Class<T> type) {
-        return Result.suppress(() -> this.get(key, type)).get(Result::IGNORE);
+    @SuppressWarnings("unchecked")
+    public <T> Optional<T> getOptional(final String key, final Class<? super T> type) {
+        return Result.suppress(() -> this.get(key, (Class<T>) type)).get(Result::IGNORE);//.map(t -> (A) t);
     }
 
     public <T> List<T> getList(final String key, final Class<T> type) {
@@ -126,7 +129,7 @@ public class CommandContextWrapper {
     }
 
     public void sendMessage(final String msg) {
-        this.sendMessage(new TextComponent(msg));
+        this.sendMessage(Component.literal(msg));
     }
 
     public void sendMessage(final String msg, final Object... args) {
@@ -138,11 +141,15 @@ public class CommandContextWrapper {
     }
 
     public void sendMessage(final String msg, final Style style) {
-        this.sendMessage(new TextComponent(msg).setStyle(style));
+        this.sendMessage(Component.literal(msg).setStyle(style));
     }
 
     public void sendMessage(final Component msg) {
-        this.ctx.getSource().sendSuccess(msg, true);
+        this.sendMessage(() -> msg);
+    }
+
+    public void sendMessage(final Supplier<Component> supplier) {
+        this.ctx.getSource().sendSuccess(supplier, true);
     }
 
     public void sendLintedMessage(final String message) {
@@ -150,7 +157,7 @@ public class CommandContextWrapper {
     }
 
     public void sendError(final String msg) {
-        this.ctx.getSource().sendFailure(new TextComponent(msg));
+        this.ctx.getSource().sendFailure(Component.literal(msg));
     }
 
     public void sendError(final String msg, final Object... args) {
@@ -158,7 +165,7 @@ public class CommandContextWrapper {
     }
 
     public void sendError(final String msg, final Style style) {
-        this.ctx.getSource().sendFailure(new TextComponent(msg).setStyle(style));
+        this.ctx.getSource().sendFailure(Component.literal(msg).setStyle(style));
     }
 
     public void sendError(final Component msg) {
@@ -166,7 +173,11 @@ public class CommandContextWrapper {
     }
 
     public PendingMessageWrapper generateMessage(final String msg) {
-        return new PendingMessageWrapper(this, new TextComponent(msg));
+        return new PendingMessageWrapper(this, Component.literal(msg));
+    }
+
+    public PendingMessageWrapper generateMessage() {
+        return new PendingMessageWrapper(this, Component.empty());
     }
 
     public PendingMessageWrapper generateMessage(final String msg, final Object... args) {
@@ -174,19 +185,19 @@ public class CommandContextWrapper {
     }
 
     public PendingMessageWrapper generateMessage(final String msg, final Style style) {
-        return new PendingMessageWrapper(this, (TextComponent) new TextComponent(msg).setStyle(style));
+        return new PendingMessageWrapper(this, Component.literal(msg).setStyle(style));
     }
 
-    public PendingMessageWrapper generateMessage(final TextComponent component) {
+    public PendingMessageWrapper generateMessage(final MutableComponent component) {
         return new PendingMessageWrapper(this, component);
     }
 
-    public TextComponent createText(final String msg) {
-        return new TextComponent(msg);
+    public MutableComponent createText(final String msg) {
+        return Component.literal(msg);
     }
 
-    public TextComponent createText(final String msg, final Object... args) {
-        return new TextComponent(f(msg, args));
+    public MutableComponent createText(final String msg, final Object... args) {
+        return Component.literal(f(msg, args));
     }
 
     public Component lintMessage(final String msg) {
@@ -264,11 +275,10 @@ public class CommandContextWrapper {
         this.execute(f(command, args));
     }
 
-    public Result<Integer, CommandExecutionException> tryExecute(final String command) {
+    public Result<Void, CommandExecutionException> tryExecute(final String command) {
         final Commands manager = this.getServer().getCommands();
-        return Result.suppress(() -> manager.performCommand(this.ctx.getSource(), command))
-            .mapErr(CommandExecutionException::new)
-            .filter(i -> i >= 0, () -> cmdEx("Running nested command"));
+        return Result.suppress(() -> manager.performPrefixedCommand(this.ctx.getSource(), command))
+            .mapErr(CommandExecutionException::new);
     }
 
     public String getInput() {

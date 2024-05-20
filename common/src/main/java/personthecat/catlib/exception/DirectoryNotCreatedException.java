@@ -2,7 +2,7 @@ package personthecat.catlib.exception;
 
 import java.io.File;
 
-import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.util.LibUtil.f;
 
 public class DirectoryNotCreatedException extends RuntimeException {
     public DirectoryNotCreatedException(final File f) {

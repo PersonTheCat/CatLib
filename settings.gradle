@@ -18,4 +18,4 @@ pluginManagement {
 
 rootProject.name = 'CatLib'
 
-include 'common', 'forge', 'fabric', 'fabric-like', 'quilt'
+include 'common', 'forge', 'neoforge', 'fabric'

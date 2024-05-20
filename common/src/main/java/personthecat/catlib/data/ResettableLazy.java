@@ -1,8 +1,8 @@
 package personthecat.catlib.data;
 
 import org.jetbrains.annotations.NotNull;
+import oshi.annotation.concurrent.ThreadSafe;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.Supplier;
 
 /**

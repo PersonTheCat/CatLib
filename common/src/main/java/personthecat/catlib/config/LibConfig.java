@@ -14,7 +14,7 @@ public class LibConfig {
     }
 
     @ExpectPlatform
-    public static boolean enableGlobalLibCommands() {
+    public static boolean enableCatlibCommands() {
         return true;
     }
 

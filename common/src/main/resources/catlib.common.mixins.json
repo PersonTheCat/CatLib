@@ -3,12 +3,13 @@
   "package": "personthecat.catlib.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "BiomeAccessor",
     "ChunkStatusMixin",
     "DirectHolderSetAccessor",
     "MappedRegistryAccessor",
     "NamedHolderSetAccessor",
-    "ProtoChunkMixin"
+    "ProtoChunkMixin",
+    "RecordCodecBuilderAccessor",
+    "ReferenceAccessor"
   ],
   "client": [
     "TitleScreenMixin"

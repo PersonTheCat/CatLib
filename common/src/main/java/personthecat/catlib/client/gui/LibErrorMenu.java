@@ -1,10 +1,11 @@
 package personthecat.catlib.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.*;
@@ -33,7 +34,7 @@ public class LibErrorMenu extends LibMenu {
     private int page;
 
     public LibErrorMenu(@Nullable final Screen parent) {
-        super(parent, new TranslatableComponent("catlib.errorMenu.numErrors", LibErrorContext.numMods()));
+        super(parent, Component.translatable("catlib.errorMenu.numErrors", LibErrorContext.numMods()));
         this.options = new HashMap<>();
         this.errors = new MultiValueHashMap<>();
         this.fatal = new HashSet<>();
@@ -83,7 +84,7 @@ public class LibErrorMenu extends LibMenu {
         int page = 0;
         for (final Map.Entry<ModDescriptor, List<FormattedException>> entry : this.errors.entrySet()) {
             final MultiValueMap<String, FormattedException> sorted = sortExceptions(entry.getValue());
-            final CategorizedList list = new CategorizedList(this, this.getErrorMenuLeft(), this.getErrorMenuRight(), createErrorButtons(page, sorted));
+            final CategorizedList list = new CategorizedList(this, this.getErrorMenuLeft(), this.getErrorMenuRight(), this.createErrorButtons(page, sorted));
             this.options.put(entry.getKey(), list);
             page++;
         }
@@ -109,7 +110,7 @@ public class LibErrorMenu extends LibMenu {
         final MultiValueMap<String, AbstractWidget> buttons = new MultiValueHashMap<>();
         final List<AbstractWidget> widgets = new ArrayList<>();
         for (final ModDescriptor mod : this.keys) {
-            widgets.add(CategorizedList.createButton(new TextComponent(mod.getName()), b -> this.setMod(mod)));
+            widgets.add(CategorizedList.createButton(Component.literal(mod.getName()), b -> this.setMod(mod)));
         }
         buttons.put("catlib.errorMenu.mods", widgets);
         return buttons;
@@ -134,20 +135,18 @@ public class LibErrorMenu extends LibMenu {
                 final int screen = j;
 
                 Component display = e.getDisplayMessage();
-                if (display instanceof BaseComponent && this.fatal.contains(e)) {
-                    display = ((BaseComponent) display).withStyle(Style.EMPTY.withColor(ChatFormatting.RED));
+                if (display instanceof MutableComponent && this.fatal.contains(e)) {
+                    display = ((MutableComponent) display).withStyle(Style.EMPTY.withColor(ChatFormatting.RED));
                 }
-                final Component tooltip = e.getTooltip();
+                final Component tooltipMessage = e.getTooltip();
+                final Tooltip tooltip = tooltipMessage != null ? Tooltip.create(tooltipMessage) : null;
 
                 final Button.OnPress onPress = b -> {
                     this.screens[page] = screen;
                     Minecraft.getInstance().setScreen(e.getDetailsScreen(this));
                 };
 
-                final Button.OnTooltip onTooltip = tooltip == null ? Button.NO_TOOLTIP :
-                    (b, stack, x, y) -> this.renderTooltip(stack, tooltip, x, y);
-
-                widgets.add(CategorizedList.createButton(display, onPress, onTooltip));
+                widgets.add(CategorizedList.createButton(display, onPress, tooltip));
             }
             buttons.put(entry.getKey(), widgets);
         }
@@ -156,17 +155,9 @@ public class LibErrorMenu extends LibMenu {
 
     @Override
     @SuppressWarnings("ConstantConditions")
-    protected void renderMenu(PoseStack stack, int x, int y, float partial) {
-        this.current.render(stack, x, y, partial);
-        this.mods.render(stack, x, y, partial);
-    }
-
-    @Override
-    @SuppressWarnings("ConstantConditions")
-    protected void renderDetails(PoseStack stack, int x, int y, float partial) {
-        super.renderDetails(stack, x, y, partial);
-        this.mods.renderTooltips(stack, x, y);
-        this.current.renderTooltips(stack, x, y);
+    protected void renderMenu(GuiGraphics graphics, int x, int y, float partial) {
+        this.current.render(graphics, x, y, partial);
+        this.mods.render(graphics, x, y, partial);
     }
 
     public boolean hasPreviousError() {

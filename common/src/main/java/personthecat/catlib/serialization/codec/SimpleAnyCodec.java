@@ -60,7 +60,7 @@ public class SimpleAnyCodec<A> implements Codec<A> {
         for (int i = 1; i < errors.size(); i++) {
             message.append('"').append(errors.get(i)).append('"');
         }
-        return DataResult.error(message.append(']').toString());
+        return DataResult.error(message.append(']')::toString);
     }
 
     @SuppressWarnings("unchecked")

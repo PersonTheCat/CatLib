@@ -1,6 +1,7 @@
 package personthecat.catlib.registry;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -23,7 +24,7 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
         this.wrapped = wrapped;
     }
 
-    public static <T> DynamicRegistryHandle<T> createHandle(final ResourceKey<Registry<T>> key) {
+    public static <T> DynamicRegistryHandle<T> createHandle(final ResourceKey<? extends Registry<T>> key) {
         return new DynamicRegistryHandle<>(RegistryUtils.tryGetHandle(key).orElse(DummyRegistryHandle.getInstance()));
     }
 
@@ -65,6 +66,11 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public void forEachHolder(final BiConsumer<ResourceLocation, Holder<T>> f) {
+        this.wrapped.forEachHolder(f);
+    }
+
+    @Override
     public boolean isRegistered(final ResourceLocation id) {
         return this.wrapped.isRegistered(id);
     }
@@ -80,8 +86,18 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public HolderSet.@Nullable Named<T> getNamed(final TagKey<T> key) {
+        return this.wrapped.getNamed(key);
+    }
+
+    @Override
     public ResourceKey<? extends Registry<T>> key() {
         return this.wrapped.key();
+    }
+
+    @Override
+    public Collection<? extends Holder<T>> holders() {
+        return this.wrapped.holders();
     }
 
     @Override
@@ -101,8 +117,18 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public HolderLookup<T> asLookup() {
+        return this.wrapped.asLookup();
+    }
+
+    @Override
     public Stream<T> stream() {
         return this.wrapped.stream();
+    }
+
+    @Override
+    public int size() {
+        return this.wrapped.size();
     }
 
     @Override

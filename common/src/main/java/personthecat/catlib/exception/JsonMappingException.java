@@ -2,7 +2,7 @@ package personthecat.catlib.exception;
 
 import lombok.Getter;
 
-import static personthecat.catlib.util.Shorthand.f;
+import static personthecat.catlib.util.LibUtil.f;
 
 @Getter
 public class JsonMappingException extends RuntimeException {

@@ -10,31 +10,35 @@ import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import lombok.experimental.UtilityClass;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.blocks.BlockStateArgument;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.JsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
+import personthecat.catlib.command.arguments.RegistryArgument;
 import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.McUtils;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.File;
 import java.util.Optional;
 
-import static personthecat.catlib.command.CommandSuggestions.ANY_INT;
-import static personthecat.catlib.command.CommandSuggestions.ANY_DECIMAL;
+import static personthecat.catlib.command.LibSuggestions.ANY_INT;
+import static personthecat.catlib.command.LibSuggestions.ANY_DECIMAL;
 
 @UtilityClass
 @SuppressWarnings("unused")
-@ParametersAreNonnullByDefault
 public class CommandUtils {
 
     /**
@@ -47,11 +51,10 @@ public class CommandUtils {
      * @param <T> The type of value stored in the command context.
      * @return The requested value, or else {@link Optional#empty}.
      */
-    public static <S, T> Optional<T> getLastArg(final CommandContext<S> ctx, final Class<? extends ArgumentType<? extends T>> type, final Class<? extends T> t) {
+    public static <S, T> Optional<T> getLastArg(final CommandContext<S> ctx, final Class<? extends ArgumentType<?>> type, final Class<T> t) {
         for (int i = ctx.getNodes().size() - 1; i >= 0; i--) {
             final ParsedCommandNode<S> node = ctx.getNodes().get(i);
-            if (node.getNode() instanceof ArgumentCommandNode) {
-                final ArgumentCommandNode<S, ?> argument = (ArgumentCommandNode<S, ?>) node.getNode();
+            if (node.getNode() instanceof final ArgumentCommandNode<S, ?> argument) {
                 if (type.isInstance(argument.getType())) {
                     return Optional.of(ctx.getArgument(argument.getName(), t));
                 }
@@ -112,8 +115,9 @@ public class CommandUtils {
      * @param name The name of the output argument node.
      * @return An argument builder for the given specs.
      */
-    public static RequiredArgumentBuilder<CommandSourceStack, BlockInput> blkArg(final String name) {
-        return Commands.argument(name, BlockStateArgument.block());
+    public static RequiredArgumentBuilder<CommandSourceStack, BlockInput> blkArg(
+            final String name, final CommandBuildContext ctx) {
+        return Commands.argument(name, BlockStateArgument.block(ctx));
     }
 
     /**
@@ -221,13 +225,35 @@ public class CommandUtils {
     }
 
     /**
+     * Shorthand for creating a registry argument.
+     *
+     * @param name The name of the output argument node.
+     * @param key  The key of the registry being debugged.
+     * @param <T>  The type of value in the registry.
+     * @return An argument builder for the given specs.
+     */
+    public static <T> RequiredArgumentBuilder<CommandSourceStack, T> registryArg(final String name, final ResourceKey<? extends Registry<T>> key) {
+        return Commands.argument(name, RegistryArgument.getOrThrow(key));
+    }
+
+    /**
+     * Shorthand for creating a resource location argument.
+     *
+     * @param name The name of the argument node.
+     * @return An argument builder for the given specs.
+     */
+    public static RequiredArgumentBuilder<CommandSourceStack, ResourceLocation> idArg(final String name) {
+        return Commands.argument(name, ResourceLocationArgument.id());
+    }
+
+    /**
      * Shorthand method for creating a {@link HoverEvent} which displays some text.
      *
      * @param txt The text to display on hover.
      * @return A {@link HoverEvent} to display the given text.
      */
     public static HoverEvent displayOnHover(final String txt) {
-        return displayOnHover(new TextComponent(txt));
+        return displayOnHover(Component.literal(txt));
     }
 
     /**
@@ -236,7 +262,7 @@ public class CommandUtils {
      * @param txt The text component to display on hover.
      * @return A {@link HoverEvent} to display the given component.
      */
-    public static HoverEvent displayOnHover(final TextComponent txt) {
+    public static HoverEvent displayOnHover(final Component txt) {
         return new HoverEvent(HoverEvent.Action.SHOW_TEXT, txt);
     }
 

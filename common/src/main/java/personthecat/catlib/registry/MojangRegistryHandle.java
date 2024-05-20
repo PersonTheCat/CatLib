@@ -2,6 +2,7 @@ package personthecat.catlib.registry;
 
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
@@ -12,7 +13,9 @@ import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.mixin.MappedRegistryAccessor;
+import personthecat.catlib.mixin.ReferenceAccessor;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -43,8 +46,12 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <V extends T> V register(final ResourceLocation id, final V v) {
-        ((WritableRegistry<T>) this.registry).register(ResourceKey.create(this.registry.key(), id), v, Lifecycle.stable());
+        final Holder.Reference<T> reference = ((WritableRegistry<T>) this.registry)
+            .register(ResourceKey.create(this.registry.key(), id), v, Lifecycle.stable());
+        // support convenient custom registries on fabric
+        ((ReferenceAccessor<T>) reference).invokeBindValue(v);
         return v;
     }
 
@@ -53,6 +60,18 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
         for (final Map.Entry<ResourceKey<T>, T> entry : new HashSet<>(this.registry.entrySet())) {
             f.accept(entry.getKey().location(), entry.getValue());
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void forEachHolder(final BiConsumer<ResourceLocation, Holder<T>> f) {
+        if (this.registry instanceof MappedRegistry<T> mapped) {
+            ((MappedRegistryAccessor<T>) mapped).getHolderMap().forEach((key, holder) -> {
+                f.accept(key.location(), holder);
+            });
+            return;
+        }
+        throw new UnsupportedOperationException("Unsupported registry in handle: " + this.registry.getClass());
     }
 
     @Override
@@ -75,8 +94,22 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public HolderSet.@Nullable Named<T> getNamed(final TagKey<T> key) {
+        return this.registry.getTag(key).orElse(null);
+    }
+
+    @Override
     public ResourceKey<? extends Registry<T>> key() {
         return this.registry.key();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Collection<Holder<T>> holders() {
+        if (this.registry instanceof MappedRegistry<T> mapped) {
+            return ((MappedRegistryAccessor<T>) mapped).getHolderMap().values();
+        }
+        throw new UnsupportedOperationException("Unsupported registry in handle: " + this.registry.getClass());
     }
 
     @Override
@@ -95,7 +128,17 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public HolderLookup<T> asLookup() {
+        return this.registry.asLookup();
+    }
+
+    @Override
     public Stream<T> stream() {
         return this.registry.stream();
+    }
+
+    @Override
+    public int size() {
+        return this.registry.size();
     }
 }

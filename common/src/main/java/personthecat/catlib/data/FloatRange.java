@@ -10,8 +10,8 @@ import personthecat.catlib.serialization.codec.CodecUtils;
 import java.util.List;
 import java.util.Random;
 
-import static personthecat.catlib.util.Shorthand.f;
-import static personthecat.catlib.util.Shorthand.numBetween;
+import static personthecat.catlib.util.LibUtil.f;
+import static personthecat.catlib.util.LibUtil.numBetween;
 
 @EqualsAndHashCode
 @SuppressWarnings("unused")

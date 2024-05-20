@@ -6,13 +6,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import lombok.experimental.UtilityClass;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.level.material.MapColor;
 
 import java.util.Optional;
 import java.util.Set;
-
-import static personthecat.catlib.util.Shorthand.nullable;
 
 /**
  * Used for serialization of non-enum static types.
@@ -25,61 +22,10 @@ import static personthecat.catlib.util.Shorthand.nullable;
 @SuppressWarnings("unused")
 public class ValueLookup {
 
-    /** A map of every vanilla material to its name. */
-    private static final BiMap<String, Material> MATERIAL_MAP =
-        ImmutableBiMap.<String, Material>builder()
-            .put("AIR", Material.AIR)
-            .put("STRUCTURAL_AIR", Material.STRUCTURAL_AIR)
-            .put("PORTAL", Material.PORTAL)
-            .put("CLOTH_DECORATION", Material.CLOTH_DECORATION)
-            .put("PLANT", Material.PLANT)
-            .put("WATER_PLANT", Material.WATER_PLANT)
-            .put("REPLACEABLE_PLANT", Material.REPLACEABLE_PLANT)
-            .put("REPLACEABLE_FIREPROOF_PLANT", Material.REPLACEABLE_FIREPROOF_PLANT)
-            .put("REPLACEABLE_WATER_PLANT", Material.REPLACEABLE_WATER_PLANT)
-            .put("WATER", Material.WATER)
-            .put("BUBBLE_COLUMN", Material.BUBBLE_COLUMN)
-            .put("LAVA", Material.LAVA)
-            .put("TOP_SNOW", Material.TOP_SNOW)
-            .put("FIRE", Material.FIRE)
-            .put("DECORATION", Material.DECORATION)
-            .put("WEB", Material.WEB)
-            .put("SCULK", Material.SCULK)
-            .put("BUILDABLE_GLASS", Material.BUILDABLE_GLASS)
-            .put("CLAY", Material.CLAY)
-            .put("DIRT", Material.DIRT)
-            .put("GRASS", Material.GRASS)
-            .put("ICE_SOLID", Material.ICE_SOLID)
-            .put("SAND", Material.SAND)
-            .put("SPONGE", Material.SPONGE)
-            .put("SHULKER_SHELL", Material.SHULKER_SHELL)
-            .put("WOOD", Material.WOOD)
-            .put("NETHER_WOOD", Material.NETHER_WOOD)
-            .put("BAMBOO_SAPLING", Material.BAMBOO_SAPLING)
-            .put("BAMBOO", Material.BAMBOO)
-            .put("WOOL", Material.WOOL)
-            .put("EXPLOSIVE", Material.EXPLOSIVE)
-            .put("LEAVES", Material.LEAVES)
-            .put("GLASS", Material.GLASS)
-            .put("ICE", Material.ICE)
-            .put("CACTUS", Material.CACTUS)
-            .put("STONE", Material.STONE)
-            .put("METAL", Material.METAL)
-            .put("SNOW", Material.SNOW)
-            .put("HEAVY_METAL", Material.HEAVY_METAL)
-            .put("BARRIER", Material.BARRIER)
-            .put("PISTON", Material.PISTON)
-            .put("MOSS", Material.MOSS)
-            .put("VEGETABLE", Material.VEGETABLE)
-            .put("EGG", Material.EGG)
-            .put("CAKE", Material.CAKE)
-            .put("AMETHYST", Material.AMETHYST)
-            .put("POWDER_SNOW", Material.POWDER_SNOW)
-            .build();
-
     /** A map of every vanilla sound type to its name */
     private static final BiMap<String, SoundType> SOUND_MAP =
         ImmutableBiMap.<String, SoundType>builder()
+            .put("EMPTY", SoundType.EMPTY)
             .put("WOOD", SoundType.WOOD)
             .put("GRAVEL", SoundType.GRAVEL)
             .put("GRASS", SoundType.GRASS)
@@ -90,6 +36,7 @@ public class ValueLookup {
             .put("WOOL", SoundType.WOOL)
             .put("SAND", SoundType.SAND)
             .put("SNOW", SoundType.SNOW)
+            .put("POWDER_SNOW", SoundType.POWDER_SNOW)
             .put("LADDER", SoundType.LADDER)
             .put("ANVIL", SoundType.ANVIL)
             .put("SLIME_BLOCK", SoundType.SLIME_BLOCK)
@@ -115,6 +62,7 @@ public class ValueLookup {
             .put("SOUL_SAND", SoundType.SOUL_SAND)
             .put("SOUL_SOIL", SoundType.SOUL_SOIL)
             .put("BASALT", SoundType.BASALT)
+            .put("WART_BLOCK", SoundType.WART_BLOCK)
             .put("NETHERRACK", SoundType.NETHERRACK)
             .put("NETHER_BRICK", SoundType.NETHER_BRICKS)
             .put("NETHER_SPROUT", SoundType.NETHER_SPROUTS)
@@ -126,127 +74,144 @@ public class ValueLookup {
             .put("CHAIN", SoundType.CHAIN)
             .put("NETHER_GOLD_ORE", SoundType.NETHER_GOLD_ORE)
             .put("GILDED_BLACKSTONE", SoundType.GILDED_BLACKSTONE)
+            .put("CANDLE", SoundType.CANDLE)
+            .put("AMETHYST", SoundType.AMETHYST)
+            .put("AMETHYST_CLUSTER", SoundType.AMETHYST_CLUSTER)
+            .put("SMALL_AMETHYST_BUD", SoundType.SMALL_AMETHYST_BUD)
+            .put("MEDIUM_AMETHYST_BUD", SoundType.MEDIUM_AMETHYST_BUD)
+            .put("LARGE_AMETHYST_BUD", SoundType.LARGE_AMETHYST_BUD)
+            .put("TUFF", SoundType.TUFF)
+            .put("TUFF_BRICKS", SoundType.TUFF_BRICKS)
+            .put("POLISHED_TUFF", SoundType.POLISHED_TUFF)
+            .put("CALCITE", SoundType.CALCITE)
+            .put("DRIPSTONE_BLOCK", SoundType.DRIPSTONE_BLOCK)
+            .put("COPPER", SoundType.COPPER)
+            .put("COPPER_BULB", SoundType.COPPER_BULB)
+            .put("COPPER_GRATE", SoundType.COPPER_GRATE)
+            .put("CAVE_VINES", SoundType.CAVE_VINES)
+            .put("SPORE_BLOSSOM", SoundType.SPORE_BLOSSOM)
+            .put("AZALEA", SoundType.AZALEA)
+            .put("FLOWERING_AZALEA", SoundType.FLOWERING_AZALEA)
+            .put("MOSS_CARPET", SoundType.MOSS_CARPET)
+            .put("PINK_PETALS", SoundType.PINK_PETALS)
+            .put("MOSS", SoundType.MOSS)
+            .put("BIG_DRIPLEAF", SoundType.BIG_DRIPLEAF)
+            .put("ROOTED_DIRT", SoundType.ROOTED_DIRT)
+            .put("HANGING_ROOTS", SoundType.HANGING_ROOTS)
+            .put("AZALEA_LEAVES", SoundType.AZALEA_LEAVES)
+            .put("SCULK_SENSOR", SoundType.SCULK_SENSOR)
+            .put("SCULK_CATALYST", SoundType.SCULK_CATALYST)
+            .put("SCULK", SoundType.SCULK)
+            .put("SCULK_SHRIEKER", SoundType.SCULK_SHRIEKER)
+            .put("GLOW_LICHEN", SoundType.GLOW_LICHEN)
+            .put("DEEPSLATE", SoundType.DEEPSLATE)
+            .put("DEEPSLATE_BRICKS", SoundType.DEEPSLATE_BRICKS)
+            .put("DEEPSLATE_TILES", SoundType.DEEPSLATE_TILES)
+            .put("POLISHED_DEEPSLATE", SoundType.POLISHED_DEEPSLATE)
+            .put("FROGLIGHT", SoundType.FROGLIGHT)
+            .put("FROGSPAWN", SoundType.FROGSPAWN)
+            .put("MANGROVE_ROOTS", SoundType.MANGROVE_ROOTS)
+            .put("MUDDY_MANGROVE_ROOTS", SoundType.MUDDY_MANGROVE_ROOTS)
+            .put("MUD", SoundType.MUD)
+            .put("MUD_BRICKS", SoundType.MUD_BRICKS)
+            .put("PACKED_MUD", SoundType.PACKED_MUD)
+            .put("HANGING_SIGN", SoundType.HANGING_SIGN)
+            .put("NETHER_WOOD_HANGING_SIGN", SoundType.NETHER_WOOD_HANGING_SIGN)
+            .put("BAMBOO_WOOD_HANGING_SIGN", SoundType.BAMBOO_WOOD_HANGING_SIGN)
+            .put("BAMBOO_WOOD", SoundType.BAMBOO_WOOD)
+            .put("NETHER_WOOD", SoundType.NETHER_WOOD)
+            .put("CHERRY_WOOD", SoundType.CHERRY_WOOD)
+            .put("CHERRY_SAPLING", SoundType.CHERRY_SAPLING)
+            .put("CHERRY_LEAVES", SoundType.CHERRY_LEAVES)
+            .put("CHERRY_WOOD_HANGING_SIGN", SoundType.CHERRY_WOOD_HANGING_SIGN)
+            .put("CHISELED_BOOKSHELF", SoundType.CHISELED_BOOKSHELF)
+            .put("SUSPICIOUS_SAND", SoundType.SUSPICIOUS_SAND)
+            .put("SUSPICIOUS_GRAVEL", SoundType.SUSPICIOUS_GRAVEL)
+            .put("DECORATED_POT", SoundType.DECORATED_POT)
+            .put("DECORATED_POT_CRACKED", SoundType.DECORATED_POT_CRACKED)
+            .put("TRIAL_SPAWNER", SoundType.TRIAL_SPAWNER)
+            .put("SPONGE", SoundType.SPONGE)
+            .put("WET_SPONGE", SoundType.WET_SPONGE)
             .build();
 
     /** A map of every vanilla material color to its name. */
-    private static final BiMap<String, MaterialColor> COLOR_MAP =
-        ImmutableBiMap.<String, MaterialColor>builder()
-            .put("NONE", MaterialColor.NONE)
-            .put("GRASS", MaterialColor.GRASS)
-            .put("SAND", MaterialColor.SAND)
-            .put("WOOL", MaterialColor.WOOL)
-            .put("FIRE", MaterialColor.FIRE)
-            .put("ICE", MaterialColor.ICE)
-            .put("METAL", MaterialColor.METAL)
-            .put("PLANT", MaterialColor.PLANT)
-            .put("SNOW", MaterialColor.SNOW)
-            .put("CLAY", MaterialColor.CLAY)
-            .put("DIRT", MaterialColor.DIRT)
-            .put("STONE", MaterialColor.STONE)
-            .put("WATER", MaterialColor.WATER)
-            .put("WOOD", MaterialColor.WOOD)
-            .put("QUARTZ", MaterialColor.QUARTZ)
-            .put("COLOR_ORANGE", MaterialColor.COLOR_ORANGE)
-            .put("COLOR_MAGENTA", MaterialColor.COLOR_MAGENTA)
-            .put("COLOR_LIGHT_BLUE", MaterialColor.COLOR_LIGHT_BLUE)
-            .put("COLOR_YELLOW", MaterialColor.COLOR_YELLOW)
-            .put("COLOR_LIGHT_GREEN", MaterialColor.COLOR_LIGHT_GREEN)
-            .put("COLOR_PINK", MaterialColor.COLOR_PINK)
-            .put("COLOR_GRAY", MaterialColor.COLOR_GRAY)
-            .put("COLOR_LIGHT_GRAY", MaterialColor.COLOR_LIGHT_GRAY)
-            .put("COLOR_CYAN", MaterialColor.COLOR_CYAN)
-            .put("COLOR_PURPLE", MaterialColor.COLOR_PURPLE)
-            .put("COLOR_BLUE", MaterialColor.COLOR_BLUE)
-            .put("COLOR_BROWN", MaterialColor.COLOR_BROWN)
-            .put("COLOR_GREEN", MaterialColor.COLOR_GREEN)
-            .put("COLOR_RED", MaterialColor.COLOR_RED)
-            .put("COLOR_BLACK", MaterialColor.COLOR_BLACK)
-            .put("GOLD", MaterialColor.GOLD)
-            .put("DIAMOND", MaterialColor.DIAMOND)
-            .put("LAPIS", MaterialColor.LAPIS)
-            .put("EMERALD", MaterialColor.EMERALD)
-            .put("PODZOL", MaterialColor.PODZOL)
-            .put("NETHER", MaterialColor.NETHER)
-            .put("TERRACOTTA_WHITE", MaterialColor.TERRACOTTA_WHITE)
-            .put("TERRACOTTA_ORANGE", MaterialColor.TERRACOTTA_ORANGE)
-            .put("TERRACOTTA_MAGENTA", MaterialColor.TERRACOTTA_MAGENTA)
-            .put("TERRACOTTA_LIGHT_BLUE", MaterialColor.TERRACOTTA_LIGHT_BLUE)
-            .put("TERRACOTTA_YELLOW", MaterialColor.TERRACOTTA_YELLOW)
-            .put("TERRACOTTA_LIGHT_GREEN", MaterialColor.TERRACOTTA_LIGHT_GREEN)
-            .put("TERRACOTTA_PINK", MaterialColor.TERRACOTTA_PINK)
-            .put("TERRACOTTA_GRAY", MaterialColor.TERRACOTTA_GRAY)
-            .put("TERRACOTTA_LIGHT_GRAY", MaterialColor.TERRACOTTA_LIGHT_GRAY)
-            .put("TERRACOTTA_CYAN", MaterialColor.TERRACOTTA_CYAN)
-            .put("TERRACOTTA_PURPLE", MaterialColor.TERRACOTTA_PURPLE)
-            .put("TERRACOTTA_BLUE", MaterialColor.TERRACOTTA_BLUE)
-            .put("TERRACOTTA_BROWN", MaterialColor.TERRACOTTA_BROWN)
-            .put("TERRACOTTA_GREEN", MaterialColor.TERRACOTTA_GREEN)
-            .put("TERRACOTTA_RED", MaterialColor.TERRACOTTA_RED)
-            .put("TERRACOTTA_BLACK", MaterialColor.TERRACOTTA_BLACK)
-            .put("CRIMSON_NYLIUM", MaterialColor.CRIMSON_NYLIUM)
-            .put("CRIMSON_STEM", MaterialColor.CRIMSON_STEM)
-            .put("CRIMSON_HYPHAE", MaterialColor.CRIMSON_HYPHAE)
-            .put("WARPED_NYLIUM", MaterialColor.WARPED_NYLIUM)
-            .put("WARPED_STEM", MaterialColor.WARPED_STEM)
-            .put("WARPED_HYPHAE", MaterialColor.WARPED_HYPHAE)
-            .put("WARPED_WART_BLOCK", MaterialColor.WARPED_WART_BLOCK)
+    private static final BiMap<String, MapColor> COLOR_MAP =
+        ImmutableBiMap.<String, MapColor>builder()
+            .put("NONE", MapColor.NONE)
+            .put("GRASS", MapColor.GRASS)
+            .put("SAND", MapColor.SAND)
+            .put("WOOL", MapColor.WOOL)
+            .put("FIRE", MapColor.FIRE)
+            .put("ICE", MapColor.ICE)
+            .put("METAL", MapColor.METAL)
+            .put("PLANT", MapColor.PLANT)
+            .put("SNOW", MapColor.SNOW)
+            .put("CLAY", MapColor.CLAY)
+            .put("DIRT", MapColor.DIRT)
+            .put("STONE", MapColor.STONE)
+            .put("WATER", MapColor.WATER)
+            .put("WOOD", MapColor.WOOD)
+            .put("QUARTZ", MapColor.QUARTZ)
+            .put("COLOR_ORANGE", MapColor.COLOR_ORANGE)
+            .put("COLOR_MAGENTA", MapColor.COLOR_MAGENTA)
+            .put("COLOR_LIGHT_BLUE", MapColor.COLOR_LIGHT_BLUE)
+            .put("COLOR_YELLOW", MapColor.COLOR_YELLOW)
+            .put("COLOR_LIGHT_GREEN", MapColor.COLOR_LIGHT_GREEN)
+            .put("COLOR_PINK", MapColor.COLOR_PINK)
+            .put("COLOR_GRAY", MapColor.COLOR_GRAY)
+            .put("COLOR_LIGHT_GRAY", MapColor.COLOR_LIGHT_GRAY)
+            .put("COLOR_CYAN", MapColor.COLOR_CYAN)
+            .put("COLOR_PURPLE", MapColor.COLOR_PURPLE)
+            .put("COLOR_BLUE", MapColor.COLOR_BLUE)
+            .put("COLOR_BROWN", MapColor.COLOR_BROWN)
+            .put("COLOR_GREEN", MapColor.COLOR_GREEN)
+            .put("COLOR_RED", MapColor.COLOR_RED)
+            .put("COLOR_BLACK", MapColor.COLOR_BLACK)
+            .put("GOLD", MapColor.GOLD)
+            .put("DIAMOND", MapColor.DIAMOND)
+            .put("LAPIS", MapColor.LAPIS)
+            .put("EMERALD", MapColor.EMERALD)
+            .put("PODZOL", MapColor.PODZOL)
+            .put("NETHER", MapColor.NETHER)
+            .put("TERRACOTTA_WHITE", MapColor.TERRACOTTA_WHITE)
+            .put("TERRACOTTA_ORANGE", MapColor.TERRACOTTA_ORANGE)
+            .put("TERRACOTTA_MAGENTA", MapColor.TERRACOTTA_MAGENTA)
+            .put("TERRACOTTA_LIGHT_BLUE", MapColor.TERRACOTTA_LIGHT_BLUE)
+            .put("TERRACOTTA_YELLOW", MapColor.TERRACOTTA_YELLOW)
+            .put("TERRACOTTA_LIGHT_GREEN", MapColor.TERRACOTTA_LIGHT_GREEN)
+            .put("TERRACOTTA_PINK", MapColor.TERRACOTTA_PINK)
+            .put("TERRACOTTA_GRAY", MapColor.TERRACOTTA_GRAY)
+            .put("TERRACOTTA_LIGHT_GRAY", MapColor.TERRACOTTA_LIGHT_GRAY)
+            .put("TERRACOTTA_CYAN", MapColor.TERRACOTTA_CYAN)
+            .put("TERRACOTTA_PURPLE", MapColor.TERRACOTTA_PURPLE)
+            .put("TERRACOTTA_BLUE", MapColor.TERRACOTTA_BLUE)
+            .put("TERRACOTTA_BROWN", MapColor.TERRACOTTA_BROWN)
+            .put("TERRACOTTA_GREEN", MapColor.TERRACOTTA_GREEN)
+            .put("TERRACOTTA_RED", MapColor.TERRACOTTA_RED)
+            .put("TERRACOTTA_BLACK", MapColor.TERRACOTTA_BLACK)
+            .put("CRIMSON_NYLIUM", MapColor.CRIMSON_NYLIUM)
+            .put("CRIMSON_STEM", MapColor.CRIMSON_STEM)
+            .put("CRIMSON_HYPHAE", MapColor.CRIMSON_HYPHAE)
+            .put("WARPED_NYLIUM", MapColor.WARPED_NYLIUM)
+            .put("WARPED_STEM", MapColor.WARPED_STEM)
+            .put("WARPED_HYPHAE", MapColor.WARPED_HYPHAE)
+            .put("WARPED_WART_BLOCK", MapColor.WARPED_WART_BLOCK)
+            .put("DEEPSLATE", MapColor.DEEPSLATE)
+            .put("RAW_IRON", MapColor.RAW_IRON)
+            .put("GLOW_LICHEN", MapColor.GLOW_LICHEN)
             .build();
 
     /** A regular codec used for serializing material colors in config files. */
-    public static Codec<MaterialColor> COLOR_CODEC = Codec.STRING.flatXmap(
-        key -> getColor(key).map(DataResult::success).orElse(DataResult.error("No such color: " + key)),
-        color -> serialize(color).map(DataResult::success).orElse(DataResult.error("Unknown color: " + color))
-    );
-
-    /** A regular codec used for serializing material names in config files. */
-    public static Codec<Material> MATERIAL_CODEC = Codec.STRING.flatXmap(
-        key -> getMaterial(key).map(DataResult::success).orElse(DataResult.error("No such material: " + key)),
-        material -> serialize(material).map(DataResult::success).orElse(DataResult.error("Unknown material: " + material))
+    public static Codec<MapColor> COLOR_CODEC = Codec.STRING.flatXmap(
+        key -> getColor(key).map(DataResult::success).orElse(DataResult.error(() -> "No such color: " + key)),
+        color -> serialize(color).map(DataResult::success).orElse(DataResult.error(() -> "Unknown color: " + color))
     );
 
     /** A regular codec used for serializing sound types in config files. */
     public static Codec<SoundType> SOUND_CODEC = Codec.STRING.flatXmap(
-        key -> getSoundType(key).map(DataResult::success).orElse(DataResult.error("No such sound type: " + key)),
-        sound -> serialize(sound).map(DataResult::success).orElse(DataResult.error("Unknown sound type: " + sound))
+        key -> getSoundType(key).map(DataResult::success).orElse(DataResult.error(() -> "No such sound type: " + key)),
+        sound -> serialize(sound).map(DataResult::success).orElse(DataResult.error(() -> "Unknown sound type: " + sound))
     );
-
-    /**
-     * Attempts to retrieve a material from the map.
-     *
-     * @param key The name of the material being queried.
-     * @return The corresponding material, or else {@link Optional#empty}.
-     */
-    public static Optional<Material> getMaterial(final String key) {
-        return nullable(MATERIAL_MAP.get(key.toUpperCase()));
-    }
-
-    /**
-     * Returns every material name in the registry.
-     *
-     * @return All material keys.
-     */
-    public static Set<String> getMaterialNames() {
-        return MATERIAL_MAP.keySet();
-    }
-
-    /**
-     * Returns every material object in the registry.
-     *
-     * @return All known material values.
-     */
-    public static Set<Material> getMaterialValues() {
-        return MATERIAL_MAP.values();
-    }
-
-    /**
-     * Converts the input material to a string.
-     *
-     * @param value The actual {@link Material} object which may have a name.
-     * @return The name of the material, or else {@link Optional#empty}.
-     */
-    public static Optional<String> serialize(final Material value) {
-        return nullable(MATERIAL_MAP.inverse().get(value));
-    }
 
     /**
      * Attempts to retrieve a sound type from the map.
@@ -255,7 +220,7 @@ public class ValueLookup {
      * @return The corresponding {@link SoundType}, or else {@link Optional#empty}.
      */
     public static Optional<SoundType> getSoundType(final String key) {
-        return nullable(SOUND_MAP.get(key.toUpperCase()));
+        return Optional.ofNullable(SOUND_MAP.get(key.toUpperCase()));
     }
 
     /**
@@ -283,7 +248,7 @@ public class ValueLookup {
      * @return The name of the sound, or else {@link Optional#empty}.
      */
     public static Optional<String> serialize(final SoundType value) {
-        return nullable(SOUND_MAP.inverse().get(value));
+        return Optional.ofNullable(SOUND_MAP.inverse().get(value));
     }
 
     /**
@@ -292,8 +257,8 @@ public class ValueLookup {
      * @param key The name of the color being queried.
      * @return The actual color object, or else {@link Optional#empty}.
      */
-    public static Optional<MaterialColor> getColor(final String key) {
-        return nullable(COLOR_MAP.get(key.toUpperCase()));
+    public static Optional<MapColor> getColor(final String key) {
+        return Optional.ofNullable(COLOR_MAP.get(key.toUpperCase()));
     }
 
     /**
@@ -310,17 +275,17 @@ public class ValueLookup {
      *
      * @return All known color values.
      */
-    public static Set<MaterialColor> getColorValues() {
+    public static Set<MapColor> getColorValues() {
         return COLOR_MAP.values();
     }
 
     /**
      * Converts the input color type to a string.
      *
-     * @param value The actual {@link MaterialColor} which may have a name.
+     * @param value The actual {@link MapColor} which may have a name.
      * @return The name of the color, or else {@link Optional#empty}.
      */
-    public static Optional<String> serialize(final MaterialColor value) {
-        return nullable(COLOR_MAP.inverse().get(value));
+    public static Optional<String> serialize(final MapColor value) {
+        return Optional.ofNullable(COLOR_MAP.inverse().get(value));
     }
 }

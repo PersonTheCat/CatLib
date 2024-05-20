@@ -5,8 +5,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -26,14 +26,14 @@ public class EasyMapReader<T> {
     public <A> DataResult<A> run(final Function<Context<T>, A> runner) {
         final DataResult<MapLike<T>> mapResult = this.ops.getMap(this.prefix);
         if (mapResult.error().isPresent()) {
-            return DataResult.error(mapResult.error().get().message());
+            return DataResult.error(mapResult.error().get()::message);
         }
         assert mapResult.result().isPresent();
         final Context<T> ctx = new Context<>(mapResult.result().get(), this.ops, this.prefix);
         try {
             return DataResult.success(runner.apply(ctx));
         } catch (final EasyMapException e) {
-            return DataResult.error(e.getMessage());
+            return DataResult.error((e::getMessage));
         }
     }
 
