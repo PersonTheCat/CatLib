@@ -178,9 +178,7 @@ public class DjsConfigFormat implements ConfigFormat<CommentedConfig> {
                 final List<String> fullPath = concat(path, m.getKey());
                 final JsonValue value = m.getValue();
                 final String comment =
-                    value.hasComment(CommentType.HEADER)
-                        ? value.getComment(CommentType.HEADER).replace("\r", "")
-                        : null;
+                    value.hasComment(CommentType.HEADER) ? value.getComment(CommentType.HEADER) : null;
 
                 if (value.isObject()) {
                     if (comment != null) {
