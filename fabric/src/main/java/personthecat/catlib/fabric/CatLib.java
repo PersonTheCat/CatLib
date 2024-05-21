@@ -39,8 +39,10 @@ public class CatLib implements ModInitializer, ClientModInitializer {
 
         this.setupBiomeModificationHook();
 
-        LibErrorContext.error(LibReference.MOD_DESCRIPTOR, new GenericFormattedException(new RuntimeException("hello, world"), "tooltip working!"));
-
+        if (LibConfig.enableTestError()) {
+            LibErrorContext.error(LibReference.MOD_DESCRIPTOR,
+                new GenericFormattedException(new RuntimeException("test error"), "tooltip working!"));
+        }
         RegistryAccessEvent.EVENT.register(access -> {
             DynamicRegistries.updateRegistries(access);
             RegistryAddedEvent.onRegistryAccess(access);

@@ -237,12 +237,12 @@ public class DynamicCodecTest {
 
     @Nullable
     private static <T> T decode(final Codec<T> codec, final JsonValue value) {
-        final Pair<T, JsonValue> pair = codec.decode(XjsOps.INSTANCE, value).get().left().orElse(null);
+        final Pair<T, JsonValue> pair = codec.decode(XjsOps.INSTANCE, value).result().orElse(null);
         return pair != null ? pair.getFirst() : null;
     }
 
     public static <T> JsonObject encode(final Codec<T> codec, final T value) {
-        final JsonValue json = codec.encodeStart(XjsOps.INSTANCE, value).get().left().orElse(null);
+        final JsonValue json = codec.encodeStart(XjsOps.INSTANCE, value).result().orElse(null);
         return json != null ? json.asObject() : null;
     }
 

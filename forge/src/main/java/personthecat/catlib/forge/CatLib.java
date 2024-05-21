@@ -28,6 +28,7 @@ import personthecat.catlib.config.forge.LibConfigImpl;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.lifecycle.ClientTickEvent;
 import personthecat.catlib.event.player.CommonPlayerEvent;
+import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
@@ -53,6 +54,10 @@ public class CatLib {
 
     private void initCommon(final FMLCommonSetupEvent event) {
         LibConfigImpl.updateJsonContext();
+        if (LibConfig.enableTestError()) {
+            LibErrorContext.error(LibReference.MOD_DESCRIPTOR,
+                new GenericFormattedException(new RuntimeException("test error"), "tooltip working!"));
+        }
         RegistryAccessEvent.EVENT.register(access -> {
             DynamicRegistries.updateRegistries(access);
             RegistryAddedEvent.onRegistryAccess(access);

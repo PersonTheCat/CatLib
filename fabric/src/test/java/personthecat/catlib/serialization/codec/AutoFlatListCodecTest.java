@@ -45,12 +45,12 @@ public class AutoFlatListCodecTest {
 
     @Nullable
     public static JsonValue encode(final List<Integer> value) {
-        return CODEC.encodeStart(XjsOps.INSTANCE, value).get().left().orElse(null);
+        return CODEC.encodeStart(XjsOps.INSTANCE, value).result().orElse(null);
     }
 
     @Nullable
     private static List<Integer> decode(final JsonValue value) {
-        final Pair<List<Integer>, JsonValue> pair = CODEC.decode(XjsOps.INSTANCE, value).get().left().orElse(null);
+        final Pair<List<Integer>, JsonValue> pair = CODEC.decode(XjsOps.INSTANCE, value).result().orElse(null);
         return pair != null ? pair.getFirst() : null;
     }
 }

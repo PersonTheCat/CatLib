@@ -101,7 +101,8 @@ public class DjsFileConfig implements CommentedFileConfig  {
     /** Puts the JsonObject's raw value and comments into the container. */
     private static void put(File file, Container container, String key, JsonValue value) {
         container.map.put(key, toRaw(file, value));
-        container.comments.put(key, value.getComment(CommentType.HEADER));
+        final String comment = value.getComment(CommentType.HEADER);
+        container.comments.put(key, comment != null ? comment.replace("\r", "\n") : null);
     }
 
     /** Converts an Xjs value into its raw counterpart. */

@@ -32,4 +32,9 @@ public class LibConfig {
     public static int displayLength() {
         return 35;
     }
+
+    @ExpectPlatform
+    public static boolean enableTestError() {
+        return false;
+    }
 }

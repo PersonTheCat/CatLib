@@ -26,6 +26,7 @@ import personthecat.catlib.config.neo.LibConfigImpl;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.lifecycle.ClientTickEvent;
 import personthecat.catlib.event.player.CommonPlayerEvent;
+import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
@@ -48,9 +49,12 @@ public class CatLib {
         eventBus.addListener(this::registerCommands);
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     private void initCommon(final FMLCommonSetupEvent event) {
         LibConfigImpl.updateJsonContext();
+        if (LibConfig.enableTestError()) {
+            LibErrorContext.error(LibReference.MOD_DESCRIPTOR,
+                new GenericFormattedException(new RuntimeException("test error"), "tooltip working!"));
+        }
         RegistryAccessEvent.EVENT.register(access -> {
             DynamicRegistries.updateRegistries(access);
             RegistryAddedEvent.onRegistryAccess(access);
@@ -80,7 +84,7 @@ public class CatLib {
     }
 
     private void initClient(final FMLClientSetupEvent event) {
-        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ClientTickEvent e) ->
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ClientTickEvent.Post e) ->
             ClientTickEvent.END.invoker().accept(Minecraft.getInstance()));
     }
 

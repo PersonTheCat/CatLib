@@ -21,7 +21,6 @@ import xjs.data.serialization.writer.JsonWriterOptions;
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static java.util.Optional.empty;
 import static personthecat.catlib.exception.Exceptions.jsonFormatEx;

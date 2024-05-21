@@ -80,6 +80,10 @@ public class LibConfigImpl {
         .comment("The default comment style to use for generated configs.")
         .defineEnum("formatting.commentStyle", CommentStyle.LINE, EnumGetMethod.NAME_IGNORECASE);
 
+    private static final BooleanValue ENABLE_TEST_ERROR = COMMON
+        .comment("Whether to add a debug error message to the error menu.")
+        .define("debug.enableTestError", false);
+
     public static boolean enableCatlibCommands() {
         return ENABLE_LIB_COMMANDS_VALUE.get();
     }
@@ -94,6 +98,10 @@ public class LibConfigImpl {
 
     public static int displayLength() {
         return DISPLAY_LENGTH_VALUE.get();
+    }
+
+    public static boolean enableTestError() {
+        return ENABLE_TEST_ERROR.get();
     }
 
     public static void register() {

@@ -19,6 +19,9 @@ public class LibConfigImpl implements ConfigData {
     @Comment("Configures the style of any JSON, XJS, or other data file.")
     Formatting formatting = new Formatting();
 
+    @Comment("Configures features related to debugging / testing Catlib itself.")
+    Debug debug = new Debug();
+
     private static final LibConfigImpl CONFIG;
 
     public static void register() {}
@@ -37,6 +40,10 @@ public class LibConfigImpl implements ConfigData {
 
     public static int displayLength() {
         return CONFIG.general.displayLength;
+    }
+
+    public static boolean enableTestError() {
+        return CONFIG.debug.enableTestError;
     }
 
     static {
@@ -66,7 +73,7 @@ public class LibConfigImpl implements ConfigData {
     private static class General {
 
         @Comment("Whether to enable this library's provided commands as subcommands of /catlib.")
-        boolean enableCatlibCommands = false;
+        boolean enableCatlibCommands = true;
 
         @Comment("The minimum error level to display in the error menu. (warn, error, fatal)")
         Severity errorLevel = Severity.ERROR;
@@ -114,5 +121,11 @@ public class LibConfigImpl implements ConfigData {
         @Comment("The default comment style to use for generated configs.\n" +
                  "Supported types: LINE, HASH, BLOCK, LINE_DOC, MULTILINE_DOC")
         CommentStyle commentStyle = CommentStyle.LINE;
+    }
+
+    private static class Debug {
+
+        @Comment("Whether to add a debug error message to the error menu.")
+        boolean enableTestError = false;
     }
 }
