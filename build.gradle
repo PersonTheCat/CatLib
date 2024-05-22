@@ -2,6 +2,7 @@
 plugins {
     id 'architectury-plugin' version "$architectury_version"
     id 'dev.architectury.loom' version "$architectury_loom_version" apply false
+    id 'com.github.johnrengelman.shadow' version '7.1.2' apply false
 }
 
 architectury {
@@ -10,9 +11,17 @@ architectury {
 
 subprojects {
     apply plugin: 'dev.architectury.loom'
+    apply plugin: 'com.github.johnrengelman.shadow'
 
     loom {
         silentMojangMappingsLicense()
+    }
+
+    configurations {
+        common { transitive = false }
+        shadowCommon { transitive = false }
+        compileClasspath.extendsFrom common
+        runtimeClasspath.extendsFrom common
     }
 
     dependencies {

@@ -1,13 +1,7 @@
 
-plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
-}
-
 architectury {
     platformSetupLoomIde()
-    forgeLike(['forge', 'neoforge']) {
-        it.platformPackage 'neoforge', 'neo'
-    }
+    forge()
 }
 
 loom {
@@ -19,20 +13,13 @@ loom {
 }
 
 configurations {
-    common
-    shadowCommon
-    compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
     developmentForge.extendsFrom common
 }
 
 dependencies {
-    shadowCommon(project(path: ':common', configuration: 'transformProductionForge')) {
-        transitive = false
-    }
-    common(project(path: ':common', configuration: 'namedElements')) {
-        transitive = false
-    }
+    shadowCommon(project(path: ':common', configuration: 'transformProductionForge'))
+    common(project(path: ':common', configuration: 'namedElements'))
+
     forgeRuntimeLibrary group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
     forgeRuntimeLibrary group: 'com.personthecat', name: 'fresult', version: fresult_version
     forgeRuntimeLibrary group: 'org.exjson', name: 'xjs-data', version: xjs_data_version
@@ -59,17 +46,6 @@ remapJar {
 }
 
 jar {
-    manifest {
-        attributes([
-            "Specification-Title": mod_name,
-            "Specification-Vendor": mod_vendor,
-            "Specification-Version": mod_version,
-            "Implementation-Title": mod_id,
-            "Implementation-Version": mod_version,
-            "Implementation-Vendor": mod_vendor,
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
     archiveClassifier.set 'dev'
 }
 
