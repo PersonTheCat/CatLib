@@ -5,9 +5,9 @@ import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import personthecat.catlib.CatLib;
 import personthecat.catlib.client.gui.LibErrorMenu;
 import personthecat.catlib.event.error.LibErrorContext;
-import personthecat.catlib.util.LibReference;
 
 public class CatLibCommands {
 
@@ -15,7 +15,7 @@ public class CatLibCommands {
         LibCommandBuilder.named("errors")
             .description("Opens the error menu.")
             .side(CommandSide.CLIENT)
-            .mod(LibReference.MOD_DESCRIPTOR)
+            .mod(CatLib.MOD)
             .generate((builder, utl) ->
                 builder.executes(utl.wrap(CatLibCommands::displayErrors)));
 

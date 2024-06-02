@@ -1,13 +1,9 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 import dev.architectury.plugin.TransformingTask
 
-plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
-}
-
 architectury {
     common(rootProject.enabled_platforms.split(",")) {
-        it.platformPackage "neoforge", "forge"
+        it.platformPackage 'neoforge', 'neo'
     }
 }
 
@@ -29,7 +25,7 @@ dependencies {
 task processSource(type: Sync) {
     from sourceSets.main.java
     inputs.properties(mod_version: mod_version, mod_id: mod_id, mod_name: mod_name)
-    filesMatching(['**/LibReference.java']) {
+    filesMatching(['**/CatLib.java']) {
         filter(ReplaceTokens, tokens: [MOD_VERSION: mod_version, MOD_ID: mod_id, MOD_NAME: mod_name])
     }
     into "$buildDir/src"

@@ -15,10 +15,13 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "personthecat.catlib.fabric.CatLib"
+      "personthecat.catlib.fabric.CatLibFabric"
     ],
     "client": [
-      "personthecat.catlib.fabric.CatLib"
+      "personthecat.catlib.fabric.CatLibFabric"
+    ],
+    "modmenu": [
+      "personthecat.catlib.config.fabric.AutoModMenuCompat"
     ]
   },
   "mixins": [

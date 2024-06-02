@@ -11,6 +11,9 @@ authors="${mod_authors}"
 description="${mod_description}"
 license="GPL-3"
 
+[[accessTransformers]]
+file="META-INF/accesstransformer.cfg"
+
 [[mixins]]
 config="catlib.neoforge.mixins.json"
 [[mixins]]

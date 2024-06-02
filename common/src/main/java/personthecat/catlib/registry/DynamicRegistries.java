@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 public class DynamicRegistries {
 
     private static final RegistryHandle<RegistryHandle<?>> REGISTRY =
-        RegistryHandle.createVanilla(ResourceKey.createRegistryKey(Registries.ROOT_REGISTRY_NAME));
+        RegistryHandle.create(ResourceKey.createRegistryKey(Registries.ROOT_REGISTRY_NAME));
 
     public static final RegistryHandle<Biome> BIOMES = createAndRegister(Registries.BIOME);
     public static final RegistryHandle<DimensionType> DIMENSION_TYPES = createAndRegister(Registries.DIMENSION_TYPE);

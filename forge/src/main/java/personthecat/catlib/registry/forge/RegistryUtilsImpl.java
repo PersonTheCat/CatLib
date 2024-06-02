@@ -4,7 +4,6 @@ import lombok.experimental.UtilityClass;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
 import org.jetbrains.annotations.NotNull;
@@ -22,11 +21,11 @@ public class RegistryUtilsImpl {
 
     private static final Map<Class<?>, RegistryHandle<?>> REGISTRY_BY_TYPE = new ConcurrentHashMap<>();
 
-    @SuppressWarnings({"rawtypes", "unchecked", "UnstableApiUsage"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<Registry<T>> key) {
         final IForgeRegistry<?> forgeRegistry = RegistryManager.ACTIVE.getRegistry(key.location());
         if (forgeRegistry != null) {
-            return Optional.of(new ForgeRegistryHandle<>((ForgeRegistry) forgeRegistry));
+            return Optional.of(new ForgeRegistryHandle<>((IForgeRegistry) forgeRegistry));
         }
         final Registry<T> builtinRegistry = (Registry<T>) BuiltInRegistries.REGISTRY.get(key.location());
         if (builtinRegistry != null) {
@@ -48,11 +47,10 @@ public class RegistryUtilsImpl {
     }
 
     @Nullable
-    @SuppressWarnings({"UnstableApiUsage"})
     private static RegistryHandle<?> findForge(final Class<?> clazz) {
         for (final IForgeRegistry<?> r : RegistryManager.ACTIVE.getRegistries().values()) {
             if (clazz.isInstance(r.iterator().next())) {
-                return new ForgeRegistryHandle<>((ForgeRegistry<?>) r);
+                return new ForgeRegistryHandle<>(r);
             }
         }
         return null;

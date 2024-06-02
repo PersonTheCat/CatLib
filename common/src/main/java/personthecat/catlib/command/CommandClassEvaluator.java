@@ -467,17 +467,7 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static class Mapping<T, R> {
-        final Class<T> from;
-        final Class<R> to;
-        final Function<T, R> mapper;
-
-        Mapping(Class<T> from, Class<R> to, Function<T, R> mapper) {
-            this.from = from;
-            this.to = to;
-            this.mapper = mapper;
-        }
-    }
+    private record Mapping<T, R>(Class<T> from, Class<R> to, Function<T, R> mapper) {}
 
     private class CommandClassEvaluationException extends FormattedException {
         final Method method;

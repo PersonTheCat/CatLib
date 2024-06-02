@@ -30,7 +30,8 @@ public abstract class TitleScreenMixin extends Screen {
             CheckErrorsEvent.EVENT.invoker().run();
             if (LibErrorContext.hasErrors()) {
                 Minecraft.getInstance().setScreen(new LibErrorMenu(this));
-            } else {
+            }
+            if (!LibErrorContext.isFatal()) {
                 GameReadyEvent.CLIENT.invoker().run();
             }
         }

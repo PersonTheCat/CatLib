@@ -45,6 +45,7 @@ public class ModDescriptor {
     Version version;
     String commandPrefix;
     File configFolder;
+    File configFile;
     File backupFolder;
     @Nullable File preferredDirectory;
 
@@ -71,10 +72,11 @@ public class ModDescriptor {
             if (this.version == null) this.version = Version.ZERO;
             if (this.commandPrefix == null) this.commandPrefix = this.modId;
             if (this.configFolder == null) this.configFolder = new File(McUtils.getConfigDir(), this.modId);
+            if (this.configFile == null) this.configFile = new File(McUtils.getConfigDir(), this.modId + ".djs");
             if (this.backupFolder == null) this.backupFolder = new File(this.configFolder, "backups");
             if (this.defaultLinter == null) this.defaultLinter = SyntaxLinter.DEFAULT_LINTER;
 
-            return new ModDescriptor(name, modId, version, commandPrefix, configFolder, backupFolder, preferredDirectory, defaultLinter);
+            return new ModDescriptor(name, modId, version, commandPrefix, configFolder, configFile, backupFolder, preferredDirectory, defaultLinter);
         }
     }
 }

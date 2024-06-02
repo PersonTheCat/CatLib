@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 
 // Must run before Fabric mixin
-@Mixin(value = MinecraftServer.class, priority = 10_000)
+@Mixin(value = MinecraftServer.class, priority = 100)
 public abstract class MinecraftServerMixin {
 
     @Shadow

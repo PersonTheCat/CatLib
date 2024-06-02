@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  *         wrapper.sendMessage("Hello, world!");
  *     }
  * </pre><p>
- *   In addition, CatLib will take care of generating a help command for your
+ *   In addition, personthecat.catlib.CatLib will take care of generating a help command for your
  *   mod. You can enable this feature per command by providing a description.
  * </p><pre>
  *     &#064;ModCommand(

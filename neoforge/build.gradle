@@ -2,12 +2,14 @@
 architectury {
     platformSetupLoomIde()
     neoForge {
-        platformPackage = "neo"
+        platformPackage = 'neo'
     }
 }
 
 loom {
-    neoForge {}
+    neoForge {
+        accessTransformer 'src/main/resources/META-INF/accesstransformer.cfg'
+    }
 
     mods {
         // force this mod onto the classpath since for some reason arch misses it
@@ -23,16 +25,21 @@ configurations {
 
 repositories {
     maven { url 'https://maven.neoforged.net/releases/' }
+    maven { url 'https://cursemaven.com' }
 }
 
 dependencies {
-    shadowCommon(project(path: ':common', configuration: 'transformProductionNeoForge'))
-    common(project(path: ':common', configuration: 'namedElements'))
-
+    shadowCommon(project(path: ':common', configuration: 'transformProductionNeoForge')) {
+        transitive = false
+    }
+    common(project(path: ':common', configuration: 'namedElements')) {
+        transitive = false
+    }
     forgeRuntimeLibrary group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
     forgeRuntimeLibrary group: 'com.personthecat', name: 'fresult', version: fresult_version
     forgeRuntimeLibrary group: 'org.exjson', name: 'xjs-data', version: xjs_data_version
     forgeRuntimeLibrary group: 'org.exjson', name: 'xjs-compat', version: xjs_compat_version
+    modImplementation group: 'curse.maven', name: 'configured-457570', version: configured_maven_version_neo
     neoForge "net.neoforged:neoforge:$neo_version"
 }
 

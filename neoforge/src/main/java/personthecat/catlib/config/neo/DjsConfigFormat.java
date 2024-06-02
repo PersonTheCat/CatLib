@@ -62,8 +62,6 @@ public class DjsConfigFormat implements ConfigFormat<CommentedConfig> {
         @Override
         public void write(UnmodifiableConfig config, java.io.Writer tw) {
             try {
-                // hack to force catlib configs to output with correct formatting
-                LibConfigImpl.updateJsonContext();
                 toXjs(config).write(tw);
             } catch (final IOException e) {
                 throw new WritingException(e);

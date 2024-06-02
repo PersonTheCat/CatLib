@@ -2,6 +2,7 @@ package personthecat.catlib.linting;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,7 +10,7 @@ import java.util.regex.Pattern;
 public class StackTraceLinter extends SyntaxLinter {
 
     private static final Pattern AT_PATTERN = Pattern.compile("\\bat\\s", Pattern.MULTILINE);
-    private static final Pattern PACKAGE_PATTERN = Pattern.compile("(?<=\\s)[a-z]+(\\.[a-z]+)+(?=\\.)", Pattern.MULTILINE);
+    private static final Pattern PACKAGE_PATTERN = Pattern.compile("(?<=[\\s/])[a-z]+(\\.[a-z]+)+(?=\\.)", Pattern.MULTILINE);
     private static final Pattern METHOD_PATTERN = Pattern.compile("[\\w$]+(?=\\()", Pattern.MULTILINE);
     private static final Pattern SPECIAL_METHOD_PATTERN = Pattern.compile("(<init>|<clinit>)(?=\\()", Pattern.MULTILINE);
     private static final Pattern LINE_PATTERN = Pattern.compile("(?<=\\()(\\w+\\.\\w+:\\d+)(?=\\))", Pattern.MULTILINE);
@@ -17,6 +18,7 @@ public class StackTraceLinter extends SyntaxLinter {
 
     private static final Highlighter[] HIGHLIGHTERS = {
         new RegexHighlighter(AT_PATTERN, color(ChatFormatting.DARK_GREEN)),
+        new SourceHighlighter(),
         new RegexHighlighter(PACKAGE_PATTERN, color(ChatFormatting.GRAY)),
         new RegexHighlighter(METHOD_PATTERN, color(ChatFormatting.GOLD).withItalic(true)),
         new RegexHighlighter(SPECIAL_METHOD_PATTERN, color(ChatFormatting.GOLD).withItalic(true).withBold(true)),
@@ -56,5 +58,52 @@ public class StackTraceLinter extends SyntaxLinter {
         }
 
         return sb.toString();
+    }
+
+    public static class SourceHighlighter implements Highlighter {
+        private static final Pattern SOURCE_PATTERN = Pattern.compile("(?<=\\s)(\\S*)/", Pattern.MULTILINE);
+
+        @Override
+        public Instance get(final String text) {
+            return new SourceHighlighterInstance(text);
+        }
+
+        public static class SourceHighlighterInstance implements Instance {
+            final Matcher matcher;
+            final String text;
+            boolean found;
+
+            public SourceHighlighterInstance(final String text) {
+                this.matcher = SOURCE_PATTERN.matcher(text);
+                this.text = text;
+                this.found = matcher.find();
+            }
+
+            @Override
+            public void next() {
+                this.found = this.matcher.find();
+            }
+
+            @Override
+            public boolean found() {
+                return this.found;
+            }
+
+            @Override
+            public int start() {
+                return this.matcher.start(1);
+            }
+
+            @Override
+            public int end() {
+                return this.matcher.end(1);
+            }
+
+            @Override
+            public Component replacement() {
+                return stc("...").withStyle(color(ChatFormatting.GRAY).withUnderlined(true).withHoverEvent(
+                    new HoverEvent(HoverEvent.Action.SHOW_TEXT, stc(this.matcher.group()))));
+            }
+        }
     }
 }

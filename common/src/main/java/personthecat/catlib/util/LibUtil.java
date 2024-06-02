@@ -190,7 +190,7 @@ public class LibUtil {
      * @return Whether this string is a valid identifier for the constant.
      */
     public static <E extends Enum<E>> boolean isFormatted(final E e, final String s) {
-        final String id = e.name().replace("_", "");
-        return id.equalsIgnoreCase(s.replace("_", ""));
+        final String id = e.name().replace("_", "").replace(" ", "");
+        return id.equalsIgnoreCase(s.replace("_", "").replace(" ", ""));
     }
 }

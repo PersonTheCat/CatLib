@@ -43,6 +43,10 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
         });
     }
 
+    public RegistryHandle<T> getWrapped() {
+        return this.wrapped;
+    }
+
     @Nullable
     @Override
     public ResourceLocation getKey(final T t) {

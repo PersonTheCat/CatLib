@@ -7,13 +7,13 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.SuggestionProviders;
 import net.minecraft.resources.ResourceLocation;
+import personthecat.catlib.CatLib;
 import personthecat.catlib.command.arguments.JsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.command.arguments.RegistryArgument;
 import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.serialization.json.XjsUtils;
-import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.LibUtil;
 import xjs.data.JsonValue;
 
@@ -78,7 +78,7 @@ public class LibSuggestions {
     }
 
     private static SuggestionProvider<CommandSourceStack> register(final String name, final SuggestionProvider<SharedSuggestionProvider> provider) {
-        return SuggestionProviders.register(new ResourceLocation(LibReference.MOD_ID, name), provider);
+        return SuggestionProviders.register(new ResourceLocation(CatLib.ID, name), provider);
     }
 
 }

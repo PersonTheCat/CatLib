@@ -67,7 +67,7 @@ public class BiomePredicate extends IdList<Biome> {
             return this;
         }
         final InvertibleSet<Holder<Biome>> biomes = this.reconstruct();
-        final MultiValueMap<BiomeType, Holder<Biome>> categories = categorize(biomes);
+        final MultiValueMap<BiomeType, Holder<Biome>> categories = categorize(biomes.entries());
         final List<InvertibleEntry> entries = new ArrayList<>();
 
         for (final Map.Entry<BiomeType, List<Holder<Biome>>> entry : categories.entrySet()) {
@@ -80,7 +80,7 @@ public class BiomePredicate extends IdList<Biome> {
                 }
             }
         }
-        return new BiomePredicate(Registries.BIOME, entries, biomes.isBlacklist(), Format.OBJECT);
+        return new BiomePredicate(Registries.BIOME, entries, biomes.blacklist(), Format.OBJECT);
     }
 
     private InvertibleSet<Holder<Biome>> reconstruct() {
@@ -89,9 +89,9 @@ public class BiomePredicate extends IdList<Biome> {
         if (compiled.size() > all.size() / 2) {
             final Set<Holder<Biome>> inverted = new HashSet<>(all);
             compiled.forEach(inverted::remove);
-            return InvertibleSet.wrap(inverted).blacklist(true);
+            return new InvertibleSet<>(inverted, true);
         }
-        return InvertibleSet.wrap(compiled.stream().collect(Collectors.toSet()));
+        return new InvertibleSet<>(compiled.stream().collect(Collectors.toSet()), false);
     }
 
     private static MultiValueMap<BiomeType, Holder<Biome>> categorize(final Collection<Holder<Biome>> biomes) {

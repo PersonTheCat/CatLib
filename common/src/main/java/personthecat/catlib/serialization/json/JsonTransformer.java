@@ -191,7 +191,7 @@ public class JsonTransformer {
      *   assert resolved.size() == 4;
      * }</pre>
      *
-     * <p><b>Note</b>: This method will be replaced with <code>global</code> in CatLib 2.0.
+     * <p><b>Note</b>: This method will be replaced with <code>global</code> in personthecat.catlib.CatLib 2.0.
      * Expect its behavior to change slightly in the future.
      *
      * @param key The name of every object being resolved.

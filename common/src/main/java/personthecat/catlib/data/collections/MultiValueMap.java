@@ -1,5 +1,6 @@
 package personthecat.catlib.data.collections;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -20,7 +21,12 @@ public interface MultiValueMap<K, V> extends Map<K, List<V>> {
      * @param k The key which the given value will be mapped to.
      * @param v The value to be inserted for this key.
      */
-    void add(final K k, final V v);
+    default void add(final K k, final V v) {
+        if (!this.containsKey(k)) {
+            this.put(k, new ArrayList<>());
+        }
+        this.get(k).add(v);
+    }
 
     /**
      * Runs a function for each value in every container.

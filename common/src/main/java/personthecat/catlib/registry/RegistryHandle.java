@@ -1,15 +1,18 @@
 package personthecat.catlib.registry;
 
 import com.mojang.serialization.Lifecycle;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.data.ModDescriptor;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -36,8 +39,17 @@ public interface RegistryHandle<T> extends Iterable<T> {
     Stream<T> stream();
     int size();
 
-    static <T> RegistryHandle<T> createVanilla(final ResourceKey<? extends Registry<T>> key) {
+    @ExpectPlatform
+    static <T> RegistryHandle<T> create(final ResourceKey<Registry<T>> key) {
         return new MojangRegistryHandle<>(new MappedRegistry<>(key, Lifecycle.stable()));
+    }
+
+    @ExpectPlatform
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static <T> void addToRoot(final ModDescriptor mod, final RegistryHandle<T> handle) {
+        if (handle instanceof MojangRegistryHandle<T> m) { // platforms will handle other types, events, etc
+            Registry.register((Registry) BuiltInRegistries.REGISTRY, (ResourceKey) m.key(), m.getRegistry());
+        }
     }
 
     default @Nullable ResourceLocation keyOf(final Holder<T> holder) {

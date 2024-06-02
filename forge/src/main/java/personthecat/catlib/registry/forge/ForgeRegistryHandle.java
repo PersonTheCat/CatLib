@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraftforge.registries.ForgeRegistry;
+import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.NamespacedWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,8 +25,19 @@ public class ForgeRegistryHandle<T> implements RegistryHandle<T> {
     private final ForgeRegistry<T> registry;
     private final Lookup lookup = new Lookup();
 
+    public ForgeRegistryHandle(final IForgeRegistry<T> registry) {
+        this(unwrap(registry));
+    }
+
     public ForgeRegistryHandle(final ForgeRegistry<T> registry) {
         this.registry = registry;
+    }
+
+    public static <T> ForgeRegistry<T> unwrap(final IForgeRegistry<T> registry) {
+        if (registry instanceof ForgeRegistry<T> f) {
+            return f;
+        }
+        throw new IllegalArgumentException("Nonstandard Forge config: " + registry.getClass().getSimpleName());
     }
 
     public ForgeRegistry<T> getRegistry() {
@@ -57,6 +69,7 @@ public class ForgeRegistryHandle<T> implements RegistryHandle<T> {
 
     @Override
     public void forEachHolder(final BiConsumer<ResourceLocation, Holder<T>> f) {
+        this.holders().forEach(holder -> f.accept(this.keyOf(holder), holder));
     }
 
     @Override

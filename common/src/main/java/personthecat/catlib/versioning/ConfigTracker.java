@@ -3,12 +3,12 @@ package personthecat.catlib.versioning;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.world.level.LevelAccessor;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.CatLib;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.exception.UnreachableException;
 import personthecat.catlib.io.FileIO;
-import personthecat.catlib.util.LibReference;
 import personthecat.catlib.util.McUtils;
 
 import java.io.*;
@@ -41,7 +41,7 @@ public class ConfigTracker<T extends Serializable> {
     }
 
     private static File createFile(final Builder builder) {
-        return new File(McUtils.getConfigDir(), LibReference.MOD_ID + "/versioning/"
+        return new File(McUtils.getConfigDir(), CatLib.ID + "/versioning/"
             + builder.mod.getModId() + "/" + builder.category + ".cft");
     }
 
