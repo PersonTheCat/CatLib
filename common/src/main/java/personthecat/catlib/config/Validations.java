@@ -58,7 +58,7 @@ public record Validations(Map<Class<?>, Validation<?>> map, Class<?> type, Class
         if (!value.canBeNull()) {
             map.computeIfAbsent(Validation.NotNull.class, c -> new Validation.NotNull());
         }
-        map.computeIfAbsent(Typed.class, c -> new Typed<>(ConfigUtil.widen(value.type())));
+        map.computeIfAbsent(Typed.class, c -> new Typed(ConfigUtil.widen(value.type())));
     }
 
     public Class<?> genericType() {
@@ -106,14 +106,18 @@ public record Validations(Map<Class<?>, Validation<?>> map, Class<?> type, Class
     }
 
     public Predicate<Object> typeValidator() {
-        return this.createValidator(this.getTypeValidations(this.map));
+        return this.createValidator(this.typeValidations(this.map));
     }
 
     public Predicate<Object> entryTypeValidator() {
-        return this.createValidator(this.getTypeValidations(this.entryValidations()));
+        return this.createValidator(this.typeValidations(this.entryValidations()));
     }
 
-    private List<Validation<?>> getTypeValidations(Map<Class<?>, Validation<?>> map) {
+    public List<Validation<?>> typeValidations() {
+        return this.typeValidations(this.map);
+    }
+
+    private List<Validation<?>> typeValidations(Map<Class<?>, Validation<?>> map) {
         return map.values().stream()
             .filter(v -> v instanceof Typed || v instanceof GenericTyped || v instanceof NotNull)
             .toList();
@@ -125,7 +129,7 @@ public record Validations(Map<Class<?>, Validation<?>> map, Class<?> type, Class
             return this.map;
         }
         final Map<Class<?>, Validation<?>> map = new HashMap<>(this.map);
-        map.put(Typed.class, new Typed<>(ConfigUtil.widen(generics[0])));
+        map.put(Typed.class, new Typed(ConfigUtil.widen(generics[0])));
         if (generics.length > 1) {
             final Class<?>[] remainingGenerics = ConfigUtil.shiftGenerics(generics);
             map.put(GenericTyped.class, new GenericTyped(remainingGenerics));
@@ -134,14 +138,14 @@ public record Validations(Map<Class<?>, Validation<?>> map, Class<?> type, Class
     }
 
     private Predicate<Object> createValidator(Collection<Validation<?>> list) {
-        if (this.requiresExactType()) {
+        if (this.requiresExactType(list)) {
             return o -> Validation.isValid(list, ConfigUtil.remap(this.type, this.generics, o));
         }
         return o -> Validation.isValid(list, o);
     }
 
-    public boolean requiresExactType() {
-        for (final Validation<?> v : this.map.values()) {
+    public boolean requiresExactType(Collection<Validation<?>> list) {
+        for (final Validation<?> v : list) {
             if (v.requiresExactType()) {
                 return true;
             }

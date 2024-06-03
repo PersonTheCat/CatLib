@@ -118,6 +118,17 @@ public final class ConfigUtil {
         return c.isArray() || Map.class.isAssignableFrom(c) || Collection.class.isAssignableFrom(c);
     }
 
+    public static Collection<?> getElements(Object o) {
+        if (o instanceof Map m) {
+            return m.values();
+        } else if (o instanceof Collection c) {
+            return c;
+        } else if (o != null && o.getClass().isArray()) {
+            return arrayToList(o);
+        }
+        throw new IllegalStateException("Not supported: " + o);
+    }
+
     public static Class<?>[] shiftGenerics(Class<?>[] generics) {
         if (generics.length == 0) return generics;
         final Class<?>[] shifted = new Class<?>[generics.length - 1];

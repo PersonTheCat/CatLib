@@ -4,6 +4,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import personthecat.catlib.config.ConfigUtil;
 import personthecat.catlib.data.collections.MultiValueHashMap;
 import personthecat.catlib.data.collections.MultiValueMap;
+import personthecat.catlib.util.LibUtil;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -61,6 +62,11 @@ public final class ConfigUtilImpl {
                 Array.set(array, i, remap(generics[idx], generics, idx + 1, l.get(i)));
             }
             return array;
+        } else if (t.isEnum() && o instanceof String s) {
+            final Object e = LibUtil.getEnumConstant(s, (Class<Enum>) t).orElse(null);
+            if (e != null) {
+                return e;
+            }
         }
         return ConfigUtil.toCorrectPrimitive(t, o);
     }

@@ -18,7 +18,7 @@ public class SimpleValue<T> implements ConfigValue {
         this.comment = comment;
         this.type = type;
         this.name = name;
-        this.validations = List.of(new Validation.Typed<>(type));
+        this.validations = List.of(new Validation.Typed(type));
         this.defaultValue = def;
         this.value = def;
     }

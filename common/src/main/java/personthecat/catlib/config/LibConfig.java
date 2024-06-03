@@ -8,6 +8,8 @@ import xjs.data.comments.CommentStyle;
 import xjs.data.serialization.JsonContext;
 import xjs.data.serialization.writer.JsonWriterOptions;
 
+import java.util.List;
+
 @Config
 public class LibConfig implements Config.Listener {
     private static final LibConfig INSTANCE =
@@ -104,10 +106,10 @@ public class LibConfig implements Config.Listener {
         @Comment("Whether to tolerate single-line containers.")
         boolean allowCondense = true;
 
-        @Comment("Whether to skip printing root braces for any supported format (XJS, Hjson).")
+        @Comment("Whether to skip printing root braces for any supported format (DJS, Hjson).")
         boolean omitRootBraces = true;
 
-        @Comment("Whether to automatically remove quotes from generated configs (XJS, Hjson).")
+        @Comment("Whether to automatically remove quotes from generated configs (DJS, Hjson).")
         boolean omitQuotes = true;
 
         @Comment("Whether to print comments (this comment will be deleted).")

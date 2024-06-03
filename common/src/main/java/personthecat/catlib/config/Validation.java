@@ -43,9 +43,7 @@ public interface Validation<T> extends Predicate<T> {
     }
 
     default boolean isValidForType(final Class<?> type) {
-        return Collection.class.isAssignableFrom(type)
-            || Map.class.isAssignableFrom(type)
-            || this.type().isAssignableFrom(type);
+        return this.type().isAssignableFrom(type);
     }
 
     static Validation<Object> from(final Config.GenericType genericType) {
@@ -84,31 +82,31 @@ public interface Validation<T> extends Predicate<T> {
         return DOUBLE_RANGE;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     static boolean isValid(Iterable<Validation<?>> list, Object value) {
-        for (final Validation<?> v : list) {
-            if (value == null || v.isValidForType(value.getClass())) {
-                if (!((Validation) v).test(value)) {
-                    return false;
-                }
-            }
+        return getValidationFailed(list, value) == null;
+    }
+
+    static void validate(
+            Iterable<Validation<?>> list, String filename, ConfigValue c, Object value) throws ValidationException {
+        final Validation<?> failed = getValidationFailed(list, value);
+        if (failed != null) {
+            final Object o = value != null ? value : "null";
+            final Component error = failed.getErrorText(c, o);
+            final Component details = failed.getDetailText(c, o);
+            throw new ValidationException(filename, c.name(), error, details);
         }
-        return true;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    static void validate(
-            Iterable<Validation<?>> list, String filename, ConfigValue c, Object value) throws ValidationException {
+    static @Nullable Validation<?> getValidationFailed(Iterable<Validation<?>> list, Object value) {
         for (final Validation<?> v : list) {
-            if (value == null || v.isValidForType(value.getClass())) {
+            if ((value == null || v.isValidForType(value.getClass()))) {
                 if (!((Validation) v).test(value)) {
-                    final Object o = value != null ? value : "null";
-                    final Component error = v.getErrorText(c, o);
-                    final Component details = v.getDetailText(c, o);
-                    throw new ValidationException(filename, c.name(), error, details);
+                    return v;
                 }
             }
         }
+        return null;
     }
 
     static String buildComment(Iterable<Validation<?>> list, Class<?>... skip) {
@@ -130,11 +128,11 @@ public interface Validation<T> extends Predicate<T> {
         return sb.toString();
     }
 
-    record Typed<T>(Class<T> type) implements Validation<T> {
+    record Typed(Class<?> expected) implements Validation<Object> {
 
         @Override
-        public boolean test(final T t) {
-            return t == null || this.isValidForType(t.getClass());
+        public boolean test(final Object o) {
+            return o == null || this.expected.isAssignableFrom(o.getClass());
         }
 
         @Override
@@ -150,6 +148,16 @@ public interface Validation<T> extends Predicate<T> {
         @Override
         public Component getDetailText(ConfigValue value, Object o) {
             return Component.translatable(this.message(), o.getClass().getSimpleName(), value.type().getSimpleName());
+        }
+
+        @Override
+        public boolean requiresExactType() {
+            return true;
+        }
+
+        @Override
+        public Class<Object> type() {
+            return Object.class;
         }
     }
 

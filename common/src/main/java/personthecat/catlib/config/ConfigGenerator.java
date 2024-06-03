@@ -4,6 +4,8 @@ import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.exception.FormattedException;
 
+import java.util.Collection;
+
 public abstract class ConfigGenerator {
     protected final ModDescriptor mod;
     protected final CategoryValue config;
@@ -17,7 +19,7 @@ public abstract class ConfigGenerator {
         this.validations = new ValidationMap();
     }
 
-    protected void setValue(ConfigValue value, Object instance, Object o) {
+    protected void setValue(ConfigValue value, Object instance, Object o) throws ValidationException {
         final Validations validations = this.getValidations(value);
         if (validations == null) {
             return;
@@ -28,12 +30,7 @@ public abstract class ConfigGenerator {
             this.warn(value, e.getMessage());
             return;
         }
-        try {
-            Validation.validate(validations.values(), this.filename(), value, o);
-        } catch (final ValidationException e) {
-            this.warn(e);
-            return;
-        }
+        this.validate(value, validations, o);
         value.set(this.mod, instance, o);
     }
 
@@ -59,6 +56,18 @@ public abstract class ConfigGenerator {
             if (!v.isValidForType(value.type()) && !v.isValidForType(generic)) {
                 this.warn(value, "Not valid for type: " + v + " on " + value.name());
             }
+        }
+    }
+
+    protected void validate(ConfigValue value, Validations validations, Object o) throws ValidationException {
+        if (!ConfigUtil.isSupportedGenericType(value.type())) {
+            Validation.validate(validations.values(), this.filename(), value, o);
+            return;
+        }
+        Validation.validate(validations.typeValidations(), this.filename(), value, o);
+        final Collection<Validation<?>> entryValidations = validations.entryValidations().values();
+        for (final Object e : ConfigUtil.getElements(o)) {
+            Validation.validate(entryValidations, this.filename(), value, e);
         }
     }
 

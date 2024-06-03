@@ -11,6 +11,7 @@ import personthecat.catlib.config.ConfigValue;
 import personthecat.catlib.config.Validation;
 import personthecat.catlib.config.Validation.DecimalRange;
 import personthecat.catlib.config.Validation.Range;
+import personthecat.catlib.config.ValidationException;
 import personthecat.catlib.config.Validations;
 import personthecat.catlib.data.ModDescriptor;
 
@@ -142,7 +143,14 @@ public class ModConfigGenerator extends ConfigGenerator {
                 updateAll(spec, path, value.get(this.mod, instance), category);
                 continue;
             }
-            this.setValue(value, instance, spec.getValues().getRaw(path));
+            final ModConfigSpec.ConfigValue neoValue = spec.getValues().getRaw(path);
+            try {
+                this.setValue(value, instance, neoValue.get());
+            } catch (final ValidationException e) {
+                this.warn(e);
+                neoValue.set(neoValue.getDefault());
+                value.set(this.mod, instance, value.defaultValue());
+            }
         }
     }
 

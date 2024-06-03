@@ -87,7 +87,12 @@ public class ClothConfigGenerator extends ConfigGenerator {
                     this.warn(c, "Not an object. Expected category: " + j);
                 }
             } else {
-                this.setValue(value, instance, j.unwrap());
+                try {
+                    this.setValue(value, instance, j.unwrap());
+                } catch (final ValidationException e) {
+                    this.warn(e);
+                    value.set(this.mod, instance, value.defaultValue());
+                }
             }
         }
     }
@@ -126,17 +131,20 @@ public class ClothConfigGenerator extends ConfigGenerator {
             comment.append(prefix);
         }
         if (validations != null) {
-            if (!comment.isEmpty()) {
-                comment.append('\n');
+            final String details = Validation.buildComment(validations.values());
+            if (!details.isEmpty()) {
+                if (!comment.isEmpty()) {
+                    comment.append('\n');
+                }
+                comment.append(details);
             }
-            comment.append(Validation.buildComment(validations.values()));
         }
         if (value.type().isEnum()) {
             if (!comment.isEmpty()) {
                 comment.append('\n');
             }
             final String possible = Arrays.toString(value.type().getEnumConstants());
-            comment.append("\nPossible values: ").append(possible);
+            comment.append("Possible values: ").append(possible);
         }
         return comment.toString();
     }
