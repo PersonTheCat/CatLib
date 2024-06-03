@@ -1,44 +1,28 @@
 package personthecat.catlib.config.neo;
 
 import com.electronwill.nightconfig.core.EnumGetMethod;
-import lombok.extern.log4j.Log4j2;
+import com.google.common.collect.Lists;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.ModConfigSpec.Builder;
 import personthecat.catlib.config.CategoryValue;
-import personthecat.catlib.config.Config;
+import personthecat.catlib.config.ConfigGenerator;
 import personthecat.catlib.config.ConfigUtil;
 import personthecat.catlib.config.ConfigValue;
 import personthecat.catlib.config.Validation;
 import personthecat.catlib.config.Validation.DecimalRange;
-import personthecat.catlib.config.Validation.GenericTyped;
 import personthecat.catlib.config.Validation.Range;
-import personthecat.catlib.config.Validation.Typed;
-import personthecat.catlib.config.ValidationException;
-import personthecat.catlib.config.ValidationMap;
 import personthecat.catlib.config.Validations;
-import personthecat.catlib.config.ValueException;
 import personthecat.catlib.data.ModDescriptor;
-import personthecat.catlib.event.error.LibErrorContext;
-import personthecat.catlib.exception.FormattedException;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
-@Log4j2
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class ModConfigGenerator {
-    private final ModDescriptor mod;
-    private final CategoryValue config;
-    private final Object instance;
-    private final ValidationMap validations;
+public class ModConfigGenerator extends ConfigGenerator {
 
     public ModConfigGenerator(ModDescriptor mod, CategoryValue config) {
-        this.mod = mod;
-        this.config = config;
-        this.instance = config.parent().get(mod, null);
-        this.validations = new ValidationMap();
+        super(mod, config);
     }
 
     public ModConfigSpec generateSpec() {
@@ -47,16 +31,6 @@ public class ModConfigGenerator {
             this.apply(builder, v);
         }
         return builder.build();
-    }
-
-    public void fireOnConfigUpdated() {
-        if (this.instance instanceof Config.Listener c) {
-            try {
-                c.onConfigUpdated();
-            } catch (final ValidationException e) {
-                LibErrorContext.error(this.mod, e);
-            }
-        }
     }
 
     public void updateConfig(ModConfigSpec spec) {
@@ -82,42 +56,48 @@ public class ModConfigGenerator {
             builder.pop();
             return;
         }
-        final Validations validations;
-        try {
-            validations = Validations.fromValue(this.filename(), value);
-        } catch (final ValueException e) {
-            this.error(e);
+        final Validations validations = this.getValidations(value);
+        if (validations == null) {
             return;
         }
-        this.validations.put(value, validations);
-        if (value.type().isEnum()) {
-            this.defineEnum(builder, value, def, validations);
-        } else if (value.type().isArray()) {
-            this.defineArray(builder, value, def, validations);
-        } else if (def == null || (!this.defineBoolean(builder, value, def)
-                && !this.defineInt(builder, value, def, validations)
-                && !this.defineLong(builder, value, def, validations)
-                && !this.defineDouble(builder, value, def, validations)
-                && !this.defineCollection(builder, value, def, validations)
-                && !this.defineMap(builder, value, def, validations))) {
-            this.defineNullUnknown(builder, value, def, validations);
+        // types that have automatic comment details
+        if (this.defineEnum(builder, value, def, validations)) {
+            return;
+        } else if (def != null) {
+            if (this.defineBoolean(builder, value, def)
+                    || this.defineInt(builder, value, def, validations)
+                    || this.defineLong(builder, value, def, validations)
+                    || this.defineDouble(builder, value, def, validations)) {
+                return;
+            }
         }
-        this.warnIfInvalid(value, validations);
+        final String details = Validation.buildComment(validations.map().values());
+        if (!details.isEmpty()) {
+            builder.comment(details);
+        }
+        if (this.defineArray(builder, value, def, validations)
+                || this.defineCollection(builder, value, def, validations)) {
+            return;
+        }
+        this.defineNullUnknown(builder, value, def, validations);
     }
 
-    private void defineEnum(Builder builder, ConfigValue value, Object def, Validations validations) {
+    private boolean defineEnum(Builder builder, ConfigValue value, Object def, Validations validations) {
+        if (!value.type().isEnum()) return false;
         builder.defineEnum(
-            value.name(), () -> (Enum) def, EnumGetMethod.NAME_IGNORECASE, validations.validator(), (Class<Enum>) value.type());
+            value.name(), () -> (Enum) def, EnumGetMethod.NAME_IGNORECASE, validations.typeValidator(), (Class<Enum>) value.type());
+        return true;
     }
 
-    private void defineArray(Builder builder, ConfigValue value, Object def, Validations validations) {
-        validations.set(Typed.class, new Typed<>(value.type().getComponentType()));
-        builder.defineListAllowEmpty(value.name(), ConfigUtil.arrayToList(def), validations.validator());
+    private boolean defineArray(Builder builder, ConfigValue value, Object def, Validations validations) {
+        if (!value.type().isArray()) return false;
+        builder.defineListAllowEmpty(value.name(), ConfigUtil.arrayToList(def), validations.entryTypeValidator());
+        return true;
     }
 
     private void defineNullUnknown(Builder builder, ConfigValue value, Object def, Validations validations) {
         // this is fine because the validator will handle types for us
-        builder.define(value.name(), () -> def, validations.validator());
+        builder.define(Lists.newArrayList(value.name()), () -> def, validations.typeValidator(), value.type());
     }
 
     private boolean defineInt(Builder builder, ConfigValue value, Object def, Validations validations) {
@@ -137,7 +117,7 @@ public class ModConfigGenerator {
     }
 
     private boolean defineDouble(Builder builder, ConfigValue value, Object def, Validations validations) {
-        if (!ConfigUtil.isDouble(value.type()) && ! ConfigUtil.isFloat(value.type())) return false;
+        if (!ConfigUtil.isDouble(value.type()) && !ConfigUtil.isFloat(value.type())) return false;
         DecimalRange range = validations.take(DecimalRange.class, () -> Validation.decimalRange(value.type()));
         builder.defineInRange(value.name(), ((Number) def).doubleValue(), range.min(), range.max());
         return true;
@@ -151,33 +131,8 @@ public class ModConfigGenerator {
 
     private boolean defineCollection(Builder builder, ConfigValue value, Object def, Validations validations) {
         if (!Collection.class.isAssignableFrom(value.type())) return false;
-        builder.defineListAllowEmpty(value.name(), ConfigUtil.collectionToList(def), validations.validator());
+        builder.defineListAllowEmpty(value.name(), ConfigUtil.collectionToList(def), validations.entryTypeValidator());
         return true;
-    }
-
-    private boolean defineMap(
-            Builder builder, ConfigValue value, Object def, Validations validations) {
-        if (!Map.class.isAssignableFrom(value.type())) return false;
-        final Map m = (Map) def;
-        if (m.isEmpty()) {
-            log.warn("Cannot infer key type (assuming string): {}", value);
-        } else {
-            final Object k = m.keySet().iterator().next();
-            if (!(k instanceof String)) {
-                this.error(value, "Map values must have string keys");
-                return true;
-            }
-        }
-        builder.define(value.name(), () -> def, validations.validator());
-        return true;
-    }
-
-    private void warnIfInvalid(ConfigValue value, Validations validations) {
-        for (final Validation<?> v : validations.map().values()) {
-            if (!v.isValidForType(value.type())) {
-                this.warn(value, "Not valid for type: " + v + " on " + value.name());
-            }
-        }
     }
 
     private void updateAll(ModConfigSpec spec, List<String> prefix, Object instance, CategoryValue config) {
@@ -187,29 +142,8 @@ public class ModConfigGenerator {
                 updateAll(spec, path, value.get(this.mod, instance), category);
                 continue;
             }
-            final Validations validations = this.validations.get(value);
-            value.set(this.mod, instance, ConfigUtilImpl.remap(value.type(), validations.generics(), spec.getValues().getRaw(path)));
+            this.setValue(value, instance, spec.getValues().getRaw(path));
         }
-    }
-
-    private String filename() {
-        return this.config.parent().name();
-    }
-
-    private void error(ConfigValue value, String message) {
-        this.error(new ValueException(message, this.filename(), value));
-    }
-
-    private void error(FormattedException e) {
-        LibErrorContext.error(this.mod, e);
-    }
-
-    private void warn(ConfigValue value, String message) {
-        this.warn(new ValueException(message, this.filename(), value));
-    }
-
-    private void warn(FormattedException e) {
-        LibErrorContext.warn(this.mod, e);
     }
 
     private static List<String> append(List<String> prefix, String key) {

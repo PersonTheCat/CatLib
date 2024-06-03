@@ -19,7 +19,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.config.CategoryValue;
-import personthecat.catlib.config.Config;
+import personthecat.catlib.config.ConfigGenerator;
 import personthecat.catlib.config.ConfigUtil;
 import personthecat.catlib.config.ConfigValue;
 import personthecat.catlib.config.Validation;
@@ -28,12 +28,8 @@ import personthecat.catlib.config.Validation.NotNull;
 import personthecat.catlib.config.Validation.Range;
 import personthecat.catlib.config.Validation.Typed;
 import personthecat.catlib.config.ValidationException;
-import personthecat.catlib.config.ValidationMap;
 import personthecat.catlib.config.Validations;
-import personthecat.catlib.config.ValueException;
 import personthecat.catlib.data.ModDescriptor;
-import personthecat.catlib.event.error.LibErrorContext;
-import personthecat.catlib.exception.FormattedException;
 import personthecat.catlib.serialization.json.XjsUtils;
 import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.LibUtil;
@@ -45,7 +41,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,19 +54,12 @@ import java.util.function.Supplier;
 
 @Log4j2
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class ClothConfigGenerator {
-    private final ModDescriptor mod;
+public class ClothConfigGenerator extends ConfigGenerator {
     private final File file;
-    private final CategoryValue config;
-    private final Object instance;
-    private final ValidationMap validations;
 
     public ClothConfigGenerator(ModDescriptor mod, File file, CategoryValue config) {
-        this.mod = mod;
+        super(mod, config);
         this.file = file;
-        this.config = config;
-        this.instance = config.parent().get(mod, null);
-        this.validations = new ValidationMap();
     }
 
     public void loadConfig() {
@@ -99,30 +87,9 @@ public class ClothConfigGenerator {
                     this.warn(c, "Not an object. Expected category: " + j);
                 }
             } else {
-                this.setValue(value, instance, j);
+                this.setValue(value, instance, j.unwrap());
             }
         }
-    }
-
-    private void setValue(ConfigValue value, Object instance, JsonValue j) {
-        final Validations validations = this.getValidations(value);
-        if (validations == null) {
-            return;
-        }
-        final Object o;
-        try {
-            o = ConfigUtilImpl.remap(value.type(), validations.generics(), j.unwrap());
-        } catch (final RuntimeException e) {
-            this.warn(value, e.getMessage());
-            return;
-        }
-        try {
-            Validation.validate(validations.map().values(), this.filename(), value, o);
-        } catch (final ValidationException e) {
-            this.warn(e);
-            return;
-        }
-        value.set(this.mod, instance, o);
     }
 
     private void saveConfig() {
@@ -135,7 +102,7 @@ public class ClothConfigGenerator {
         final Object o = value.get(this.mod, instance);
         if (value instanceof CategoryValue category) {
             final JsonObject json = Json.object();
-            if (comment != null) {
+            if (!comment.isEmpty()) {
                 json.setComment(comment);
             }
             for (final ConfigValue v : category.values()) {
@@ -144,68 +111,34 @@ public class ClothConfigGenerator {
             return json;
         }
         final JsonValue json = Json.any(o);
-        if (comment != null) {
+        if (!comment.isEmpty()) {
             json.setComment(comment);
         }
         return json;
     }
 
     private String getFullComment(ConfigValue value) {
+        final Validations validations = this.getValidations(value);
         final String prefix = value.comment();
-        if (prefix == null) {
-            return null;
+        StringBuilder comment = new StringBuilder();
+
+        if (prefix != null) {
+            comment.append(prefix);
         }
-        StringBuilder comment = new StringBuilder(prefix);
-        for (final Validation<?> v : value.validations()) {
-            if (v instanceof Range r) {
-                comment.append(this.getRangeText(r));
-                break;
-            } else if (v instanceof DecimalRange r) {
-                comment.append(this.getDecimalRangeText(r));
-                break;
+        if (validations != null) {
+            if (!comment.isEmpty()) {
+                comment.append('\n');
             }
+            comment.append(Validation.buildComment(validations.values()));
         }
         if (value.type().isEnum()) {
+            if (!comment.isEmpty()) {
+                comment.append('\n');
+            }
             final String possible = Arrays.toString(value.type().getEnumConstants());
             comment.append("\nPossible values: ").append(possible);
         }
         return comment.toString();
-    }
-
-    private String getRangeText(Range r) {
-        final long min = r.min();
-        final long max = r.max();
-        if (min == Long.MIN_VALUE) {
-            if (max != Long.MAX_VALUE) {
-                return "\nRange: < " + max;
-            }
-        } else if (max == Long.MAX_VALUE) {
-            return "\nRange: > " + min;
-        }
-        return "\nRange: " + min + " ~ " + max;
-    }
-
-    private String getDecimalRangeText(DecimalRange r) {
-        final double min = r.min();
-        final double max = r.max();
-        if (min == Double.MIN_VALUE) {
-            if (max != Double.MAX_VALUE) {
-                return "\nRange: < " + max;
-            }
-        } else if (max == Double.MAX_VALUE) {
-            return "\nRange: > " + min;
-        }
-        return "\nRange: " + min + " ~ " + max;
-    }
-
-    private void fireOnConfigUpdated() {
-        if (this.instance instanceof Config.Listener c) {
-            try {
-                c.onConfigUpdated();
-            } catch (final ValidationException e) {
-                LibErrorContext.error(this.mod, e);
-            }
-        }
     }
 
     @Environment(EnvType.CLIENT)
@@ -345,7 +278,7 @@ public class ClothConfigGenerator {
     }
 
     private AbstractConfigListEntry<?> buildLong(EntryStub stub, Validations validations) {
-        return stub.setInputMapper(l -> l != null ? l : 0)
+        return stub.setInputMapper(l -> l != null ? l : 0L)
             .startBuilding((builder, value, current) ->
                 builder.startLongField(this.getTitleName(value), ((Number) current).longValue()))
             .setBounds(resolveLongBounds(validations))
@@ -354,7 +287,7 @@ public class ClothConfigGenerator {
     }
 
     private AbstractConfigListEntry<?> buildFloat(EntryStub stub, Validations validations) {
-        return stub.setInputMapper(f -> f != null ? f : 0)
+        return stub.setInputMapper(f -> f != null ? f : 0F)
             .startBuilding((builder, value, current) ->
                 builder.startFloatField(this.getTitleName(value), ((Number) current).floatValue()))
             .setBounds(resolveFloatBounds(validations))
@@ -363,7 +296,7 @@ public class ClothConfigGenerator {
     }
 
     private AbstractConfigListEntry<?> buildDouble(EntryStub stub, Validations validations) {
-        return stub.setInputMapper(f -> f != null ? f : 0)
+        return stub.setInputMapper(f -> f != null ? f : 0D)
             .startBuilding((builder, value, current) ->
                 builder.startDoubleField(this.getTitleName(value), ((Number) current).doubleValue()))
             .setBounds(resolveDoubleBounds(validations))
@@ -379,18 +312,15 @@ public class ClothConfigGenerator {
     }
 
     private AbstractConfigListEntry<?> buildSet(EntryStub stub, Validations validations) {
-        final Class<?> genericType = validations.generics()[0];
-        return this.buildAnyList(stub, validations, genericType, o -> new ArrayList<>((Set) o), HashSet::new);
+        return this.buildAnyList(stub, validations, validations.genericType(), o -> new ArrayList<>((Set) o), HashSet::new);
     }
 
     private AbstractConfigListEntry<?> buildList(EntryStub stub, Validations validations) {
-        final Class<?> genericType = validations.generics()[0];
-        return this.buildAnyList(stub, validations, genericType, o -> (List) o, (List o) -> o);
+        return this.buildAnyList(stub, validations, validations.genericType(), o -> (List) o, (List o) -> o);
     }
 
     private AbstractConfigListEntry<?> buildCollection(EntryStub stub, Validations validations) {
-        final Class<?> genericType = validations.generics()[0];
-        return this.buildAnyList(stub, validations, genericType, o -> new ArrayList<>((Collection) o), (List o) -> o);
+        return this.buildAnyList(stub, validations, validations.genericType(), o -> new ArrayList<>((Collection) o), (List o) -> o);
     }
 
     private AbstractConfigListEntry<?> buildAnyList(
@@ -410,8 +340,9 @@ public class ClothConfigGenerator {
 
     private AbstractConfigListEntry<?> buildIntList(
             EntryStub stub, Class<?> type, Validations validations, Function<Object, List> toList, Function<List, Object> fromList) {
-        return stub.startBuilding((builder, value, current) ->
-                builder.startIntList(this.getTitleName(value), toList.apply(current)))
+        return stub.setInputMapper(toList)
+            .startBuilding((builder, value, current) ->
+                builder.startIntList(this.getTitleName(value), (List) current))
             .setBounds(resolveIntBounds(type, validations))
             .setOutputMapper((value, list) -> fromList.apply((List) list))
             .skipValidations(Range.class, Typed.class, NotNull.class)
@@ -420,8 +351,9 @@ public class ClothConfigGenerator {
 
     private AbstractConfigListEntry<?> buildLongList(
             EntryStub stub, Validations validations, Function<Object, List> toList, Function<List, Object> fromList) {
-        return stub.startBuilding((builder, value, current) ->
-                builder.startLongList(this.getTitleName(value), toList.apply(current)))
+        return stub.setInputMapper(toList)
+            .startBuilding((builder, value, current) ->
+                builder.startLongList(this.getTitleName(value), (List) current))
             .setBounds(resolveLongBounds(validations))
             .setOutputMapper((value, list) -> fromList.apply((List) list))
             .skipValidations(Range.class, Typed.class, NotNull.class)
@@ -430,8 +362,9 @@ public class ClothConfigGenerator {
 
     private AbstractConfigListEntry<?> buildFloatList(
             EntryStub stub, Validations validations, Function<Object, List> toList, Function<List, Object> fromList) {
-        return stub.startBuilding((builder, value, current) ->
-                builder.startFloatList(this.getTitleName(value), toList.apply(current)))
+        return stub.setInputMapper(toList)
+            .startBuilding((builder, value, current) ->
+                builder.startFloatList(this.getTitleName(value), (List) current))
             .setBounds(resolveFloatBounds(validations))
             .setOutputMapper((value, list) -> fromList.apply((List) list))
             .skipValidations(DecimalRange.class, Typed.class, NotNull.class)
@@ -440,8 +373,9 @@ public class ClothConfigGenerator {
 
     private AbstractConfigListEntry<?> buildDoubleList(
             EntryStub stub, Validations validations, Function<Object, List> toList, Function<List, Object> fromList) {
-        return stub.startBuilding((builder, value, current) ->
-                builder.startDoubleList(this.getTitleName(value), toList.apply(current)))
+        return stub.setInputMapper(toList)
+            .startBuilding((builder, value, current) ->
+                builder.startDoubleList(this.getTitleName(value), (List) current))
             .setBounds(resolveDoubleBounds(validations))
             .setOutputMapper((value, list) -> fromList.apply((List) list))
             .skipValidations(DecimalRange.class, Typed.class, NotNull.class)
@@ -457,30 +391,6 @@ public class ClothConfigGenerator {
             .build();
     }
 
-    private Validations getValidations(ConfigValue value) {
-        if (this.validations.containsKey(value)) {
-            return this.validations.get(value);
-        }
-        try {
-            final Validations validations = Validations.fromValue(this.filename(), value);
-            this.warnIfInvalid(value, validations);
-            this.validations.put(value, validations);
-            return validations;
-        } catch (final ValueException e) {
-            this.error(e);
-            this.validations.put(value, null);
-            return null;
-        }
-    }
-
-    private void warnIfInvalid(ConfigValue value, Validations validations) {
-        for (final Validation<?> v : validations.map().values()) {
-            if (!v.isValidForType(value.type())) {
-                this.warn(value, "Not valid for type: " + v + " on " + value.name());
-            }
-        }
-    }
-
     private Component getTitleName(ConfigValue value) {
         return this.getTitleName(value.name());
     }
@@ -491,26 +401,6 @@ public class ClothConfigGenerator {
 
     private Component getTitleName(String name) {
         return Component.literal(LibStringUtils.toTitleCase(name, true));
-    }
-
-    private String filename() {
-        return this.config.parent().name();
-    }
-
-    private void error(ConfigValue value, String message) {
-        this.error(new ValueException(message, this.filename(), value));
-    }
-
-    private void error(FormattedException e) {
-        LibErrorContext.error(this.mod, e);
-    }
-
-    private void warn(ConfigValue value, String message) {
-        this.warn(new ValueException(message, this.filename(), value));
-    }
-
-    private void warn(FormattedException e) {
-        LibErrorContext.warn(this.mod, e);
     }
 
     private static Bounds resolveIntBounds(Class<?> type, Validations validations) {
@@ -530,14 +420,14 @@ public class ClothConfigGenerator {
     private static Bounds resolveFloatBounds(Validations validations) {
         final DecimalRange range = validations.get(DecimalRange.class, () -> Validation.FLOAT_RANGE);
         return new Bounds(
-            range.min() != Double.MIN_VALUE ? (float) range.min() : null,
+            range.min() != -Double.MAX_VALUE ? (float) range.min() : null,
             range.max() != Double.MAX_VALUE ? (float) range.max() : null);
     }
 
     private static Bounds resolveDoubleBounds(Validations validations) {
         final DecimalRange range = validations.get(DecimalRange.class);
         return new Bounds(
-            range != null && range.min() != Double.MIN_VALUE ? range.min() : null,
+            range != null && range.min() != -Double.MAX_VALUE ? range.min() : null,
             range != null && range.max() != Double.MAX_VALUE ? range.max() : null);
     }
 
@@ -545,7 +435,7 @@ public class ClothConfigGenerator {
         private final ConfigBuilder builder;
         private final ConfigValue value;
         private final Object instance;
-        private final Map<Class<?>, Validation<?>> validationMap;
+        private final Validations validations;
         private FieldBuilder fieldBuilder;
         private Function inputMapper;
         private BiFunction<ConfigValue, Object, Object> outputMapper;
@@ -554,7 +444,7 @@ public class ClothConfigGenerator {
             this.builder = builder;
             this.value = value;
             this.instance = instance;
-            this.validationMap = new HashMap<>(validations.map());
+            this.validations = validations.cloneValidations();
         }
 
         EntryStub setInputMapper(Function mapper) {
@@ -589,26 +479,31 @@ public class ClothConfigGenerator {
             return this;
         }
 
-        EntryStub skipValidations(Class<?>... types) {
-            for (final Class<?> c : types) {
-                this.validationMap.remove(c);
+        EntryStub skipValidations(Class<? extends Validation>... types) {
+            for (final Class<? extends Validation> c : types) {
+                this.validations.take(c);
             }
             return this;
         }
 
         EntryStub skipValidations() {
-            this.validationMap.clear();
+            this.validations.clear();
             return this;
         }
 
         @Nullable AbstractConfigListEntry<?> build() {
             Objects.requireNonNull(this.fieldBuilder, "Never started building");
             final ModDescriptor mod = ClothConfigGenerator.this.mod;
+            final Function<Object, Object> inputMapper = this.inputMapper;
             final BiFunction<ConfigValue, Object, Object> outputMapper = this.outputMapper;
             final ConfigValue value = this.value;
             final Object instance = this.instance;
 
-            this.applyDefaultValue(value::defaultValue);
+            if (inputMapper != null) {
+                this.applyDefaultValue(() -> inputMapper.apply(value.defaultValue()));
+            } else {
+                this.applyDefaultValue(value::defaultValue);
+            }
             this.applyRequireRestart(value.needsWorldRestart());
 
             if (outputMapper == null) {
@@ -616,9 +511,10 @@ public class ClothConfigGenerator {
             } else {
                 this.applySaveConsumer(o -> value.set(mod, instance, outputMapper.apply(value, o)));
             }
-            if (!this.validationMap.isEmpty()) {
-                final Collection<Validation<?>> validations = this.validationMap.values();
-                this.applyErrorSupplier(new MemoizedErrorSupplier<>(value, validations));
+            if (!this.validations.isEmpty()) {
+                final Map<Class<?>, Validation<?>> validations = ConfigUtil.isSupportedGenericType(value.type())
+                    ? this.validations.map() : this.validations.entryValidations();
+                this.applyErrorSupplier(new MemoizedErrorSupplier<>(value, validations.values()));
             }
             return this.fieldBuilder.build();
         }

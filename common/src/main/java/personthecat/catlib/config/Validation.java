@@ -1,6 +1,11 @@
 package personthecat.catlib.config;
 
+import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -10,8 +15,8 @@ public interface Validation<T> extends Predicate<T> {
     Range SHORT_RANGE = new Range(Short.MIN_VALUE, Short.MAX_VALUE);
     Range INT_RANGE = new Range(Integer.MIN_VALUE, Integer.MAX_VALUE);
     Range LONG_RANGE = new Range(Long.MIN_VALUE, Long.MAX_VALUE);
-    DecimalRange FLOAT_RANGE = new DecimalRange(Float.MIN_VALUE, Float.MAX_VALUE);
-    DecimalRange DOUBLE_RANGE = new DecimalRange(Double.MIN_VALUE, Double.MAX_VALUE);
+    DecimalRange FLOAT_RANGE = new DecimalRange(-Float.MAX_VALUE, Float.MAX_VALUE);
+    DecimalRange DOUBLE_RANGE = new DecimalRange(-Double.MAX_VALUE, Double.MAX_VALUE);
     String INVALID_TYPE = "catlib.errorText.invalidType";
     String OUT_OF_BOUNDS = "catlib.errorText.outOfBounds";
     String PATTERN_MISMATCH = "catlib.errorText.patternMismatch";
@@ -20,6 +25,18 @@ public interface Validation<T> extends Predicate<T> {
 
     Class<T> type();
     String message();
+
+    default Component getErrorText(ConfigValue value, Object o) {
+        return this.getDetailText(value, value.name());
+    }
+
+    default Component getDetailText(ConfigValue value, Object o) {
+        return Component.translatable(this.message(), o);
+    }
+
+    default @Nullable String getComment() {
+        return null;
+    }
 
     default boolean requiresExactType() {
         return false;
@@ -85,11 +102,32 @@ public interface Validation<T> extends Predicate<T> {
         for (final Validation<?> v : list) {
             if (value == null || v.isValidForType(value.getClass())) {
                 if (!((Validation) v).test(value)) {
-                    final Object details = value != null ? value : "null";
-                    throw new ValidationException(filename, c.name(), v.message(), details);
+                    final Object o = value != null ? value : "null";
+                    final Component error = v.getErrorText(c, o);
+                    final Component details = v.getDetailText(c, o);
+                    throw new ValidationException(filename, c.name(), error, details);
                 }
             }
         }
+    }
+
+    static String buildComment(Iterable<Validation<?>> list, Class<?>... skip) {
+        final List<Class<?>> skipList = Arrays.asList(skip);
+        final StringBuilder sb = new StringBuilder();
+        for (final Validation<?> v : list) {
+            if (skipList.contains(v.getClass())) {
+                continue;
+            }
+            final String comment = v.getComment();
+            if (comment == null) {
+                continue;
+            }
+            if (!sb.isEmpty()) {
+                sb.append('\n');
+            }
+            sb.append(comment);
+        }
+        return sb.toString();
     }
 
     record Typed<T>(Class<T> type) implements Validation<T> {
@@ -102,6 +140,16 @@ public interface Validation<T> extends Predicate<T> {
         @Override
         public String message() {
             return INVALID_TYPE;
+        }
+
+        @Override
+        public Component getErrorText(ConfigValue value, Object o) {
+            return Component.translatable(this.message(), value.name(), value.type().getSimpleName());
+        }
+
+        @Override
+        public Component getDetailText(ConfigValue value, Object o) {
+            return Component.translatable(this.message(), o.getClass().getSimpleName(), value.type().getSimpleName());
         }
     }
 
@@ -121,7 +169,9 @@ public interface Validation<T> extends Predicate<T> {
                 return true;
             }
             final Class<?> t = types[idx];
-            if (o instanceof Map<?, ?> m) {
+            if (o.getClass().isArray()) {
+                o = ConfigUtil.arrayToList(o);
+            } else if (o instanceof Map<?, ?> m) {
                 o = m.values();
             }
             if (o instanceof Collection<?> c) {
@@ -140,6 +190,16 @@ public interface Validation<T> extends Predicate<T> {
         @Override
         public Class<Object> type() {
             return Object.class;
+        }
+
+        @Override
+        public Component getErrorText(ConfigValue value, Object o) {
+            return Component.translatable(this.message(), value.name(), value.type().getSimpleName());
+        }
+
+        @Override
+        public Component getDetailText(ConfigValue value, Object o) {
+            return Component.translatable(this.message(), o.getClass().getSimpleName(), value.type().getSimpleName());
         }
     }
 
@@ -175,6 +235,18 @@ public interface Validation<T> extends Predicate<T> {
         public Class<Number> type() {
             return Number.class;
         }
+
+        @Override
+        public String getComment() {
+            if (this.min == Long.MIN_VALUE) {
+                if (this.max != Long.MAX_VALUE) {
+                    return "Range: < " + this.max;
+                }
+            } else if (this.max == Long.MAX_VALUE) {
+                return "Range: > " + this.min;
+            }
+            return "Range: " + this.min + " ~ " + this.max;
+        }
     }
 
     record DecimalRange(double min, double max, String message) implements Validation<Number> {
@@ -192,6 +264,18 @@ public interface Validation<T> extends Predicate<T> {
         public Class<Number> type() {
             return Number.class;
         }
+
+        @Override
+        public String getComment() {
+            if (this.min == -Double.MAX_VALUE) {
+                if (this.max != Double.MAX_VALUE) {
+                    return "Range: < " + this.max;
+                }
+            } else if (this.max == Double.MAX_VALUE) {
+                return "Range: > " + this.min;
+            }
+            return "Range: " + this.min + " ~ " + this.max;
+        }
     }
 
     record Regex(Pattern pattern, String message) implements Validation<String> {
@@ -208,6 +292,11 @@ public interface Validation<T> extends Predicate<T> {
         @Override
         public Class<String> type() {
             return String.class;
+        }
+
+        @Override
+        public String getComment() {
+            return "Pattern: " + this.pattern;
         }
     }
 

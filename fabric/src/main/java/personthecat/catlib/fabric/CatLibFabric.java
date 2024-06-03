@@ -25,6 +25,7 @@ public class CatLibFabric extends CatLib implements ModInitializer, ClientModIni
     @Override
     public void onInitialize() {
         this.init();
+        this.commonSetup();
         this.setupBiomeModificationHook();
 
         ServerWorldEvents.LOAD.register((s, l) ->

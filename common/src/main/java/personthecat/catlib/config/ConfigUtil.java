@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("BooleanMethodIsAlwaysInverted") // guard pattern
 public final class ConfigUtil {
     private static final List<Class<?>> PRIMITIVES = List.of(
         String.class, Byte.class, byte.class, Short.class, int.class, Integer.class, int.class, Long.class, long.class,
@@ -115,6 +114,10 @@ public final class ConfigUtil {
         return new ArrayList<>(List.of(def));
     }
 
+    public static boolean isSupportedGenericType(Class<?> c) {
+        return c.isArray() || Map.class.isAssignableFrom(c) || Collection.class.isAssignableFrom(c);
+    }
+
     public static Class<?>[] shiftGenerics(Class<?>[] generics) {
         if (generics.length == 0) return generics;
         final Class<?>[] shifted = new Class<?>[generics.length - 1];
@@ -123,12 +126,14 @@ public final class ConfigUtil {
     }
 
     public static Class<?>[] getGenericTypes(String filename, ConfigValue value) throws ValueException {
-        if (!Map.class.isAssignableFrom(value.type()) && !Collection.class.isAssignableFrom(value.type())) {
+        if (!isSupportedGenericType(value.type())) {
             return new Class[0];
         }
         final List<Class<?>> list = new ArrayList<>();
         if (value instanceof FieldValue f) {
             addGenericsFromType(list, filename, value, f.getField().getGenericType());
+        } else if (value.type().isArray()) {
+            addGenericsFromType(list, filename, value, value.type());
         } else {
             addGenericsFromValue(list, filename, value, value.defaultValue());
         }
@@ -137,6 +142,10 @@ public final class ConfigUtil {
 
     private static void addGenericsFromType(
             List<Class<?>> list, String filename, ConfigValue value, Type t) throws ValueException {
+        if (t instanceof Class<?> c && c.isArray()) {
+            addTypeParameters(list, filename, value, toBoxedType(c.getComponentType()));
+            return;
+        }
         if (!(t instanceof ParameterizedType p)) {
             return;
         }
@@ -168,6 +177,8 @@ public final class ConfigUtil {
 
     private static void addTypeParameters(List<Class<?>> list, String filename, ConfigValue value, Type type) throws ValueException {
         if (type instanceof ParameterizedType p && p.getRawType() instanceof Class c) {
+            list.add(c);
+        } else if (type instanceof Class<?> c) {
             list.add(c);
         }
         addGenericsFromType(list, filename, value, type);

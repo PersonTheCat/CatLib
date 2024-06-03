@@ -8,24 +8,23 @@ import personthecat.catlib.exception.FormattedException;
 public class ValidationException extends FormattedException {
     private final String filename;
     private final String field;
-    private final @Nullable Object value;
+    private final Component error;
+    private final Component details;
 
     public ValidationException(String filename, String field, String msg) {
-        this(filename, field, msg, null);
+        this(filename, field, Component.translatable(msg, field));
     }
 
-    public ValidationException(String filename, String field, String msg, @Nullable Object value) {
-        super(msg);
-        this.filename = filename;
-        this.field = field;
-        this.value = value;
+    public ValidationException(String filename, String field, Component msg) {
+        this(filename, field, msg, msg);
     }
 
-    public ValidationException(String filename, String field, String msg, Throwable cause) {
-        super(msg, cause);
+    public ValidationException(String filename, String field, Component error, Component details) {
+        super(field + " in " + filename);
         this.filename = filename;
         this.field = field;
-        this.value = null;
+        this.error = error;
+        this.details = details;
     }
 
     @Override
@@ -40,11 +39,11 @@ public class ValidationException extends FormattedException {
 
     @Override
     public @NotNull Component getTitleMessage() {
-        return this.value != null ? Component.translatable(this.getMessage(), this.value) : super.getTitleMessage();
+        return this.details;
     }
 
     @Override
     public @Nullable Component getTooltip() {
-        return Component.translatable(this.getMessage(), this.field);
+        return this.error;
     }
 }

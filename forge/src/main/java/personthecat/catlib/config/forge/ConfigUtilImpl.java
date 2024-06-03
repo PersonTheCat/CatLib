@@ -7,6 +7,7 @@ import personthecat.catlib.data.collections.MultiValueMap;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,12 +35,12 @@ public final class ConfigUtilImpl {
                 map.put(e.getKey(), remap(generics[idx], generics, idx + 1, e.getValue()));
             }
             return map;
-        } else if (Set.class.isAssignableFrom(t) && o instanceof List l) {
-            final Set<Object> set = new HashSet<>();
+        } else if (Collection.class.isAssignableFrom(t) && o instanceof List l) {
+            final Collection<Object> collection = Set.class.isAssignableFrom(t) ? new HashSet<>() : new ArrayList<>();
             for (final Object e : l) {
-                set.add(remap(generics[idx], generics, idx + 1, e));
+                collection.add(remap(generics[idx], generics, idx + 1, e));
             }
-            return set;
+            return collection;
         } else if (MultiValueMap.class.isAssignableFrom(t) && o instanceof Map m) {
             final MultiValueMap<Object, Object> mvm = new MultiValueHashMap<>();
             for (final Map.Entry e : (Set<Map.Entry>) m.entrySet()) {

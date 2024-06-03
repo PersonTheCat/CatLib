@@ -107,7 +107,7 @@ public class FieldValue implements ConfigValue {
 
     @Override
     public boolean canBeNull() {
-        return this.field.isAnnotationPresent(Config.CanBeNull.class);
+        return this.defaultValue == null || this.field.isAnnotationPresent(Config.CanBeNull.class);
     }
 
     @Override

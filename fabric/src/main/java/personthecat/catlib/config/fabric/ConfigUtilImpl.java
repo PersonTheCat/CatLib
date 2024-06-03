@@ -7,7 +7,9 @@ import personthecat.catlib.util.LibUtil;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,12 +28,12 @@ public final class ConfigUtilImpl {
         }
         if (t.isEnum() && o instanceof String s) {
             return LibUtil.assertEnumConstant(s, (Class<Enum>) t);
-        } if (Set.class.isAssignableFrom(t) && o instanceof List l) {
-            final Set<Object> set = new HashSet<>();
+        } else if (Collection.class.isAssignableFrom(t) && o instanceof List l) {
+            final Collection<Object> collection = Set.class.isAssignableFrom(t) ? new HashSet<>() : new ArrayList<>();
             for (final Object e : l) {
-                set.add(remap(generics[idx], generics, idx + 1, e));
+                collection.add(remap(generics[idx], generics, idx + 1, e));
             }
-            return set;
+            return collection;
         } else if (MultiValueMap.class.isAssignableFrom(t) && o instanceof Map m) {
             final MultiValueMap<Object, Object> mvm = new MultiValueHashMap<>();
             for (final Map.Entry e : (Set<Map.Entry>) m.entrySet()) {

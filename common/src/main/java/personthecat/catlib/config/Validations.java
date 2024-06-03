@@ -1,6 +1,5 @@
 package personthecat.catlib.config;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -8,29 +7,20 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import personthecat.catlib.config.Validation.GenericTyped;
+import personthecat.catlib.config.Validation.NotNull;
 import personthecat.catlib.config.Validation.Typed;
 
 public record Validations(Map<Class<?>, Validation<?>> map, Class<?> type, Class<?>[] generics) {
 
     public static Validations fromValue(String filename, ConfigValue value) throws ValueException {
         final Map<Class<?>, Validation<?>> map = mapValidations(filename, value);
-        if (!value.canBeNull()) {
-            map.computeIfAbsent(Validation.NotNull.class, c -> new Validation.NotNull());
-        }
         final Class<?>[] generics = resolveGenerics(filename, map, value);
-        if (Collection.class.isAssignableFrom(value.type())) {
-            map.put(Typed.class, new Typed<>(ConfigUtil.widen(generics[0])));
-            if (generics.length > 1) {
-                final Class<?>[] remainingGenerics = ConfigUtil.shiftGenerics(generics);
-                map.put(GenericTyped.class, new GenericTyped(remainingGenerics));
-            }
-        } else {
-            map.computeIfAbsent(Typed.class, c -> new Typed<>(ConfigUtil.widen(value.type())));
-        }
+        confirmGenerics(filename, value, generics);
+        generateValidations(map, value);
         return new Validations(map, value.type(), generics);
     }
 
-    static Map<Class<?>, Validation<?>> mapValidations(String filename, ConfigValue value) throws ValueException {
+    private static Map<Class<?>, Validation<?>> mapValidations(String filename, ConfigValue value) throws ValueException {
         final Map<Class<?>, Validation<?>> map = new HashMap<>();
         for (final Validation<?> v : value.validations()) {
             if (map.put(v.getClass(), v) != null) {
@@ -41,9 +31,9 @@ public record Validations(Map<Class<?>, Validation<?>> map, Class<?> type, Class
         return map;
     }
 
-    static Class<?>[] resolveGenerics(
+    private static Class<?>[] resolveGenerics(
             String filename, Map<Class<?>, Validation<?>> map, ConfigValue value) throws ValueException {
-        if (value.type().getTypeParameters().length == 0) return new Class<?>[0];
+        if (!ConfigUtil.isSupportedGenericType(value.type())) return new Class<?>[0];
         if (!map.containsKey(GenericTyped.class)) {
             final Class<?>[] types = ConfigUtil.getGenericTypes(filename, value);
             if (types.length > 0) {
@@ -52,6 +42,31 @@ public record Validations(Map<Class<?>, Validation<?>> map, Class<?> type, Class
             return types;
         }
         return ((GenericTyped) map.get(GenericTyped.class)).types();
+    }
+
+    private static void confirmGenerics(
+            String filename, ConfigValue value, Class<?>[] generics) throws ValueException {
+        if (ConfigUtil.isSupportedGenericType(value.type())) {
+            if (generics.length == 0) {
+                final String msg = "Validations did not generate correctly. Expected at least 1 generic type";
+                throw new ValueException(msg, filename, value);
+            }
+        }
+    }
+
+    private static void generateValidations(Map<Class<?>, Validation<?>> map, ConfigValue value) {
+        if (!value.canBeNull()) {
+            map.computeIfAbsent(Validation.NotNull.class, c -> new Validation.NotNull());
+        }
+        map.computeIfAbsent(Typed.class, c -> new Typed<>(ConfigUtil.widen(value.type())));
+    }
+
+    public Class<?> genericType() {
+        return this.generics.length == 0 ? Void.class : this.generics[0];
+    }
+
+    public boolean isEmpty() {
+        return this.map.isEmpty();
     }
 
     @SuppressWarnings("unchecked")
@@ -78,8 +93,47 @@ public record Validations(Map<Class<?>, Validation<?>> map, Class<?> type, Class
         return this.map.put(type, v);
     }
 
-    public Predicate<Object> validator() {
-        final List<Validation<?>> list = new ArrayList<>(this.map.values());
+    public void clear() {
+        this.map.clear();
+    }
+
+    public Validations cloneValidations() {
+        return new Validations(new HashMap<>(this.map), this.type, this.generics);
+    }
+
+    public Collection<Validation<?>> values() {
+        return this.map.values();
+    }
+
+    public Predicate<Object> typeValidator() {
+        return this.createValidator(this.getTypeValidations(this.map));
+    }
+
+    public Predicate<Object> entryTypeValidator() {
+        return this.createValidator(this.getTypeValidations(this.entryValidations()));
+    }
+
+    private List<Validation<?>> getTypeValidations(Map<Class<?>, Validation<?>> map) {
+        return map.values().stream()
+            .filter(v -> v instanceof Typed || v instanceof GenericTyped || v instanceof NotNull)
+            .toList();
+    }
+
+    public Map<Class<?>, Validation<?>> entryValidations() {
+        final Class<?>[] generics = this.generics;
+        if (generics.length == 0) {
+            return this.map;
+        }
+        final Map<Class<?>, Validation<?>> map = new HashMap<>(this.map);
+        map.put(Typed.class, new Typed<>(ConfigUtil.widen(generics[0])));
+        if (generics.length > 1) {
+            final Class<?>[] remainingGenerics = ConfigUtil.shiftGenerics(generics);
+            map.put(GenericTyped.class, new GenericTyped(remainingGenerics));
+        }
+        return map;
+    }
+
+    private Predicate<Object> createValidator(Collection<Validation<?>> list) {
         if (this.requiresExactType()) {
             return o -> Validation.isValid(list, ConfigUtil.remap(this.type, this.generics, o));
         }
