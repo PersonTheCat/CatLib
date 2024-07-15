@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.registry.MojangRegistryHandle;
 import personthecat.catlib.registry.RegistryHandle;
-import personthecat.catlib.exception.MissingElementException;
 
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +21,7 @@ public class RegistryUtilsImpl {
     private static final Map<Class<?>, RegistryHandle<?>> REGISTRY_BY_TYPE = new ConcurrentHashMap<>();
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<Registry<T>> key) {
+    public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<? extends Registry<T>> key) {
         final IForgeRegistry<?> forgeRegistry = RegistryManager.ACTIVE.getRegistry(key.location());
         if (forgeRegistry != null) {
             return Optional.of(new ForgeRegistryHandle<>((IForgeRegistry) forgeRegistry));
@@ -36,14 +35,11 @@ public class RegistryUtilsImpl {
 
     @NotNull
     @SuppressWarnings("unchecked")
-    public static <T> RegistryHandle<T> getByType(final Class<T> clazz) {
-        return (RegistryHandle<T>) REGISTRY_BY_TYPE.computeIfAbsent(clazz, c -> {
+    public static <T> Optional<RegistryHandle<T>> tryGetByType(final Class<T> clazz) {
+        return Optional.ofNullable((RegistryHandle<T>) REGISTRY_BY_TYPE.computeIfAbsent(clazz, c -> {
             final RegistryHandle<?> forge = findForge(clazz);
-            if (forge != null) return forge;
-            final RegistryHandle<?> builtin = findMojang(clazz);
-            if (builtin != null) return builtin;
-            throw new MissingElementException("No registry for type: " + clazz.getSimpleName());
-        });
+            return forge != null ? forge : findMojang(clazz);
+        }));
     }
 
     @Nullable

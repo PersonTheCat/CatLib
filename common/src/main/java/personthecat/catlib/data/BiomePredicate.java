@@ -45,7 +45,7 @@ public class BiomePredicate extends IdList<Biome> {
 
     @Deprecated
     public boolean test(final Biome biome) {
-        final Holder<Biome> holder = DynamicRegistries.BIOMES.getHolder(biome);
+        final Holder<Biome> holder = DynamicRegistries.BIOME.getHolder(biome);
         return holder != null && this.test(holder);
     }
 
@@ -76,7 +76,7 @@ public class BiomePredicate extends IdList<Biome> {
                 entries.add(new InvertibleEntry(false, new TypeMatcher(entry.getKey())));
             } else {
                 for (final Holder<Biome> biome : entry.getValue()) {
-                    entries.add(new InvertibleEntry(false, new IdMatcher.Id(DynamicRegistries.BIOMES.keyOf(biome))));
+                    entries.add(new InvertibleEntry(false, new IdMatcher.Id(DynamicRegistries.BIOME.keyOf(biome))));
                 }
             }
         }
@@ -85,7 +85,7 @@ public class BiomePredicate extends IdList<Biome> {
 
     private InvertibleSet<Holder<Biome>> reconstruct() {
         final HolderSet<Biome> compiled = this.compiled != null ? this.compiled : this.compile();
-        final Set<Holder<Biome>> all = new HashSet<>(DynamicRegistries.BIOMES.holders());
+        final Set<Holder<Biome>> all = new HashSet<>(DynamicRegistries.BIOME.holders());
         if (compiled.size() > all.size() / 2) {
             final Set<Holder<Biome>> inverted = new HashSet<>(all);
             compiled.forEach(inverted::remove);

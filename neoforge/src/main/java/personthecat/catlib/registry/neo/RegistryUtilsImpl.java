@@ -14,7 +14,6 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries.Keys;
 import net.neoforged.neoforge.registries.holdersets.HolderSetType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.catlib.exception.MissingElementException;
 import personthecat.catlib.registry.MojangRegistryHandle;
 import personthecat.catlib.registry.RegistryHandle;
 
@@ -43,7 +42,7 @@ public class RegistryUtilsImpl {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<Registry<T>> key) {
+    public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<? extends Registry<T>> key) {
         final RegistryHandle<?> neoHandle = NEO_REGISTRIES.get(key);
         if (neoHandle != null) {
             return Optional.of((RegistryHandle) neoHandle);
@@ -57,13 +56,11 @@ public class RegistryUtilsImpl {
 
     @NotNull
     @SuppressWarnings("unchecked")
-    public static <T> RegistryHandle<T> getByType(final Class<T> clazz) {
-        return (RegistryHandle<T>) REGISTRY_BY_TYPE.computeIfAbsent(clazz, c -> {
+    public static <T> Optional<RegistryHandle<T>> tryGetByType(final Class<T> clazz) {
+        return Optional.ofNullable((RegistryHandle<T>) REGISTRY_BY_TYPE.computeIfAbsent(clazz, c -> {
             // neo types mapped statically
-            final RegistryHandle<?> builtin = findMojang(clazz);
-            if (builtin != null) return builtin;
-            throw new MissingElementException("No registry for type: " + clazz.getSimpleName());
-        });
+            return findMojang(clazz);
+        }));
     }
 
     private static void mapNeo(

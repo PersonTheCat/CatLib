@@ -7,6 +7,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import personthecat.catlib.exception.MissingElementException;
@@ -20,10 +21,11 @@ public class DynamicRegistries {
     private static final RegistryHandle<RegistryHandle<?>> REGISTRY =
         RegistryHandle.create(ResourceKey.createRegistryKey(Registries.ROOT_REGISTRY_NAME));
 
-    public static final RegistryHandle<Biome> BIOMES = createAndRegister(Registries.BIOME);
-    public static final RegistryHandle<DimensionType> DIMENSION_TYPES = createAndRegister(Registries.DIMENSION_TYPE);
-    public static final RegistryHandle<ConfiguredFeature<?, ?>> CONFIGURED_FEATURES = createAndRegister(Registries.CONFIGURED_FEATURE);
-    public static final RegistryHandle<PlacedFeature> PLACED_FEATURES = createAndRegister(Registries.PLACED_FEATURE);
+    public static final RegistryHandle<Biome> BIOME = createAndRegister(Registries.BIOME);
+    public static final RegistryHandle<DimensionType> DIMENSION_TYPE = createAndRegister(Registries.DIMENSION_TYPE);
+    public static final RegistryHandle<ConfiguredWorldCarver<?>> CONFIGURED_CARVER = createAndRegister(Registries.CONFIGURED_CARVER);
+    public static final RegistryHandle<ConfiguredFeature<?, ?>> CONFIGURED_FEATURE = createAndRegister(Registries.CONFIGURED_FEATURE);
+    public static final RegistryHandle<PlacedFeature> PLACED_FEATURE = createAndRegister(Registries.PLACED_FEATURE);
 
     static { // auto-load any we don't have static references to
         BuiltInRegistries.REGISTRY.keySet()
@@ -45,9 +47,10 @@ public class DynamicRegistries {
         });
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static void onSeverClosed() {
         REGISTRY.stream().forEach(handle ->
-            ((DynamicRegistryHandle<?>) handle).updateRegistry(DummyRegistryHandle.getInstance()));
+            ((DynamicRegistryHandle) handle).updateRegistry(new DummyRegistryHandle<>(handle.key())));
     }
 
     private static <T> RegistryHandle<T> createAndRegister(final ResourceKey<? extends Registry<T>> key) {

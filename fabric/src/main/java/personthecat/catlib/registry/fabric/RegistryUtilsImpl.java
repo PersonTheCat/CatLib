@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.registry.MojangRegistryHandle;
 import personthecat.catlib.registry.RegistryHandle;
-import personthecat.catlib.exception.MissingElementException;
 
 import java.util.Map;
 import java.util.Optional;
@@ -21,7 +20,7 @@ public class RegistryUtilsImpl {
     private static final Map<Class<?>, RegistryHandle<?>> REGISTRY_BY_TYPE = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
-    public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<Registry<T>> key) {
+    public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<? extends Registry<T>> key) {
         final Registry<T> registry = (Registry<T>) BuiltInRegistries.REGISTRY.get(key.location());
         if (registry != null) {
             return Optional.of(new MojangRegistryHandle<>(registry));
@@ -32,12 +31,9 @@ public class RegistryUtilsImpl {
 
     @NotNull
     @SuppressWarnings("unchecked")
-    public static <T> RegistryHandle<T> getByType(final Class<T> clazz) {
-        return (RegistryHandle<T>) REGISTRY_BY_TYPE.computeIfAbsent(clazz, c -> {
-            final RegistryHandle<?> builtin = findRegistry(clazz);
-            if (builtin != null) return builtin;
-            throw new MissingElementException("No registry for type: " + clazz.getSimpleName());
-        });
+    public static <T> Optional<RegistryHandle<T>> tryGetByType(final Class<T> clazz) {
+        return Optional.ofNullable((RegistryHandle<T>) REGISTRY_BY_TYPE
+            .computeIfAbsent(clazz, c -> findRegistry(clazz)));
     }
 
     @Nullable

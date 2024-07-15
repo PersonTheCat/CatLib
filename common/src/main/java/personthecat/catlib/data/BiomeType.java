@@ -42,7 +42,7 @@ public enum BiomeType {
     }
 
     public static Collection<BiomeType> getCategories(final Holder<Biome> b) {
-        return TYPE_MAP.computeIfAbsent(DynamicRegistries.BIOMES.keyOf(b), key ->
+        return TYPE_MAP.computeIfAbsent(DynamicRegistries.BIOME.keyOf(b), key ->
             Stream.of(values())
                 .filter(type -> type.matches(b))
                 .collect(Collectors.toSet()));
@@ -53,7 +53,7 @@ public enum BiomeType {
     }
 
     public boolean matches(final Biome b) {
-        final Holder<Biome> holder = DynamicRegistries.BIOMES.getHolder(b);
+        final Holder<Biome> holder = DynamicRegistries.BIOME.getHolder(b);
         return holder != null && this.matches(holder);
     }
 
@@ -62,6 +62,6 @@ public enum BiomeType {
     }
 
     public HolderSet.Named<Biome> getTag() {
-        return DynamicRegistries.BIOMES.getTags().get(this.key);
+        return DynamicRegistries.BIOME.getTags().get(this.key);
     }
 }

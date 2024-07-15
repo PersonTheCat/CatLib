@@ -50,7 +50,7 @@ public class DimensionPredicate extends IdList<DimensionType> {
     }
 
     public boolean test(final DimensionType type) {
-        final Holder<DimensionType> holder = DynamicRegistries.DIMENSION_TYPES.getHolder(type);
+        final Holder<DimensionType> holder = DynamicRegistries.DIMENSION_TYPE.getHolder(type);
         return holder != null && this.test(holder);
     }
 

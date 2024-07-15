@@ -27,7 +27,7 @@ public class FeatureModificationHook implements BiomeModifier {
         if (phase != Phase.REMOVE) {
             return; // must be late for now to support OSV, even for additions
         }
-        final ResourceLocation id = DynamicRegistries.BIOMES.keyOf(biome);
+        final ResourceLocation id = DynamicRegistries.BIOME.keyOf(biome);
         if (!FeatureModificationEvent.hasEvent(id)) {
             return;
         }

@@ -28,6 +28,12 @@ dependencies {
     forgeRuntimeLibrary group: 'org.exjson', name: 'xjs-data', version: xjs_data_version
     forgeRuntimeLibrary group: 'org.exjson', name: 'xjs-compat', version: xjs_compat_version
     modImplementation group: 'curse.maven', name: 'configured-457570', version: configured_maven_version_forge
+
+    compileOnly group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.6'
+    annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.6'
+    implementation group: 'io.github.llamalad7', name: 'mixinextras-forge', version: '0.3.6'
+    include group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.6'
+
     forge "net.minecraftforge:forge:$mc_version-$forge_version"
 }
 

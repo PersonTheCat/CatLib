@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.event.registry.DataRegistryEvent;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -25,7 +26,7 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     public static <T> DynamicRegistryHandle<T> createHandle(final ResourceKey<? extends Registry<T>> key) {
-        return new DynamicRegistryHandle<>(RegistryUtils.tryGetHandle(key).orElse(DummyRegistryHandle.getInstance()));
+        return new DynamicRegistryHandle<>(RegistryUtils.tryGetHandle(key).orElseGet(() -> new DummyRegistryHandle<>(key)));
     }
 
     public synchronized void updateRegistry(final RegistryHandle<T> updated) {
@@ -62,6 +63,20 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public <V extends T> V register(final ResourceLocation id, final V v) {
         return this.wrapped.register(id, v);
+    }
+
+    @Override
+    public <V extends T> void deferredRegister(final String modId, final ResourceLocation id, final V v) {
+        if (!(this.wrapped instanceof DummyRegistryHandle)) {
+            this.wrapped.deferredRegister(modId, id, v);
+            return;
+        }
+        DataRegistryEvent.PRE.register(src -> {
+            final Registry<T> registry = src.getRegistry(this.key());
+            if (registry != null) {
+                Registry.register(registry, id, v);
+            }
+        });
     }
 
     @Override

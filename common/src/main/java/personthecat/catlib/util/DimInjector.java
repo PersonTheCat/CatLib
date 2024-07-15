@@ -25,7 +25,7 @@ public interface DimInjector {
         if (chunk instanceof DimInjector) {
             ((DimInjector) chunk).setType(type);
             if (MAPPED.add(type)) {
-                LOG.info("Successfully injecting dim keys for {}", DynamicRegistries.DIMENSION_TYPES.getKey(type));
+                LOG.info("Successfully injecting dim keys for {}", DynamicRegistries.DIMENSION_TYPE.getKey(type));
             }
         } else if (UNSUPPORTED.add(chunk.getClass())) {
             LOG.error("Cannot inject into chunk of type {}", chunk.getClass());

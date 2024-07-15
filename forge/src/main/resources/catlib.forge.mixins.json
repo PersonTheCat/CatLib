@@ -3,12 +3,10 @@
   "package": "personthecat.catlib.mixin.forge",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "BiomeGenerationSettingsAccessor",
-    "BiomeGenerationSettingsBuilderAccessor",
-    "BiomeSourceAccessor",
     "ForgeRegistryMixin",
     "MinecraftServerMixin",
-    "MojangRegistryMixin"
+    "MojangRegistryMixin",
+    "RegistryDataLoaderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

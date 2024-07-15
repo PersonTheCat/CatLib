@@ -26,12 +26,13 @@ public interface RegistryHandle<T> extends Iterable<T> {
     @Nullable ResourceLocation getKey(final T t);
     @Nullable T lookup(final ResourceLocation id);
     <V extends T> V register(final ResourceLocation id, V v);
+    <V extends T> void deferredRegister(final String modId, final ResourceLocation id, V v);
     void forEach(final BiConsumer<ResourceLocation, T> f);
     void forEachHolder(final BiConsumer<ResourceLocation, Holder<T>> f);
     boolean isRegistered(final ResourceLocation id);
     @Nullable Holder<T> getHolder(final ResourceLocation id);
     Map<TagKey<T>, HolderSet.Named<T>> getTags();
-    @Nullable ResourceKey<? extends Registry<T>> key();
+    ResourceKey<? extends Registry<T>> key();
     Collection<? extends Holder<T>> holders();
     Set<ResourceLocation> keySet();
     Set<Map.Entry<ResourceKey<T>, T>> entrySet();
@@ -50,6 +51,18 @@ public interface RegistryHandle<T> extends Iterable<T> {
         if (handle instanceof MojangRegistryHandle<T> m) { // platforms will handle other types, events, etc
             Registry.register((Registry) BuiltInRegistries.REGISTRY, (ResourceKey) m.key(), m.getRegistry());
         }
+    }
+
+    default DeferredRegister<T> createRegister(final String modId) {
+        return new DeferredRegister<>(this, modId);
+    }
+
+    default <V extends T> void deferredRegister(final String modId, final String id, final V v) {
+        this.deferredRegister(modId, new ResourceLocation(modId, id), v);
+    }
+
+    default <V extends T> void deferredRegister(final ResourceLocation id, final V v) {
+        this.deferredRegister(id.getNamespace(), id, v);
     }
 
     default @Nullable ResourceLocation keyOf(final Holder<T> holder) {
@@ -78,10 +91,6 @@ public interface RegistryHandle<T> extends Iterable<T> {
         return key != null ? this.getTag(TagKey.create(key, id)) : Collections.emptySet();
     }
 
-    default ResourceKey<? extends Registry<T>> keyOrThrow() {
-        return Objects.requireNonNull(this.key(), "Polled key from dummy container");
-    }
-
     default boolean isEmpty() {
         return this.size() == 0;
     }
@@ -96,5 +105,11 @@ public interface RegistryHandle<T> extends Iterable<T> {
 
     default int getId() {
         return System.identityHashCode(this);
+    }
+
+    record DeferredRegister<T>(RegistryHandle<T> handle, String modId) {
+        public <V extends T> void register(String id, V v) {
+            this.handle.deferredRegister(this.modId, id, v);
+        }
     }
 }

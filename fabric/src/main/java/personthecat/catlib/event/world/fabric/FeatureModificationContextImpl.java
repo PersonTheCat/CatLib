@@ -96,12 +96,13 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
 
     @Override
     public boolean removeCarver(final Carving step, final Predicate<ConfiguredWorldCarver<?>> predicate) {
+        boolean anyRemoved = false;
         for (final Map.Entry<ResourceKey<ConfiguredWorldCarver<?>>, ConfiguredWorldCarver<?>> entry : this.carvers.entrySet()) {
             if (predicate.test(entry.getValue())) {
-                return this.modifications.removeCarver(step, entry.getKey());
+                anyRemoved |= this.modifications.removeCarver(step, entry.getKey());
             }
         }
-        return false;
+        return anyRemoved;
     }
 
     @Override
@@ -111,12 +112,13 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
 
     @Override
     public boolean removeFeature(final Decoration step, final Predicate<PlacedFeature> predicate) {
-         for (final Map.Entry<ResourceKey<PlacedFeature>, PlacedFeature> entry : this.features.entrySet()) {
+        boolean anyRemoved = false;
+        for (final Map.Entry<ResourceKey<PlacedFeature>, PlacedFeature> entry : this.features.entrySet()) {
              if (predicate.test(entry.getValue())) {
-                 return this.modifications.removeFeature(step, entry.getKey());
+                 anyRemoved |= this.modifications.removeFeature(step, entry.getKey());
              }
          }
-         return false;
+         return anyRemoved;
     }
 
     @Override

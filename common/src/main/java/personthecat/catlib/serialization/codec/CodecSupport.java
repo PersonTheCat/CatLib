@@ -1,9 +1,11 @@
 package personthecat.catlib.serialization.codec;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import lombok.experimental.UtilityClass;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.RegistryDataLoader;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.WorldDimensions;
@@ -14,30 +16,40 @@ import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.material.MapColor;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.registry.RegistryHandle;
+import personthecat.catlib.registry.RegistryUtils;
 import personthecat.catlib.util.ValueLookup;
 import personthecat.fresult.Result;
 import xjs.data.Json;
 import xjs.data.JsonFormat;
 import xjs.data.JsonValue;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 @UtilityClass
 public class CodecSupport {
 
-    private static final Map<Class<?>, Function<Object, Codec<?>>> CODECS_BY_TYPE =
-        ImmutableMap.<Class<?>, Function<Object, Codec<?>>>builder()
-            .put(ConfiguredFeature.class, cf -> ((ConfiguredFeature<?, ?>) cf).feature().configuredCodec().codec())
-            .put(ConfiguredWorldCarver.class, cc -> ((ConfiguredWorldCarver<?>) cc).worldCarver().configuredCodec().codec())
-            .put(WorldGenSettings.class, s -> WorldGenSettings.CODEC)
-            .put(WorldOptions.class, o -> WorldOptions.CODEC.codec())
-            .put(WorldDimensions.class, d -> WorldDimensions.CODEC.codec())
-            .put(Structure.class, s -> ((Structure) s).type().codec().codec())
-            .put(SoundType.class, t -> ValueLookup.SOUND_CODEC)
-            .put(MapColor.class, c -> ValueLookup.COLOR_CODEC)
-            .put(DensityFunction.class, f -> ((DensityFunction) f).codec().codec().codec())
-            .build();
+    private static final Map<Class<?>, Function<Object, Codec<?>>> CODECS_BY_TYPE = new ConcurrentHashMap<>();
+
+    static {
+        registerGetter(ConfiguredFeature.class, cf -> cf.feature().configuredCodec().codec());
+        registerGetter(ConfiguredWorldCarver.class, cc -> cc.worldCarver().configuredCodec().codec());
+        registerGetter(WorldGenSettings.class, s -> WorldGenSettings.CODEC);
+        registerGetter(WorldOptions.class, o -> WorldOptions.CODEC.codec());
+        registerGetter(WorldDimensions.class, d -> WorldDimensions.CODEC.codec());
+        registerGetter(Structure.class, s -> s.type().codec().codec());
+        registerGetter(SoundType.class, t -> ValueLookup.SOUND_CODEC);
+        registerGetter(MapColor.class, c -> ValueLookup.COLOR_CODEC);
+        registerGetter(DensityFunction.class, f -> f.codec().codec().codec());
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T> void registerGetter(final Class<T> clazz, final Function<? extends T, Codec<?>> getter) {
+        CODECS_BY_TYPE.put(clazz, (Function) getter);
+    }
 
     /**
      * Stringifies the given object <em>if</em> it has a discernible {@link
@@ -78,9 +90,40 @@ public class CodecSupport {
      */
     public static <T> @Nullable Codec<T> tryGetCodec(final T t) {
         if (t == null) return null;
-        final Function<Object, Codec<?>> c = CODECS_BY_TYPE.get(t.getClass());
-        if (c != null) return cast(c.apply(t));
-        return cast(getReflectively(t));
+        final Function<Object, Codec<?>> c = CODECS_BY_TYPE.computeIfAbsent(t.getClass(), clazz -> {
+            final Codec<?> codec = resolveCodec(t);
+            return codec != null ? o -> codec : null;
+        });
+        return c != null ? cast(c.apply(t)) : null;
+    }
+
+    private static @Nullable Codec<?> resolveCodec(final Object t) {
+        final Codec<?> c = getFromDataLoader(t);
+        if (c != null) return c;
+        return getReflectively(t);
+    }
+
+    private static @Nullable Codec<?> getFromDataLoader(final Object t) {
+        final ResourceKey<? extends Registry<?>> key =
+            RegistryUtils.tryGetByType(t.getClass()).map(RegistryHandle::key).orElse(null);
+        if (key == null) {
+            return null;
+        }
+        Codec<?> c = lookup(RegistryDataLoader.WORLDGEN_REGISTRIES, key);
+        if (c != null) return c;
+        c = lookup(RegistryDataLoader.DIMENSION_REGISTRIES, key);
+        if (c != null) return c;
+        return lookup(RegistryDataLoader.SYNCHRONIZED_REGISTRIES, key);
+    }
+
+    private static @Nullable Codec<?> lookup(
+            final List<RegistryDataLoader.RegistryData<?>> registries, ResourceKey<? extends Registry<?>> key) {
+        for (final RegistryDataLoader.RegistryData<?> data : registries) {
+            if (data.key().equals(key)) {
+                return data.elementCodec();
+            }
+        }
+        return null;
     }
 
     // mostly for custom content / dev. doesn't work for vanilla features due to remapping

@@ -17,16 +17,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 @Log4j2
-public class DummyRegistryHandle<T> implements RegistryHandle<T> {
-
-    private static final RegistryHandle<?> INSTANCE = new DummyRegistryHandle<>();
-
-    private DummyRegistryHandle() {}
-
-    @SuppressWarnings("unchecked")
-    public static <T> RegistryHandle<T> getInstance() {
-        return (RegistryHandle<T>) INSTANCE;
-    }
+public record DummyRegistryHandle<T>(ResourceKey<? extends Registry<T>> key) implements RegistryHandle<T> {
 
     @Override
     public @Nullable ResourceLocation getKey(final T t) {
@@ -42,6 +33,11 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
     public <V extends T> V register(final ResourceLocation id, V v) {
         log.error("Attempted to register through dummy handle. This will have no effect.");
         return v;
+    }
+
+    @Override
+    public <V extends T> void deferredRegister(String modId, ResourceLocation id, V v) {
+        this.register(id, v);
     }
 
     @Override
@@ -63,11 +59,6 @@ public class DummyRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public Map<TagKey<T>, HolderSet.Named<T>> getTags() {
         return Collections.emptyMap();
-    }
-
-    @Override
-    public @Nullable ResourceKey<? extends Registry<T>> key() {
-        return null;
     }
 
     @Override

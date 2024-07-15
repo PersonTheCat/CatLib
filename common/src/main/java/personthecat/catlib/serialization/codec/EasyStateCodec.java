@@ -13,7 +13,7 @@ import personthecat.catlib.registry.CommonRegistries;
 
 public class EasyStateCodec implements Codec<BlockState> {
 
-    private final HolderLookup<Block> blocks = CommonRegistries.BLOCKS.asLookup();
+    private final HolderLookup<Block> blocks = CommonRegistries.BLOCK.asLookup();
 
     @Override
     public <T> DataResult<T> encode(final BlockState input, final DynamicOps<T> ops, final T prefix) {

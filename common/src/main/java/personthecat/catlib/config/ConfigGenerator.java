@@ -19,6 +19,18 @@ public abstract class ConfigGenerator {
         this.validations = new ValidationMap();
     }
 
+    public ModDescriptor getMod() {
+        return this.mod;
+    }
+
+    public CategoryValue getConfig() {
+        return this.config;
+    }
+
+    public Object getInstance() {
+        return this.instance;
+    }
+
     protected void setValue(ConfigValue value, Object instance, Object o) throws ValidationException {
         final Validations validations = this.getValidations(value);
         if (validations == null) {
@@ -34,7 +46,7 @@ public abstract class ConfigGenerator {
         value.set(this.mod, instance, o);
     }
 
-    protected Validations getValidations(ConfigValue value) {
+    public Validations getValidations(ConfigValue value) {
         if (this.validations.containsKey(value)) {
             return this.validations.get(value);
         }
@@ -81,7 +93,7 @@ public abstract class ConfigGenerator {
         }
     }
 
-    protected String filename() {
+    public String filename() {
         return this.config.parent().name();
     }
 

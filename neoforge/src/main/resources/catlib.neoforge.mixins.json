@@ -3,7 +3,8 @@
   "package": "personthecat.catlib.mixin.neo",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "MinecraftServerMixin"
+    "MinecraftServerMixin",
+    "RegistryDataLoaderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

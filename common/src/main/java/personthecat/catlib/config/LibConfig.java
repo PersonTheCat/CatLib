@@ -8,8 +8,6 @@ import xjs.data.comments.CommentStyle;
 import xjs.data.serialization.JsonContext;
 import xjs.data.serialization.writer.JsonWriterOptions;
 
-import java.util.List;
-
 @Config
 public class LibConfig implements Config.Listener {
     private static final LibConfig INSTANCE =

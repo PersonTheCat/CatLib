@@ -32,7 +32,7 @@ public class FeatureSupport {
      * @return A stream of all matching features and their resource keys.
      */
     public static Stream<Entry<ResourceKey<PlacedFeature>, PlacedFeature>> getMatching(final Feature<?> f) {
-        return DynamicRegistries.PLACED_FEATURES.streamEntries()
+        return DynamicRegistries.PLACED_FEATURE.streamEntries()
             .filter(c -> matches(c.getValue(), f));
     }
 

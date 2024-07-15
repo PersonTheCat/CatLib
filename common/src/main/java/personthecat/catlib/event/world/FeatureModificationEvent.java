@@ -26,7 +26,7 @@ public class FeatureModificationEvent {
 
     public static boolean hasEvent(final ResourceLocation id) {
         if (!GLOBAL_EVENT.isEmpty()) return true;
-        final Holder<Biome> holder = DynamicRegistries.BIOMES.getHolder(id);
+        final Holder<Biome> holder = DynamicRegistries.BIOME.getHolder(id);
         if (holder == null) return false;
         return BIOME_EVENTS.stream().anyMatch(l -> l.predicate.test(holder));
     }
@@ -36,7 +36,7 @@ public class FeatureModificationEvent {
     }
 
     public static Consumer<FeatureModificationContext> get(final ResourceLocation id) {
-        final Holder<Biome> holder = DynamicRegistries.BIOMES.getHolder(id);
+        final Holder<Biome> holder = DynamicRegistries.BIOME.getHolder(id);
         if (holder == null) throw new IllegalStateException("No such biome in registry: " + id);
         return ctx -> BIOME_EVENTS.stream()
             .filter(listener -> listener.predicate.test(holder))

@@ -8,6 +8,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.NamespacedWrapper;
@@ -58,6 +59,11 @@ public class ForgeRegistryHandle<T> implements RegistryHandle<T> {
     public <V extends T> V register(final ResourceLocation id, final V v) {
         this.registry.register(id, v);
         return v;
+    }
+
+    @Override
+    public <V extends T> void deferredRegister(final String modId, final ResourceLocation id, final V v) {
+        MojangRegistryHandleImpl.doDeferredRegister(this.registry.key, modId, id, v);
     }
 
     @Override

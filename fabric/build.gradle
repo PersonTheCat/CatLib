@@ -4,6 +4,10 @@ architectury {
     fabric()
 }
 
+loom {
+    accessWidenerPath.set file("src/main/resources/catlib.accesswidener")
+}
+
 configurations {
     developmentFabric.extendsFrom common
 }

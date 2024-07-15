@@ -1,9 +1,7 @@
 package personthecat.catlib.registry;
 
-import com.mojang.serialization.Lifecycle;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import lombok.experimental.UtilityClass;
-import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
@@ -49,20 +47,6 @@ public class RegistryUtils {
     }
 
     /**
-     * Inserts a registry of this type into {@link BuiltInRegistries#REGISTRY}.
-     *
-     * @param key The key of the registry being added.
-     * @param <T> The type of object contained within the registry.
-     */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <T> void createBuiltinRegistry(final ResourceKey<? extends Registry<T>> key) {
-        if (!BuiltInRegistries.REGISTRY.containsKey(key.location())) {
-            final Registry<T> dummyRegistry = new MappedRegistry<>(key, Lifecycle.experimental());
-            Registry.register((Registry) BuiltInRegistries.REGISTRY, key.location(), dummyRegistry);
-        }
-    }
-
-    /**
      * Acquires a handle on a registry when given the element type. For example, when
      * given <code>BiomeSource.class</code>, will return {@link BuiltInRegistries#BIOME_SOURCE}.
      * On the Forge platform, this method will return the equivalent Forge registry.
@@ -72,9 +56,22 @@ public class RegistryUtils {
      * @param <T>   The type token of this element.
      * @return A handle on the expected registry, guaranteed.
      */
+    public static <T> RegistryHandle<T> getByType(final Class<T> clazz) {
+        return tryGetByType(clazz).orElseThrow(() ->
+            new MissingElementException("No registry for type: " + clazz.getSimpleName()));
+    }
+
+    /**
+     * Variant of {@link #getByType} which simply returns {@link Optional#empty empty} if a
+     * registry is not found for the given type.
+     *
+     * @param clazz The element type contained within the registry.
+     * @param <T>   The type token of this element.
+     * @return A handle on the expected registry, or else {@link Optional#empty}.
+     */
     @NotNull
     @ExpectPlatform
-    public static <T> RegistryHandle<T> getByType(final Class<T> clazz) {
+    public static <T> Optional<RegistryHandle<T>> tryGetByType(final Class<T> clazz) {
         throw new MissingOverrideException();
     }
 }

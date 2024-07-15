@@ -1,5 +1,6 @@
 package personthecat.catlib.registry;
 
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
@@ -53,6 +54,11 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
         // support convenient custom registries on fabric
         ((ReferenceAccessor<T>) reference).invokeBindValue(v);
         return v;
+    }
+
+    @Override
+    public <V extends T> void deferredRegister(final String modId, final ResourceLocation id, final V v) {
+        doDeferredRegister(this.registry.key(), modId, id, v);
     }
 
     @Override
@@ -141,4 +147,8 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     public int size() {
         return this.registry.size();
     }
+
+    @ExpectPlatform
+    private static <T, V extends T> void doDeferredRegister(
+            final ResourceKey<? extends Registry<T>> key, final String modId, final ResourceLocation id, final V t) {}
 }
