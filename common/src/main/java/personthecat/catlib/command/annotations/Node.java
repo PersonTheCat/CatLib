@@ -5,6 +5,11 @@ import personthecat.catlib.command.arguments.ListArgumentBuilder;
 import personthecat.catlib.command.arguments.ArgumentSupplier;
 import personthecat.catlib.command.CommandContextWrapper;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * Represents a single argument node in a command builder tree.
  * <p>
@@ -48,6 +53,8 @@ import personthecat.catlib.command.CommandContextWrapper;
  *     }
  * </pre>
  */
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface Node {
 
     /**

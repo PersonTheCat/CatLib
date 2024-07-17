@@ -119,9 +119,9 @@ public final class ConfigUtil {
     }
 
     public static Collection<?> getElements(Object o) {
-        if (o instanceof Map m) {
+        if (o instanceof Map<?, ?> m) {
             return m.values();
-        } else if (o instanceof Collection c) {
+        } else if (o instanceof Collection<?> c) {
             return c;
         } else if (o != null && o.getClass().isArray()) {
             return arrayToList(o);
@@ -187,7 +187,7 @@ public final class ConfigUtil {
     }
 
     private static void addTypeParameters(List<Class<?>> list, String filename, ConfigValue value, Type type) throws ValueException {
-        if (type instanceof ParameterizedType p && p.getRawType() instanceof Class c) {
+        if (type instanceof ParameterizedType p && p.getRawType() instanceof Class<?> c) {
             list.add(c);
         } else if (type instanceof Class<?> c) {
             list.add(c);
@@ -197,10 +197,10 @@ public final class ConfigUtil {
 
     private static void addGenericsFromValue(
             List<Class<?>> list, String filename, ConfigValue value, Object o) throws ValueException {
-        if (o instanceof Map m) {
+        if (o instanceof Map<?, ?> m) {
             o = m.values();
         }
-        if (o instanceof Collection c) {
+        if (o instanceof Collection<?> c) {
             if (c.isEmpty()) {
                 final String msg = "Cannot resolve generic parameters from empty collection";
                 throw new ValueException(msg, filename, value);

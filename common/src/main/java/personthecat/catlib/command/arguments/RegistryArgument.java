@@ -15,6 +15,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.ResettableLazy;
 import personthecat.catlib.exception.MissingElementException;
@@ -41,6 +42,14 @@ public class RegistryArgument<T> implements ArgumentType<T> {
         this.handle = handle;
         this.suggestions = ResettableLazy.of(() -> computeSuggestions(handle));
         DynamicRegistries.listen(this.handle, this).accept(updated -> this.suggestions.reset());
+    }
+
+    public static <T> @Nullable RegistryArgument<T> lookup(final Class<T> type) {
+        final RegistryArgument<?> ra = ARGUMENTS_BY_TYPE.get(type);
+        if (ra != null) return cast(ra);
+        final RegistryHandle<T> handle = DynamicRegistries.lookup(type);
+        if (handle == null) return null;
+        return constructAndRegister(handle, type);
     }
 
     public static <T> RegistryArgument<T> getOrThrow(final Class<T> type) {
@@ -113,12 +122,12 @@ public class RegistryArgument<T> implements ArgumentType<T> {
         }
 
         @Override
-        public Template deserializeFromNetwork(final FriendlyByteBuf buf) {
+        public @NotNull Template deserializeFromNetwork(final FriendlyByteBuf buf) {
             return new Template(buf.readResourceLocation());
         }
 
         @Override
-        public Template unpack(final RegistryArgument ra) {
+        public @NotNull Template unpack(final RegistryArgument ra) {
             return new Template(Objects.requireNonNull(ra.handle.key()).location());
         }
 
@@ -127,7 +136,7 @@ public class RegistryArgument<T> implements ArgumentType<T> {
             json.addProperty("registry", template.id.toString());
         }
 
-        private class Template implements ArgumentTypeInfo.Template<RegistryArgument<?>> {
+        public class Template implements ArgumentTypeInfo.Template<RegistryArgument<?>> {
             private final ResourceLocation id;
 
             private Template(final ResourceLocation id) {
@@ -135,12 +144,12 @@ public class RegistryArgument<T> implements ArgumentType<T> {
             }
 
             @Override
-            public RegistryArgument<?> instantiate(final CommandBuildContext ctx) {
+            public @NotNull RegistryArgument<?> instantiate(final CommandBuildContext ctx) {
                 return getOrThrow(ResourceKey.createRegistryKey(this.id));
             }
 
             @Override
-            public Info type() {
+            public @NotNull Info type() {
                 return Info.this;
             }
         }

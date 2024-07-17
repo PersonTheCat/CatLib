@@ -49,11 +49,12 @@ public abstract class CatLib {
             DynamicRegistries.updateRegistries(access);
             RegistryAddedEvent.onRegistryAccess(access);
         });
-        final CommandRegistrationContext ctx = CommandRegistrationContext.forMod(MOD);
+        final CommandRegistrationContext ctx = CommandRegistrationContext.forMod(MOD)
+            .addCommand(CatLibCommands.ERROR_MENU);
         if (LibConfig.enableCatlibCommands()) {
             ctx.addLibCommands();
         }
-        ctx.addCommand(CatLibCommands.ERROR_MENU).registerAll();
+        ctx.registerAll();
         GameReadyEvent.COMMON.register(() -> {
             if (VERSION_TRACKER.isUpgraded()) {
                 log.info("Upgrade detected. Welcome to Pangaea {}", VERSION);

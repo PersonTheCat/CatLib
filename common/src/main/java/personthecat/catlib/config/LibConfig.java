@@ -16,6 +16,9 @@ public class LibConfig implements Config.Listener {
     @Comment("Miscellaneous settings to configure CatLib and its dependents.")
     General general = new General();
 
+    @Comment("Settings related to command processing for CatLib and its dependents.")
+    Commands commands = new Commands();
+
     @Comment("Configures the style of any JSON, DJS, or other data file.")
     Formatting formatting = new Formatting();
 
@@ -46,7 +49,7 @@ public class LibConfig implements Config.Listener {
     }
 
     public static boolean enableCatlibCommands() {
-        return INSTANCE.general.enableCatlibCommands;
+        return INSTANCE.commands.enableCatlibCommands;
     }
 
     public static Severity errorLevel() {
@@ -55,24 +58,39 @@ public class LibConfig implements Config.Listener {
     }
 
     public static boolean wrapText() {
-        return INSTANCE.general.wrapText;
+        return INSTANCE.commands.wrapText;
     }
 
     public static int displayLength() {
-        return INSTANCE.general.displayLength;
+        return INSTANCE.commands.displayLength;
     }
 
     public static boolean enableTestError() {
         return INSTANCE.debug.enableTestError;
     }
 
-    static class General {
+    public static int defaultUsageLineLength() {
+        return INSTANCE.commands.defaultUsageLineLength;
+    }
 
-        @Comment("Whether to enable this library's provided commands as subcommands of /catlib.")
-        boolean enableCatlibCommands = true;
+    public static int defaultUsageLineCount() {
+        return INSTANCE.commands.defaultUsageLineCount;
+    }
+
+    public static int defaultUsageCommandCount() {
+        return INSTANCE.commands.defaultUsageCommandCount;
+    }
+
+    static class General {
 
         @Comment("The minimum error level to display in the error menu.")
         Severity errorLevel = Severity.ERROR;
+    }
+
+    static class Commands {
+
+        @Comment("Whether to enable this library's provided commands as subcommands of /catlib.")
+        boolean enableCatlibCommands = true;
 
         @Comment("Whether to wrap text on the error detail page. Hit W or space to toggle in game.")
         boolean wrapText = true;
@@ -81,6 +99,15 @@ public class LibConfig implements Config.Listener {
         @Comment("How many lines for the display command to render in the chat before opening a\n" +
                 "dedicated screen. Set this to 0 to always open a screen.")
         int displayLength = 35;
+
+        @Comment("The default number of characters per line on generated help pages.")
+        int defaultUsageLineLength = 60;
+
+        @Comment("The default number of lines before any help page is forcibly wrapped.")
+        int defaultUsageLineCount = 15;
+
+        @Comment("The default preferred number of commands to display on each generated help page.")
+        int defaultUsageCommandCount = 5;
     }
 
     static class Formatting {

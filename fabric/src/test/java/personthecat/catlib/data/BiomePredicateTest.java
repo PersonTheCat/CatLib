@@ -66,12 +66,12 @@ public class BiomePredicateTest {
             handle.getHolder(new ResourceLocation("deep_ocean"))));
         biomes.bindTags(map);
 
-        ((DynamicRegistryHandle<Biome>) DynamicRegistries.BIOMES).updateRegistry(handle);
+        ((DynamicRegistryHandle<Biome>) DynamicRegistries.BIOME).updateRegistry(handle);
     }
 
     @Test
     public void biomePredicate_matchesBiomeTypes() {
-        final RegistryHandle<Biome> biomes = DynamicRegistries.BIOMES;
+        final RegistryHandle<Biome> biomes = DynamicRegistries.BIOME;
         final BiomePredicate predicate =
             BiomePredicate.builder()
                 .addEntries(BiomePredicate.type(false, BiomeType.OCEAN))
@@ -104,7 +104,7 @@ public class BiomePredicateTest {
     public void simplify_whenMostPossibleEntriesArePresent_convertsToBlacklist() {
         final List<IdMatcher.InvertibleEntry> entries = new ArrayList<>();
         // user listed all entries except minecraft:forest
-        DynamicRegistries.BIOMES.forEach((id, holder) ->
+        DynamicRegistries.BIOME.forEach((id, holder) ->
             entries.add(IdMatcher.id(false, id)));
         entries.removeIf(entry ->
             ((IdMatcher.Id) entry.matcher()).id().equals(new ResourceLocation("forest")));

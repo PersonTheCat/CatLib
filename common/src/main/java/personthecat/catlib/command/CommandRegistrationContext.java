@@ -4,28 +4,38 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.function.CommandFunction;
+import personthecat.catlib.config.LibConfig;
+import personthecat.catlib.data.Lazy;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.McUtils;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static net.minecraft.commands.Commands.literal;
 import static personthecat.catlib.command.CommandUtils.arg;
+import static personthecat.catlib.command.CommandUtils.clickToRun;
+import static personthecat.catlib.command.CommandUtils.displayOnHover;
 import static personthecat.catlib.util.LibUtil.f;
 
 /**
@@ -96,17 +106,21 @@ public class CommandRegistrationContext {
     private static final Style USAGE_STYLE = Style.EMPTY
         .withColor(ChatFormatting.GRAY);
 
-    /** The header to be used by the help message /  usage text. */
-    private static final String USAGE_HEADER = " --- {} Command Usage ({} / {}) ---";
+    /** The text formatting to be used for displaying command arguments. */
+    private static final Style ARGUMENT_STYLE = Style.EMPTY
+        .withColor(TextColor.fromRgb(Color.LIGHT_GRAY.getRGB())).withItalic(true);
 
-    /** The default number of characters per line on the help page. */
-    private static final int DEFAULT_USAGE_LINE_LENGTH = 60;
+    /** The text formatting to be used for clickable next/previous page buttons. */
+    private static final Style CLICKABLE_PAGE_STYLE = Style.EMPTY
+        .withColor(ChatFormatting.WHITE);
 
-    /** The default number of lines before any help page is forcibly wrapped. */
-    private static final int DEFAULT_USAGE_LINE_COUNT = 15;
+    /** The text formatting to be used for un-clickable next/previous page buttons. */
+    private static final Style UNCLICKABLE_PAGE_STYLE = Style.EMPTY
+        .withColor(ChatFormatting.DARK_GRAY);
 
-    /** The default preferred number of commands to display per help page. */
-    private static final int DEFAULT_USAGE_CMD_COUNT = 5;
+    /** A hover event indicating that a page button can be clicked. */
+    private static final HoverEvent DISPLAY_CLICK_TO_OPEN =
+        displayOnHover(Component.translatable("catlib.commands.help.page.hover"));
 
     /** The name of the help argument */
     private static final String HELP_ARGUMENT = "help";
@@ -126,9 +140,9 @@ public class CommandRegistrationContext {
     private CommandRegistrationContext(final ModDescriptor mod) {
         this.commands = new ArrayList<>();
         this.mod = mod;
-        this.usageLineLength = DEFAULT_USAGE_LINE_LENGTH;
-        this.usageLineCount = DEFAULT_USAGE_LINE_COUNT;
-        this.usageCmdCount = DEFAULT_USAGE_CMD_COUNT;
+        this.usageLineLength = LibConfig.defaultUsageLineLength();
+        this.usageLineCount = LibConfig.defaultUsageLineCount();
+        this.usageCmdCount = LibConfig.defaultUsageCommandCount();
     }
 
     /**
@@ -334,12 +348,13 @@ public class CommandRegistrationContext {
             }
         }
         LibCommandRegistrar.registerCommand(modCommand);
+        this.commands.clear();
         this.dispose();
     }
 
     /**
      * Manually clears the active mod descriptor from the current thread. After this
-     * point, the mod's descriptor can no longer be access through the library except
+     * point, the mod's descriptor can no longer be accessed through the library except
      * when provided a {@link CommandContextWrapper}.
      */
     public void dispose() {
@@ -367,26 +382,31 @@ public class CommandRegistrationContext {
      * @return A generated {@link LiteralArgumentBuilder} for the current mod.
      */
     private LiteralArgumentBuilder<CommandSourceStack> generateBasicModCommand(final List<LibCommandBuilder> commands) {
-        final List<Component> message = this.createHelpMessage(commands);
-        final CommandFunction helpCommand = this.createHelp(message);
+        final CommandFunction helpCommand = this.createHelp(
+            new Lazy<>(() -> this.createHelpMessage(commands)));
         return LibCommandBuilder.named(this.mod.getCommandPrefix())
             .generate((builder, utl) -> {
                 final Command<CommandSourceStack> cmd = utl.wrap(helpCommand);
                 return builder.executes(cmd)
                     .then(literal(HELP_ARGUMENT).executes(cmd)
-                        .then(arg(PAGE_ARGUMENT, 1, message.size()).executes(cmd)));
+                        .then(arg(PAGE_ARGUMENT, 1, Integer.MAX_VALUE).executes(cmd)));
             }).getCommand();
-    } // todo: add previous / next buttons
+    }
 
     /**
      * Generates the basic help command to used by the current mod.
      *
-     * @param pages The generated text components corresponding to each help page.
+     * @param pageSupplier Generates text components corresponding to each help page.
      * @return The command to be executed when provided an optional page number.
      */
-    private CommandFunction createHelp(final List<Component> pages) {
+    private CommandFunction createHelp(final Supplier<List<Component>> pageSupplier) {
         return ctx -> {
             final int page = ctx.getOptional(PAGE_ARGUMENT, Integer.class).orElse(1) - 1;
+            final List<Component> pages = pageSupplier.get();
+            if (page < 0 || page >= pages.size()) {
+                ctx.sendError("Invalid page number. Must be {} to {}", 1, pages.size());
+                return;
+            }
             ctx.sendMessage(() -> pages.get(page));
         };
     }
@@ -406,11 +426,13 @@ public class CommandRegistrationContext {
         for (int i = 0; i < pages.size(); i++) {
             final List<HelpCommandInfo> page = pages.get(i);
             final MutableComponent message = Component.empty(); // No formatting.
-            message.append(this.createHeader(i + 1, pages.size()));
+            final Component header = this.createHeader(i + 1, pages.size());
+            message.append(header);
 
             for (final HelpCommandInfo info : page) {
                 message.append("\n").append(this.createUsageText(anyGlobal, info));
             }
+            message.append("\n").append(this.createFooter(header, i + 1, pages.size()));
             messages.add(message);
         }
         return messages;
@@ -428,15 +450,17 @@ public class CommandRegistrationContext {
         int numLines = 0;
         int numCommands = 0;
 
-        for (final LibCommandBuilder command : commands) {
-            final HelpCommandInfo info = command.getHelpInfo();
+        final Iterator<LibCommandBuilder> iterator = commands.iterator();
+        while (iterator.hasNext()) {
+            final HelpCommandInfo info = iterator.next().getHelpInfo();
             if (info.getDescription().isEmpty()) {
                 continue;
             }
+            final String description = Language.getInstance().getOrDefault(info.getDescription());
             currentPage.add(info);
-            numLines += 2 + info.getDescription().length() / this.usageLineLength;
+            numLines += 2 + description.length() / this.usageLineLength;
             numCommands++;
-            if (numLines >= this.usageLineCount || numCommands >= this.usageCmdCount) {
+            if (iterator.hasNext() && numLines >= this.usageLineCount || numCommands >= this.usageCmdCount) {
                 pages.add(currentPage);
                 currentPage = new ArrayList<>();
                 numLines = 0;
@@ -448,7 +472,7 @@ public class CommandRegistrationContext {
     }
 
     /**
-     * Determines whether any of the commands in the given list should be applied to
+     * Determines whether any command in the given list should be applied to
      * the global root command node.
      *
      * @param commands Every command applicable for the current context.
@@ -466,8 +490,74 @@ public class CommandRegistrationContext {
      * @return The formatted header as a {@link Component}.
      */
     private Component createHeader(final int page, final int numPages) {
-        return Component.literal(f(USAGE_HEADER, this.mod.getName(), page, numPages))
-            .setStyle(HEADER_STYLE);
+        return Component.literal(" --- ")
+            .append(Component.translatable("catlib.commands.help.usage", this.mod.getName()))
+            .append(f(" ({} / {}) ---", page, numPages))
+            .withStyle(HEADER_STYLE);
+    }
+
+    /**
+     * Generates the footer text to be rendered at the bottom of the current help page.
+     *
+     * @param header The previously-generated header component
+     * @param page The current page number
+     * @param numPages The last page number
+     * @return The formatted footer as a {@link Component}.
+     */
+    private Component createFooter(final Component header, final int page, final int numPages) {
+        // --- [previous] ${repeat('', max(3, len(header - rest)))} [next] ---
+        final String headerText = header.getString();
+        final String previousText = Language.getInstance().getOrDefault("catlib.commands.help.previous");
+        final String nextText = Language.getInstance().getOrDefault("catlib.commands.help.next");
+        final int footerLen = "--- []  [] ---".length() + previousText.length() + nextText.length();
+
+        return Component.literal(" --- ")
+            .append(this.createPreviousButton(previousText, page))
+            .append(" ")
+            .append("-".repeat(Math.max(3, headerText.length() - footerLen)))
+            .append(" ")
+            .append(this.createNextButton(nextText, page, numPages))
+            .append(" ---")
+            .withStyle(HEADER_STYLE);
+    }
+
+    /**
+     * Generates the previous page button at the bottom of each help page.
+     *
+     * @param text The text to display on the button
+     * @param page The current page number
+     * @return The formatted, clickable previous page button
+     */
+    private Component createPreviousButton(final String text, final int page) {
+        final MutableComponent component = Component.literal("[").append(text).append("]");
+        if (page > 1) {
+            final String cmd = f("/{} help {}", this.mod.getCommandPrefix(), page - 1);
+            component.setStyle(
+                CLICKABLE_PAGE_STYLE.withClickEvent(clickToRun(cmd)).withHoverEvent(DISPLAY_CLICK_TO_OPEN));
+        } else {
+            component.setStyle(UNCLICKABLE_PAGE_STYLE);
+        }
+        return component;
+    }
+
+    /**
+     * Generates the next page button at the bottom of each help page.
+     *
+     * @param text The text to display on the button
+     * @param page The current page number
+     * @param numPages The last page number
+     * @return The formatted, clickable next page button
+     */
+    private Component createNextButton(final String text, final int page, final int numPages) {
+        final MutableComponent component = Component.literal("[").append(text).append("]");
+        if (page < numPages) {
+            final String cmd = f("/{} help {}", this.mod.getCommandPrefix(), page + 1);
+            component.setStyle(
+                CLICKABLE_PAGE_STYLE.withClickEvent(clickToRun(cmd)).withHoverEvent(DISPLAY_CLICK_TO_OPEN));
+        } else {
+            component.setStyle(UNCLICKABLE_PAGE_STYLE);
+        }
+        return component;
     }
 
     /**
@@ -480,12 +570,17 @@ public class CommandRegistrationContext {
      * @return The formatted help info as a {@link Component}.
      */
     private Component createUsageText(final boolean anyGlobal, final HelpCommandInfo info) {
-        final String prefix = info.isGlobal() || !anyGlobal ? "" : this.mod.getCommandPrefix() + " ";
-        final String command = prefix + info.getName() + " " + info.getArguments();
-
-        final MutableComponent text = Component.literal(command);
-        final List<String> lines = LibStringUtils.wrapLines(info.getDescription(), this.usageLineLength);
-        text.append(Component.literal(" :\n " + lines.get(0)).setStyle(USAGE_STYLE));
+        final MutableComponent text = Component.empty();
+        if (!info.isGlobal() && anyGlobal) {
+            text.append(this.mod.getCommandPrefix() + " ");
+        }
+        text.append(info.getName());
+        if (!info.getArguments().isEmpty()) {
+            text.append(Component.literal(" " + info.getArguments()).withStyle(ARGUMENT_STYLE));
+        }
+        final String description = Language.getInstance().getOrDefault(info.getDescription());
+        final List<String> lines = LibStringUtils.wrapLines(description, this.usageLineLength);
+        text.append(Component.literal(" :\n " + lines.getFirst()).setStyle(USAGE_STYLE));
         for (int i = 1; i < lines.size(); i++) {
             text.append(Component.literal("\n  " + lines.get(i)).setStyle(USAGE_STYLE));
         }

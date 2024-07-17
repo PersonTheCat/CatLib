@@ -25,6 +25,7 @@ import personthecat.catlib.command.arguments.ListArgumentBuilder;
 import personthecat.catlib.command.arguments.RegistryArgument;
 import personthecat.catlib.command.LibCommandBuilder.CommandGenerator;
 import personthecat.catlib.command.function.CommandFunction;
+import personthecat.catlib.config.ConfigUtil;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.exception.FormattedException;
@@ -37,9 +38,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static personthecat.catlib.util.unsafe.CachingReflectionHelper.tryInstantiate;
 
@@ -94,7 +98,7 @@ public class CommandClassEvaluator {
     }
 
     private void addCommandBuilders() {
-        forEachAnnotated(CommandBuilder.class, (m, a) -> {
+        this.forEachAnnotated(CommandBuilder.class, (m, a) -> {
             if (m.getParameterCount() > 0) {
                 throw new CommandClassEvaluationException(NO_PARAMETERS, m);
             }
@@ -104,16 +108,16 @@ public class CommandClassEvaluator {
             if (this.instance == null && !Modifier.isStatic(m.getModifiers())) {
                 this.instance = CachingReflectionHelper.tryInstantiate(this.clazz);
             }
-            builders.add(getValue(m));
+            this.builders.add(getValue(m));
         });
     }
 
     private void addModCommands() {
-        forEachAnnotated(ModCommand.class, (m, a) -> {
+        this.forEachAnnotated(ModCommand.class, (m, a) -> {
             if (this.instance == null && !Modifier.isStatic(m.getModifiers())) {
                 this.instance = CachingReflectionHelper.tryInstantiate(this.clazz);
             }
-            builders.add(createBuilder(m, a));
+            this.builders.add(createBuilder(m, a));
         });
     }
 
@@ -132,10 +136,10 @@ public class CommandClassEvaluator {
         }
     }
 
-    private LibCommandBuilder createBuilder(Method m, ModCommand a) {
+    private LibCommandBuilder createBuilder(Method m, ModCommand a) throws FormattedException {
         final List<String> tokens = LibStringUtils.tokenize(m.getName());
-        final CommandFunction cmd = createConsumer(this.instance, m);
-        final List<ParsedNode> entries = createEntries(tokens, a);
+        final CommandFunction cmd = this.createConsumer(this.instance, m);
+        final List<ParsedNode> entries = this.createEntries(m, tokens, a);
         return LibCommandBuilder.named(getCommandName(tokens, a))
             .arguments(getArgumentText(entries, a))
             .description(String.join(" ", a.description()))
@@ -148,24 +152,24 @@ public class CommandClassEvaluator {
     private static String getCommandName(List<String> tokens, ModCommand a) {
         if (!a.name().isEmpty()) return a.name();
         if (!a.value().isEmpty()) return a.value();
-        return tokens.get(0);
+        return tokens.getFirst();
     }
 
     private static String getArgumentText(List<ParsedNode> entries, ModCommand a) {
         if (!a.arguments().isEmpty()) return a.arguments();
         final StringBuilder sb = new StringBuilder();
         for (final ParsedNode entry : entries) {
-            if (sb.length() > 0) sb.append(' ');
+            if (!sb.isEmpty()) sb.append(' ');
             if (entry.arg.isLiteral()) {
                 sb.append(entry.name);
                 continue;
             }
-            if (entry.optional) sb.append('[');
+            if (entry.isOptional) sb.append('[');
             sb.append('<');
             sb.append(entry.name);
             if (entry.isList) sb.append("...");
             sb.append('>');
-            if (entry.optional) sb.append(']');
+            if (entry.isOptional) sb.append(']');
         }
         return sb.toString();
     }
@@ -192,7 +196,7 @@ public class CommandClassEvaluator {
                     optional = false;
                 }
                 final ParsedNode entry = entries.get(index.getValue());
-                if (entry.optional || (entry.isList && index.getValue() == entries.size() - 1)) {
+                if (entry.isOptional || (entry.isList && index.getValue() == entries.size() - 1)) {
                     optional = true;
                 }
                 nextArg = nextArg != null ? argument.then(nextArg) : argument;
@@ -205,33 +209,98 @@ public class CommandClassEvaluator {
         };
     }
 
-    private List<ParsedNode> createEntries(List<String> tokens, ModCommand a) {
-        final List<ParsedNode> entries = new ArrayList<>();
+    private List<ParsedNode> createEntries(
+            Method m, List<String> tokens, ModCommand a) throws FormattedException {
+        final var entries = new LinkedHashMap<String, ParsedNode>();
         if (a.name().isEmpty() && a.value().isEmpty()) {
-            addEntriesFromMethod(entries, tokens, a);
+            this.addLiteralsFromTokens(entries, tokens);
         }
-        for (final Node node : a.branch()) {
-            final ArgumentDescriptor<?> arg = createDescriptor(node);
-            final String name = getArgumentName(node, arg.getType());
-            entries.add(new ParsedNode(node, name, arg));
+        final var explicitArgs = this.getExplicitArgParams(m);
+        if (explicitArgs.size() > a.branch().length) {
+            this.addArgsFromParams(entries, explicitArgs);
         }
-        return entries;
+        this.addArgsFromBranch(entries, a.branch());
+        return new ArrayList<>(entries.values());
     }
 
-    private void addEntriesFromMethod(List<ParsedNode> entries, List<String> tokens, ModCommand a) {
+    private void addLiteralsFromTokens(Map<String, ParsedNode> entries, List<String> tokens) {
         for (int i = 1; i < tokens.size(); i++) {
-            final String token = tokens.get(i).toLowerCase();
-            for (final Node node : a.branch()) {
-                if (node.name().equals(token) || node.value().equals(token)) {
-                    return;
-                }
+            final var token = tokens.get(i);
+            entries.put(token, new ParsedNode(token));
+        }
+    }
+
+    private void addArgsFromParams(
+            Map<String, ParsedNode> entries, List<Parameter> params) throws FormattedException {
+        for (final var param : params) {
+            final var name = this.getName(param);
+            var type = param.getType();
+            var isOptional = false;
+            var isList = false;
+            if (Optional.class.isAssignableFrom(type)) {
+                isOptional = true;
+                type = getTypeArg(param);
+            } else if (List.class.isAssignableFrom(type)) {
+                isList = true;
+                type = getTypeArg(param);
+            } else if (type.isArray() || param.isVarArgs()) {
+                isList = true;
+                type = type.getComponentType();
+            } else if (isNullable(param)) {
+                isOptional = true;
             }
-            entries.add(new ParsedNode(token));
+            final var arg = this.createArgFromType(param, type);
+            entries.put(name, new ParsedNode(name, arg, isOptional, isList));
+        }
+    }
+
+    private List<Parameter> getExplicitArgParams(Method m) {
+        return Stream.of(m.getParameters()).filter(this::isExplicitArgParam).toList();
+    }
+
+    private boolean isExplicitArgParam(Parameter param) {
+        return !param.isImplicit() && !CommandContextWrapper.class.isAssignableFrom(param.getType());
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private ArgumentDescriptor<?> createArgFromType(Parameter param, Class<?> type) throws FormattedException {
+        final var node = param.getAnnotation(Node.class);
+        if (node != null && (node.type().length > 0 || node.descriptor().length > 0)) {
+            return this.createArgFromNode(node);
+        } else if (ConfigUtil.isInteger(type) && (node == null || node.intRange().length == 0)) {
+            return new ArgumentDescriptor<>(IntegerArgumentType.integer());
+        } else if (ConfigUtil.isLong(type) && (node == null || node.intRange().length == 0)) {
+            return new ArgumentDescriptor<>(LongArgumentType.longArg());
+        } else if (ConfigUtil.isDouble(type) && (node == null || node.doubleRange().length == 0)) {
+            return new ArgumentDescriptor<>(DoubleArgumentType.doubleArg());
+        } else if (ConfigUtil.isFloat(type) && (node == null || node.doubleRange().length == 0)) {
+            return new ArgumentDescriptor<>(FloatArgumentType.floatArg());
+        } else if (ConfigUtil.isBoolean(type)) {
+            return new ArgumentDescriptor<>(BoolArgumentType.bool());
+        } else if (String.class.isAssignableFrom(type) && (node == null || node.stringValue().length == 0)) {
+            return new ArgumentDescriptor<>(StringArgumentType.string());
+        } else if (type.isEnum()) {
+            return new ArgumentDescriptor<>(EnumArgument.of((Class) type));
+        }
+        final RegistryArgument<?> ra = RegistryArgument.lookup(type);
+        if (ra != null) {
+            return new ArgumentDescriptor<>(ra);
+        } else if (node != null) {
+            return this.createArgFromNode(node);
+        }
+        throw new InvalidListNodeException(this.getName(param));
+    }
+
+    private void addArgsFromBranch(Map<String, ParsedNode> entries, Node[] branch) {
+        for (final Node node : branch) {
+            final ArgumentDescriptor<?> arg = this.createArgFromNode(node);
+            final String name = this.getArgumentName(node, arg.getType());
+            entries.put(name, new ParsedNode(name, node, arg));
         }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private ArgumentDescriptor<?> createDescriptor(Node node) {
+    private ArgumentDescriptor<?> createArgFromNode(Node node) {
         if (node.type().length > 0) {
             return new ArgumentDescriptor<>(tryInstantiate((Class<ArgumentType<?>>)node.type()[0]));
         } else if (node.descriptor().length > 0) {
@@ -245,7 +314,7 @@ public class CommandClassEvaluator {
         } else if (node.isBoolean()) {
             return new ArgumentDescriptor<>(BoolArgumentType.bool());
         } else if (node.stringValue().length > 0) {
-            return new ArgumentDescriptor<>(createStringArgumentType(node));
+            return new ArgumentDescriptor<>(createStringArgumentType(node.stringValue()[0]));
         } else if (node.enumValue().length > 0) {
             return new ArgumentDescriptor<>(EnumArgument.of((Class) node.enumValue()[0]));
         } else if (node.registry().length > 0) {
@@ -255,8 +324,7 @@ public class CommandClassEvaluator {
         }
     }
 
-    private ArgumentType<?> createStringArgumentType(Node node) {
-        final Node.StringValue value = node.stringValue()[0];
+    private ArgumentType<?> createStringArgumentType(Node.StringValue value) {
         if (value.value() == Node.StringValue.Type.GREEDY) {
             return StringArgumentType.greedyString();
         } else if (value.value() == Node.StringValue.Type.STRING) {
@@ -346,7 +414,7 @@ public class CommandClassEvaluator {
         for (int i = 0; i < params.length; i++) {
             final Parameter param = params[i];
             final Class<?> type = param.getType();
-            final String name = getName(param);
+            final String name = this.getName(param);
             if (type.isAssignableFrom(CommandContextWrapper.class)) {
                 args[i] = ctx;
             } else if (type.isAssignableFrom(Optional.class)) {
@@ -446,24 +514,13 @@ public class CommandClassEvaluator {
         return false;
     }
 
-    private static class ParsedNode {
-        final ArgumentDescriptor<?> arg;
-        final String name;
-        final boolean optional;
-        final boolean isList;
-
-        ParsedNode(Node node, String name, ArgumentDescriptor<?> arg) {
-            this.arg = arg;
-            this.name = name;
-            this.optional = node.optional();
-            this.isList = node.intoList().useList();
+    private record ParsedNode(String name, ArgumentDescriptor<?> arg, boolean isOptional, boolean isList) {
+        ParsedNode(String name, Node node, ArgumentDescriptor<?> arg) {
+            this(name, arg, node.optional(), node.intoList().useList());
         }
 
         ParsedNode(String name) {
-            this.arg = ArgumentDescriptor.LITERAL;
-            this.name = name;
-            this.optional = false;
-            this.isList = false;
+            this(name, ArgumentDescriptor.LITERAL, false, false);
         }
     }
 

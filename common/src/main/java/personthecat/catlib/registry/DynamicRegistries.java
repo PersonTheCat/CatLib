@@ -10,6 +10,7 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.exception.MissingElementException;
 
 import java.util.Optional;
@@ -80,6 +81,10 @@ public class DynamicRegistries {
     public static <T> RegistryHandle<T> getOrThrow(final ResourceKey<? extends Registry<T>> key) {
         return Optional.ofNullable(get(key)).orElseThrow(() ->
             new MissingElementException("Registry unknown or not ready: " + key.location()));
+    }
+
+    public static <T> @Nullable RegistryHandle<T> lookup(final Class<T> type) {
+        return RegistryUtils.tryGetByType(type).map(handle -> get(handle.key())).orElse(null);
     }
 
     public static <T> RegistryHandle<T> getByType(final Class<T> type) {

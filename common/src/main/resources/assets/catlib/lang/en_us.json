@@ -1,4 +1,8 @@
 {
+  "catlib.commands.help.usage": "%s Command Usage",
+  "catlib.commands.help.previous": "previous",
+  "catlib.commands.help.next": "next",
+  "catlib.commands.help.page.hover": "Click to open page",
   "catlib.errorMenu.numErrors": "Encountered errors for %d mod(s)",
   "catlib.errorMenu.mods": "Mods",
   "catlib.errorMenu.misc": "Miscellaneous Errors",
