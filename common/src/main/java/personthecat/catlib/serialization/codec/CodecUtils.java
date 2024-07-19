@@ -45,7 +45,7 @@ public class CodecUtils {
             either -> either.map(Collections::singletonList, Function.identity()),
             list -> {
                 if (list == null) return Either.right(Collections.emptyList());
-                return list.size() == 1 ? Either.left(list.get(0)) : Either.right(list);
+                return list.size() == 1 ? Either.left(list.getFirst()) : Either.right(list);
             }
         );
     }
@@ -90,6 +90,10 @@ public class CodecUtils {
 
     public static <T> SimpleEitherCodec<T> simpleEither(final Codec<T> first, final Codec<T> second) {
         return new SimpleEitherCodec<>(first, second);
+    }
+
+    public static <T> TypedCodec<T> typed(final Codec<T> codec, final Class<T> type) {
+        return TypedCodec.of(codec, type);
     }
 
     @SuppressWarnings("unchecked")

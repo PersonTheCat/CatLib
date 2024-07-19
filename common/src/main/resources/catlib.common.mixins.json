@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ChunkStatusMixin",
+    "DelegatingOpsAccessor",
     "DirectHolderSetAccessor",
     "MappedRegistryAccessor",
     "NamedHolderSetAccessor",
