@@ -225,7 +225,7 @@ public class CommandClassEvaluator {
 
     private void addLiteralsFromTokens(Map<String, ParsedNode> entries, List<String> tokens) {
         for (int i = 1; i < tokens.size(); i++) {
-            final var token = tokens.get(i);
+            final var token = tokens.get(i).toLowerCase();
             entries.put(token, new ParsedNode(token));
         }
     }
