@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.JavaOps;
 import net.minecraft.resources.DelegatingOps;
 import personthecat.catlib.mixin.DelegatingOpsAccessor;
 
@@ -25,22 +24,23 @@ public record TypedCodec<A>(Codec<A> wrapped, Class<A> type) implements Codec<A>
     @Override
     @SuppressWarnings("unchecked")
     public <T> DataResult<T> encode(final A input, final DynamicOps<T> ops, final T prefix) {
-        if (unwrap(ops) instanceof JavaOps) {
+        if (isLiteralOps(ops)) {
             return DataResult.success((T) input);
         }
-        final DataResult<T> result = this.wrapped.encode(input, ops, prefix);
-        if (result.isSuccess()) {
-            return result;
-        }
-        return DataResult.error(() -> "Cannot encode data as real type (not java ops): " + input);
+        return this.wrapped.encode(input, ops, prefix);
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> DynamicOps<T> unwrap(DynamicOps<T> ops) {
-        while (ops instanceof DelegatingOps<T>) {
-            ops = ((DelegatingOpsAccessor<T>) ops).getDelegate();
+    private static <T> boolean isLiteralOps(DynamicOps<T> ops) {
+        while (true) {
+            if (ops instanceof LiteralOps) {
+                return true;
+            } else if (ops instanceof DelegatingOps<T>) {
+                ops = ((DelegatingOpsAccessor<T>) ops).getDelegate();
+            } else {
+                return false;
+            }
         }
-        return ops;
     }
 
     @Override
