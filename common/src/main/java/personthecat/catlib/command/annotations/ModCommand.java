@@ -1,6 +1,7 @@
 package personthecat.catlib.command.annotations;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
+import net.fabricmc.api.Environment;
 import personthecat.catlib.command.CommandContextWrapper;
 import personthecat.catlib.command.CommandSide;
 import personthecat.catlib.command.CommandType;
@@ -12,69 +13,130 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a method should be passed into the registration context as
- * the body of a command. Annotated methods should be <b>static</b> and accept
- * a single parameter: {@link CommandContextWrapper}.
+ * <h1>&#064ModCommand</h1>
  * <p>
- *   To begin using this annotation, provide a single value: <code>name</code>.
- *   This token will become the literal argument required for using the
- *   command. Here's an example of a basic command using this setup:
- * </p><pre>
- *     &#064;ModCommand(name = "command")
- *     private static void myCommand(final CommandContextWrapper wrapper) {
- *         wrapper.sendMessage("Hello, world!");
- *     }
- * </pre><p>
- *   In addition, personthecat.catlib.CatLib will take care of generating a help command for your
- *   mod. You can enable this feature per command by providing a description.
- * </p><pre>
- *     &#064;ModCommand(
- *         name = "command",
- *         description = {
- *             "Runs the demo command. You can provide additional lines,",
- *             "but they will be formatted and wrapped automatically."
- *         }
- *     )
- *     private static void myCommand(final CommandContextWrapper wrapper) {}
- * </pre><p>
- *   Most commands are substantially more complicated than this setup allows.
- *   You can begin adding additional arguments to your command by providing a
- *   branch of {@link Node}s.
- * </p><pre>
- *     &#064;ModCommand(
- *         name = "command",
- *         description = "Runs the demo command.",
- *         branch = {
- *             &#064;Node(name = "arg1", type = BlockStateArgument.class),
- *             &#064;Node(name = "arg2", type = ItemInput.class, optional = true)
- *         }
- *     )
- *     private static void myCommand(final CommandContextWrapper wrapper) {
- *         // The first argument must exist:
- *         final BlockState block = wrapper.getBlock("arg1");
- *         // But the second is optional and may not:
- *         final Optional&lt;ItemInput&gt; item = wrapper.getOptional(ItemInput.class);
- *     }
- * </pre><p>
- *   To register more complex tree structures, you may need to provide multiple
- *   annotated methods with the same <code>name</code>. Brigadier will take care
- *   of resolving duplicate arguments into a single tree.
- * </p><pre>
- *     &#064;ModCommand(name = "sayHello")
- *     private static void sayHello(final CommandContextWrapper wrapper) {
- *         wrapper.sendMessage("Hello!")
- *     }
- *
- *     &#064;ModCommand(
- *         name = "sayHello"
- *         branch = @Node(name = "name", stringValue = @StringValue(type = Type.WORD))
- *     )
- *     private static void sayHelloName(final CommandContextWrapper wrapper) {
- *         wrapper.sendMessage("Hello, {}!", wrapper.getString("name"));
- *     }
- * </pre><p>
- *   For more information on setting up branches, see {@link Node}.
+ *   Indicates that a method should be passed into the registration context as
+ *   the body of a command. Annotated methods can be virtual or static, and may
+ *   accept a {@link CommandContextWrapper} as the first argument, as well as
+ *   named arguments which will be appended automatically to the command node.
  * </p>
+ * <h2>Simple Commands</h2>
+ * <p>
+ *   This annotation can be used with no arguments. The method name will be
+ *   split from camel case into lower-sentence case and each token will be
+ *   appended to the command chain.
+ * </p>
+ * <p>
+ *   For example, the following method generates this command:
+ *   <code>/&lt;root&gt; my command</code>
+ * </p>
+ * <pre>{@code
+ *   @ModCommand
+ *   void myCommand(final CommandContextWrapper ctx) {
+ *     ctx.sendMessage("Hello, world!");
+ *   }
+ * }</pre>
+ * <h2>Renaming Commands</h2>
+ * <p>
+ *   To avoid pulling literal arguments from the method name, or to otherwise
+ *   rename the command, provide a <b>single</b> value of <code>name</code>.
+ * </p>
+ * <p>
+ *   For example, the method generates this command:
+ *   <code>/&lt;root&gt; command</code>
+ * </p>
+ * <pre>{@code
+ *   @ModCommand(name = "command")
+ *   void command(final CommandContextWrapper ctx) {}
+ * }</pre>
+ * <h2>Documenting Commands</h2>
+ * <p>
+ *   In addition, CatLib will take care of generating a help command for your
+ *   mod. You can enable this feature per command by providing a description.
+ * </p>
+ * <pre>{@code
+ *   @ModCommand(description = "Does nothing")
+ *   void command(final CommandContextWrapper ctx) {}
+ * }</pre>
+ * <p>
+ *   Additional lines may be provided, but they will be wrapped automatically.
+ * </p>
+ * <pre>{@code
+ *   @ModCommand(description = {
+ *     "This text",
+ *     "Is appended by this text"
+ *   })
+ *   void command(final CommandContextWrapper ctx) {}
+ * }</pre>
+ * <h2>Complex Command Trees</h2>
+ * <p>
+ *   Brigadier will automatically handle collapsing your similar commands
+ *   into a single command tree. This logic is supported (but not provided)
+ *   by CatLib.
+ * </p>
+ * <p>
+ *   For example, the following methods create the following commands:
+ *   <ul>
+ *     <li><code>/&lt;root&gt; command a</code></li>
+ *     <li><code>/&lt;root&gt; command b</code></li>
+ *   </ul>
+ * </p>
+ * <pre>{@code
+ *   @ModCommand
+ *   void commandA(final CommandContextWrapper ctx) {}
+ *
+ *   @ModCommand
+ *   void commandB(final CommandContextWrapper ctx) {}
+ * }</pre>
+ * <h2>Additional and Non-Literal Command Arguments</h2>
+ * <p>
+ *   CatLib will automatically resolve additional arguments from your method.
+ * </p>
+ * <p>
+ *   For example, the following methods generate the following commands:
+ *   <ul>
+ *     <li><code>/&lt;root&gt; one a|A|b|B|c|C</code></li>
+ *     <li><code>/&lt;root&gt; two &lt;block&gt;</code></li>
+ *   </ul>
+ * </p>
+ * <pre>{@code
+ *   @ModCommand
+ *   void one(final CommandContextWrapper ctx, Letter arg) {}
+ *
+ *   @ModCommand
+ *   void two(final CommandContextWrapper ctx, Block arg) {}
+ *
+ *   enum Letter { A, B, C }
+ * }</pre>
+ * <p>
+ *   Other supported argument types include:
+ *   <ul>
+ *     <li>Primitives and boxed primitives</li>
+ *     <li>Enums</li>
+ *     <li>Registry types</li>
+ *     <li>Arrays, lists, Optionals, and &#064;Nullables of all of the above.</li>
+ *   </ul>
+ * </p>
+ * <p>
+ *   If your argument type is not supported, or if you wish to provide
+ *   constraints or command suggestions, you must pass it into the <code>branch</code>.
+ *   See documentation below.
+ * </p>
+ * <p>
+ *   Note that in some cases, you will have to provide the full node branch,
+ *   excluding the root and literal command name.
+ * </p>
+ * <h2>Sided Commands</h2>
+ * <p>
+ *   To have one command be sided to the server or client, there is a <code>side</code>
+ *   value; however, it is generally easier to defer to {@link Environment} or another
+ *   such annotation. For example,
+ * </p>
+ * <pre>{@code
+ *   @ModCommand
+ *   @Environment(EnvType.CLIENT)
+ *   void x(final CommandContextWrapper ctx) {}
+ * }</pre>
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -95,7 +157,7 @@ public @interface ModCommand {
     String value() default "";
 
     /**
-     * Optional subtext to display on the help page.
+     * Optional subtext to display on the help page. Overrides the generated subtext.
      *
      * <p>Note that, if this value is absent, the subtext will be generated
      * from the command node branch.
@@ -138,6 +200,12 @@ public @interface ModCommand {
      * The server side required for running this command. You can specify either
      * the dedicated or integrated server side, but by default, either side will
      * be accepted.
+     *
+     * <p>
+     *   <b>Note</b>: it is perfectly acceptable to annotate with {@link Environment}
+     *   or another such annotation instead, as this will prevent exposure to the
+     *   evaluator in the first place.
+     * </p>
      */
     CommandSide side() default CommandSide.EITHER;
 }

@@ -33,7 +33,7 @@ public class FloatRange {
 
     public static FloatRange fromList(final List<Float> floats) {
         if (floats.isEmpty()) return new FloatRange(0.0F);
-        float min = floats.get(0);
+        float min = floats.getFirst();
         float max = min;
         for (int i = 1; i < floats.size(); i++) {
             final float n = floats.get(i);
