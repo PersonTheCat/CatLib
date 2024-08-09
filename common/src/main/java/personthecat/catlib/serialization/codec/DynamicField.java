@@ -3,14 +3,16 @@ package personthecat.catlib.serialization.codec;
 import com.mojang.serialization.Codec;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 @SuppressWarnings("unused")
 public class DynamicField<B, R, T> {
     final @Nullable Codec<T> codec;
-    final @Nullable Predicate<T> outputFilter;
+    final @Nullable BiPredicate<R, T> outputFilter;
     final String key;
     final Function<R, T> getter;
     final BiConsumer<B, T> setter;
@@ -39,7 +41,7 @@ public class DynamicField<B, R, T> {
             final Function<R, T> getter,
             final BiConsumer<B, T> setter,
             final Type type,
-            final @Nullable Predicate<T> outputFilter) {
+            final @Nullable BiPredicate<R, T> outputFilter) {
         this.codec = codec;
         this.outputFilter = outputFilter;
         this.key = key;
@@ -85,12 +87,24 @@ public class DynamicField<B, R, T> {
         return this.setter;
     }
 
-    public @Nullable Predicate<T> getOutputFilter() {
+    public @Nullable BiPredicate<R, T> getOutputFilter() {
         return this.outputFilter;
     }
 
     public DynamicField<B, R, T> withOutputFilter(final Predicate<T> filter) {
+        return this.withOutputFilter((r, t) -> filter.test(t));
+    }
+
+    public DynamicField<B, R, T> withOutputFilter(final BiPredicate<R, T> filter) {
         return new DynamicField<>(this.codec, this.key, this.getter, this.setter, this.type, filter);
+    }
+
+    public DynamicField<B, R, T> ignoring(final R reader) {
+        return this.withOutputFilter(t -> !Objects.equals(t, this.getter.apply(reader)));
+    }
+
+    public DynamicField<B, R, T> ignoringValue(final T value) {
+        return this.withOutputFilter(t -> !Objects.equals(t, value));
     }
 
     public boolean isImplicit() {

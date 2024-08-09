@@ -11,8 +11,8 @@ import personthecat.catlib.exception.UnreachableException;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -80,6 +80,22 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
         return new DynamicCodec<>(this.builder, this.in, this.out, ImmutableMap.copyOf(map));
     }
 
+    public final DynamicCodec<B, R, A> ignoring(final R reader) {
+        final ImmutableMap.Builder<String, DynamicField<B, R, ?>> applied = ImmutableMap.builder();
+        this.fields.forEach((key, field) -> applied.put(key, field.ignoring(reader)));
+        return new DynamicCodec<>(this.builder, this.in, this.out, applied.build());
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public final DynamicCodec<B, R, A> applyFilters(final Function<String, BiPredicate<R, Object>> filterGetter) {
+        final ImmutableMap.Builder<String, DynamicField<B, R, ?>> applied = ImmutableMap.builder();
+        this.fields.forEach((key, field) -> {
+            final BiPredicate<R, ?> filter = filterGetter.apply(key);
+            applied.put(key, filter != null ? field.withOutputFilter((BiPredicate) filter) : field);
+        });
+        return new DynamicCodec<>(this.builder, this.in, this.out, applied.build());
+    }
+
     private static <B, R> Map<String, DynamicField<B, R, ?>> createMap(final DynamicField<B, R, ?>[] fields) {
         final ImmutableMap.Builder<String, DynamicField<B, R, ?>> map = ImmutableMap.builder();
         for (final DynamicField<B, R, ?> field : fields) {
@@ -115,8 +131,8 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
             if (value == null) {
                 continue;
             }
-            final Predicate<Object> filter = (Predicate<Object>) field.outputFilter;
-            if (filter != null && !filter.test(value)) {
+            final BiPredicate<R, Object> filter = (BiPredicate<R, Object>) field.outputFilter;
+            if (filter != null && !filter.test(reader, value)) {
                 continue;
             }
             Codec<Object> type = (Codec<Object>) field.codec;
