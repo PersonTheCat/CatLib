@@ -1014,6 +1014,129 @@ public class JsonTransformer {
         }
 
         /**
+         * Collapses int arrays in the matching objects, so they are formatted nicely.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: [
+         *       1
+         *       2
+         *       3
+         *     ]
+         *   }
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: [ 1, 2, 3 ]
+         *   }
+         * }</pre>
+         *
+         * @param maxLength The max length before the array is forcibly de-collapsed
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver collapseNumberArrays(final int maxLength) {
+            updates.add(new ArrayCollapser(this, k -> true,
+                a -> a.size() < maxLength && a.stream().allMatch(JsonValue::isNumber)));
+            return this;
+        }
+
+        /**
+         * Collapses string arrays in the matching objects, so they are formatted nicely.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: [
+         *       'x'
+         *       'y'
+         *       'z'
+         *     ]
+         *   }
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: [ 'x', 'y', 'z' ]
+         *   }
+         * }</pre>
+         *
+         * @param maxLength The max length before the array is forcibly de-collapsed
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver collapseStringArrays(final int maxLength) {
+            updates.add(new ArrayCollapser(this, k -> true,
+                a -> a.size() < maxLength && a.stream().allMatch(JsonValue::isString)));
+            return this;
+        }
+
+        /**
+         * Collapses string arrays in the matching objects, so they are formatted nicely.
+         * This variant accepts a string length which much also match.
+         * <p>
+         *   For example, when given the following JSON data:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: [ 'assume this.length > wrapLength' ]
+         *   }
+         * }</pre>
+         * <p>
+         *   The object will be transformed as follows:
+         * </p>
+         * <pre>{@code
+         *   {
+         *     a: [
+         *       'assume this.length > wrapLength'
+         *     ]
+         *   }
+         * }</pre>
+         *
+         * @param maxLength The max length before the array is forcibly de-collapsed
+         * @param wrapLength The max length of the individual strings before de-collapsing
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver collapseStringArrays(final int maxLength, final int wrapLength) {
+            updates.add(new ArrayCollapser(this, k -> true,
+                a -> a.size() < maxLength && a.stream().allMatch(
+                    v -> v.isString() && v.asString().length() < wrapLength)));
+            return this;
+        }
+
+        /**
+         * Collapses string arrays in the matching objects, so they are formatted nicely.
+         * This variant accepts a predicate of the array which must match.
+         *
+         * @param arrayPredicate The condition on which to collapse any array.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver collapseArrays(final Predicate<JsonArray> arrayPredicate) {
+            updates.add(new ArrayCollapser(this, k -> true, arrayPredicate));
+            return this;
+        }
+
+        /**
+         * Collapses string arrays in the matching objects, so they are formatted nicely.
+         * This variant accepts a predicate of the array which must match, as well as the
+         * specific key being matched.
+         *
+         * @param key The name of the array being matched.
+         * @param arrayPredicate The condition on which to collapse any array.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver collapseArrays(final String key, final Predicate<JsonArray> arrayPredicate) {
+            updates.add(new ArrayCollapser(this, key::equals, arrayPredicate));
+            return this;
+        }
+
+        /**
          * Recursively provides default values in the matching objects. Existing values will
          * not be replaced by this transformer.
          * <p>
@@ -1844,6 +1967,36 @@ public class JsonTransformer {
         private void sort(final JsonObject json) {
             final JsonObject sorted = json.stream().sorted(comparator).collect(JsonCollectors.member());
             json.clear().addAll(sorted);
+        }
+    }
+
+    public static class ArrayCollapser implements Updater {
+
+        final ObjectResolver resolver;
+        final Predicate<String> keyPredicate;
+        final Predicate<JsonArray> arrayPredicate;
+
+        private ArrayCollapser(
+                final ObjectResolver resolver,
+                final Predicate<String> keyPredicate,
+                final Predicate<JsonArray> arrayPredicate) {
+            this.resolver = resolver;
+            this.keyPredicate = keyPredicate;
+            this.arrayPredicate = arrayPredicate;
+        }
+
+        @Override
+        public void update(JsonObject json) {
+            for (final JsonObject.Member m : json) {
+                if (m.getValue().isArray() && this.keyPredicate.test(m.getKey())) {
+                    final JsonArray array = m.getValue().asArray();
+                    if (this.arrayPredicate.test(array)) {
+                        array.condense();
+                    } else {
+                        array.forEach(v -> v.setLinesAbove(1));
+                    }
+                }
+            }
         }
     }
 
