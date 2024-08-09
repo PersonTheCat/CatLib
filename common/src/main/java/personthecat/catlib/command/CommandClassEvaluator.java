@@ -56,6 +56,7 @@ public class CommandClassEvaluator {
     private static final String COULD_NOT_INVOKE = "catlib.errorText.noInvoke";
     private static final String MISSING_COMPILE_ARG = "catlib.errorText.missingCompileArg";
     private static final String COMMAND_NODE = "catlib.errorText.commandNode";
+    private static final String MISC_NODE = "catlib.errorText.node";
     private static final String LIST_NODE = "catlib.errorText.listNode";
     private static final String DISPLAY_NODE = "catlib.errorText.displayNode";
 
@@ -288,7 +289,7 @@ public class CommandClassEvaluator {
         } else if (node != null) {
             return this.createArgFromNode(node);
         }
-        throw new InvalidListNodeException(this.getName(param));
+        throw new InvalidNodeException(this.getName(param));
     }
 
     private void addArgsFromBranch(Map<String, ParsedNode> entries, Node[] branch) {
@@ -559,10 +560,10 @@ public class CommandClassEvaluator {
         }
     }
 
-    private static class InvalidListNodeException extends FormattedException {
-        private final String name;
+    private static class InvalidNodeException extends FormattedException {
+        protected final String name;
 
-        InvalidListNodeException(String name) {
+        InvalidNodeException(String name) {
             super(COMMAND_NODE);
             this.name = name;
         }
@@ -579,12 +580,23 @@ public class CommandClassEvaluator {
 
         @Override
         public @Nullable Component getTooltip() {
-            return Component.translatable(LIST_NODE, this.name);
+            return Component.translatable(MISC_NODE, this.name);
         }
 
         @Override
         public @NotNull Component getTitleMessage() {
             return Component.translatable(COMMAND_NODE, this.name);
+        }
+    }
+
+    private static class InvalidListNodeException extends InvalidNodeException {
+        InvalidListNodeException(String name) {
+            super(name);
+        }
+
+        @Override
+        public @Nullable Component getTooltip() {
+            return Component.translatable(LIST_NODE, this.name);
         }
     }
 }
