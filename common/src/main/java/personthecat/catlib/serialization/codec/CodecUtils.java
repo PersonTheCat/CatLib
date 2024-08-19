@@ -88,6 +88,11 @@ public class CodecUtils {
         );
     }
 
+    @SafeVarargs
+    public static <T> SimpleAnyCodec<T> simpleAny(final Codec<T> first, final Codec<T>... others) {
+        return new SimpleAnyCodec<>(first, others);
+    }
+
     public static <T> SimpleEitherCodec<T> simpleEither(final Codec<T> first, final Codec<T> second) {
         return new SimpleEitherCodec<>(first, second);
     }
