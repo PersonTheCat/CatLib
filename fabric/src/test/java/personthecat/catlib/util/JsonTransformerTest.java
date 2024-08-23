@@ -27,7 +27,7 @@ public final class JsonTransformerTest {
         final List<JsonObject> resolved = JsonTransformer.root().collect(subject);
 
         assertEquals(1, resolved.size());
-        assertSame(subject, resolved.get(0));
+        assertSame(subject, resolved.getFirst());
     }
 
     @Test
@@ -71,7 +71,7 @@ public final class JsonTransformerTest {
             JsonTransformer.containing("b", JsonValue::isNumber).collect(subject);
 
         assertEquals(1, resolved.size());
-        assertEquals(1, resolved.get(0).getAsserted("b").asInt());
+        assertEquals(1, resolved.getFirst().getAsserted("b").asInt());
     }
 
     @Test
@@ -90,7 +90,7 @@ public final class JsonTransformerTest {
             JsonTransformer.matching(null, (k, o) -> "a".equals(k)).collect(subject);
 
         assertEquals(1, resolved.size());
-        assertEquals(1, resolved.get(0).getAsserted("x").asInt());
+        assertEquals(1, resolved.getFirst().getAsserted("x").asInt());
     }
 
     @Test
@@ -290,6 +290,56 @@ public final class JsonTransformerTest {
     }
 
     @Test
+    public void collapseArrays_collapsesMatchingArrays() {
+        final JsonObject transformed = parseFormatted("a:[\n1\n],b:[\n2\n]");
+        assertEquals(1, transformed.getAsserted("a").asArray().get(0).getLinesAbove());
+
+        JsonTransformer.root().collapseArrays("a", array -> true).updateAll(transformed);
+        assertEquals(0, transformed.getAsserted("a").asArray().get(0).getLinesAbove());
+        assertEquals(1, transformed.getAsserted("b").asArray().get(0).getLinesAbove());
+    }
+
+    @Test
+    public void collapseNumberArrays_collapsesNumberArrays() {
+        final JsonObject transformed = parseFormatted("a:[\n1\n],b:[\n'x'\n]");
+        assertEquals(1, transformed.getAsserted("a").asArray().get(0).getLinesAbove());
+
+        JsonTransformer.root().collapseNumberArrays(3).updateAll(transformed);
+        assertEquals(0, transformed.getAsserted("a").asArray().get(0).getLinesAbove());
+        assertEquals(1, transformed.getAsserted("b").asArray().get(0).getLinesAbove());
+    }
+
+    @Test
+    public void collapseNumberArrays_whenSizeIsGreaterThanLength_doesNotCollapse() {
+        final JsonObject transformed = parseFormatted("a:[\n1\n],b:[\n2,\n3\n]");
+        assertEquals(1, transformed.getAsserted("a").asArray().get(0).getLinesAbove());
+
+        JsonTransformer.root().collapseNumberArrays(1).updateAll(transformed);
+        assertEquals(0, transformed.getAsserted("a").asArray().get(0).getLinesAbove());
+        assertEquals(1, transformed.getAsserted("b").asArray().get(0).getLinesAbove());
+    }
+
+    @Test
+    public void collapseStringArrays_collapsesStringArrays() {
+        final JsonObject transformed = parseFormatted("a:[\n'x'\n],b:[\n1\n]");
+        assertEquals(1, transformed.getAsserted("a").asArray().get(0).getLinesAbove());
+
+        JsonTransformer.root().collapseStringArrays(3).updateAll(transformed);
+        assertEquals(0, transformed.getAsserted("a").asArray().get(0).getLinesAbove());
+        assertEquals(1, transformed.getAsserted("b").asArray().get(0).getLinesAbove());
+    }
+
+    @Test
+    public void collapseStringArrays_whenSizeIsGreaterThanLength_doesNotCollapse() {
+        final JsonObject transformed = parseFormatted("a:[\n'x'\n],b:[\n'y',\n'z'\n]");
+        assertEquals(1, transformed.getAsserted("a").asArray().get(0).getLinesAbove());
+
+        JsonTransformer.root().collapseStringArrays(1).updateAll(transformed);
+        assertEquals(0, transformed.getAsserted("a").asArray().get(0).getLinesAbove());
+        assertEquals(1, transformed.getAsserted("b").asArray().get(0).getLinesAbove());
+    }
+
+    @Test
     public void parentTransformer_appliesNestedTransformations() {
         final JsonObject transformed = parse("a:1");
         final ObjectResolver nested = JsonTransformer.root().history("a", "b");
@@ -307,5 +357,9 @@ public final class JsonTransformerTest {
 
     private static JsonObject parse(final String json) {
         return Json.parse(json).unformatted().asObject();
+    }
+
+    private static JsonObject parseFormatted(final String json) {
+        return Json.parse(json).asObject();
     }
 }

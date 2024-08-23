@@ -33,6 +33,11 @@ public class DummyGameProvider extends MinecraftGameProvider {
         log.info("Finished bootstrapping registries in {}", sw);
     }
 
+    @Override
+    public boolean isObfuscated() {
+        return false;
+    }
+
     public static class Delegate {
 
         @SuppressWarnings("unused")

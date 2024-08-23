@@ -1027,7 +1027,7 @@ public class JsonTransformer {
          */
         public final ObjectResolver collapseNumberArrays(final int maxLength) {
             return this.add(new ArrayCollapser(k -> true,
-                a -> a.size() < maxLength && a.stream().allMatch(JsonValue::isNumber)));
+                a -> a.size() <= maxLength && a.stream().allMatch(JsonValue::isNumber)));
         }
 
         /**
@@ -1058,7 +1058,7 @@ public class JsonTransformer {
          */
         public final ObjectResolver collapseStringArrays(final int maxLength) {
             return this.add(new ArrayCollapser(k -> true,
-                a -> a.size() < maxLength && a.stream().allMatch(JsonValue::isString)));
+                a -> a.size() <= maxLength && a.stream().allMatch(JsonValue::isString)));
         }
 
         /**
@@ -1559,7 +1559,7 @@ public class JsonTransformer {
         }
     }
 
-    public record PathCollapseHelper(String inner, String outer) implements UniformUpdater {
+    public record PathCollapseHelper(String outer, String inner) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
