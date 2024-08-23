@@ -12,6 +12,6 @@ public class MojangRegistryHandleImpl {
             ResourceKey<? extends Registry<T>> key, String modId, ResourceLocation id, V v) {
         final Registry<T> registry = (Registry<T>) BuiltInRegistries.REGISTRY.get((ResourceKey) key);
         if (registry == null) throw new IllegalArgumentException("Unknown registry key: " + key);
-        Registry.register(registry, modId, v);
+        Registry.register(registry, id, v);
     }
 }
