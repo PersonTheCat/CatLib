@@ -13,7 +13,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <h1>&#064ModCommand</h1>
+ * <h1>@ModCommand</h1>
  * <p>
  *   Indicates that a method should be passed into the registration context as
  *   the body of a command. Annotated methods can be virtual or static, and may
