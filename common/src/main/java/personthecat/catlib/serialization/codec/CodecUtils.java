@@ -89,7 +89,7 @@ public class CodecUtils {
     }
 
     @SafeVarargs
-    public static <T> SimpleAnyCodec<T> simpleAny(final Codec<T> first, final Codec<T>... others) {
+    public static <T> SimpleAnyCodec<T> simpleAny(final Codec<? extends T> first, final Codec<? extends T>... others) {
         return new SimpleAnyCodec<>(first, others);
     }
 
