@@ -359,8 +359,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver include(final ObjectResolver transformer) {
-            updates.add(new NestedTransformer(transformer));
-            return this;
+            return this.add(new NestedTransformer(transformer));
         }
 
         /**
@@ -397,8 +396,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver include(final String path, final ObjectResolver transformer) {
-            updates.add(new NestedTransformer(withPath(path).include(transformer)));
-            return this;
+            return this.add(new NestedTransformer(withPath(path).include(transformer)));
         }
 
         /**
@@ -420,8 +418,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver history(final String... names) {
-            updates.add(new RenameHistory(this, names));
-            return this;
+            return this.add(new RenameHistory(names));
         }
 
         /**
@@ -460,8 +457,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver collapse(final String outer, final String inner) {
-            updates.add(new PathCollapseHelper(this, outer, inner));
-            return this;
+            return this.add(new PathCollapseHelper(outer, inner));
         }
 
         /**
@@ -486,8 +482,7 @@ public class JsonTransformer {
          */
         public final ObjectResolver toRange(final String minKey, final Number minDefault, final String maxKey,
                                             final Number maxDefault, final String newKey) {
-            updates.add(new RangeConverter(this, minKey, minDefault, maxKey, maxDefault, newKey));
-            return this;
+            return this.add(new RangeConverter(minKey, minDefault, maxKey, maxDefault, newKey));
         }
 
         /**
@@ -499,8 +494,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver markRemoved(final String key, final String version) {
-            updates.add(new RemovedFieldNotifier(this, key, version));
-            return this;
+            return this.add(new RemovedFieldNotifier(key, version));
         }
 
         /**
@@ -547,8 +541,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver renameValue(final String key, final String from, final String to) {
-            updates.add(new FieldRenameHelper(this, key, from, to));
-            return this;
+            return this.add(new FieldRenameHelper(key, from, to));
         }
 
         /**
@@ -583,8 +576,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver transform(final String key, final MemberTransformation transformation) {
-            updates.add(new MemberTransformationHelper(this, key, transformation));
-            return this;
+            return this.add(new MemberTransformationHelper(key, transformation));
         }
 
         /**
@@ -621,8 +613,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver ifPresent(final String key, final BiConsumer<JsonObject, JsonValue> f) {
-            updates.add(new MemberPredicateHelper(this, key, f));
-            return this;
+            return this.add(new MemberPredicateHelper(key, f));
         }
 
         /**
@@ -658,8 +649,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver ifPresent(final String key, final Consumer<JsonObject> f) {
-            updates.add(new MemberPredicateHelper(this, key, (j, v) -> f.accept(j)));
-            return this;
+            return this.add(new MemberPredicateHelper(key, (j, v) -> f.accept(j)));
         }
 
         /**
@@ -699,8 +689,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver moveArray(final String from, final String to) {
-            updates.add(new ArrayCopyHelper(this, from, to));
-            return this;
+            return this.add(new ArrayCopyHelper(from, to));
         }
 
         /**
@@ -792,7 +781,7 @@ public class JsonTransformer {
          * @return This, for method, chaining.
          */
         public final ObjectResolver relocate(final String from, final String to) {
-            return relocate(from, to, true);
+            return this.relocate(from, to, true);
         }
 
         /**
@@ -847,8 +836,7 @@ public class JsonTransformer {
          * @return This, for method, chaining.
          */
         public final ObjectResolver relocate(final String from, final String to, final boolean merge) {
-            updates.add(new FieldRelocator(this, from, to, merge));
-            return this;
+            return this.add(new FieldRelocator(from, to, merge));
         }
 
         /**
@@ -932,8 +920,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver reorder(final Collection<String> first, final Collection<String> last) {
-            updates.add(new StrictFieldOrganizer(this, first, last));
-            return this;
+            return this.add(new StrictFieldOrganizer(first, last));
         }
 
         /**
@@ -1009,8 +996,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver sort(final Comparator<JsonObject.Member> comparator) {
-            updates.add(new FieldSorter(this, comparator));
-            return this;
+            return this.add(new FieldSorter(comparator));
         }
 
         /**
@@ -1040,9 +1026,8 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver collapseNumberArrays(final int maxLength) {
-            updates.add(new ArrayCollapser(this, k -> true,
+            return this.add(new ArrayCollapser(k -> true,
                 a -> a.size() < maxLength && a.stream().allMatch(JsonValue::isNumber)));
-            return this;
         }
 
         /**
@@ -1072,9 +1057,8 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver collapseStringArrays(final int maxLength) {
-            updates.add(new ArrayCollapser(this, k -> true,
+            return this.add(new ArrayCollapser(k -> true,
                 a -> a.size() < maxLength && a.stream().allMatch(JsonValue::isString)));
-            return this;
         }
 
         /**
@@ -1104,10 +1088,9 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver collapseStringArrays(final int maxLength, final int wrapLength) {
-            updates.add(new ArrayCollapser(this, k -> true,
+            return this.add(new ArrayCollapser(k -> true,
                 a -> a.size() < maxLength && a.stream().allMatch(
                     v -> v.isString() && v.asString().length() < wrapLength)));
-            return this;
         }
 
         /**
@@ -1118,8 +1101,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver collapseArrays(final Predicate<JsonArray> arrayPredicate) {
-            updates.add(new ArrayCollapser(this, k -> true, arrayPredicate));
-            return this;
+            return this.add(new ArrayCollapser(k -> true, arrayPredicate));
         }
 
         /**
@@ -1132,8 +1114,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver collapseArrays(final String key, final Predicate<JsonArray> arrayPredicate) {
-            updates.add(new ArrayCollapser(this, key::equals, arrayPredicate));
-            return this;
+            return this.add(new ArrayCollapser(key::equals, arrayPredicate));
         }
 
         /**
@@ -1175,8 +1156,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver setDefaults(final JsonObject defaults) {
-            updates.add(new DefaultFieldProvider(this, defaults));
-            return this;
+            return this.add(new DefaultFieldProvider(defaults));
         }
 
         /**
@@ -1333,7 +1313,17 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver remove(final String key, @Nullable final JsonValue value) {
-            updates.add(new FieldRemover(this, key, value));
+            return this.add(new FieldRemover(key, value));
+        }
+
+        /**
+         * Adds any arbitrary updater to the list of updates.
+         *
+         * @param updater The object responsible for modifying json values.
+         * @return This, for method chaining.
+         */
+        public final ObjectResolver add(final Updater updater) {
+            this.updates.add(updater);
             return this;
         }
 
@@ -1344,7 +1334,7 @@ public class JsonTransformer {
          * @return This, for method chaining.
          */
         public final ObjectResolver run(final Consumer<JsonObject> fn) {
-            updates.add(new SimpleFunctionRunner(this, fn));
+            updates.add(new SimpleFunctionRunner(fn));
             return this;
         }
 
@@ -1365,7 +1355,7 @@ public class JsonTransformer {
          */
         public final void updateAll(final JsonObject json) {
             for (final Updater update : updates) {
-                update.update(json);
+                update.update(this, json);
             }
         }
 
@@ -1533,37 +1523,30 @@ public class JsonTransformer {
     }
 
     public interface Updater {
+        void update(final ObjectResolver resolver, final JsonObject json);
+    }
+
+    public interface UniformUpdater extends Updater {
         void update(final JsonObject json);
-    }
-
-    public static class NestedTransformer implements Updater {
-        private final ObjectResolver resolver;
-
-        private NestedTransformer(final ObjectResolver resolver) {
-            this.resolver = resolver;
-        }
 
         @Override
-        public void update(final JsonObject json) {
-            resolver.updateAll(json);
+        default void update(final ObjectResolver resolver, final JsonObject json) {
+            resolver.forEach(json, this::update);
         }
     }
 
-    public static class RenameHistory implements Updater {
-        private final ObjectResolver resolver;
-        private final String[] history;
+    public record NestedTransformer(ObjectResolver nested) implements Updater {
 
-        private RenameHistory(final ObjectResolver resolver, final String[] history) {
-            this.resolver = resolver;
-            this.history = history;
+        @Override
+        public void update(final ObjectResolver resolver, final JsonObject json) {
+            this.nested.updateAll(json);
         }
+    }
+
+    public record RenameHistory(String[] history) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::renameFields);
-        }
-
-        private void renameFields(final JsonObject json) {
             final String current = history[history.length - 1];
             for (int i = 0; i < history.length - 1; i++) {
                 final String key = history[i];
@@ -1576,23 +1559,10 @@ public class JsonTransformer {
         }
     }
 
-    public static class PathCollapseHelper implements Updater {
-        private final ObjectResolver resolver;
-        private final String outer;
-        private final String inner;
-
-        private PathCollapseHelper(final ObjectResolver resolver, final String outer, final String inner) {
-            this.resolver = resolver;
-            this.outer = outer;
-            this.inner = inner;
-        }
+    public record PathCollapseHelper(String inner, String outer) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::collapse);
-        }
-
-        private void collapse(final JsonObject json) {
             final JsonValue outerValue = json.get(outer);
             if (outerValue != null && outerValue.isObject()) {
                 final JsonValue innerValue = outerValue.asObject().get(inner);
@@ -1603,31 +1573,11 @@ public class JsonTransformer {
         }
     }
 
-    public static class RangeConverter implements Updater {
-
-        private final ObjectResolver resolver;
-        private final String minKey;
-        private final Number minDefault;
-        private final String maxKey;
-        private final Number maxDefault;
-        private final String newKey;
-
-        private RangeConverter(final ObjectResolver resolver, final String minKey, final Number minDefault,
-                               final String maxKey, final Number maxDefault, final String newKey) {
-            this.resolver = resolver;
-            this.minKey = minKey;
-            this.minDefault = minDefault;
-            this.maxKey = maxKey;
-            this.maxDefault = maxDefault;
-            this.newKey = newKey;
-        }
+    public record RangeConverter(
+            String minKey, Number minDefault, String maxKey, Number maxDefault, String newKey) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::convert);
-        }
-
-        private void convert(final JsonObject json) {
             if (json.has(minKey) || json.has(maxKey)) {
                 if (minDefault instanceof Double || minDefault instanceof Float) {
                     final float min = json.getOptional(minKey, JsonValue::asFloat).orElse(minDefault.floatValue());
@@ -1658,23 +1608,10 @@ public class JsonTransformer {
         }
     }
 
-    public static class RemovedFieldNotifier implements Updater {
-        private final ObjectResolver resolver;
-        private final String key;
-        private final String version;
-
-        private RemovedFieldNotifier(final ObjectResolver resolver, final String key, final String version) {
-            this.resolver = resolver;
-            this.key = key;
-            this.version = version;
-        }
+    public record RemovedFieldNotifier(String key, String version) implements UniformUpdater {
 
         @Override
         public void update(JsonObject json) {
-            resolver.forEach(json, this::markRemoved);
-        }
-
-        private void markRemoved(JsonObject json) {
             final JsonValue value = json.get(key);
             if (value != null) {
                 json.setLineLength(1);
@@ -1683,25 +1620,10 @@ public class JsonTransformer {
         }
     }
 
-    public static class FieldRenameHelper implements Updater {
-        private final ObjectResolver resolver;
-        private final String key;
-        private final String from;
-        private final String to;
-
-        private FieldRenameHelper(final ObjectResolver resolver, final String key, final String from, final String to) {
-            this.resolver = resolver;
-            this.key = key;
-            this.from = from;
-            this.to = to;
-        }
+    public record FieldRenameHelper(String key, String from, String to) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::renameValue);
-        }
-
-        private void renameValue(final JsonObject json) {
             final JsonValue value = json.get(key);
             if (value != null && value.isString() && from.equalsIgnoreCase(value.asString())) {
                 json.set(key, to);
@@ -1714,24 +1636,11 @@ public class JsonTransformer {
         Pair<String, JsonValue> transform(final String name, final JsonValue value);
     }
 
-    public static class MemberTransformationHelper implements Updater {
-        private final ObjectResolver resolver;
-        private final String key;
-        private final MemberTransformation transformation;
-
-        private MemberTransformationHelper(final ObjectResolver resolver, final String key,
-                                           final MemberTransformation transformation) {
-            this.resolver = resolver;
-            this.key = key;
-            this.transformation = transformation;
-        }
+    public record MemberTransformationHelper(
+            String key, MemberTransformation transformation) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::transform);
-        }
-
-        private void transform(final JsonObject json) {
             final JsonValue value = json.get(key);
             if (value != null) {
                 final Pair<String, JsonValue> updated = transformation.transform(key, value);
@@ -1741,24 +1650,11 @@ public class JsonTransformer {
         }
     }
 
-    public static class MemberPredicateHelper implements Updater {
-        private final ObjectResolver resolver;
-        private final String key;
-        private final BiConsumer<JsonObject, JsonValue> ifPresent;
-
-        private MemberPredicateHelper(final ObjectResolver resolver, final String key,
-                                      final BiConsumer<JsonObject, JsonValue> ifPresent) {
-            this.resolver = resolver;
-            this.key = key;
-            this.ifPresent = ifPresent;
-        }
+    public record MemberPredicateHelper(
+            String key, BiConsumer<JsonObject, JsonValue> ifPresent) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::test);
-        }
-
-        private void test(final JsonObject json) {
             final JsonValue value = json.get(key);
             if (value != null) {
                 ifPresent.accept(json, value);
@@ -1766,23 +1662,10 @@ public class JsonTransformer {
         }
     }
 
-    public static class ArrayCopyHelper implements Updater {
-        private final ObjectResolver resolver;
-        private final String from;
-        private final String to;
-
-        private ArrayCopyHelper(final ObjectResolver resolver, final String from, final String to) {
-            this.resolver = resolver;
-            this.from = from;
-            this.to = to;
-        }
+    public record ArrayCopyHelper(String from, String to) implements UniformUpdater {
 
         @Override
         public void update(JsonObject json) {
-            resolver.forEach(json, this::copy);
-        }
-
-        private void copy(final JsonObject json) {
             final JsonValue source = json.get(from);
             if (source != null) {
                 final JsonArray array = XjsUtils.getOrCreateArray(json, to);
@@ -1794,26 +1677,14 @@ public class JsonTransformer {
         }
     }
 
-    public static class FieldRelocator implements Updater {
+    public record FieldRelocator(String[] from, String[] to, boolean merge) implements UniformUpdater {
 
-        private final ObjectResolver resolver;
-        private final String[] from;
-        private final String[] to;
-        private final boolean merge;
-
-        private FieldRelocator(final ObjectResolver resolver, final String from, final String to, final boolean merge) {
-            this.resolver = resolver;
-            this.from = from.split("\\.");
-            this.to = to.split("\\.");
-            this.merge = merge;
+        public FieldRelocator(final String from, final String to, final boolean merge) {
+            this(from.split("\\."), to.split("\\."), merge);
         }
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::relocate);
-        }
-
-        private void relocate(final JsonObject json) {
             final JsonValue toMove = this.resolve(json);
             if (toMove == null) return;
 
@@ -1908,24 +1779,10 @@ public class JsonTransformer {
         }
     }
 
-    public static class StrictFieldOrganizer implements Updater {
-
-        final ObjectResolver resolver;
-        final Collection<String> first;
-        final Collection<String> last;
-
-        private StrictFieldOrganizer(final ObjectResolver resolver, final Collection<String> first, final Collection<String> last) {
-            this.resolver = resolver;
-            this.first = first;
-            this.last = last;
-        }
+    public record StrictFieldOrganizer(Collection<String> first, Collection<String> last) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::reorder);
-        }
-
-        private void reorder(final JsonObject json) {
             final JsonObject clone = new JsonObject().addAll(json);
             final JsonObject firstValues = drain(clone, first);
             final JsonObject lastValues = drain(clone, last);
@@ -1949,41 +1806,17 @@ public class JsonTransformer {
         }
     }
 
-    public static class FieldSorter implements Updater {
-
-        final ObjectResolver resolver;
-        final Comparator<JsonObject.Member> comparator;
-
-        private FieldSorter(final ObjectResolver resolver, final Comparator<JsonObject.Member> comparator) {
-            this.resolver = resolver;
-            this.comparator = comparator;
-        }
+    public record FieldSorter(Comparator<JsonObject.Member> comparator) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::sort);
-        }
-
-        private void sort(final JsonObject json) {
             final JsonObject sorted = json.stream().sorted(comparator).collect(JsonCollectors.member());
             json.clear().addAll(sorted);
         }
     }
 
-    public static class ArrayCollapser implements Updater {
-
-        final ObjectResolver resolver;
-        final Predicate<String> keyPredicate;
-        final Predicate<JsonArray> arrayPredicate;
-
-        private ArrayCollapser(
-                final ObjectResolver resolver,
-                final Predicate<String> keyPredicate,
-                final Predicate<JsonArray> arrayPredicate) {
-            this.resolver = resolver;
-            this.keyPredicate = keyPredicate;
-            this.arrayPredicate = arrayPredicate;
-        }
+    public record ArrayCollapser(
+            Predicate<String> keyPredicate, Predicate<JsonArray> arrayPredicate) implements UniformUpdater {
 
         @Override
         public void update(JsonObject json) {
@@ -2000,63 +1833,29 @@ public class JsonTransformer {
         }
     }
 
-    public static class DefaultFieldProvider implements Updater {
-
-        final ObjectResolver resolver;
-        final JsonObject defaults;
-
-        private DefaultFieldProvider(final ObjectResolver resolver, final JsonObject defaults) {
-            this.resolver = resolver;
-            this.defaults = defaults;
-        }
+    public record DefaultFieldProvider(JsonObject defaults) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::setDefaults);
-        }
-
-        private void setDefaults(final JsonObject json) {
             json.setDefaults(this.defaults);
         }
     }
 
-    public static class FieldRemover implements Updater {
-
-        final ObjectResolver resolver;
-        final String key;
-        @Nullable final JsonValue value;
-
-        private FieldRemover(final ObjectResolver resolver, final String key, @Nullable final JsonValue value) {
-            this.resolver = resolver;
-            this.key = key;
-            this.value = value;
-        }
+    public record FieldRemover(String key, @Nullable JsonValue value) implements UniformUpdater {
 
         @Override
         public void update(final JsonObject json) {
-            resolver.forEach(json, this::remove);
-        }
-
-        private void remove(final JsonObject json) {
             if (this.value == null || this.value.equals(json.get(this.key))) {
                 json.remove(this.key);
             }
         }
     }
 
-    public static class SimpleFunctionRunner implements Updater {
-
-        final ObjectResolver resolver;
-        final Consumer<JsonObject> fn;
-
-        private SimpleFunctionRunner(final ObjectResolver resolver, final Consumer<JsonObject> fn) {
-            this.resolver = resolver;
-            this.fn = fn;
-        }
+    public record SimpleFunctionRunner(Consumer<JsonObject> fn) implements UniformUpdater {
 
         @Override
-        public void update (final JsonObject json) {
-            resolver.forEach(json, fn);
+        public void update(final JsonObject json) {
+            fn.accept(json);
         }
     }
 
