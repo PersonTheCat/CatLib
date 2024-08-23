@@ -3,6 +3,7 @@ package personthecat.catlib.serialization.codec;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Decoder;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.Encoder;
 
@@ -10,16 +11,16 @@ import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public class SimpleEitherCodec<A> implements Codec<A> {
-    private final Codec<? extends A> first;
-    private final Codec<? extends A> second;
+    private final Decoder<? extends A> first;
+    private final Decoder<? extends A> second;
     private final Function<A, Encoder<A>> encoder;
 
-    public SimpleEitherCodec(final Codec<? extends A> first, final Codec<? extends A> second) {
-        this(first, second, wrapDowncast(a -> first));
+    public SimpleEitherCodec(final Decoder<? extends A> first, final Decoder<? extends A> second) {
+        this(first, second, wrapDowncast(a -> CodecUtils.toCodecUnsafe(first)));
     }
 
     public SimpleEitherCodec(
-            final Codec<? extends A> first, final Codec<? extends A> second, final Function<A, Encoder<A>> encoder) {
+            final Decoder<? extends A> first, final Decoder<? extends A> second, final Function<A, Encoder<A>> encoder) {
         this.first = first;
         this.second = second;
         this.encoder = encoder;

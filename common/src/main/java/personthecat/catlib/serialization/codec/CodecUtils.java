@@ -3,6 +3,7 @@ package personthecat.catlib.serialization.codec;
 import com.mojang.datafixers.util.*;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Decoder;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -89,12 +90,19 @@ public class CodecUtils {
     }
 
     @SafeVarargs
-    public static <T> SimpleAnyCodec<T> simpleAny(final Codec<? extends T> first, final Codec<? extends T>... others) {
+    public static <T> SimpleAnyCodec<T> simpleAny(final Decoder<? extends T> first, final Decoder<? extends T>... others) {
         return new SimpleAnyCodec<>(first, others);
     }
 
-    public static <T> SimpleEitherCodec<T> simpleEither(final Codec<T> first, final Codec<T> second) {
+    public static <T> SimpleEitherCodec<T> simpleEither(final Decoder<T> first, final Decoder<T> second) {
         return new SimpleEitherCodec<>(first, second);
+    }
+
+    public static <T> Codec<T> toCodecUnsafe(final Decoder<T> decoder) {
+        if (decoder instanceof Codec<T> codec) {
+            return codec;
+        }
+        return Codec.of(neverCodec(), decoder);
     }
 
     public static <T> TypedCodec<T> typed(final Codec<T> codec, final Class<T> type) {
@@ -110,6 +118,11 @@ public class CodecUtils {
     @SuppressWarnings("unchecked")
     public static <T> Codec<T> asParent(final Codec<? extends T> codec) {
         return (Codec<T>) codec;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Codec<T> neverCodec() {
+        return (Codec<T>) NeverCodec.INSTANCE;
     }
 
     public static <A, T> Optional<A> readOptional(final Codec<A> codec, final DynamicOps<T> ops, final T prefix) {
@@ -401,5 +414,24 @@ public class CodecUtils {
             RecordCodecBuilder<O, T13> t13, RecordCodecBuilder<O, T14> t14, RecordCodecBuilder<O, T15> t15,
             RecordCodecBuilder<O, T16> t16, Function16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, O> f) {
         return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16).apply(i, f));
+    }
+
+    private static class NeverCodec implements Codec<Object> {
+        private static final NeverCodec INSTANCE = new NeverCodec();
+
+        @Override
+        public <T> DataResult<T> encode(final Object input, final DynamicOps<T> ops, final T prefix) {
+            return DataResult.error(() -> "Not an encoder");
+        }
+
+        @Override
+        public <T> DataResult<Pair<Object, T>> decode(final DynamicOps<T> ops, final T input) {
+            return DataResult.error(() -> "Not a decoder");
+        }
+
+        @Override
+        public String toString() {
+            return "NEVER";
+        }
     }
 }

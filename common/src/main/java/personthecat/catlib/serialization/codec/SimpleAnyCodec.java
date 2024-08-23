@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Decoder;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.Encoder;
 
@@ -14,22 +15,22 @@ import java.util.function.Function;
 @SuppressWarnings("unused")
 public class SimpleAnyCodec<A> implements Codec<A> {
     private final Function<A, Encoder<A>> encoder;
-    private final List<Codec<? extends A>> codecs;
+    private final List<Decoder<? extends A>> decoders;
 
     @SafeVarargs
-    public SimpleAnyCodec(final Codec<? extends A> first, final Codec<? extends A>... others) {
-        this(a -> first, first, others);
+    public SimpleAnyCodec(final Decoder<? extends A> first, final Decoder<? extends A>... others) {
+        this(a -> CodecUtils.toCodecUnsafe(first), first, others);
     }
 
     @SafeVarargs
     public SimpleAnyCodec(
-            final Function<A, Encoder<? extends A>> encoder, final Codec<? extends A> first, final Codec<? extends A>... others) {
-        this(encoder, ImmutableList.<Codec<? extends A>>builder().add(first).add(others).build());
+            final Function<A, Encoder<? extends A>> encoder, final Decoder<? extends A> first, final Decoder<? extends A>... others) {
+        this(encoder, ImmutableList.<Decoder<? extends A>>builder().add(first).add(others).build());
     }
 
-    private SimpleAnyCodec(final Function<A, Encoder<? extends A>> encoder, final List<Codec<? extends A>> codecs) {
+    private SimpleAnyCodec(final Function<A, Encoder<? extends A>> encoder, final List<Decoder<? extends A>> decoders) {
         this.encoder = wrapDowncast(encoder);
-        this.codecs = codecs;
+        this.decoders = decoders;
     }
 
     public SimpleAnyCodec<A> withEncoder(final Encoder<A> encoder) {
@@ -37,7 +38,7 @@ public class SimpleAnyCodec<A> implements Codec<A> {
     }
 
     public SimpleAnyCodec<A> withEncoder(final Function<A, Encoder<? extends A>> encoder) {
-        return new SimpleAnyCodec<>(encoder, this.codecs);
+        return new SimpleAnyCodec<>(encoder, this.decoders);
     }
 
     @SuppressWarnings("unchecked")
@@ -48,15 +49,15 @@ public class SimpleAnyCodec<A> implements Codec<A> {
     @Override
     public <T> DataResult<Pair<A, T>> decode(final DynamicOps<T> ops, final T input) {
         final List<String> errors = new ArrayList<>();
-        for (final Codec<? extends A> codec : this.codecs) {
-            final DataResult<Pair<A, T>> result = downcast(codec.decode(ops, input));
+        for (final Decoder<? extends A> decoder : this.decoders) {
+            final DataResult<Pair<A, T>> result = downcast(decoder.decode(ops, input));
             if (result.result().isPresent()) {
                 return result;
             }
             result.error().ifPresent(e -> errors.add(e.message()));
         }
         final StringBuilder message =
-            new StringBuilder("Fix any: [\"").append('"').append(errors.get(0)).append(",\"");
+            new StringBuilder("Fix any: [\"").append('"').append(errors.getFirst()).append(",\"");
         for (int i = 1; i < errors.size(); i++) {
             message.append('"').append(errors.get(i)).append('"');
         }
@@ -75,9 +76,9 @@ public class SimpleAnyCodec<A> implements Codec<A> {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("SimpleAny[").append(this.codecs.get(0));
-        for (int i = 1; i < this.codecs.size(); i++) {
-            sb.append('|').append(this.codecs.get(i));
+        final StringBuilder sb = new StringBuilder("SimpleAny[").append(this.decoders.get(0));
+        for (int i = 1; i < this.decoders.size(); i++) {
+            sb.append('|').append(this.decoders.get(i));
         }
         return sb.append(']').toString();
     }
