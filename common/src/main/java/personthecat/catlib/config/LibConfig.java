@@ -10,8 +10,7 @@ import xjs.data.serialization.writer.JsonWriterOptions;
 
 @Config
 public class LibConfig implements Config.Listener {
-    private static final LibConfig INSTANCE =
-        ConfigEvaluator.getAndRegister(CatLib.MOD, LibConfig.class);
+    private static final LibConfig INSTANCE = new LibConfig();
 
     @Comment("Miscellaneous settings to configure CatLib and its dependents.")
     General general = new General();
@@ -45,7 +44,7 @@ public class LibConfig implements Config.Listener {
     }
 
     public static void register() {
-        // run class init
+        ConfigEvaluator.loadAndRegister(CatLib.MOD, INSTANCE);
     }
 
     public static boolean enableCatlibCommands() {

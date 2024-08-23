@@ -29,6 +29,15 @@ public class ConfigEvaluator {
         return t;
     }
 
+    public static <T> void loadAndRegister(ModDescriptor mod, T t) {
+        loadAndRegister(mod, mod.getConfigFile(), t);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> void loadAndRegister(ModDescriptor mod, File file, T t) {
+        loadAndRegister(mod, file, (Class<T>) t.getClass(), t);
+    }
+
     private static <T> void loadAndRegister(ModDescriptor mod, File file, Class<T> clazz, T t) {
         final ConfigValue root = new SimpleValue<>(clazz, file.getName(), t, null);
         root.set(mod, null, t);
