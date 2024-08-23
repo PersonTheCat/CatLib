@@ -50,6 +50,9 @@ public class DefaultedMapCodec<A> extends MapCodec<A> {
 
     @Override
     public <T> RecordBuilder<T> encode(final A input, final DynamicOps<T> ops, final RecordBuilder<T> prefix) {
+        if (input.equals(this.defaultValue())) {
+            return prefix;
+        }
         return this.map.encode(input, ops, prefix);
     }
 
