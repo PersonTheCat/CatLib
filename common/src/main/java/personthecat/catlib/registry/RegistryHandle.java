@@ -1,5 +1,6 @@
 package personthecat.catlib.registry;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.Holder;
@@ -17,7 +18,6 @@ import personthecat.catlib.data.ModDescriptor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
@@ -51,6 +51,12 @@ public interface RegistryHandle<T> extends Iterable<T> {
         if (handle instanceof MojangRegistryHandle<T> m) { // platforms will handle other types, events, etc
             Registry.register((Registry) BuiltInRegistries.REGISTRY, (ResourceKey) m.key(), m.getRegistry());
         }
+    }
+
+    @ExpectPlatform
+    static <T> RegistryHandle<T> createDynamic(
+            final ModDescriptor mod, final ResourceKey<Registry<T>> key, final Codec<T> elementCodec) {
+        return DynamicRegistryHandle.createHandle(key); // platforms will handle events, create as data pack registry.
     }
 
     default DeferredRegister<T> createRegister(final String modId) {
