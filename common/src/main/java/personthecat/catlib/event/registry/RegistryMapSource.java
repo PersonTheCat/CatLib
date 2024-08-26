@@ -19,4 +19,9 @@ public record RegistryMapSource(Map<ResourceKey<? extends Registry<?>>, Registry
     public @Nullable <T> Registry<T> getRegistry(final ResourceKey<? extends Registry<T>> key) {
         return (Registry<T>) this.map.get(key);
     }
+
+    @Override
+    public Stream<Registry<?>> streamRegistries() {
+        return this.map.values().stream();
+    }
 }
