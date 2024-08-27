@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 // todo: Support phases
 public class FeatureModificationEvent {
@@ -55,7 +56,7 @@ public class FeatureModificationEvent {
         return forBiomes(BiomePredicate.builder().addEntries(new IdMatcher.InvertibleEntry(false, matcher)).build());
     }
 
-    public static Registrar forBiomes(final BiomePredicate predicate) {
+    public static Registrar forBiomes(final Predicate<Holder<Biome>> predicate) {
         return listener -> BIOME_EVENTS.add(new Listener(predicate, listener));
     }
 
@@ -63,5 +64,5 @@ public class FeatureModificationEvent {
         void register(final Consumer<FeatureModificationContext> listener);
     }
 
-    private record Listener(BiomePredicate predicate, Consumer<FeatureModificationContext> listener) {}
+    private record Listener(Predicate<Holder<Biome>> predicate, Consumer<FeatureModificationContext> listener) {}
 }

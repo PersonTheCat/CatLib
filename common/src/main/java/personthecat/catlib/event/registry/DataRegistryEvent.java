@@ -46,6 +46,11 @@ public class DataRegistryEvent {
                 private <T> RegistryEntry<T> createEntry(final Registry<T> registry) {
                     return new RegistryEntry<>(registry.key(), registry);
                 }
+
+                @Override
+                public @NotNull Frozen freeze() {
+                    return this;
+                }
             };
         }
     }
