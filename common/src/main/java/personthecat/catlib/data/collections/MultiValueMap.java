@@ -34,7 +34,7 @@ public interface MultiValueMap<K, V> extends Map<K, List<V>> {
      * collection will be created, if absent.
      *
      * @param k The key which the given value will be mapped to.
-     * @param v The values to be inserted for this key.
+     * @param vs The values to be inserted for this key.
      */
     default void addAll(final K k, final Collection<V> vs) {
         if (!this.containsKey(k)) {
@@ -74,7 +74,7 @@ public interface MultiValueMap<K, V> extends Map<K, List<V>> {
      * is optimized to remove the entire key from the map if the resulting list is empty.
      *
      * @param k The key which the given value is mapped to.
-     * @param v The values to be removed for this key.
+     * @param vs The values to be removed for this key.
      */
     default void removeAllNeatly(final K k, final Collection<V> vs) {
         final var list = this.get(k);

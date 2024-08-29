@@ -89,6 +89,28 @@ public class CodecUtils {
         );
     }
 
+    public static <A, S> Codec<S> xmapWithOps(
+            final Codec<A> codec,
+            final BiFunction<? super DynamicOps<?>, ? super A, ? extends S> to,
+            final BiFunction<? super DynamicOps<?>, ? super S, ? extends A> from) {
+        return new Codec<S>() {
+            @Override
+            public <T> DataResult<Pair<S, T>> decode(final DynamicOps<T> ops, final T input) {
+                return codec.decode(ops, input).map(pair -> Pair.of(to.apply(ops, pair.getFirst()), pair.getSecond()));
+            }
+
+            @Override
+            public <T> DataResult<T> encode(final S input, final DynamicOps<T> ops, final T prefix) {
+                return codec.encode(from.apply(ops, input), ops, prefix);
+            }
+
+            @Override
+            public String toString() {
+                return codec.toString() + "[xmapped]";
+            }
+        };
+    }
+
     @SafeVarargs
     public static <T> SimpleAnyCodec<T> simpleAny(final Decoder<? extends T> first, final Decoder<? extends T>... others) {
         return new SimpleAnyCodec<>(first, others);
