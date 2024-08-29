@@ -1,5 +1,6 @@
 package personthecat.catlib.registry;
 
+import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.ObjectIterators;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.core.Holder;
@@ -109,6 +110,11 @@ public record DummyRegistryHandle<T>(ResourceKey<? extends Registry<T>> key) imp
     @Override
     public Stream<T> stream() {
         return Stream.empty();
+    }
+
+    @Override
+    public Codec<T> codec() {
+        throw new UnsupportedOperationException("Tried to get codec of dummy registry -- access this codec directly!");
     }
 
     @Override

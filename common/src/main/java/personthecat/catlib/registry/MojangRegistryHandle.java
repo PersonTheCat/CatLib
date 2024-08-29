@@ -1,5 +1,6 @@
 package personthecat.catlib.registry;
 
+import com.mojang.serialization.Codec;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -141,6 +142,11 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public Stream<T> stream() {
         return this.registry.stream();
+    }
+
+    @Override
+    public Codec<T> codec() {
+        return this.registry.byNameCodec();
     }
 
     @Override

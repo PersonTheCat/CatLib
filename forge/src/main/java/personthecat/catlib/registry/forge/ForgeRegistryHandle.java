@@ -1,5 +1,6 @@
 package personthecat.catlib.registry.forge;
 
+import com.mojang.serialization.Codec;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderOwner;
@@ -137,6 +138,11 @@ public class ForgeRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public Stream<T> stream() {
         return this.registry.getValues().stream();
+    }
+
+    @Override
+    public Codec<T> codec() {
+        return this.registry.getCodec();
     }
 
     @Override

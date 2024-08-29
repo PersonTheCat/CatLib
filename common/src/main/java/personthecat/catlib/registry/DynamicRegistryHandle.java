@@ -1,5 +1,6 @@
 package personthecat.catlib.registry;
 
+import com.mojang.serialization.Codec;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
@@ -143,6 +144,11 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     @Override
     public Stream<T> stream() {
         return this.wrapped.stream();
+    }
+
+    @Override
+    public Codec<T> codec() {
+        return this.wrapped.codec();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package personthecat.catlib.serialization.codec;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapDecoder;
 import com.mojang.serialization.MapEncoder;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -64,6 +65,14 @@ public abstract class FieldDescriptor<O, T, R> {
 
     public static <O, T> Passthrough<O, T> passthrough(final RecordCodecBuilder<O, T> f) {
         return new Passthrough<>(f);
+    }
+
+    public static <O, T> FieldDescriptor<O, T, T> defaultedUnion(final MapCodec<T> codec, final Supplier<T> def, final Function<O, T> getter) {
+        return union(codec.orElseGet(def), getter);
+    }
+
+    public static <O, T> FieldDescriptor<O, T, T> union(final MapCodec<T> codec, final Function<O, T> getter) {
+        return new Passthrough<>(RecordCodecBuilder.of(getter, codec));
     }
 
     public static class Passthrough<O, T> extends FieldDescriptor<O, T, T> {

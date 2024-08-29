@@ -38,7 +38,14 @@ public interface RegistryHandle<T> extends Iterable<T> {
     Set<Map.Entry<ResourceKey<T>, T>> entrySet();
     HolderLookup<T> asLookup();
     Stream<T> stream();
+    Codec<T> codec();
     int size();
+
+    static <T> RegistryHandle<T> createAndRegister(final ModDescriptor mod, final ResourceKey<Registry<T>> key) {
+        final var handle = create(key);
+        addToRoot(mod, handle);
+        return handle;
+    }
 
     @ExpectPlatform
     static <T> RegistryHandle<T> create(final ResourceKey<Registry<T>> key) {
