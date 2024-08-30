@@ -44,7 +44,7 @@ public class DynamicRegistries {
             if (handle == null) {
                 handle = createAndRegister((ResourceKey) key);
             }
-            updateRegistry(handle, registries, (ResourceKey) key);
+            updateRegistry(handle, (Registry) entry.value());
         });
     }
 
@@ -60,9 +60,8 @@ public class DynamicRegistries {
         return handle;
     }
 
-    private static <T> void updateRegistry(final RegistryHandle<T> handle,
-            final RegistryAccess registries, final ResourceKey<? extends Registry<T>> key) {
-        ((DynamicRegistryHandle<T>) handle).updateRegistry(new MojangRegistryHandle<>(registries.registryOrThrow(key)));
+    private static <T> void updateRegistry(final RegistryHandle<T> handle, final Registry<T> registry) {
+        ((DynamicRegistryHandle<T>) handle).updateRegistry(new MojangRegistryHandle<>(registry));
     }
 
     public static ResourceKey<? extends Registry<RegistryHandle<?>>> rootKey() {

@@ -16,6 +16,7 @@ import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.event.player.CommonPlayerEvent;
+import personthecat.catlib.event.registry.DataRegistryEvent;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
@@ -45,10 +46,9 @@ public abstract class CatLib {
             LibErrorContext.error(MOD,
                 new GenericFormattedException(new RuntimeException("test error"), "tooltip working!"));
         }
-        RegistryAccessEvent.EVENT.register(access -> {
-            DynamicRegistries.updateRegistries(access);
-            RegistryAddedEvent.onRegistryAccess(access);
-        });
+        RegistryAccessEvent.EVENT.register(RegistryAddedEvent::onRegistryAccess);
+        DataRegistryEvent.PRE.register(source ->
+            DynamicRegistries.updateRegistries(source.asRegistryAccess()));
         final CommandRegistrationContext ctx = CommandRegistrationContext.forMod(MOD)
             .addCommand(CatLibCommands.ERROR_MENU);
         if (LibConfig.enableCatlibCommands()) {
