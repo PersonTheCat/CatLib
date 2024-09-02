@@ -32,7 +32,7 @@ public class BiomePredicate extends IdList<Biome> {
         ImmutableList.<IdMatcher.Info<?>>builder()
             .addAll(IdMatcher.DEFAULT_TYPES).add(TypeMatcher.INFO).build();
     public static final Codec<BiomePredicate> CODEC =
-        codecFromTypes(Registries.BIOME, TYPES, (Constructor<Biome, BiomePredicate>) BiomePredicate::new);
+        codecFromTypes(Registries.BIOME, TYPES, true, (Constructor<Biome, BiomePredicate>) BiomePredicate::new);
     public static final BiomePredicate ALL_BIOMES = builder().build();
 
     protected BiomePredicate(

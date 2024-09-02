@@ -15,19 +15,20 @@ import personthecat.catlib.data.IdMatcher.StringRepresentable;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.serialization.codec.DynamicField;
-import personthecat.catlib.serialization.codec.SimpleEitherCodec;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
 import static personthecat.catlib.serialization.codec.DynamicField.field;
 import static personthecat.catlib.serialization.codec.CodecUtils.dynamic;
 import static personthecat.catlib.serialization.codec.CodecUtils.easyList;
+import static personthecat.catlib.serialization.codec.CodecUtils.simpleAny;
 
 public class IdList<T> implements Predicate<Holder<T>> {
     protected final RegistryHandle<T> handle;
@@ -60,7 +61,7 @@ public class IdList<T> implements Predicate<Holder<T>> {
             return this.optimized;
         }
         if (this.isEmpty()) {
-            return this.blacklist ? holder -> false : holder -> true;
+            return this.blacklist ? holder -> true : holder -> false;
         }
         synchronized (this) {
             final RegistryHandle<T> handle = this.handle;
@@ -135,31 +136,46 @@ public class IdList<T> implements Predicate<Holder<T>> {
         return new Builder<>(key);
     }
 
+    public static <T> IdList<T> all(final ResourceKey<? extends Registry<T>> key) {
+        return new IdList<>(key, List.of(), true, Format.OBJECT);
+    }
+
     public static <T> Codec<IdList<T>> codecOf(final ResourceKey<? extends Registry<T>> key) {
-        return codecFromTypes(key, IdMatcher.DEFAULT_TYPES);
+        return codecOf(key, false);
+    }
+
+    public static <T> Codec<IdList<T>> codecOf(final ResourceKey<? extends Registry<T>> key, final boolean filter) {
+        return codecFromTypes(key, IdMatcher.DEFAULT_TYPES, filter);
     }
 
     public static <T> Codec<IdList<T>> codecFromTypes(
-            final ResourceKey<? extends Registry<T>> key, final List<Info<?>> types) {
-        return codecFromTypes(key, types, (Constructor<T, IdList<T>>) IdList::new);
+            final ResourceKey<? extends Registry<T>> key, final List<Info<?>> types, final boolean filter) {
+        return codecFromTypes(key, types, filter, (Constructor<T, IdList<T>>) IdList::new);
     }
 
     protected static <T, R extends IdList<T>> Codec<R> codecFromTypes(
             final ResourceKey<? extends Registry<T>> key,
             final List<Info<?>> types,
+            final boolean filter,
             final Constructor<T, R> constructor) {
-        final Codec<R> list = listCodec(key, types, constructor);
+        final Codec<R> list = listCodec(key, types, filter, constructor);
+        final Codec<R> all = allCodec(key, constructor);
         final Codec<R> object = objectCodec(key, types, constructor);
-        return new SimpleEitherCodec<>(list, object)
-            .withEncoder((R r) -> r.getActualFormat() == Format.OBJECT ? object : list);
+        return simpleAny(list, all, object)
+            .withEncoder((R r) -> switch (r.getActualFormat()) {
+                case LIST -> list;
+                case OBJECT -> r.isExplicitAll() ? all : object;
+                case ANY -> r.isExplicitAll() ? all : list;
+            });
     }
 
     protected static <T, R extends IdList<T>> Codec<R> listCodec(
             final ResourceKey<? extends Registry<T>> key,
             final List<Info<?>> types,
+            final boolean filter,
             final Constructor<T, R> constructor) {
         return easyList(entryCodec(types)).xmap(
-            entries -> constructor.construct(key, entries, false, Format.LIST),
+            entries -> constructor.construct(key, entries, filter && entries.isEmpty(), Format.LIST),
             l -> l.entries);
     }
 
@@ -188,7 +204,7 @@ public class IdList<T> implements Predicate<Holder<T>> {
             public <T> DataResult<Pair<InvertibleEntry, T>> decode(final DynamicOps<T> ops, final T input) {
                 return ops.getStringValue(input).flatMap(s -> {
                     for (final Map.Entry<String, Codec<InvertibleEntry>> e : decoderMap.entrySet()) {
-                        if (!e.getKey().equals("") && s.startsWith(e.getKey())) {
+                        if (!e.getKey().isEmpty() && s.startsWith(e.getKey())) {
                             return e.getValue().decode(ops, input);
                         }
                     }
@@ -200,6 +216,12 @@ public class IdList<T> implements Predicate<Holder<T>> {
                 });
             }
         };
+    }
+
+    protected static <T, R extends IdList<T>> Codec<R> allCodec(
+            final ResourceKey<? extends Registry<T>> key, final Constructor<T, R> constructor) {
+        return Codec.BOOL.fieldOf("all").codec()
+            .xmap(all -> constructor.construct(key, List.of(), all, Format.OBJECT), IdList::isExplicitAll);
     }
 
     protected static <T, R extends IdList<T>> Codec<R> objectCodec(
@@ -240,9 +262,13 @@ public class IdList<T> implements Predicate<Holder<T>> {
         return new IdList<>(this.handle.key(), this.entries, blacklist, this.format);
     }
 
+    public boolean isExplicitAll() {
+        return this.isEmpty() && this.blacklist;
+    }
+
     @Override
     public int hashCode() {
-        return this.compile().hashCode();
+        return Objects.hash(this.handle.key(), this.entries, this.blacklist, this.format);
     }
 
     @Override
@@ -250,9 +276,11 @@ public class IdList<T> implements Predicate<Holder<T>> {
         if (this == o) {
             return true;
         }
-        if (o instanceof IdList l) {
-            return this.format == l.format
-                && this.compile().unwrap().equals(l.compile().unwrap());
+        if (o instanceof IdList<?> l) {
+            return this.handle.key().equals(l.handle.key())
+                && this.entries.equals(l.entries)
+                && this.blacklist == l.blacklist
+                && this.format == l.format;
         }
         return false;
     }

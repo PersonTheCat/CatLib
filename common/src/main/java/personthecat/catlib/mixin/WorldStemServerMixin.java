@@ -3,12 +3,11 @@ package personthecat.catlib.mixin;
 import net.minecraft.core.LayeredRegistryAccess;
 import net.minecraft.server.RegistryLayer;
 import net.minecraft.server.ReloadableServerResources;
-import net.minecraft.server.WorldLoader.DataLoadOutput;
-import net.minecraft.server.WorldLoader.WorldDataSupplier;
 import net.minecraft.server.WorldStem;
 import net.minecraft.server.packs.resources.CloseableResourceManager;
 import net.minecraft.world.level.storage.WorldData;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -19,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Mixin(WorldStem.class)
 public class WorldStemServerMixin {
+    @Unique
     private static final AtomicBoolean INIT_COMPLETE = new AtomicBoolean(false);
 
     @Inject(method = "<init>", at = @At(value = "RETURN"))

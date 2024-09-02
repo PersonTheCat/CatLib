@@ -18,7 +18,7 @@ import java.util.List;
 public class DimensionPredicate extends IdList<DimensionType> {
 
     public static final Codec<DimensionPredicate> CODEC =
-        codecFromTypes(Registries.DIMENSION_TYPE, IdMatcher.DEFAULT_TYPES, (Constructor<DimensionType, DimensionPredicate>) DimensionPredicate::new);
+        codecFromTypes(Registries.DIMENSION_TYPE, IdMatcher.DEFAULT_TYPES, true, (Constructor<DimensionType, DimensionPredicate>) DimensionPredicate::new);
     public static final DimensionPredicate ALL_DIMENSIONS = builder().build();
 
     protected DimensionPredicate(
