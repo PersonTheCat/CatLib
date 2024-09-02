@@ -1,7 +1,6 @@
 package personthecat.catlib.event.world;
 
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
@@ -16,7 +15,7 @@ import java.util.function.Predicate;
 
 public abstract class FeatureModificationContext {
 
-    public abstract Biome getBiome();
+    public abstract Holder<Biome> getBiome();
 
     public abstract ResourceLocation getName();
 

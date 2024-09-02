@@ -46,8 +46,8 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public Biome getBiome() {
-        return this.biome.getBiome();
+    public Holder<Biome> getBiome() {
+        return this.biome.getBiomeRegistryEntry();
     }
 
     @Override

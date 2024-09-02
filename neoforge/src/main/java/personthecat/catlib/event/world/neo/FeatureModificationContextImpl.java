@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class FeatureModificationContextImpl extends FeatureModificationContext {
-    private final Biome biome;
+    private final Holder<Biome> biome;
     private final ResourceLocation name;
     private final Builder builder;
     private final Registry<ConfiguredWorldCarver<?>> carvers;
@@ -28,7 +28,7 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     private final RegistryAccess registries;
 
     public FeatureModificationContextImpl(
-            Biome biome, ResourceLocation name, RegistryAccess registries, Builder builder) {
+            Holder<Biome> biome, ResourceLocation name, RegistryAccess registries, Builder builder) {
         this.biome = biome;
         this.name = name;
         this.builder = builder;
@@ -39,7 +39,7 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public Biome getBiome() {
+    public Holder<Biome> getBiome() {
         return this.biome;
     }
 

@@ -35,7 +35,7 @@ public class FeatureModificationHook implements BiomeModifier {
             ServerLifecycleHooks.getCurrentServer(), "Modification hook called out of sequence");
         final RegistryAccess registries = server.registryAccess();
         final FeatureModificationContext ctx =
-            new FeatureModificationContextImpl(biome.value(), id, registries, builder);
+            new FeatureModificationContextImpl(biome, id, registries, builder);
 
         FeatureModificationEvent.global().invoker().accept(ctx);
         FeatureModificationEvent.get(id).accept(ctx);
