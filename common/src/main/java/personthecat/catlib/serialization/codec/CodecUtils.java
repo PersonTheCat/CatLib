@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -118,6 +119,22 @@ public class CodecUtils {
 
     public static <T> SimpleEitherCodec<T> simpleEither(final Decoder<T> first, final Decoder<T> second) {
         return new SimpleEitherCodec<>(first, second);
+    }
+
+    public static <T> MapCodec<T> defaultType(final Codec<T> dispatcher, final MapCodec<T> defaultType) {
+        return defaultType(asMapCodec(dispatcher), defaultType);
+    }
+
+    public static <T> MapCodec<T> defaultType(final MapCodec<T> dispatcher, final MapCodec<T> defaultType) {
+        return defaultType(dispatcher, defaultType, (t, ops) -> false);
+    }
+    
+    public static <T> MapCodec<T> defaultType(final MapCodec<T> dispatcher, final MapCodec<T> defaultType, final BiPredicate<T, DynamicOps<?>> isDefaultType) {
+        return new DefaultTypeCodec<>(dispatcher, defaultType, isDefaultType);
+    }
+
+    public static <T> MapCodec<T> asMapCodec(final Codec<T> codec) {
+        return codec instanceof MapCodec.MapCodecCodec<T> map ? map.codec() : MapCodec.assumeMapUnsafe(codec);
     }
 
     public static <T> Codec<T> toCodecUnsafe(final Decoder<T> decoder) {
