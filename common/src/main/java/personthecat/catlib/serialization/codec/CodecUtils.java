@@ -94,7 +94,7 @@ public class CodecUtils {
             final Codec<A> codec,
             final BiFunction<? super DynamicOps<?>, ? super A, ? extends S> to,
             final BiFunction<? super DynamicOps<?>, ? super S, ? extends A> from) {
-        return new Codec<S>() {
+        return new Codec<>() {
             @Override
             public <T> DataResult<Pair<S, T>> decode(final DynamicOps<T> ops, final T input) {
                 return codec.decode(ops, input).map(pair -> Pair.of(to.apply(ops, pair.getFirst()), pair.getSecond()));
@@ -121,15 +121,11 @@ public class CodecUtils {
         return new SimpleEitherCodec<>(first, second);
     }
 
-    public static <T> MapCodec<T> defaultType(final Codec<T> dispatcher, final MapCodec<T> defaultType) {
-        return defaultType(asMapCodec(dispatcher), defaultType);
-    }
-
-    public static <T> MapCodec<T> defaultType(final MapCodec<T> dispatcher, final MapCodec<T> defaultType) {
+    public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final Codec<T> defaultType) {
         return defaultType(dispatcher, defaultType, (t, ops) -> false);
     }
     
-    public static <T> MapCodec<T> defaultType(final MapCodec<T> dispatcher, final MapCodec<T> defaultType, final BiPredicate<T, DynamicOps<?>> isDefaultType) {
+    public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final Codec<T> defaultType, final BiPredicate<T, DynamicOps<?>> isDefaultType) {
         return new DefaultTypeCodec<>(dispatcher, defaultType, isDefaultType);
     }
 

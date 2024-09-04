@@ -8,6 +8,7 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.Encoder;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public class SimpleEitherCodec<A> implements Codec<A> {
@@ -50,9 +51,9 @@ public class SimpleEitherCodec<A> implements Codec<A> {
         if (r2.result().isPresent()) {
             return r2;
         }
-        final String m1 = r1.error().get().message();
-        final String m2 = r2.error().get().message();
-        return DataResult.error(() -> "Fix either: [\"" + m1 + "\",\"" + m2 + "\"]");
+        final Supplier<String> m1 = r1.error().get().messageSupplier();
+        final Supplier<String> m2 = r2.error().get().messageSupplier();
+        return DataResult.error(() -> "Fix either: [\"" + m1.get() + "\",\"" + m2.get() + "\"]");
     }
 
     @SuppressWarnings("unchecked")

@@ -11,6 +11,7 @@ import com.mojang.serialization.Encoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public class SimpleAnyCodec<A> implements Codec<A> {
@@ -48,20 +49,22 @@ public class SimpleAnyCodec<A> implements Codec<A> {
 
     @Override
     public <T> DataResult<Pair<A, T>> decode(final DynamicOps<T> ops, final T input) {
-        final List<String> errors = new ArrayList<>();
+        final List<Supplier<String>> errors = new ArrayList<>();
         for (final Decoder<? extends A> decoder : this.decoders) {
             final DataResult<Pair<A, T>> result = downcast(decoder.decode(ops, input));
             if (result.result().isPresent()) {
                 return result;
             }
-            result.error().ifPresent(e -> errors.add(e.message()));
+            result.error().ifPresent(e -> errors.add(e.messageSupplier()));
         }
-        final StringBuilder message =
-            new StringBuilder("Fix any: [\"").append('"').append(errors.getFirst()).append(",\"");
-        for (int i = 1; i < errors.size(); i++) {
-            message.append('"').append(errors.get(i)).append('"');
-        }
-        return DataResult.error(message.append(']')::toString);
+        return DataResult.error(() -> {
+            final StringBuilder message =
+                new StringBuilder("Fix any: [\"").append('"').append(errors.getFirst()).append(",\"");
+            for (int i = 1; i < errors.size(); i++) {
+                message.append('"').append(errors.get(i)).append('"');
+            }
+            return message.append(']').toString();
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -76,7 +79,7 @@ public class SimpleAnyCodec<A> implements Codec<A> {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("SimpleAny[").append(this.decoders.get(0));
+        final StringBuilder sb = new StringBuilder("SimpleAny[").append(this.decoders.getFirst());
         for (int i = 1; i < this.decoders.size(); i++) {
             sb.append('|').append(this.decoders.get(i));
         }
