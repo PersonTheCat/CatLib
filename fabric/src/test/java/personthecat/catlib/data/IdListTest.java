@@ -108,21 +108,21 @@ public class IdListTest {
     }
 
     @Test
-    public void idList_emptyList_matchesAll() {
+    public void idList_emptyList_matchesNone() {
         final RegistryHandle<Item> items = CommonRegistries.ITEM;
         final IdList<Item> list = IdList.builder(Registries.ITEM).build();
-        assertTrue(list.test(items.getHolder(new ResourceLocation("crossbow"))));
-        assertTrue(list.test(items.getHolder(new ResourceLocation("gold_ore"))));
-        assertTrue(list.test(items.getHolder(new ResourceLocation("diamond"))));
-    }
-
-    @Test
-    public void idList_emptyBlacklist_matchesNone() {
-        final RegistryHandle<Item> items = CommonRegistries.ITEM;
-        final IdList<Item> list = IdList.builder(Registries.ITEM).blacklist(true).build();
         assertFalse(list.test(items.getHolder(new ResourceLocation("crossbow"))));
         assertFalse(list.test(items.getHolder(new ResourceLocation("gold_ore"))));
         assertFalse(list.test(items.getHolder(new ResourceLocation("diamond"))));
+    }
+
+    @Test
+    public void idList_emptyBlacklist_matchesAll() {
+        final RegistryHandle<Item> items = CommonRegistries.ITEM;
+        final IdList<Item> list = IdList.builder(Registries.ITEM).blacklist(true).build();
+        assertTrue(list.test(items.getHolder(new ResourceLocation("crossbow"))));
+        assertTrue(list.test(items.getHolder(new ResourceLocation("gold_ore"))));
+        assertTrue(list.test(items.getHolder(new ResourceLocation("diamond"))));
     }
 
     @Test

@@ -2,6 +2,7 @@ package personthecat.catlib.serialization.codec;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -236,13 +237,13 @@ public class DynamicCodecTest {
     }
 
     @Nullable
-    private static <T> T decode(final Codec<T> codec, final JsonValue value) {
-        final Pair<T, JsonValue> pair = codec.decode(XjsOps.INSTANCE, value).result().orElse(null);
+    private static <T> T decode(final MapCodec<T> codec, final JsonValue value) {
+        final Pair<T, JsonValue> pair = codec.codec().decode(XjsOps.INSTANCE, value).result().orElse(null);
         return pair != null ? pair.getFirst() : null;
     }
 
-    public static <T> JsonObject encode(final Codec<T> codec, final T value) {
-        final JsonValue json = codec.encodeStart(XjsOps.INSTANCE, value).result().orElse(null);
+    public static <T> JsonObject encode(final MapCodec<T> codec, final T value) {
+        final JsonValue json = codec.codec().encodeStart(XjsOps.INSTANCE, value).result().orElse(null);
         return json != null ? json.asObject() : null;
     }
 
@@ -250,7 +251,7 @@ public class DynamicCodecTest {
         @Nullable String a;
         int b;
 
-        static final Codec<SimpleObject> CODEC = dynamic(SimpleObject::new).create(
+        static final MapCodec<SimpleObject> CODEC = dynamic(SimpleObject::new).create(
             field(Codec.STRING, "a", o -> o.a, (o, a) -> o.a = a),
             field(Codec.INT, "b", o -> o.b, (o, b) -> o.b = b)
         );
@@ -259,7 +260,7 @@ public class DynamicCodecTest {
     static class NullableObject {
         @Nullable String a = "nonnull";
 
-        static final Codec<NullableObject> CODEC = dynamic(NullableObject::new).create(
+        static final MapCodec<NullableObject> CODEC = dynamic(NullableObject::new).create(
             nullable(Codec.STRING, "a", o -> o.a, (o, a) -> o.a = a)
         );
     }
@@ -267,7 +268,7 @@ public class DynamicCodecTest {
     static class RequiredObject {
         @NotNull String a = "nonnull";
 
-        static final Codec<RequiredObject> CODEC = dynamic(RequiredObject::new).create(
+        static final MapCodec<RequiredObject> CODEC = dynamic(RequiredObject::new).create(
             required(Codec.STRING, "a", o -> o.a, (o, a) -> o.a = a)
         );
     }
@@ -276,7 +277,7 @@ public class DynamicCodecTest {
         @Nullable String a;
         @Nullable RecursiveObject b;
 
-        static final Codec<RecursiveObject> CODEC = dynamic(RecursiveObject::new).create(
+        static final MapCodec<RecursiveObject> CODEC = dynamic(RecursiveObject::new).create(
             field(Codec.STRING, "a", o -> o.a, (o, a) -> o.a = a),
             recursive("b", o -> o.b, (o, b) -> o.b = b)
         );
@@ -286,7 +287,7 @@ public class DynamicCodecTest {
         @Nullable String a;
         InnerObject i = new InnerObject();
 
-        static final Codec<ExtendingObject> CODEC = dynamic(ExtendingObject::new).create(
+        static final MapCodec<ExtendingObject> CODEC = dynamic(ExtendingObject::new).create(
             field(Codec.STRING, "a", o -> o.a, (o, a) -> o.a = a),
             extend(InnerObject.CODEC, "i", o -> o.i, (o, i) -> o.i = i)
         );
@@ -295,7 +296,7 @@ public class DynamicCodecTest {
     static class InnerObject {
         int b;
 
-        static final Codec<InnerObject> CODEC = dynamic(InnerObject::new).create(
+        static final MapCodec<InnerObject> CODEC = dynamic(InnerObject::new).create(
             field(Codec.INT, "b", o -> o.b, (o, b) -> o.b = b)
         );
     }
@@ -304,7 +305,7 @@ public class DynamicCodecTest {
         int a;
 
         static final int FILTERED_VALUE = Integer.MAX_VALUE;
-        static final Codec<FilteredObject> CODEC = dynamic(FilteredObject::new).create(
+        static final MapCodec<FilteredObject> CODEC = dynamic(FilteredObject::new).create(
             DynamicField.<FilteredObject, FilteredObject, Integer>field(
                     Codec.INT, "a", o -> o.a, (o, a) -> o.a = a)
                 .withOutputFilter(a -> a != FILTERED_VALUE)

@@ -15,10 +15,10 @@ public class DefaultTypeCodec<A> implements Codec<A> {
 
     public DefaultTypeCodec(
             final Codec<A> dispatcher,
-            final Codec<A> defaultType,
+            final Codec<? extends A> defaultType,
             final BiPredicate<A, DynamicOps<?>> isDefaultType) {
         this.dispatcher = dispatcher;
-        this.defaultType = defaultType;
+        this.defaultType = CodecUtils.asParent(defaultType);
         this.isDefaultType = isDefaultType;
     }
 

@@ -229,18 +229,18 @@ public class IdList<T> implements Predicate<Holder<T>> {
             final List<Info<?>> types,
             final Constructor<T, R> constructor) {
         final List<DynamicField<Builder<T>, R, ?>> fields = new ArrayList<>();
+        final DynamicField<Builder<T>, R, Boolean> blacklistField =
+            field(Codec.BOOL, "blacklist", r -> r.blacklist, Builder::blacklist);
+        fields.add(blacklistField.withOutputFilter(blacklist -> blacklist));
         for (final Info<?> i : types) {
             final DynamicField<Builder<T>, R, List<InvertibleEntry>> field =
                 field(easyList(i.codec()), i.fieldName(), r -> r.getByType(i), Builder::addEntries);
             fields.add(field.withOutputFilter(list -> !list.isEmpty()));
         }
-        final DynamicField<Builder<T>, R, Boolean> blacklistField =
-            field(Codec.BOOL, "blacklist", r -> r.blacklist, Builder::blacklist);
-        fields.add(blacklistField.withOutputFilter(blacklist -> blacklist));
         return dynamic(
                 () -> new Builder<>(key),
                 b -> b.format(Format.OBJECT).build(constructor))
-            .create(fields);
+            .create(fields).codec();
     }
 
     protected List<InvertibleEntry> getByType(final Info<?> info) {

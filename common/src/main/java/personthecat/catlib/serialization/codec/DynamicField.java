@@ -1,6 +1,7 @@
 package personthecat.catlib.serialization.codec;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -55,8 +56,8 @@ public class DynamicField<B, R, T> {
         return new DynamicField<>(type, name, getter, setter);
     }
 
-    public static <B, R, T> DynamicField<B, R, T> extend(final Codec<T> type, final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {
-        return new DynamicField<>(type, name, getter, setter, Type.IMPLICIT);
+    public static <B, R, T> DynamicField<B, R, T> extend(final MapCodec<T> type, final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {
+        return new DynamicField<>(type.codec(), name, getter, setter, Type.IMPLICIT);
     }
 
     public static <B, R, T> DynamicField<B, R, T> nullable(final Codec<T> type, final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {

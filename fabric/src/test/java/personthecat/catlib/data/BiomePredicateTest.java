@@ -41,6 +41,7 @@ public class BiomePredicateTest {
 
         // add test biomes
         handle.register(new ResourceLocation("forest"), dummyBiome());
+        handle.register(new ResourceLocation("birch_forest"), dummyBiome());
         handle.register(new ResourceLocation("plains"), dummyBiome());
         handle.register(new ResourceLocation("desert"), dummyBiome());
         handle.register(new ResourceLocation("swamp"), dummyBiome());
@@ -60,7 +61,8 @@ public class BiomePredicateTest {
         Stream.of(BiomeType.values())
             .forEach(type -> map.put(type.getKey(), List.of()));
         map.put(isForest, List.of(
-            handle.getHolder(new ResourceLocation("forest"))));
+            handle.getHolder(new ResourceLocation("forest")),
+            handle.getHolder(new ResourceLocation("birch_forest"))));
         map.put(isOcean, List.of(
             handle.getHolder(new ResourceLocation("ocean")),
             handle.getHolder(new ResourceLocation("deep_ocean"))));

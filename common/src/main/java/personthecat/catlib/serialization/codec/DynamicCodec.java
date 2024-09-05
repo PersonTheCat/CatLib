@@ -2,11 +2,12 @@ package personthecat.catlib.serialization.codec;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import org.apache.commons.lang3.mutable.MutableObject;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapLike;
+import com.mojang.serialization.RecordBuilder;
 import personthecat.catlib.exception.UnreachableException;
 
 import java.util.*;
@@ -17,7 +18,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
-public class DynamicCodec<B, R, A> implements Codec<A> {
+public class DynamicCodec<B, R, A> extends MapCodec<A> {
     private final Supplier<B> builder;
     private final Function<A, R> in;
     private final Function<B, A> out;
@@ -117,15 +118,70 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
     }
 
     @Override
+    public <T> Stream<T> keys(final DynamicOps<T> ops) {
+        return this.fields.values().stream().map(f -> ops.createString(f.key));
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
-    public <T> DataResult<T> encode(final A input, final DynamicOps<T> ops, final T prefix) {
+    public <T> DataResult<A> decode(final DynamicOps<T> ops, final MapLike<T> input) {
+        final B builder = this.builder.get();
+        final Map<String, Supplier<String>> errors = new HashMap<>();
+        final Map<String, DynamicField<B, R, ?>> required = new HashMap<>(this.requiredFields);
+
+        for (final DynamicField<B, R, ?> field : this.implicitFields.values()) {
+            if (field.codec == null) throw new UnreachableException();
+            CodecUtils.asMapCodec(field.codec).decode(ops, input)
+                .ifSuccess((Object o) -> ((BiConsumer<B, Object>) field.setter).accept(builder, o))
+                .ifError(e -> errors.put(field.key, e.messageSupplier()));
+        }
+        for (final DynamicField<B, R, ?> field : this.fields.values()) {
+            if (field.isImplicit()) {
+                continue;
+            }
+            final T value = input.get(field.key);
+            if (value == null) {
+                if (field.isNullable()) {
+                    field.setter.accept(builder, null);
+                }
+                continue;
+            }
+            required.remove(field.key);
+            final DataResult<Object> result;
+            if (field.codec != null) { // parse normal field
+                result = ((Codec<Object>) field.codec).decode(ops, value).map(Pair::getFirst);
+            } else { // parse recursive field
+                result = ((MapCodec<Object>) this).compressedDecode(ops, value);
+            }
+            result.ifSuccess(o -> ((BiConsumer<B, Object>) field.setter).accept(builder, o))
+                .ifError(e -> errors.put(field.key, e.messageSupplier()));
+        }
+        if (errors.isEmpty() && required.isEmpty()) {
+            return DataResult.success(this.out.apply(builder));
+        }
+        return DataResult.error(() -> {
+           final StringBuilder message = new StringBuilder();
+           if (!required.isEmpty()) {
+               message.append("Required fields are missing: ").append(required.keySet());
+           }
+           if (!errors.isEmpty()) {
+               if (!message.isEmpty()) {
+                   message.append(';');
+               }
+               errors.forEach((key, error) ->
+                   message.append(key).append(": ").append(error.get()));
+           }
+           return message.toString();
+        });
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> RecordBuilder<T> encode(final A input, final DynamicOps<T> ops, RecordBuilder<T> prefix) {
         if (input == null) {
-            return DataResult.error(() -> "Input is null");
+            return prefix.withErrorsFrom(DataResult.error(() -> "Input is null"));
         }
         final R reader = this.in.apply(input);
-        final Map<T, T> map = new HashMap<>();
-        final List<T> errors = new ArrayList<>();
-
         for (final DynamicField<B, R, ?> field : this.fields.values()) {
             final Object value = field.getter.apply(reader);
             if (value == null) {
@@ -135,76 +191,17 @@ public class DynamicCodec<B, R, A> implements Codec<A> {
             if (filter != null && !filter.test(reader, value)) {
                 continue;
             }
-            Codec<Object> type = (Codec<Object>) field.codec;
-            if (type == null) type = (Codec<Object>) this;
-            if (field.isImplicit()) {
-                type.encode(value, ops, prefix)
-                    .resultOrPartial(e -> errors.add(ops.createString(e)))
-                    .flatMap(t -> ops.getMapValues(t)
-                        .resultOrPartial(e -> errors.add(ops.createString("Implicit value must be a map"))))
-                    .ifPresent(values -> values
-                        .forEach(pair -> map.put(pair.getFirst(), pair.getSecond())));
-            } else {
-                type.encodeStart(ops, value)
-                    .resultOrPartial(e -> errors.add(ops.createString(e)))
-                    .ifPresent(t -> map.put(ops.createString(field.key), t));
+            if (field.codec != null) {
+                if (field.isImplicit()) { // encode implicit field (multiple fields)
+                    prefix = CodecUtils.asMapCodec((Codec<Object>) field.codec).encode(value, ops, prefix);
+                } else { // encode normal field
+                    prefix.add(field.key, ((Codec<Object>) field.codec).encodeStart(ops, value));
+                }
+            } else { // encode recursive field
+                prefix.add(field.key, ((MapCodec<Object>) this).encode(value, ops, this.compressedBuilder(ops)).build(ops.empty()));
             }
         }
-        if (!errors.isEmpty()) {
-            return DataResult.error(() -> "Error encoding builder", ops.createList(errors.stream()));
-        }
-        return ops.mergeToMap(prefix, map);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> DataResult<Pair<A, T>> decode(final DynamicOps<T> ops, final T input) {
-        return ops.getMap(input).flatMap(map -> {
-            final B builder = this.builder.get();
-            final Stream.Builder<T> failed = Stream.builder();
-            final MutableObject<DataResult<Unit>> result = new MutableObject<>(DataResult.success(Unit.INSTANCE));
-            final Map<String, DynamicField<B, R, ?>> required = new HashMap<>(this.requiredFields);
-
-            for (final DynamicField<B, R, ?> field : this.implicitFields.values()) {
-                if (field.codec == null) throw new UnreachableException();
-                final DataResult<Pair<Object, T>> element = ((Codec<Object>) field.codec).decode(ops, input);
-                element.error().ifPresent(e -> failed.add(ops.createString(field.key)));
-                result.setValue(result.getValue().apply2stable((r, v) -> {
-                    ((BiConsumer<B, Object>) field.setter).accept(builder, v.getFirst());
-                    return r;
-                }, element));
-            }
-            for (final Map.Entry<String, DynamicField<B, R, ?>> entry : this.fields.entrySet()) {
-                final DynamicField<B, R, Object> field = (DynamicField<B, R, Object>) entry.getValue();
-                final T value = map.get(entry.getKey());
-                if (field != null && !field.isImplicit()) {
-                    if (value == null) {
-                        if (field.isNullable()) {
-                            field.setter.accept(builder, null);
-                        }
-                        continue;
-                    }
-                    required.remove(field.key);
-                    Codec<Object> codec = field.codec;
-                    if (codec == null) codec = (Codec<Object>) this;
-                    final DataResult<Pair<Object, T>> element = codec.decode(ops,  value);
-
-                    element.error().ifPresent(e -> failed.add(value));
-                    result.setValue(result.getValue().apply2stable((r, v) -> {
-                        field.setter.accept(builder, v.getFirst());
-                        return r;
-                    }, element));
-                }
-            }
-            if (!required.isEmpty()) {
-                for (final String missing : required.keySet()) {
-                    failed.add(ops.createString(missing));
-                }
-                result.setValue(DataResult.error(() -> "Required values are missing"));
-            }
-            final Pair<A, T> pair = Pair.of(this.out.apply(builder), ops.createList(failed.build()));
-            return result.getValue().map(unit -> pair).setPartial(pair);
-        });
+        return prefix;
     }
 
     public static class Builder<B, R, A> {
