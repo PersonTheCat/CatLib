@@ -11,6 +11,7 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.data.Lazy;
@@ -101,7 +102,7 @@ public class JsonArgument implements ArgumentType<JsonArgument.Result> {
         }
 
         @Override
-        public Template deserializeFromNetwork(FriendlyByteBuf buf) {
+        public @NotNull Template deserializeFromNetwork(FriendlyByteBuf buf) {
             return new Template(
                 buf.readUtf(),
                 buf.readBoolean() ? buf.readUtf() : null,
@@ -116,7 +117,7 @@ public class JsonArgument implements ArgumentType<JsonArgument.Result> {
         }
 
         @Override
-        public Template unpack(JsonArgument ja) {
+        public @NotNull Template unpack(JsonArgument ja) {
             return new Template(
                 ja.getter.dir.getAbsolutePath(),
                 ja.getter.preferred != null ? ja.getter.preferred.getAbsolutePath() : null,
@@ -135,13 +136,13 @@ public class JsonArgument implements ArgumentType<JsonArgument.Result> {
             }
 
             @Override
-            public JsonArgument instantiate(CommandBuildContext ctx) {
+            public @NotNull JsonArgument instantiate(CommandBuildContext ctx) {
                 return new JsonArgument(
                     new File(this.dir), this.preferred != null ? new File(this.preferred) : null, this.recursive);
             }
 
             @Override
-            public ArgumentTypeInfo<JsonArgument, ?> type() {
+            public @NotNull ArgumentTypeInfo<JsonArgument, ?> type() {
                 return Info.this;
             }
         }

@@ -104,7 +104,7 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
         }
 
         @Override
-        public Component getNarration() {
+        public @NotNull Component getNarration() {
             return Component.translatable("narrator.select", this.category);
         }
     }
@@ -140,7 +140,7 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
         }
 
         @Override
-        public Component getNarration() {
+        public @NotNull Component getNarration() {
             return Component.translatable("narrator.select", this.widget.getMessage());
         }
     }

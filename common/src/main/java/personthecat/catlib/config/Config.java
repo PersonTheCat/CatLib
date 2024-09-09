@@ -11,7 +11,6 @@ import java.lang.annotation.Target;
 
 @Inherited
 @Documented
-@SuppressWarnings({"FieldMayBeFinal", "unused"})
 public @interface Config {
 
     interface Listener {

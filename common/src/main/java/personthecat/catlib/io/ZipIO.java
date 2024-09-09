@@ -114,7 +114,7 @@ public class ZipIO {
             try {
                 Files.move(temp.toPath(), zip.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } catch (final IOException e) {
-                log.error("Could not delete temporary file: " + temp, e);
+                log.error("Could not delete temporary file: {}", temp, e);
             }
         }
     }
@@ -138,15 +138,13 @@ public class ZipIO {
     }
 
     private static void writeEntry(final InputStream is, final String name, final ZipOutputStream zip) throws IOException {
-        try {
+        try (is) {
             zip.putNextEntry(new ZipEntry(name));
             final byte[] bytes = new byte[1024];
             int len;
             while ((len = is.read(bytes)) >= 0) {
                 zip.write(bytes, 0, len);
             }
-        } finally {
-            is.close();
         }
     }
 }

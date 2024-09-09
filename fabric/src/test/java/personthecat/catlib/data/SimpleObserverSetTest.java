@@ -31,7 +31,7 @@ public final class SimpleObserverSetTest {
         set.forEach(Runnable::run);
 
         assertEquals(1, output.size());
-        assertEquals(0, (int) output.get(0));
+        assertEquals(0, (int) output.getFirst());
     }
 
     @Test
@@ -44,7 +44,7 @@ public final class SimpleObserverSetTest {
         set.forEach(Runnable::run);
 
         assertEquals(1, output.size());
-        assertEquals(0, (int) output.get(0));
+        assertEquals(0, (int) output.getFirst());
     }
 
     @Test

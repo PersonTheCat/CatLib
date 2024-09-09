@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 /**
  * Variant of {@link Lazy} which is allowed to be reset.
  * <p>
- *   In addition to being reloadable, this wrapper is threadsafe and provides a guaranteed
+ *   In addition to being reloadable, this wrapper is thread-safe and provides a guaranteed
  *   method for retrieving up-to-date values: {@link #getUpdated()}.
  * </p>
  * @param <T> The type of value being consumed by the wrapper.

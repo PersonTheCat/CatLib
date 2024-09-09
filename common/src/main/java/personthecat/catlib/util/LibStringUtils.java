@@ -9,7 +9,7 @@ import java.util.Random;
 
 /**
  * Contains any utilities needed by the library for manipulating miscellaneous
- * string values. Currently provides a single utility for wrapping text onto
+ * string values. Currently, provides a single utility for wrapping text onto
  * multiple lines, but additional methods may be provided at some point in the
  * future.
  */

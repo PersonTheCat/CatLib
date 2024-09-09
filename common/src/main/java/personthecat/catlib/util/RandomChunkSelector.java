@@ -173,7 +173,7 @@ public class RandomChunkSelector {
      * @param y The chunk's y-coordinate.
      * @param radius The radius outward to scan.
      * @param threshold The minimum accepted output from the hasher.
-     * @return Whether an matches were found.
+     * @return Whether any matches were found.
      */
     private boolean testDistance(final long seed, final int ID, final int x, final int y, final int radius, final double threshold) {
         final int diameter = (radius * 2) + 1;

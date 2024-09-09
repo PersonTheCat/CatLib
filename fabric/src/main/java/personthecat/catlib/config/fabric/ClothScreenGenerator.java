@@ -146,7 +146,7 @@ public record ClothScreenGenerator(ClothConfigGenerator generator) {
                         this.getTitleName(value),
                         DropdownMenuBuilder.TopCellElementBuilder.of(
                             (Enum) current,
-                            s -> (Enum) LibUtil.getEnumConstant(s, (Class<Enum>) value.type()).orElse(null),
+                            s -> (Enum<?>) LibUtil.getEnumConstant(s, (Class<Enum>) value.type()).orElse(null),
                             this::getTitleName
                         ),
                         DropdownMenuBuilder.CellCreatorBuilder.of(this::getTitleName))

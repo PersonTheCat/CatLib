@@ -46,7 +46,7 @@ public class ArgumentSuppliers {
     /**
      * Provides an {@link JsonArgument} with the current mod's config folder as the root.
      */
-    public static class XjsFile implements ArgumentSupplier<JsonArgument.Result> {
+    public static class JsonFile implements ArgumentSupplier<JsonArgument.Result> {
         public ArgumentDescriptor<JsonArgument.Result> get() {
             final ModDescriptor mod = getModDescriptorOrThrow();
             return new ArgumentDescriptor<>(new JsonArgument(mod.getConfigFolder(), mod.getPreferredDirectory(), true));
@@ -56,7 +56,7 @@ public class ArgumentSuppliers {
     /**
      * Provides an {@link JsonArgument} which does not search recursively.
      */
-    public static class SimpleXjsFile implements ArgumentSupplier<JsonArgument.Result> {
+    public static class SimpleJsonFile implements ArgumentSupplier<JsonArgument.Result> {
         public ArgumentDescriptor<JsonArgument.Result> get() {
             final ModDescriptor mod = getModDescriptorOrThrow();
             return new ArgumentDescriptor<>(new JsonArgument(mod.getConfigFolder(), false));

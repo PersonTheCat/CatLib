@@ -15,86 +15,90 @@ public final class XjsUtilsTest {
 
     @Test
     public void filter_generatesObject_withGivenPathsOnly() {
-        final JsonObject json = parse(
-            "{                        \n" +
-            "  a: {}                  \n" +
-            "  b: {}                  \n" +
-            "  c: {}                  \n" +
-            "  d: [                   \n" +
-            "    {}                   \n" +
-            "    {}                   \n" +
-            "    {}                   \n" +
-            "    {                    \n" +
-            "      e: {}              \n" +
-            "      f: {}              \n" +
-            "    }                    \n" +
-            "    {}                   \n" +
-            "  ]                      \n" +
-            "  g: {}                  \n" +
-            "}                        \n");
+        final JsonObject json = parse("""
+            {
+              a: {}
+              b: {}
+              c: {}
+              d: [
+                {}
+                {}
+                {}
+                {
+                  e: {}
+                  f: {}
+                }
+                {}
+              ]
+              g: {}
+            }
+            """);
 
         final Collection<JsonPath> keep = Arrays.asList(
             JsonPath.builder().key("d").index(3).key("e").build(),
             JsonPath.builder().key("d").index(3).key("f").build()
         );
 
-        final JsonObject expected = parse(
-            "{                        \n " +
-            "  // Skipped a, b, c     \n" +
-            "  d: [                   \n" +
-            "    // Skipped 0 ~ 2     \n" +
-            "    {                    \n" +
-            "      e: {}              \n" +
-            "      f: {}              \n" +
-            "    }                    \n" +
-            "    // Skipped 4         \n" +
-            "  ]                      \n" +
-            "  // Skipped g           \n" +
-            "}                        \n");
+        final JsonObject expected = parse("""
+            {
+              // Skipped a, b, c
+              d: [
+                // Skipped 0 ~ 2
+                {
+                  e: {}
+                  f: {}
+                }
+                // Skipped 4
+              ]
+              // Skipped g
+            }
+            """);
 
         assertEquals(expected, XjsUtils.filter(json, keep));
     }
 
     @Test
     public void filter_onObjectWithComments_doesNotMangleComments() {
-        final JsonObject json = parse(
-            "{                        \n" +
-            "  a: {}                  \n" +
-            "  b: {}                  \n" +
-            "  c: {}                  \n" +
-            "  d: [                   \n" +
-            "    {}                   \n" +
-            "    {}                   \n" +
-            "    {}                   \n" +
-            "    // Generated value   \n" +
-            "    {                    \n" +
-            "      e: {}              \n" +
-            "      f: {}              \n" +
-            "    }                    \n" +
-            "    {}                   \n" +
-            "  ]                      \n" +
-            "  g: {}                  \n" +
-            "}                        \n");
+        final JsonObject json = parse("""
+            {
+              a: {}
+              b: {}
+              c: {}
+              d: [
+                {}
+                {}
+                {}
+                // Generated value
+                {
+                  e: {}
+                  f: {}
+                }
+                {}
+              ]
+              g: {}
+            }
+            """);
 
         final Collection<JsonPath> keep = Arrays.asList(
             JsonPath.builder().key("d").index(3).key("e").build(),
             JsonPath.builder().key("d").index(3).key("f").build()
         );
 
-        final JsonObject expected = parse(
-            "{                        \n " +
-            "  // Skipped a, b, c     \n" +
-            "  d: [                   \n" +
-            "    // Skipped 0 ~ 2     \n" +
-            "    // Generated value   \n" +
-            "    {                    \n" +
-            "      e: {}              \n" +
-            "      f: {}              \n" +
-            "    }                    \n" +
-            "    // Skipped 4         \n" +
-            "  ]                      \n" +
-            "  // Skipped g           \n" +
-            "}                        \n");
+        final JsonObject expected = parse("""
+            {
+              // Skipped a, b, c
+              d: [
+                // Skipped 0 ~ 2
+                // Generated value
+                {
+                  e: {}
+                  f: {}
+                }
+                // Skipped 4
+              ]
+              // Skipped g
+            }
+            """);
 
         assertEquals(expected, XjsUtils.filter(json, keep));
     }

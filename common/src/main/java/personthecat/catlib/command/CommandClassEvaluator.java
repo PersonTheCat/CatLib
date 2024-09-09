@@ -295,7 +295,7 @@ public class CommandClassEvaluator {
     private void addArgsFromBranch(Map<String, ParsedNode> entries, Node[] branch) {
         for (final Node node : branch) {
             final ArgumentDescriptor<?> arg = this.createArgFromNode(node);
-            final String name = this.getArgumentName(node, arg.getType());
+            final String name = this.getArgumentName(node, arg.type());
             entries.put(name, new ParsedNode(name, node, arg));
         }
     }
@@ -342,7 +342,7 @@ public class CommandClassEvaluator {
         final ParsedNode entry = entries.get(index.getValue());
         final ArgumentBuilder<CommandSourceStack, ?> argument;
         final ArgumentDescriptor<?> descriptor = entry.arg;
-        final ArgumentType<?> type = descriptor.getType();
+        final ArgumentType<?> type = descriptor.type();
 
         if (entry.isList) {
             argument = createList(entries, next, cmd, index.getValue());
@@ -351,9 +351,9 @@ public class CommandClassEvaluator {
         } else {
             argument = Commands.argument(entry.name, type);
         }
-        if (descriptor.getSuggestions() != null) {
+        if (descriptor.suggestions() != null) {
             ((RequiredArgumentBuilder<CommandSourceStack, ?>) argument)
-                .suggests(descriptor.getSuggestions());
+                .suggests(descriptor.suggestions());
         }
         return argument;
     }
@@ -370,7 +370,7 @@ public class CommandClassEvaluator {
 
         final ParsedNode entry = entries.get(index);
         final ListArgumentBuilder listBuilder =
-            ListArgumentBuilder.create(entry.name, entry.arg.getType());
+            ListArgumentBuilder.create(entry.name, entry.arg.type());
 
         if (index < entries.size() - 1) {
             final ParsedNode nextEntry = entries.get(index + 1);

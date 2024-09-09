@@ -116,8 +116,8 @@ public class ConfigTracker<T extends Serializable> {
             oos.flush();
             this.saved = true;
         } catch (final IOException e) {
-            log.error("Error saving config tracker for " + this.mod.getName()
-                + ". This will eventually be logged in the error menu.", e);
+            log.error("Error saving config tracker for {}. This will eventually be logged in the error menu.",
+                this.mod.getName(), e);
         }
     }
 

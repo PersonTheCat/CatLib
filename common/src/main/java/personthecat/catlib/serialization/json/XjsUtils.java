@@ -449,7 +449,7 @@ public class XjsUtils {
             final String name = member.getKey();
 
             if (member.getReference().isAccessed() != used) {
-                if (skipped.length() > 0) {
+                if (!skipped.isEmpty()) {
                     value.prependComment("Skipped " + skipped);
                     skipped.setLength(0);
                 }
@@ -460,13 +460,13 @@ public class XjsUtils {
                 } else {
                     generated.add(name, value);
                 }
-            } else if (skipped.length() == 0) {
+            } else if (skipped.isEmpty()) {
                 skipped.append(name);
             } else {
                 skipped.append(", ").append(name);
             }
         }
-        if (skipped.length() > 0) {
+        if (!skipped.isEmpty()) {
             generated.prependComment(CommentType.INTERIOR, "Skipped " + skipped);
         }
         return generated;

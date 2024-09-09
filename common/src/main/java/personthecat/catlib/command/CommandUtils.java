@@ -124,7 +124,7 @@ public class CommandUtils {
      * Generates a {@link FileArgument} for the given name. The root folder of this
      * argument will be provided by the {@link ModDescriptor} stored in the current
      * {@link CommandRegistrationContext}. If no context is active, the root folder
-     * will default to the main conflg folder.
+     * will default to the main config folder.
      *
      * @param name The name of the output argument node.
      * @return An argument builder for the given specs.

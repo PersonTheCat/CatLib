@@ -50,7 +50,7 @@ public class Range implements Iterable<Integer> {
 
     public static Range fromList(final List<Integer> ints) {
         if (ints.isEmpty()) return empty();
-        int min = ints.get(0);
+        int min = ints.getFirst();
         int max = min;
         for (int i = 1; i < ints.size(); i++) {
             final int n = ints.get(i);
@@ -101,7 +101,7 @@ public class Range implements Iterable<Integer> {
     @NotNull
     @Override
     public Iterator<Integer> iterator() {
-        return new Iterator<Integer>() {
+        return new Iterator<>() {
             int i = min;
 
             @Override

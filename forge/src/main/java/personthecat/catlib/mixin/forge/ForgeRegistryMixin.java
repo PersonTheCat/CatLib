@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -26,11 +27,12 @@ public abstract class ForgeRegistryMixin<T> implements RegistryEventAccessor<T>,
     @Shadow(remap = false)
     private RegistryManager stage;
 
+    @Unique
     @Nullable
     private LibEvent<RegistryAddedCallback<T>> registryAddedEvent = null;
 
     @Inject(method = "add(ILnet/minecraft/resources/ResourceLocation;Ljava/lang/Object;Ljava/lang/String;)I", at = @At("RETURN"), remap = false)
-    void onAdd(int id, T t, String owner, CallbackInfoReturnable<Integer> ci) {
+    void onAdd(int id, ResourceLocation key, T t, String owner, CallbackInfoReturnable<Integer> cir) {
         if (this.registryAddedEvent != null && this.stage == RegistryManager.ACTIVE ) {
             final RegistryHandle<T> handle = new ForgeRegistryHandle<>(this);
             final ResourceLocation location = handle.getKey(t);

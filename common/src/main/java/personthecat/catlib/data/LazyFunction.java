@@ -25,7 +25,7 @@ public class LazyFunction<T, R> {
     /** A function used for creating the value when it is ready. */
     protected final Function<T, R> function;
 
-    /** Whether the value has been setup. */
+    /** Whether the value has been set up. */
     protected volatile boolean set;
 
     /** The primary constructor with instructions for producing the value. */

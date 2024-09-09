@@ -84,24 +84,24 @@ public record DummyRegistryHandle<T>(ResourceKey<? extends Registry<T>> key) imp
 
     @Override
     public HolderLookup<T> asLookup() {
-        return new HolderLookup<T>() {
+        return new HolderLookup<>() {
             @Override
-            public Stream<Holder.Reference<T>> listElements() {
+            public @NotNull Stream<Holder.Reference<T>> listElements() {
                 return Stream.empty();
             }
 
             @Override
-            public Stream<HolderSet.Named<T>> listTags() {
+            public @NotNull Stream<HolderSet.Named<T>> listTags() {
                 return Stream.empty();
             }
 
             @Override
-            public Optional<Holder.Reference<T>> get(final @NotNull ResourceKey<T> resourceKey) {
+            public @NotNull Optional<Holder.Reference<T>> get(final @NotNull ResourceKey<T> resourceKey) {
                 return Optional.empty();
             }
 
             @Override
-            public Optional<HolderSet.Named<T>> get(final @NotNull TagKey<T> tagKey) {
+            public @NotNull Optional<HolderSet.Named<T>> get(final @NotNull TagKey<T> tagKey) {
                 return Optional.empty();
             }
         };

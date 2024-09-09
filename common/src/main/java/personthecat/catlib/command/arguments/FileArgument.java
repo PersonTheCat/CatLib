@@ -12,6 +12,7 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.io.FileIO;
@@ -138,7 +139,7 @@ public class FileArgument implements ArgumentType<File> {
         }
 
         @Override
-        public Template deserializeFromNetwork(FriendlyByteBuf buf) {
+        public @NotNull Template deserializeFromNetwork(FriendlyByteBuf buf) {
             return new Template(
                 buf.readUtf(),
                 buf.readBoolean() ? buf.readUtf() : null,
@@ -153,7 +154,7 @@ public class FileArgument implements ArgumentType<File> {
         }
 
         @Override
-        public Template unpack(FileArgument fa) {
+        public @NotNull Template unpack(FileArgument fa) {
             return new Template(
                 fa.dir.getAbsolutePath(),
                 fa.preferred != null ? fa.preferred.getAbsolutePath() : null,
@@ -172,13 +173,13 @@ public class FileArgument implements ArgumentType<File> {
             }
 
             @Override
-            public FileArgument instantiate(CommandBuildContext ctx) {
+            public @NotNull FileArgument instantiate(CommandBuildContext ctx) {
                 return new FileArgument(
                     new File(this.dir), this.preferred != null ? new File(this.preferred) : null, this.recursive);
             }
 
             @Override
-            public ArgumentTypeInfo<FileArgument, ?> type() {
+            public @NotNull ArgumentTypeInfo<FileArgument, ?> type() {
                 return Info.this;
             }
         }

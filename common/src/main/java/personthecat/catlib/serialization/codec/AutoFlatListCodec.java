@@ -22,7 +22,7 @@ public class AutoFlatListCodec<A> implements Codec<List<A>> {
     @Override
     public <T> DataResult<T> encode(final List<A> input, final DynamicOps<T> ops, final T prefix) {
         if (input.size() == 1) {
-            return this.elementCodec.encode(input.get(0), ops, prefix);
+            return this.elementCodec.encode(input.getFirst(), ops, prefix);
         }
         final ListBuilder<T> builder = ops.listBuilder();
         for (final A a : input) {

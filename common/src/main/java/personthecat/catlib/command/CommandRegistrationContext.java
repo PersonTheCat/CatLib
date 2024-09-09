@@ -69,7 +69,7 @@ import static personthecat.catlib.util.LibUtil.f;
  *       ...
  *       .registerAll();
  * </pre><p>
- *   In addition, a help command will generated for the current mod which can be
+ *   In addition, a help command will be generated for the current mod which can be
  *   accessed by running {@code /&lt;modid&gt; [<help>]} in-game.
  * <p>
  *   The generated help command will be automatically formatted so that each
@@ -149,7 +149,7 @@ public class CommandRegistrationContext {
      * Construct a new registration context when given the single required value
      * containing information about the current mod's ID, name, and config folders.
      * <p>
-     *   Once the registration context has been constructed, this object cab be
+     *   Once the registration context has been constructed, this object can be
      *   accessed again by calling {@link #getActiveMod()}. It will be available
      *   until this context has been disposed, which occurs when calling either
      *   {@link #registerAll()} or {@link #dispose()}.
@@ -453,10 +453,10 @@ public class CommandRegistrationContext {
         final Iterator<LibCommandBuilder> iterator = commands.iterator();
         while (iterator.hasNext()) {
             final HelpCommandInfo info = iterator.next().getHelpInfo();
-            if (info.getDescription().isEmpty()) {
+            if (info.description().isEmpty()) {
                 continue;
             }
-            final String description = Language.getInstance().getOrDefault(info.getDescription());
+            final String description = Language.getInstance().getOrDefault(info.description());
             currentPage.add(info);
             numLines += 2 + description.length() / this.usageLineLength;
             numCommands++;
@@ -574,11 +574,11 @@ public class CommandRegistrationContext {
         if (!info.isGlobal() && anyGlobal) {
             text.append(this.mod.getCommandPrefix() + " ");
         }
-        text.append(info.getName());
-        if (!info.getArguments().isEmpty()) {
-            text.append(Component.literal(" " + info.getArguments()).withStyle(ARGUMENT_STYLE));
+        text.append(info.name());
+        if (!info.arguments().isEmpty()) {
+            text.append(Component.literal(" " + info.arguments()).withStyle(ARGUMENT_STYLE));
         }
-        final String description = Language.getInstance().getOrDefault(info.getDescription());
+        final String description = Language.getInstance().getOrDefault(info.description());
         final List<String> lines = LibStringUtils.wrapLines(description, this.usageLineLength);
         text.append(Component.literal(" :\n " + lines.getFirst()).setStyle(USAGE_STYLE));
         for (int i = 1; i < lines.size(); i++) {

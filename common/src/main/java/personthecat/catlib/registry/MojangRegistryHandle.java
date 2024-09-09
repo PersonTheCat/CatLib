@@ -73,9 +73,8 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     @SuppressWarnings("unchecked")
     public void forEachHolder(final BiConsumer<ResourceLocation, Holder<T>> f) {
         if (this.registry instanceof MappedRegistry<T> mapped) {
-            ((MappedRegistryAccessor<T>) mapped).getHolderMap().forEach((key, holder) -> {
-                f.accept(key.location(), holder);
-            });
+            ((MappedRegistryAccessor<T>) mapped).getHolderMap().forEach((key, holder) ->
+                f.accept(key.location(), holder));
             return;
         }
         throw new UnsupportedOperationException("Unsupported registry in handle: " + this.registry.getClass());

@@ -347,7 +347,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
 
         public JsonPathBuilder key(final String key) {
             this.path.add(Either.left(key));
-            if (this.raw.length() > 0) {
+            if (!this.raw.isEmpty()) {
                 this.raw.append('.');
             }
             this.raw.append(key);
@@ -374,7 +374,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
             } else if (this.path.size() == 1) {
                 return new JsonPathBuilder();
             }
-            this.path.remove(this.path.size() - 1);
+            this.path.removeLast();
             final int dot = this.raw.lastIndexOf(".");
             final int bracket = this.raw.lastIndexOf("[");
             this.raw.delete(Math.max(dot, bracket), this.raw.length());

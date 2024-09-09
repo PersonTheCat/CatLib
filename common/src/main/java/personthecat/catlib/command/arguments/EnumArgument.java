@@ -11,6 +11,7 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
+import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.exception.Exceptions;
 import personthecat.catlib.util.LibUtil;
 
@@ -49,7 +50,7 @@ public class EnumArgument<E extends Enum<E>> implements ArgumentType<E> {
         }
 
         @Override
-        public Template deserializeFromNetwork(FriendlyByteBuf buf) {
+        public @NotNull Template deserializeFromNetwork(FriendlyByteBuf buf) {
             return new Template(buf.readUtf());
         }
 
@@ -59,7 +60,7 @@ public class EnumArgument<E extends Enum<E>> implements ArgumentType<E> {
         }
 
         @Override
-        public Template unpack(EnumArgument<?> ea) {
+        public @NotNull Template unpack(EnumArgument<?> ea) {
             return new Template(ea.enumClass.getName());
         }
 
@@ -72,7 +73,7 @@ public class EnumArgument<E extends Enum<E>> implements ArgumentType<E> {
 
             @Override
             @SuppressWarnings({"unchecked", "rawtypes"})
-            public EnumArgument<?> instantiate(CommandBuildContext ctx) {
+            public @NotNull EnumArgument<?> instantiate(CommandBuildContext ctx) {
                 return new EnumArgument(getEnumClass(this.qualifiedPath));
             }
 
@@ -90,7 +91,7 @@ public class EnumArgument<E extends Enum<E>> implements ArgumentType<E> {
             }
 
             @Override
-            public ArgumentTypeInfo<EnumArgument<?>, ?> type() {
+            public @NotNull ArgumentTypeInfo<EnumArgument<?>, ?> type() {
                 return Info.this;
             }
         }

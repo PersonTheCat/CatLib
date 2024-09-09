@@ -28,7 +28,7 @@ public class DynamicRegistries {
     public static final RegistryHandle<ConfiguredFeature<?, ?>> CONFIGURED_FEATURE = createAndRegister(Registries.CONFIGURED_FEATURE);
     public static final RegistryHandle<PlacedFeature> PLACED_FEATURE = createAndRegister(Registries.PLACED_FEATURE);
 
-    static { // auto-load any we don't have static references to
+    static { // autoload any we don't have static references to
         BuiltInRegistries.REGISTRY.keySet()
             .stream()
             .filter(Predicate.not(REGISTRY::isRegistered))

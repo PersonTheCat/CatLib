@@ -25,7 +25,7 @@ public class Lazy<T> implements Supplier<T> {
     /** A supplier used for producing the value when it is ready. */
     protected final Supplier<T> supplier;
 
-    /** Whether the value has been setup. */
+    /** Whether the value has been set up. */
     protected volatile boolean set;
 
     /**

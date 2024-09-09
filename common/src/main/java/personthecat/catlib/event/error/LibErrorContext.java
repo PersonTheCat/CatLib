@@ -55,7 +55,7 @@ public class LibErrorContext {
         } else if (level.isAtLeast(LibConfig.errorLevel())) {
             COMMON_ERRORS.computeIfAbsent(mod, m -> Collections.synchronizedList(new ArrayList<>())).add(e);
         } else {
-            log.warn("Ignoring error at level: " + level, e);
+            log.warn("Ignoring error at level: {}", level, e);
             e.onErrorIgnored(level, mod, log);
             return;
         }

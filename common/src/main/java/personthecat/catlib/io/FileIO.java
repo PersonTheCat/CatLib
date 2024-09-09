@@ -26,6 +26,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static java.util.Optional.empty;
 import static personthecat.catlib.exception.Exceptions.directoryNotCreated;
@@ -436,8 +437,8 @@ public class FileIO {
                 throw resourceEx("Error deleting file {}.", f.getName());
             }
         } else {
-            try {
-                Files.walk(f.toPath()).sorted(Comparator.reverseOrder()).forEach(p -> {
+            try (final Stream<Path> walk = Files.walk(f.toPath()).sorted(Comparator.reverseOrder())) {
+                walk.forEach(p -> {
                     if (!p.toFile().delete()) {
                         log.error("Error deleting {}", p.toFile().getName());
                     }

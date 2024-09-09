@@ -81,7 +81,7 @@ public class CodecSupport {
 
     /**
      * Attempts to resolve the {@link Codec} of the given value reflectively.
-     *
+     * <p>
      * Some edge cases may support non-reflective access.
      *
      * @param t   The object being inspected.
