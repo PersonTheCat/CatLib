@@ -3,6 +3,7 @@
   "package": "personthecat.catlib.mixin.neo",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BiomeSpecialEffectsBuilderAccessor",
     "MinecraftServerMixin",
     "RegistryDataLoaderMixin"
   ],

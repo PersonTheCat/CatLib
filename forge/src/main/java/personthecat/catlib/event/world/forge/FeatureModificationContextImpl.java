@@ -6,16 +6,30 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.Music;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.level.biome.AmbientAdditionsSettings;
+import net.minecraft.world.level.biome.AmbientMoodSettings;
+import net.minecraft.world.level.biome.AmbientParticleSettings;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biome.TemperatureModifier;
+import net.minecraft.world.level.biome.BiomeSpecialEffects.GrassColorModifier;
+import net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData;
 import net.minecraft.world.level.levelgen.GenerationStep.Carving;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
-import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraftforge.common.world.ModifiableBiomeInfo.BiomeInfo.Builder;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.event.world.FeatureModificationContext;
+import personthecat.catlib.mixin.forge.BiomeSpecialEffectsBuilderAccessor;
+import personthecat.catlib.mixin.forge.MobSpawnSettingsBuilderAccessor;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class FeatureModificationContextImpl extends FeatureModificationContext {
@@ -24,7 +38,6 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     private final Builder builder;
     private final Registry<ConfiguredWorldCarver<?>> carvers;
     private final Registry<PlacedFeature> features;
-    private final Registry<Structure> structures;
     private final RegistryAccess registries;
 
     public FeatureModificationContextImpl(
@@ -34,7 +47,6 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
         this.builder = builder;
         this.carvers = registries.registryOrThrow(Registries.CONFIGURED_CARVER);
         this.features = registries.registryOrThrow(Registries.PLACED_FEATURE);
-        this.structures = registries.registryOrThrow(Registries.STRUCTURE);
         this.registries = registries;
     }
 
@@ -59,57 +71,254 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public Registry<Structure> getStructureRegistry() {
-        return this.structures;
-    }
-
-    @Override
     public RegistryAccess getRegistryAccess() {
         return this.registries;
     }
 
     @Override
-    public Iterable<Holder<ConfiguredWorldCarver<?>>> getCarvers(Carving step) {
+    public boolean hasPrecipitation() {
+        return this.builder.getClimateSettings().hasPrecipitation();
+    }
+
+    @Override
+    public float getTemperature() {
+        return this.builder.getClimateSettings().getTemperature();
+    }
+
+    @Override
+    public TemperatureModifier getTemperatureModifier() {
+        return this.builder.getClimateSettings().getTemperatureModifier();
+    }
+
+    @Override
+    public float getDownfall() {
+        return this.builder.getClimateSettings().getDownfall();
+    }
+
+    @Override
+    public void setHasPrecipitation(final boolean hasPrecipitation) {
+        this.builder.getClimateSettings().setHasPrecipitation(hasPrecipitation);
+    }
+
+    @Override
+    public void setTemperature(final float temperature) {
+        this.builder.getClimateSettings().setTemperature(temperature);
+    }
+
+    @Override
+    public void setTemperatureModifier(final TemperatureModifier modifier) {
+        this.builder.getClimateSettings().setTemperatureModifier(modifier);
+    }
+
+    @Override
+    public void setDownfall(final float downfall) {
+        this.builder.getClimateSettings().setDownfall(downfall);
+    }
+
+    @Override
+    public int getFogColor() {
+        return this.builder.getSpecialEffects().getFogColor();
+    }
+
+    @Override
+    public int getWaterColor() {
+        return this.builder.getSpecialEffects().waterColor();
+    }
+
+    @Override
+    public int getWaterFogColor() {
+        return this.builder.getSpecialEffects().getWaterFogColor();
+    }
+
+    @Override
+    public int getSkyColor() {
+        return this.builder.getSpecialEffects().getSkyColor();
+    }
+
+    @Override
+    public GrassColorModifier getGrassColorModifier() {
+        return this.builder.getSpecialEffects().getGrassColorModifier();
+    }
+
+    @Override
+    public Optional<Integer> getFoliageColorOverride() {
+        return this.builder.getSpecialEffects().getFoliageColorOverride();
+    }
+
+    @Override
+    public Optional<Integer> getGrassColorOverride() {
+        return this.builder.getSpecialEffects().getGrassColorOverride();
+    }
+
+    @Override
+    public Optional<AmbientParticleSettings> getAmbientParticleSettings() {
+        return this.builder.getSpecialEffects().getAmbientParticle();
+    }
+
+    @Override
+    public Optional<Holder<SoundEvent>> getAmbientLoopSound() {
+        return this.builder.getSpecialEffects().getAmbientLoopSound();
+    }
+
+    @Override
+    public Optional<AmbientMoodSettings> getAmbientMoodSettings() {
+        return this.builder.getSpecialEffects().getAmbientMoodSound();
+    }
+
+    @Override
+    public Optional<AmbientAdditionsSettings> getAmbientAdditions() {
+        return this.builder.getSpecialEffects().getAmbientAdditionsSound();
+    }
+
+    @Override
+    public Optional<Music> getBackgroundMusic() {
+        return this.builder.getSpecialEffects().getBackgroundMusic();
+    }
+
+    @Override
+    public void setFogColor(final int color) {
+        this.builder.getSpecialEffects().fogColor(color);
+    }
+
+    @Override
+    public void setWaterColor(final int color) {
+        this.builder.getSpecialEffects().waterColor(color);
+    }
+
+    @Override
+    public void setWaterFogColor(final int color) {
+        this.builder.getSpecialEffects().waterFogColor(color);
+    }
+
+    @Override
+    public void setSkyColor(final int color) {
+        this.builder.getSpecialEffects().skyColor(color);
+    }
+
+    @Override
+    public void setGrassColorModifier(final GrassColorModifier modifier) {
+        this.builder.getSpecialEffects().grassColorModifier(modifier);
+    }
+
+    @Override
+    public void setFoliageColorOverride(final @Nullable Integer override) {
+        ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
+            .setFoliageColorOverride(Optional.ofNullable(override));
+    }
+
+    @Override
+    public void setGrassColorOverride(final @Nullable Integer override) {
+        ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
+            .setGrassColorOverride(Optional.ofNullable(override));
+    }
+
+    @Override
+    public void setAmbientParticleSettings(final @Nullable AmbientParticleSettings settings) {
+        ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
+            .setAmbientParticle(Optional.ofNullable(settings));
+    }
+
+    @Override
+    public void getAmbientLoopSound(final @Nullable Holder<SoundEvent> event) {
+        ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
+            .setAmbientLoopSoundEvent(Optional.ofNullable(event));
+    }
+
+    @Override
+    public void setAmbientMoodSound(final @Nullable AmbientMoodSettings settings) {
+        ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
+            .setAmbientMoodSettings(Optional.ofNullable(settings));
+    }
+
+    @Override
+    public void setAmbientAdditionsSound(final @Nullable AmbientAdditionsSettings settings) {
+        ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
+            .setAmbientAdditionsSettings(Optional.ofNullable(settings));
+    }
+
+    @Override
+    public void setBackgroundMusic(final @Nullable Music music) {
+        ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
+            .setBackgroundMusic(Optional.ofNullable(music));
+    }
+
+    @Override
+    public Iterable<Holder<ConfiguredWorldCarver<?>>> getCarvers(final Carving step) {
         return this.builder.getGenerationSettings().getCarvers(step);
     }
 
     @Override
-    public List<Holder<PlacedFeature>> getFeatures(Decoration step) {
+    public List<Holder<PlacedFeature>> getFeatures(final Decoration step) {
         return this.builder.getGenerationSettings().getFeatures(step);
     }
 
     @Override
-    public boolean removeCarver(Carving step, ResourceLocation id) {
+    public boolean removeCarver(final Carving step, final ResourceLocation id) {
         return this.builder.getGenerationSettings().getCarvers(step)
             .removeIf(holder -> id.equals(keyOf(this.carvers, holder)));
     }
 
     @Override
-    public boolean removeCarver(Carving step, Predicate<ConfiguredWorldCarver<?>> predicate) {
+    public boolean removeCarver(final Carving step, final Predicate<ConfiguredWorldCarver<?>> predicate) {
         return this.builder.getGenerationSettings().getCarvers(step)
             .removeIf(holder -> predicate.test(holder.value()));
     }
 
     @Override
-    public boolean removeFeature(Decoration step, ResourceLocation id) {
+    public boolean removeFeature(final Decoration step, final ResourceLocation id) {
         return this.builder.getGenerationSettings().getFeatures(step)
             .removeIf(holder -> id.equals(keyOf(this.features, holder)));
     }
 
     @Override
-    public boolean removeFeature(Decoration step, Predicate<PlacedFeature> predicate) {
+    public boolean removeFeature(final Decoration step, final Predicate<PlacedFeature> predicate) {
         return this.builder.getGenerationSettings().getFeatures(step)
             .removeIf(holder -> predicate.test(holder.value()));
     }
 
     @Override
-    public void addCarver(Carving step, ConfiguredWorldCarver<?> carver) {
+    public void addCarver(final Carving step, final ConfiguredWorldCarver<?> carver) {
         this.builder.getGenerationSettings().addCarver(step, Holder.direct(carver));
     }
 
     @Override
-    public void addFeature(Decoration step, PlacedFeature feature) {
+    public void addFeature(final Decoration step, final PlacedFeature feature) {
         this.builder.getGenerationSettings().addFeature(step, Holder.direct(feature));
+    }
+
+    @Override
+    public Collection<MobCategory> getSpawnCategories() {
+        return this.builder.getMobSpawnSettings().getSpawnerTypes();
+    }
+
+    @Override
+    public Collection<EntityType<?>> getEntityTypes() {
+        return this.builder.getMobSpawnSettings().getEntityTypes();
+    }
+
+    @Override
+    public float getCreatureGenerationProbability() {
+        return this.builder.getMobSpawnSettings().getProbability();
+    }
+
+    @Override
+    public void addSpawn(final MobCategory category, final SpawnerData data) {
+        this.builder.getMobSpawnSettings().addSpawn(category, data);
+    }
+
+    @Override
+    public void setSpawnCost(final EntityType<?> type, final double mass, final double gravityLimit) {
+        this.builder.getMobSpawnSettings().addMobCharge(type, mass, gravityLimit);
+    }
+
+    @Override
+    public void removeSpawn(final MobCategory category) {
+        this.builder.getMobSpawnSettings().getSpawner(category).clear();
+    }
+
+    @Override
+    public void removeSpawnCost(final EntityType<?> type) {
+        ((MobSpawnSettingsBuilderAccessor) this.builder.getMobSpawnSettings()).getMobSpawnCosts().remove(type);
     }
 
     private static <T> ResourceLocation keyOf(final Registry<T> registry, final Holder<T> holder) {

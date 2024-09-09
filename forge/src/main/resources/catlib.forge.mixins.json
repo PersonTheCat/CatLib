@@ -3,8 +3,10 @@
   "package": "personthecat.catlib.mixin.forge",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BiomeSpecialEffectsBuilderAccessor",
     "ForgeRegistryMixin",
     "MinecraftServerMixin",
+    "MobSpawnSettingsBuilderAccessor",
     "MojangRegistryMixin",
     "RegistryDataLoaderMixin"
   ],
