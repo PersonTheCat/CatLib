@@ -94,7 +94,7 @@ import static personthecat.catlib.util.LibUtil.f;
  *   registration context.
  * </p>
  */
-@SuppressWarnings({"unused", "UnusedReturnValue"})
+@SuppressWarnings("UnusedReturnValue")
 public class CommandRegistrationContext {
 
     /** The text formatting to be used for the command usage header. */

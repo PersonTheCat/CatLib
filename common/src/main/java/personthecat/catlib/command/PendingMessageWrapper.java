@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Style;
 
 import static personthecat.catlib.util.LibUtil.f;
 
-@SuppressWarnings({"unused", "UnusedReturnValue"})
+@SuppressWarnings("UnusedReturnValue")
 public class PendingMessageWrapper {
     final CommandContextWrapper ctx;
     final MutableComponent msg;

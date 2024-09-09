@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  * @param <T> The type of value being consumed by the wrapper.
  */
 @ThreadSafe
-@SuppressWarnings({"unused", "UnusedReturnValue"})
+@SuppressWarnings("UnusedReturnValue")
 public class ResettableLazy<T> extends Lazy<T> {
 
     /**

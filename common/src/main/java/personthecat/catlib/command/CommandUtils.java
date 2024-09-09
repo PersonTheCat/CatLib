@@ -36,7 +36,6 @@ import java.util.Optional;
 import static personthecat.catlib.command.LibSuggestions.ANY_INT;
 import static personthecat.catlib.command.LibSuggestions.ANY_DECIMAL;
 
-@SuppressWarnings("unused")
 public final class CommandUtils {
 
     private CommandUtils() {}

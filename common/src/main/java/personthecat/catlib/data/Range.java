@@ -13,7 +13,6 @@ import java.util.*;
 import static personthecat.catlib.util.LibUtil.f;
 import static personthecat.catlib.util.LibUtil.numBetween;
 
-@SuppressWarnings("unused")
 public record Range(int min, int max) implements Iterable<Integer> {
 
     private static final Range EMPTY = new Range(0);

@@ -12,7 +12,6 @@ import java.util.Random;
 import static personthecat.catlib.util.LibUtil.f;
 import static personthecat.catlib.util.LibUtil.numBetween;
 
-@SuppressWarnings("unused")
 public record FloatRange(float min, float max) {
 
     private static final FloatRange EMPTY = new FloatRange(0);

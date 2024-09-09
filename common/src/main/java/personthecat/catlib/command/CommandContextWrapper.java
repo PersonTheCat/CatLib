@@ -46,7 +46,6 @@ import static personthecat.catlib.exception.Exceptions.cmdEx;
 import static personthecat.catlib.util.LibUtil.f;
 
 @Log4j2
-@SuppressWarnings("unused")
 public record CommandContextWrapper(
         CommandContext<CommandSourceStack> ctx, SyntaxLinter linter, ModDescriptor mod) {
 

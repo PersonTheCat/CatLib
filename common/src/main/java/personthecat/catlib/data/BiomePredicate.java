@@ -15,7 +15,6 @@ import personthecat.catlib.data.collections.MultiValueHashMap;
 import personthecat.catlib.data.collections.MultiValueMap;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.registry.RegistryHandle;
-import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.LibUtil;
 
 import java.util.ArrayList;
@@ -71,7 +70,7 @@ public class BiomePredicate extends IdList<Biome> {
         final List<InvertibleEntry> entries = new ArrayList<>();
 
         for (final Map.Entry<BiomeType, List<Holder<Biome>>> entry : categories.entrySet()) {
-            final List<Holder<Biome>> possible = McUtils.getBiomes(entry.getKey());
+            final var possible = entry.getKey().getTag();
             if (possible.size() == entry.getValue().size()) {
                 entries.add(new InvertibleEntry(false, new TypeMatcher(entry.getKey())));
             } else {
