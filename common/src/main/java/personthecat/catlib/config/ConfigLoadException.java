@@ -30,6 +30,6 @@ public class ConfigLoadException extends FormattedException {
 
     @Override
     public @NotNull Component getTitleMessage() {
-        return Component.translatable(GENERIC_ERROR, this.mod.getModId());
+        return Component.translatable(GENERIC_ERROR, this.mod.modId());
     }
 }

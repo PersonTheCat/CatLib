@@ -12,7 +12,7 @@ public class ConfigEvaluatorImpl {
         generator.loadConfig();
 
         if (McUtils.isClientSide() && McUtils.isModLoaded("modmenu")) {
-            AutoModMenuCompat.registerScreen(mod.getModId(), generator::createScreen);
+            AutoModMenuCompat.registerScreen(mod.modId(), generator::createScreen);
         }
     }
 }

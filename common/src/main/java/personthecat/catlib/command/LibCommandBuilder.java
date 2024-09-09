@@ -3,7 +3,6 @@ package personthecat.catlib.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -64,12 +63,8 @@ import java.util.Objects;
  * </p>
  */
 @Log4j2
-@AllArgsConstructor
-public final class LibCommandBuilder {
-    private final LiteralArgumentBuilder<CommandSourceStack> command;
-    private final HelpCommandInfo info;
-    private final CommandType type;
-    private final CommandSide side;
+public record LibCommandBuilder(
+        LiteralArgumentBuilder<CommandSourceStack> command, HelpCommandInfo info, CommandType type, CommandSide side) {
 
     /**
      * Constructs a new builder template using the only piece of required
@@ -246,7 +241,7 @@ public final class LibCommandBuilder {
          */
         public LibCommandBuilder generate(final CommandGenerator<CommandSourceStack> generator) {
             if (this.mod == null) this.mod = CommandRegistrationContext.getActiveModOrThrow();
-            if (this.linter == null) this.linter = this.mod.getDefaultLinter();
+            if (this.linter == null) this.linter = this.mod.defaultLinter();
 
             final LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal(this.name);
             final HelpCommandInfo helpInfo = new HelpCommandInfo(this.name, this.arguments, this.description, this.type);
@@ -261,12 +256,7 @@ public final class LibCommandBuilder {
 
     private static class CommandMapBuilder extends HashMap<String, CommandFunction> {}
 
-    @AllArgsConstructor
-    public static class BuilderUtil {
-
-        private final Map<String, CommandFunction> map;
-        private final SyntaxLinter linter;
-        private final ModDescriptor mod;
+    public record BuilderUtil(Map<String, CommandFunction> map, SyntaxLinter linter, ModDescriptor mod) {
 
         public Command<CommandSourceStack> get(final String key) {
             final CommandFunction fn = this.map.get(key);

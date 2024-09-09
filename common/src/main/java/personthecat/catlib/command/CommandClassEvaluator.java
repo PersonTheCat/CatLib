@@ -144,7 +144,7 @@ public class CommandClassEvaluator {
         return LibCommandBuilder.named(getCommandName(tokens, a))
             .arguments(getArgumentText(entries, a))
             .description(String.join(" ", a.description()))
-            .linter(a.linter().length == 0 ? this.mod.getDefaultLinter() : tryInstantiate(a.linter()[0]))
+            .linter(a.linter().length == 0 ? this.mod.defaultLinter() : tryInstantiate(a.linter()[0]))
             .type(a.type())
             .side(a.side())
             .generate(createBranch(entries, cmd));

@@ -1,6 +1,5 @@
 package personthecat.catlib.registry.neo;
 
-import lombok.experimental.UtilityClass;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.syncher.EntityDataSerializer;
@@ -25,8 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-@UtilityClass
-public class RegistryUtilsImpl {
+public final class RegistryUtilsImpl {
     private static final Map<Class<?>, RegistryHandle<?>> REGISTRY_BY_TYPE = new ConcurrentHashMap<>();
     private static final Map<ResourceKey<? extends Registry<?>>, RegistryHandle<?>> NEO_REGISTRIES = new ConcurrentHashMap<>();
 
@@ -44,6 +42,8 @@ public class RegistryUtilsImpl {
         mapNeo(null, Keys.ENTITY_DATA_SERIALIZERS, NeoForgeRegistries.ENTITY_DATA_SERIALIZERS);
         mapNeo(AttachmentType.class, Keys.ATTACHMENT_TYPES, NeoForgeRegistries.ATTACHMENT_TYPES);
     }
+
+    private RegistryUtilsImpl() {}
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<? extends Registry<T>> key) {

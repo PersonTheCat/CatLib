@@ -1,6 +1,5 @@
 package personthecat.catlib.util;
 
-import lombok.experimental.UtilityClass;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,9 +12,10 @@ import static personthecat.catlib.io.FileIO.listFiles;
 import static personthecat.catlib.util.LibUtil.f;
 
 /** A collection of tools used for interacting with file paths and {@link ResourceLocation}s. */
-@UtilityClass
 @SuppressWarnings("unused")
 public class PathUtils {
+
+    private PathUtils() {}
 
     /**
      * Converts the input path into a fully-qualified ResourceLocation.

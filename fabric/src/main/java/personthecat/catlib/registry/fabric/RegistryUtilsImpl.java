@@ -1,6 +1,5 @@
 package personthecat.catlib.registry.fabric;
 
-import lombok.experimental.UtilityClass;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -18,11 +17,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-@UtilityClass
 @SuppressWarnings("unused")
-public class RegistryUtilsImpl {
+public final class RegistryUtilsImpl {
 
     private static final Map<Class<?>, RegistryHandle<?>> REGISTRY_BY_TYPE = new ConcurrentHashMap<>();
+
+    private RegistryUtilsImpl() {}
 
     @SuppressWarnings("unchecked")
     public static <T> Optional<RegistryHandle<T>> tryGetHandle(final ResourceKey<? extends Registry<T>> key) {

@@ -110,7 +110,7 @@ public class LibErrorMenu extends LibMenu {
         final MultiValueMap<String, AbstractWidget> buttons = new MultiValueHashMap<>();
         final List<AbstractWidget> widgets = new ArrayList<>();
         for (final ModDescriptor mod : this.keys) {
-            widgets.add(CategorizedList.createButton(Component.literal(mod.getName()), b -> this.setMod(mod)));
+            widgets.add(CategorizedList.createButton(Component.literal(mod.name()), b -> this.setMod(mod)));
         }
         buttons.put("catlib.errorMenu.mods", widgets);
         return buttons;

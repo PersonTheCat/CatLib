@@ -1,7 +1,6 @@
 package personthecat.catlib.registry;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import lombok.experimental.UtilityClass;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
@@ -12,8 +11,9 @@ import personthecat.catlib.exception.RegistryLookupException;
 
 import java.util.Optional;
 
-@UtilityClass
-public class RegistryUtils {
+public final class RegistryUtils {
+
+    private RegistryUtils() {}
 
     /**
      * Acquires a handle on the registry corresponding to this key. In particular, this

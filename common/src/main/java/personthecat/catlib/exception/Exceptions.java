@@ -5,7 +5,6 @@ import com.mojang.brigadier.Message;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import personthecat.catlib.util.LibUtil;
 
@@ -14,9 +13,10 @@ import java.io.File;
 import static personthecat.catlib.util.LibUtil.f;
 
 @Log4j2
-@UtilityClass
 @SuppressWarnings("unused")
-public class Exceptions {
+public final class Exceptions {
+
+    private Exceptions() {}
 
     /**
      * Returns a clean-looking, general-purpose {@link RuntimeException}.

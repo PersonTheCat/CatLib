@@ -1,7 +1,6 @@
 package personthecat.catlib.data;
 
 import lombok.Builder;
-import lombok.Value;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.util.McUtils;
@@ -36,33 +35,21 @@ import java.util.Objects;
  *   required parameters. The others can be inferred if needed.
  * </p>
  */
-@Value
 @Builder
 @SuppressWarnings("unused")
-public class ModDescriptor {
-    String name;
-    String modId;
-    Version version;
-    String commandPrefix;
-    File configFolder;
-    File configFile;
-    File backupFolder;
-    @Nullable File preferredDirectory;
-
-    SyntaxLinter defaultLinter;
+public record ModDescriptor(
+    String name,
+    String modId,
+    Version version,
+    String commandPrefix,
+    File configFolder,
+    File configFile,
+    File backupFolder,
+    @Nullable File preferredDirectory,
+    SyntaxLinter defaultLinter) {
 
     public ResourceLocation id(final String path) {
         return new ResourceLocation(this.modId, path);
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        return o instanceof ModDescriptor && this.modId.equals(((ModDescriptor) o).getModId());
-    }
-
-    @Override
-    public int hashCode() {
-        return this.modId.hashCode();
     }
 
     public static class ModDescriptorBuilder {

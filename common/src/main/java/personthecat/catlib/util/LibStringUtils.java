@@ -1,7 +1,5 @@
 package personthecat.catlib.util;
 
-import lombok.experimental.UtilityClass;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,10 +11,11 @@ import java.util.Random;
  * multiple lines, but additional methods may be provided at some point in the
  * future.
  */
-@UtilityClass
-public class LibStringUtils {
+public final class LibStringUtils {
 
     private static final Random RAND = new Random();
+
+    private LibStringUtils() {}
 
     /**
      * Wraps the given text onto multiple lines when given a line length.

@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.floats.FloatLists;
-import lombok.EqualsAndHashCode;
 import personthecat.catlib.serialization.codec.CodecUtils;
 
 import java.util.List;
@@ -13,26 +12,29 @@ import java.util.Random;
 import static personthecat.catlib.util.LibUtil.f;
 import static personthecat.catlib.util.LibUtil.numBetween;
 
-@EqualsAndHashCode
 @SuppressWarnings("unused")
-public class FloatRange {
+public record FloatRange(float min, float max) {
 
+    private static final FloatRange EMPTY = new FloatRange(0);
     public static final Codec<FloatRange> CODEC =
         CodecUtils.FLOAT_LIST.xmap(FloatRange::fromList, FloatRange::toList);
-
-    public final float min, max;
-
-    public FloatRange(float min, float max) {
-        this.min = min;
-        this.max = max;
-    }
 
     public FloatRange(float a) {
         this(a, a);
     }
 
+    public static FloatRange of(float a, float b) {
+        if (a == b) return FloatRange.empty();
+        if (a > b) return new FloatRange(b, a);
+        return new FloatRange(a, b);
+    }
+
+    public static FloatRange of(float a) {
+        return new FloatRange(a);
+    }
+
     public static FloatRange fromList(final List<Float> floats) {
-        if (floats.isEmpty()) return new FloatRange(0.0F);
+        if (floats.isEmpty()) return empty();
         float min = floats.getFirst();
         float max = min;
         for (int i = 1; i < floats.size(); i++) {
@@ -41,6 +43,10 @@ public class FloatRange {
             max = Math.max(max, n);
         }
         return new FloatRange(min, max);
+    }
+
+    public static FloatRange empty() {
+        return EMPTY;
     }
 
     public float rand(Random rand) {

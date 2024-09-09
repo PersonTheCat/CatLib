@@ -1,6 +1,5 @@
 package personthecat.catlib.util;
 
-import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,8 +14,9 @@ import static personthecat.catlib.exception.Exceptions.invalidConstant;
 /**
  * A collection of platform-agnostic <b>shorthand</b> utilities.
  */
-@UtilityClass
-public class LibUtil {
+public final class LibUtil {
+
+    private LibUtil() {}
 
     /**
      * Returns a random number between the input bounds, inclusive.

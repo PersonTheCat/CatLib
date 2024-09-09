@@ -1,6 +1,5 @@
 package personthecat.catlib.util;
 
-import lombok.experimental.UtilityClass;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -10,8 +9,9 @@ import personthecat.catlib.registry.DynamicRegistries;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 
-@UtilityClass
-public class FeatureSupport {
+public final class FeatureSupport {
+
+    private FeatureSupport() {}
 
     /**
      * Determines whether the given {@link PlacedFeature} contains any features of the

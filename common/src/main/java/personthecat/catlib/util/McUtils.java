@@ -1,7 +1,6 @@
 package personthecat.catlib.util;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import lombok.experimental.UtilityClass;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.NotNull;
@@ -16,9 +15,10 @@ import java.util.Optional;
 import static personthecat.catlib.exception.Exceptions.noBiomeTypeNamed;
 import static personthecat.catlib.util.LibUtil.getEnumConstant;
 
-@UtilityClass
 @SuppressWarnings("unused")
-public class McUtils {
+public final class McUtils {
+
+    private McUtils() {}
 
     /**
      * @return A {@link File} pointing to the game's config directory.

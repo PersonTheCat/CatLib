@@ -2,7 +2,6 @@ package personthecat.catlib.command.forge;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import personthecat.catlib.command.CommandSide;
 import personthecat.catlib.util.forge.McUtilsImpl;
@@ -10,10 +9,11 @@ import personthecat.catlib.util.forge.McUtilsImpl;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@UtilityClass
-public class LibCommandRegistrarImpl {
+public final class LibCommandRegistrarImpl {
 
     private static final Map<LiteralArgumentBuilder<CommandSourceStack>, CommandSide> COMMANDS = new ConcurrentHashMap<>();
+
+    private LibCommandRegistrarImpl() {}
 
     public static void registerCommand(final LiteralArgumentBuilder<CommandSourceStack> cmd, final CommandSide side) {
         COMMANDS.put(cmd, side);

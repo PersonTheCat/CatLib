@@ -2,7 +2,6 @@ package personthecat.catlib.command;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandSourceStack;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.exception.MissingOverrideException;
@@ -10,8 +9,9 @@ import personthecat.catlib.exception.MissingOverrideException;
 /**
  * A platform-agnostic registrar for regular Brigadier command builders.
  */
-@UtilityClass
-public class LibCommandRegistrar {
+public final class LibCommandRegistrar {
+
+    private LibCommandRegistrar() {}
 
     /**
      * Registers every command in the given class files to be applied as soon as

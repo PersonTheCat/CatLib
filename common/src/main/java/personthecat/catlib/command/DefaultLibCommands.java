@@ -3,7 +3,6 @@ package personthecat.catlib.command;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import lombok.experimental.UtilityClass;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -58,8 +57,7 @@ import static personthecat.catlib.command.CommandUtils.registryArg;
 import static personthecat.catlib.util.PathUtils.extension;
 import static personthecat.catlib.util.PathUtils.noExtension;
 
-@UtilityClass
-public class DefaultLibCommands {
+public final class DefaultLibCommands {
 
     public static final String FILE_ARGUMENT = "file";
     public static final String TO_ARGUMENT = "to";
@@ -97,6 +95,8 @@ public class DefaultLibCommands {
 
     /** The number of backups before a warning is displayed. */
     private static final int BACKUP_COUNT_WARNING = 10;
+
+    private DefaultLibCommands() {}
 
     public static List<LibCommandBuilder> createAll(final ModDescriptor mod) {
         return Lists.newArrayList(
@@ -403,7 +403,7 @@ public class DefaultLibCommands {
 
     private static void delete(final CommandContextWrapper wrapper) {
         final File file = wrapper.getFile(FILE_ARGUMENT);
-        if (PathUtils.isIn(wrapper.getMod().getBackupFolder(), file)) {
+        if (PathUtils.isIn(wrapper.getMod().backupFolder(), file)) {
             FileIO.delete(file);
             wrapper.sendMessage("File deleted successfully.");
         } else if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), wrapper.getFile(FILE_ARGUMENT), false)) {

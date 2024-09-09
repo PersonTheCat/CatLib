@@ -9,7 +9,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
-import lombok.experimental.UtilityClass;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -37,9 +36,10 @@ import java.util.Optional;
 import static personthecat.catlib.command.LibSuggestions.ANY_INT;
 import static personthecat.catlib.command.LibSuggestions.ANY_DECIMAL;
 
-@UtilityClass
 @SuppressWarnings("unused")
-public class CommandUtils {
+public final class CommandUtils {
+
+    private CommandUtils() {}
 
     /**
      * Gets the most recent argument of the given type without needing to search by name.
@@ -141,7 +141,7 @@ public class CommandUtils {
      * @return An argument builder for the given specs.
      */
     public static RequiredArgumentBuilder<CommandSourceStack, File> fileArg(final String name, final ModDescriptor mod) {
-        return fileArg(name, mod.getConfigFolder(), mod.getPreferredDirectory());
+        return fileArg(name, mod.configFolder(), mod.preferredDirectory());
     }
 
     /**
@@ -187,7 +187,7 @@ public class CommandUtils {
      * @return An argument builder for the given specs.
      */
     public static RequiredArgumentBuilder<CommandSourceStack, JsonArgument.Result> jsonFileArg(final String name, final ModDescriptor mod) {
-        return jsonFileArg(name, mod.getConfigFolder(), mod.getPreferredDirectory());
+        return jsonFileArg(name, mod.configFolder(), mod.preferredDirectory());
     }
 
     /**
@@ -318,6 +318,6 @@ public class CommandUtils {
 
     private static File getDefaultRoot() {
         final ModDescriptor activeMod = CommandRegistrationContext.getActiveMod();
-        return activeMod != null ? activeMod.getConfigFolder() : McUtils.getConfigDir();
+        return activeMod != null ? activeMod.configFolder() : McUtils.getConfigDir();
     }
 }

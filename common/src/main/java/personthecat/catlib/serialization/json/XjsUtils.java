@@ -2,7 +2,6 @@ package personthecat.catlib.serialization.json;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
-import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.CheckReturnValue;
@@ -39,9 +38,10 @@ import static personthecat.catlib.util.LibUtil.f;
  * </p>
  */
 @Log4j2
-@UtilityClass
 @SuppressWarnings("unused")
-public class XjsUtils {
+public final class XjsUtils {
+
+    private XjsUtils() {}
 
     /**
      * Reads a {@link JsonObject} from the given file.

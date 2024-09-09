@@ -4,7 +4,6 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import lombok.experimental.UtilityClass;
 import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.CommandRegistrationContext;
 import personthecat.catlib.command.LibSuggestions;
@@ -19,9 +18,10 @@ import personthecat.catlib.data.ModDescriptor;
  *   for {@link ArgumentType}s with no argument constructors.
  * </p>
  */
-@UtilityClass
 @SuppressWarnings("unused")
-public class ArgumentSuppliers {
+public final class ArgumentSuppliers {
+
+    private ArgumentSuppliers() {}
 
     /**
      * Provides a {@link FileArgument} with the current mod's config folder as the root.
@@ -29,7 +29,7 @@ public class ArgumentSuppliers {
     public static class File implements ArgumentSupplier<java.io.File> {
         public ArgumentDescriptor<java.io.File> get() {
             final ModDescriptor descriptor = getModDescriptorOrThrow();
-            return new ArgumentDescriptor<>(new FileArgument(descriptor.getConfigFolder(), descriptor.getPreferredDirectory()));
+            return new ArgumentDescriptor<>(new FileArgument(descriptor.configFolder(), descriptor.preferredDirectory()));
         }
     }
 
@@ -39,7 +39,7 @@ public class ArgumentSuppliers {
     public static class SimpleFile implements ArgumentSupplier<java.io.File> {
         public ArgumentDescriptor<java.io.File> get() {
             final ModDescriptor mod = getModDescriptorOrThrow();
-            return new ArgumentDescriptor<>(new FileArgument(mod.getConfigFolder(), false));
+            return new ArgumentDescriptor<>(new FileArgument(mod.configFolder(), false));
         }
     }
 
@@ -49,7 +49,7 @@ public class ArgumentSuppliers {
     public static class JsonFile implements ArgumentSupplier<JsonArgument.Result> {
         public ArgumentDescriptor<JsonArgument.Result> get() {
             final ModDescriptor mod = getModDescriptorOrThrow();
-            return new ArgumentDescriptor<>(new JsonArgument(mod.getConfigFolder(), mod.getPreferredDirectory(), true));
+            return new ArgumentDescriptor<>(new JsonArgument(mod.configFolder(), mod.preferredDirectory(), true));
         }
     }
 
@@ -59,7 +59,7 @@ public class ArgumentSuppliers {
     public static class SimpleJsonFile implements ArgumentSupplier<JsonArgument.Result> {
         public ArgumentDescriptor<JsonArgument.Result> get() {
             final ModDescriptor mod = getModDescriptorOrThrow();
-            return new ArgumentDescriptor<>(new JsonArgument(mod.getConfigFolder(), false));
+            return new ArgumentDescriptor<>(new JsonArgument(mod.configFolder(), false));
         }
     }
 

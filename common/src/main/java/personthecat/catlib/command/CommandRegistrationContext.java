@@ -191,8 +191,8 @@ public class CommandRegistrationContext {
         final ModDescriptor activeMod = ACTIVE_MOD.get();
         if (activeMod == null) {
             ACTIVE_MOD.set(mod);
-        } else if (!mod.getModId().equals(activeMod.getModId())) {
-            throw new AmbiguousContextException(activeMod.getModId(), mod.getModId());
+        } else if (!mod.modId().equals(activeMod.modId())) {
+            throw new AmbiguousContextException(activeMod.modId(), mod.modId());
         }
         return this;
     }
@@ -384,7 +384,7 @@ public class CommandRegistrationContext {
     private LiteralArgumentBuilder<CommandSourceStack> generateBasicModCommand(final List<LibCommandBuilder> commands) {
         final CommandFunction helpCommand = this.createHelp(
             new Lazy<>(() -> this.createHelpMessage(commands)));
-        return LibCommandBuilder.named(this.mod.getCommandPrefix())
+        return LibCommandBuilder.named(this.mod.commandPrefix())
             .generate((builder, utl) -> {
                 final Command<CommandSourceStack> cmd = utl.wrap(helpCommand);
                 return builder.executes(cmd)
@@ -491,7 +491,7 @@ public class CommandRegistrationContext {
      */
     private Component createHeader(final int page, final int numPages) {
         return Component.literal(" --- ")
-            .append(Component.translatable("catlib.commands.help.usage", this.mod.getName()))
+            .append(Component.translatable("catlib.commands.help.usage", this.mod.name()))
             .append(f(" ({} / {}) ---", page, numPages))
             .withStyle(HEADER_STYLE);
     }
@@ -531,7 +531,7 @@ public class CommandRegistrationContext {
     private Component createPreviousButton(final String text, final int page) {
         final MutableComponent component = Component.literal("[").append(text).append("]");
         if (page > 1) {
-            final String cmd = f("/{} help {}", this.mod.getCommandPrefix(), page - 1);
+            final String cmd = f("/{} help {}", this.mod.commandPrefix(), page - 1);
             component.setStyle(
                 CLICKABLE_PAGE_STYLE.withClickEvent(clickToRun(cmd)).withHoverEvent(DISPLAY_CLICK_TO_OPEN));
         } else {
@@ -551,7 +551,7 @@ public class CommandRegistrationContext {
     private Component createNextButton(final String text, final int page, final int numPages) {
         final MutableComponent component = Component.literal("[").append(text).append("]");
         if (page < numPages) {
-            final String cmd = f("/{} help {}", this.mod.getCommandPrefix(), page + 1);
+            final String cmd = f("/{} help {}", this.mod.commandPrefix(), page + 1);
             component.setStyle(
                 CLICKABLE_PAGE_STYLE.withClickEvent(clickToRun(cmd)).withHoverEvent(DISPLAY_CLICK_TO_OPEN));
         } else {
@@ -572,7 +572,7 @@ public class CommandRegistrationContext {
     private Component createUsageText(final boolean anyGlobal, final HelpCommandInfo info) {
         final MutableComponent text = Component.empty();
         if (!info.isGlobal() && anyGlobal) {
-            text.append(this.mod.getCommandPrefix() + " ");
+            text.append(this.mod.commandPrefix() + " ");
         }
         text.append(info.name());
         if (!info.arguments().isEmpty()) {

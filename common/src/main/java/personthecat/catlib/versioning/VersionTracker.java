@@ -24,7 +24,7 @@ public class VersionTracker extends ConfigTracker<Version> {
      * Convenience method for tracking mod updates. Call this method with your {@link ModDescriptor}
      * to acquire a handle on the most recent {@link Version} of your mod.
      *
-     * <p>Your mod's current version, provided by {@link ModDescriptor}#getVersion, will be persisted
+     * <p>Your mod's current version, provided by {@link ModDescriptor}#version, will be persisted
      * on {@link GameReadyEvent#COMMON}.
      *
      * <p>For example, to check whether your mod has been updated by the user, call
@@ -48,7 +48,7 @@ public class VersionTracker extends ConfigTracker<Version> {
     public static VersionTracker trackModVersion(final ModDescriptor mod) {
         final Builder builder = ConfigTracker.forMod(mod).withCategory("version")
             .scheduleSave(ConfigTracker.PersistOption.GAME_READY);
-        return new VersionTracker(builder, mod.getVersion());
+        return new VersionTracker(builder, mod.version());
     }
 
     @Override

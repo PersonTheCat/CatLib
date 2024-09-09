@@ -4,7 +4,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import lombok.experimental.UtilityClass;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.MapColor;
 
@@ -18,9 +17,8 @@ import java.util.Set;
  *   for any type that differs between the two platforms.
  * </p>
  */
-@UtilityClass
 @SuppressWarnings("unused")
-public class ValueLookup {
+public final class ValueLookup {
 
     /** A map of every vanilla sound type to its name */
     private static final BiMap<String, SoundType> SOUND_MAP =
@@ -212,6 +210,8 @@ public class ValueLookup {
         key -> getSoundType(key).map(DataResult::success).orElse(DataResult.error(() -> "No such sound type: " + key)),
         sound -> serialize(sound).map(DataResult::success).orElse(DataResult.error(() -> "Unknown sound type: " + sound))
     );
+
+    private ValueLookup() {}
 
     /**
      * Attempts to retrieve a sound type from the map.

@@ -2,7 +2,6 @@ package personthecat.catlib.command;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
-import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -48,15 +47,11 @@ import static personthecat.catlib.util.LibUtil.f;
 
 @Log4j2
 @SuppressWarnings("unused")
-@AllArgsConstructor
-public class CommandContextWrapper {
+public record CommandContextWrapper(
+        CommandContext<CommandSourceStack> ctx, SyntaxLinter linter, ModDescriptor mod) {
 
     /** The style used when printing error messages. */
     private static final Style ERROR_STYLE = Style.EMPTY.withColor(ChatFormatting.RED);
-
-    private final CommandContext<CommandSourceStack> ctx;
-    private final SyntaxLinter linter;
-    private final ModDescriptor mod;
 
     public String getString(final String key) {
         return this.get(key, String.class);
@@ -290,15 +285,15 @@ public class CommandContextWrapper {
     }
 
     public File getBackupsFolder() {
-        return this.mod.getBackupFolder();
+        return this.mod.backupFolder();
     }
 
     public File getModConfigFolder() {
-        return this.mod.getConfigFolder();
+        return this.mod.configFolder();
     }
 
     public File getModFile(final String path) {
-        return new File(this.mod.getConfigFolder(), path);
+        return new File(this.mod.configFolder(), path);
     }
 
     public String getModPath(final String path) {
@@ -306,7 +301,7 @@ public class CommandContextWrapper {
     }
 
     public String getModPath(final File file) {
-        return PathUtils.getRelativePath(this.mod.getConfigFolder(), file);
+        return PathUtils.getRelativePath(this.mod.configFolder(), file);
     }
 
     public CommandContext<CommandSourceStack> getCtx() {

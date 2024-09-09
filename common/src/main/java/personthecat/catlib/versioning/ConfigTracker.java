@@ -42,7 +42,7 @@ public class ConfigTracker<T extends Serializable> {
 
     private static File createFile(final Builder builder) {
         return new File(McUtils.getConfigDir(), CatLib.ID + "/versioning/"
-            + builder.mod.getModId() + "/" + builder.category + ".cft");
+            + builder.mod.modId() + "/" + builder.category + ".cft");
     }
 
     @Nullable
@@ -117,7 +117,7 @@ public class ConfigTracker<T extends Serializable> {
             this.saved = true;
         } catch (final IOException e) {
             log.error("Error saving config tracker for {}. This will eventually be logged in the error menu.",
-                this.mod.getName(), e);
+                this.mod.name(), e);
         }
     }
 

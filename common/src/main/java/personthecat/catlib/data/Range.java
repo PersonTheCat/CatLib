@@ -5,7 +5,6 @@ import com.mojang.serialization.DataResult;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
-import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.serialization.codec.CodecUtils;
 
@@ -14,26 +13,21 @@ import java.util.*;
 import static personthecat.catlib.util.LibUtil.f;
 import static personthecat.catlib.util.LibUtil.numBetween;
 
-@EqualsAndHashCode
 @SuppressWarnings("unused")
-public class Range implements Iterable<Integer> {
+public record Range(int min, int max) implements Iterable<Integer> {
 
+    private static final Range EMPTY = new Range(0);
     public static final Codec<Range> CODEC =
         CodecUtils.INT_LIST.xmap(Range::fromList, Range::toList);
-
-    public final int min, max;
-
-    public Range(int min, int max) {
-        this.min = min;
-        this.max = max;
-    }
 
     public Range(int max) {
         this(max, max);
     }
 
     public static Range of(int a, int b) {
-        return a > b ? new Range(b, a) : new Range(a, b);
+        if (a == b) return empty();
+        if (a > b) return new Range(b, a);
+        return new Range(a, b);
     }
 
     public static Range of(int max) {
@@ -41,11 +35,11 @@ public class Range implements Iterable<Integer> {
     }
 
     public static FloatRange of(float a, float b) {
-        return a > b ? new FloatRange(b, a) : new FloatRange(a, b);
+        return FloatRange.of(a, b);
     }
 
     public static FloatRange of(float a) {
-        return new FloatRange(a);
+        return FloatRange.of(a);
     }
 
     public static Range fromList(final List<Integer> ints) {
@@ -60,12 +54,8 @@ public class Range implements Iterable<Integer> {
         return new Range(min, max);
     }
 
-    public static Range checkedOrEmpty(int min, int max) {
-        return max > min ? new Range(min, max) : EmptyRange.get();
-    }
-
-    public static EmptyRange empty() {
-        return EmptyRange.get();
+    public static Range empty() {
+        return EMPTY;
     }
 
     public int rand(Random rand) {

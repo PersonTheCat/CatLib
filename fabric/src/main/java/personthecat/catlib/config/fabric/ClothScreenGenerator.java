@@ -51,7 +51,7 @@ public record ClothScreenGenerator(ClothConfigGenerator generator) {
     private ConfigBuilder loadBuilder() {
         final ConfigBuilder builder = ConfigBuilder.create();
         final ClothConfigGenerator generator = this.generator;
-        builder.setTitle(Component.literal(generator.getMod().getName()));
+        builder.setTitle(Component.literal(generator.getMod().name()));
         builder.setSavingRunnable(() -> {
             generator.fireOnConfigUpdated();
             generator.saveConfig();

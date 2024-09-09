@@ -176,11 +176,11 @@ public class LibErrorContext {
     public static void outputServerErrors(final boolean notify) {
         if (hasErrors()) {
             for (final Map.Entry<ModDescriptor, List<FormattedException>> entry : COMMON_ERRORS.entrySet()) {
-                log.error("Encountered {} warnings for {}", entry.getValue().size(), entry.getKey().getModId());
+                log.error("Encountered {} warnings for {}", entry.getValue().size(), entry.getKey().modId());
                 entry.getValue().forEach(log::warn);
             }
             for (final Map.Entry<ModDescriptor, List<FormattedException>> entry : FATAL_ERRORS.entrySet()) {
-                log.error("Encountered {} errors for {}", entry.getValue().size(), entry.getKey().getModId());
+                log.error("Encountered {} errors for {}", entry.getValue().size(), entry.getKey().modId());
                 entry.getValue().forEach(log::fatal);
             }
             if (!FATAL_ERRORS.isEmpty()) {

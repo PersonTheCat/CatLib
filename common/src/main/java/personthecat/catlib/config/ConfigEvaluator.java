@@ -16,7 +16,7 @@ import java.util.List;
 public class ConfigEvaluator {
 
     public static <T> T getAndRegister(ModDescriptor mod, Class<T> clazz) {
-        return getAndRegister(mod, mod.getConfigFile(), clazz);
+        return getAndRegister(mod, mod.configFile(), clazz);
     }
 
     public static <T> T getAndRegister(ModDescriptor mod, File file, Class<T> clazz) {
@@ -30,7 +30,7 @@ public class ConfigEvaluator {
     }
 
     public static <T> void loadAndRegister(ModDescriptor mod, T t) {
-        loadAndRegister(mod, mod.getConfigFile(), t);
+        loadAndRegister(mod, mod.configFile(), t);
     }
 
     @SuppressWarnings("unchecked")

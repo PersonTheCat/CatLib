@@ -52,7 +52,7 @@ public final class RegistryHandleImpl {
 
     private static void ensureActiveMod(final ModDescriptor mod) {
         final ModContainer container = ModLoadingContext.get().getActiveContainer();
-        final String expected = mod.getModId();
+        final String expected = mod.modId();
         final String modId = container.getModId();
         if (!expected.equals(modId)) {
             throw new IllegalStateException("Attempted to register registry for " + expected + " from mod" + modId);

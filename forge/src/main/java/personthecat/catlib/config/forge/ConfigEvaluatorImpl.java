@@ -20,7 +20,7 @@ public class ConfigEvaluatorImpl {
 
     public static void register(ModDescriptor mod, File file, CategoryValue config) {
         final ModContainer container = ModLoadingContext.get().getActiveContainer();
-        final String expected = mod.getModId();
+        final String expected = mod.modId();
         final String modId = container.getModId();
         if (!expected.equals(modId)) {
             throw new IllegalStateException("Attempted to register config for " + expected + " from " + modId);

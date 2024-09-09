@@ -6,7 +6,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.exception.DirectoryNotCreatedException;
 import personthecat.catlib.exception.ResourceException;
-import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import personthecat.fresult.OptionalResult;
 import personthecat.fresult.PartialResult;
@@ -35,15 +34,16 @@ import static personthecat.catlib.exception.Exceptions.resourceEx;
 import static personthecat.catlib.util.LibUtil.f;
 
 @Log4j2
-@UtilityClass
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public class FileIO {
+public final class FileIO {
 
     /** For outputting the correct new line type. */
     private static final String NEW_LINE = System.lineSeparator();
 
     /** The size of the array used for copy operations. */
     private static final int BUFFER_SIZE = 1024;
+
+    private FileIO() {}
 
     /**
      * Creates the input directory file and parent files, as needed. Unlike {@link File#mkdirs},

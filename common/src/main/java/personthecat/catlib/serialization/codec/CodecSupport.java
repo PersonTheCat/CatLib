@@ -2,7 +2,6 @@ package personthecat.catlib.serialization.codec;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import lombok.experimental.UtilityClass;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceKey;
@@ -29,8 +28,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-@UtilityClass
-public class CodecSupport {
+public final class CodecSupport {
 
     private static final Map<Class<?>, Function<Object, Codec<?>>> CODECS_BY_TYPE = new ConcurrentHashMap<>();
 
@@ -45,6 +43,8 @@ public class CodecSupport {
         registerGetter(MapColor.class, c -> ValueLookup.COLOR_CODEC);
         registerGetter(DensityFunction.class, f -> f.codec().codec().codec());
     }
+
+    private CodecSupport() {}
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> void registerGetter(final Class<T> clazz, final Function<? extends T, Codec<?>> getter) {

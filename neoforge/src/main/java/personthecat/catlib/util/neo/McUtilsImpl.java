@@ -1,6 +1,5 @@
 package personthecat.catlib.util.neo;
 
-import lombok.experimental.UtilityClass;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLPaths;
@@ -8,9 +7,10 @@ import net.neoforged.neoforgespi.Environment;
 
 import java.io.File;
 
-@UtilityClass
 @SuppressWarnings("unused")
-public class McUtilsImpl {
+public final class McUtilsImpl {
+
+    private McUtilsImpl() {}
 
     public static File getConfigDir() {
         return FMLPaths.CONFIGDIR.get().toFile();
