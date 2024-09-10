@@ -1,7 +1,6 @@
 package personthecat.catlib.util;
 
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.HashSet;
@@ -11,9 +10,10 @@ import java.util.stream.Stream;
 import static personthecat.catlib.io.FileIO.listFiles;
 import static personthecat.catlib.util.LibUtil.f;
 
-/** A collection of tools used for interacting with file paths and {@link ResourceLocation}s. */
-@SuppressWarnings("unused")
-public class PathUtils {
+/**
+ * A collection of tools used for interacting with file paths and {@link ResourceLocation}s.
+ */
+public final class PathUtils {
 
     private PathUtils() {}
 
@@ -65,16 +65,6 @@ public class PathUtils {
      */
     public static String namespaceToSub(final ResourceLocation id) {
         return id.getPath().replaceFirst("(blocks?|items?|^)[/\\\\]?", "$1/" + id.getNamespace() + "/");
-    }
-
-    /**
-     * Shorthand for {@link #namespaceToSub(ResourceLocation)} using a raw path.
-     *
-     * @param id The raw path being transformed.
-     * @return The transformed path.
-     */
-    public static String namespaceToSub(final String id) {
-        return namespaceToSub(fromRawPath(id));
     }
 
     /**
@@ -373,107 +363,5 @@ public class PathUtils {
      */
     public static String asBlockStatePath(final String mod, final String path) {
         return f("/assets/{}/blockstates/{}.json", mod, path);
-    }
-
-    /**
-     * Converts a raw file path (starting with <code>assets</code> or
-     * <code>data</code>) into a {@link ResourceLocation}. The type of
-     * file will be accounted for and elided from the return value.
-     *
-     * <p>These examples demonstrate the expected output:
-     *
-     * <ul>
-     *   <li>
-     *     In: <code>assets/minecraft/textures/block/cobblestone.png</code><br>
-     *     Out: <code>minecraft:block/cobblestone</code>
-     *   </li>
-     *   <li>
-     *     In: <code>assets/osv/models/block/overlay.json</code><br>
-     *     Out: <code>osv:block/overlay</code>
-     *   </li>
-     * </ul>
-     *
-     * <p>In the event where no content root is provided in the path,
-     * the input is assumed to already be an identifier and the following
-     * behavior can be expected:
-     *
-     * <ul>
-     *   <li>
-     *     In: <code>block/cobblestone</code><br>
-     *     Out: <code>minecraft:block/cobblestone</code>
-     *   </li>
-     * </ul>
-     *
-     * @param path The raw path pointing to a resource or {@link ResourceLocation}
-     *             as a string.
-     * @return The equivalent {@link ResourceLocation} for this path.
-     */
-    public static ResourceLocation fromRawPath(final String path) {
-        final int content = contentRoot(path);
-        if (content < 0) return new ResourceLocation(path);
-        final String fromMod = path.substring(content + 1);
-
-        final int mod = fromMod.indexOf("/");
-        if (mod < 0) return new ResourceLocation(path);
-        final String modName = fromMod.substring(0, mod);
-        final String fullPath = fromMod.substring(mod + 1);
-
-        final int key = fullPath.indexOf("/");
-        if (key < 0) return new ResourceLocation(modName, fullPath + 1);
-
-        return new ResourceLocation(modName, noExtension(fullPath.substring(key + 1)));
-    }
-
-    /**
-     * Determines the type of content being pointed at by the given path.
-     * If no content type can be determined from this path, <code>null</code>
-     * will be returned instead.
-     *
-     * <p>These examples should demonstrate the expected behavior:
-     *
-     * <ul>
-     *   <li>
-     *     In: <code>assets/minecraft/textures/block/oak_door.png</code><br>
-     *     Out: <code>textures</code></li>
-     *   <li>
-     *     In: <code>assets/minecraft/models/block/oak_door.json</code><br>
-     *     Out: <code>models</code>
-     *   </li>
-     * </ul>
-     *
-     * @param path The raw file path for any resource.
-     * @return The type of content, e.g. <code>textures</code>, or else <code>null</code>.
-     */
-    @Nullable
-    public static String contentType(final String path) {
-        final int content = contentRoot(path);
-        if (content < 0) {
-            // Assume this path starts just after the mod.
-            final int afterMod = path.indexOf("/");
-            if (afterMod < 0) return null; // Only one path element.
-            return path.substring(0, afterMod + 1);
-        }
-        final String fromMod = path.substring(content + 1);
-
-        final int mod = fromMod.indexOf("/");
-        if (mod < 0) return null; // Would be "assets/mod"
-        final String fullPath = fromMod.substring(mod + 1);
-
-        final int fromType = fullPath.indexOf("/");
-        if (fromType < 0) return null; // Would be "assets/mod/file"
-
-        return fullPath.substring(0, fromType);
-    }
-
-    private static int contentRoot(final String path) {
-        final int assets = path.indexOf("assets/");
-        if (assets > 0) {
-            return assets + "assets".length();
-        }
-        final int data = path.indexOf("data/");
-        if (data > 0) {
-            return data + "data".length();
-        }
-        return -1;
     }
 }

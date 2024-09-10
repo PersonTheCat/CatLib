@@ -12,7 +12,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-@SuppressWarnings("unused")
 public class EasyMapReader<T> {
 
     private final DynamicOps<T> ops;

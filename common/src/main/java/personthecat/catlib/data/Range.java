@@ -17,7 +17,7 @@ public record Range(int min, int max) implements Iterable<Integer> {
 
     private static final Range EMPTY = new Range(0);
     public static final Codec<Range> CODEC =
-        CodecUtils.INT_LIST.xmap(Range::fromList, Range::toList);
+        CodecUtils.easyList(Codec.INT).xmap(Range::fromList, Range::toList);
 
     public Range(int max) {
         this(max, max);

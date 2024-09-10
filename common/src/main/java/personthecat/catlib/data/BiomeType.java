@@ -6,7 +6,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
-import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.registry.DynamicRegistries;
 
 import java.util.Collection;
@@ -33,13 +32,12 @@ public enum BiomeType {
 
     private static final Map<ResourceLocation, Collection<BiomeType>> TYPE_MAP = new ConcurrentHashMap<>();
 
+    static {
+        DynamicRegistries.listen(DynamicRegistries.BIOME, TYPE_MAP).accept(biomes -> TYPE_MAP.clear());
+    }
+
     private final TagKey<Biome> key = TagKey.create(Registries.BIOME,
         new ResourceLocation("is_" + this.name().toLowerCase()));
-
-    public static @Nullable BiomeType getFirstCategory(final Holder<Biome> b) {
-        final Collection<BiomeType> types = getCategories(b);
-        return types.isEmpty() ? null : types.iterator().next();
-    }
 
     public static Collection<BiomeType> getCategories(final Holder<Biome> b) {
         return TYPE_MAP.computeIfAbsent(DynamicRegistries.BIOME.keyOf(b), key ->

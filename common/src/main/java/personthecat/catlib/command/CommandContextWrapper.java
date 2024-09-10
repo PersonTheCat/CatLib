@@ -31,7 +31,6 @@ import personthecat.catlib.event.lifecycle.ClientTickEvent;
 import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.exception.CommandExecutionException;
-import personthecat.catlib.util.PathUtils;
 import personthecat.catlib.linting.SyntaxLinter;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
@@ -42,15 +41,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static personthecat.catlib.exception.Exceptions.cmdEx;
 import static personthecat.catlib.util.LibUtil.f;
 
 @Log4j2
 public record CommandContextWrapper(
         CommandContext<CommandSourceStack> ctx, SyntaxLinter linter, ModDescriptor mod) {
-
-    /** The style used when printing error messages. */
-    private static final Style ERROR_STYLE = Style.EMPTY.withColor(ChatFormatting.RED);
 
     public String getString(final String key) {
         return this.get(key, String.class);
@@ -110,7 +105,8 @@ public record CommandContextWrapper(
     }
 
     public String getActual(final String key) {
-        return this.tryGetActual(key).orElseThrow(() -> cmdEx("No such argument: {}", key));
+        return this.tryGetActual(key).orElseThrow(() ->
+            new CommandExecutionException(f("No such argument: {}", key)));
     }
 
     public Optional<String> tryGetActual(final String key) {
@@ -184,14 +180,6 @@ public record CommandContextWrapper(
 
     public PendingMessageWrapper generateMessage(final MutableComponent component) {
         return new PendingMessageWrapper(this, component);
-    }
-
-    public MutableComponent createText(final String msg) {
-        return Component.literal(msg);
-    }
-
-    public MutableComponent createText(final String msg, final Object... args) {
-        return Component.literal(f(msg, args));
     }
 
     public Component lintMessage(final String msg) {
@@ -281,26 +269,6 @@ public record CommandContextWrapper(
 
     public ModDescriptor getMod() {
         return this.mod;
-    }
-
-    public File getBackupsFolder() {
-        return this.mod.backupFolder();
-    }
-
-    public File getModConfigFolder() {
-        return this.mod.configFolder();
-    }
-
-    public File getModFile(final String path) {
-        return new File(this.mod.configFolder(), path);
-    }
-
-    public String getModPath(final String path) {
-        return this.getModPath(new File(path));
-    }
-
-    public String getModPath(final File file) {
-        return PathUtils.getRelativePath(this.mod.configFolder(), file);
     }
 
     public CommandContext<CommandSourceStack> getCtx() {

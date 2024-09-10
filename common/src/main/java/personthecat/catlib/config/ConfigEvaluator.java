@@ -3,7 +3,6 @@ package personthecat.catlib.config;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import lombok.extern.log4j.Log4j2;
 import personthecat.catlib.data.ModDescriptor;
-import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.util.unsafe.CachingReflectionHelper;
 
 import java.io.File;
@@ -14,20 +13,6 @@ import java.util.List;
 
 @Log4j2
 public class ConfigEvaluator {
-
-    public static <T> T getAndRegister(ModDescriptor mod, Class<T> clazz) {
-        return getAndRegister(mod, mod.configFile(), clazz);
-    }
-
-    public static <T> T getAndRegister(ModDescriptor mod, File file, Class<T> clazz) {
-        final T t = CachingReflectionHelper.tryInstantiate(clazz);
-        try {
-            loadAndRegister(mod, file, clazz, t);
-        } catch (final RuntimeException e) {
-            LibErrorContext.error(mod, new ConfigLoadException(mod, file.getName(), e));
-        }
-        return t;
-    }
 
     public static <T> void loadAndRegister(ModDescriptor mod, T t) {
         loadAndRegister(mod, mod.configFile(), t);

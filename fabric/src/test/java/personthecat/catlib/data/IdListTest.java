@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import personthecat.catlib.registry.CommonRegistries;
 import personthecat.catlib.registry.RegistryHandle;
-import personthecat.catlib.serialization.json.XjsUtils;
+import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.catlib.test.McBootstrapExtension;
 import xjs.data.Json;
 import xjs.data.JsonValue;
@@ -274,11 +274,11 @@ public class IdListTest {
     }
 
     private static IdList<Block> parseBlockList(final String djs) {
-        return XjsUtils.readThrowing(blockCodec(), Json.parse(djs));
+        return blockCodec().parse(XjsOps.INSTANCE, Json.parse(djs)).getOrThrow();
     }
 
     private static JsonValue writeBlockList(final IdList<Block> list) {
-        return XjsUtils.writeThrowing(blockCodec(), list);
+        return blockCodec().encodeStart(XjsOps.INSTANCE, list).getOrThrow();
     }
 
     private static Codec<IdList<Block>> blockCodec() {

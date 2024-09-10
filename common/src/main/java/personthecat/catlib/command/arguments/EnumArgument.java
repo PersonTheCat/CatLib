@@ -5,14 +5,15 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
-import personthecat.catlib.exception.Exceptions;
 import personthecat.catlib.util.LibUtil;
 
 import java.util.concurrent.CompletableFuture;
@@ -20,6 +21,9 @@ import java.util.stream.Stream;
 
 public class EnumArgument<E extends Enum<E>> implements ArgumentType<E> {
     public static final ArgumentTypeInfo<EnumArgument<?>, Info.Template> INFO = new Info();
+    private static final DynamicCommandExceptionType NO_SUCH_VALUE =
+        new DynamicCommandExceptionType(v -> Component.translatable("catlib.errorText.noSuchValue", v));
+
     private final Class<E> enumClass;
 
     private EnumArgument(final Class<E> enumClass) {
@@ -32,8 +36,9 @@ public class EnumArgument<E extends Enum<E>> implements ArgumentType<E> {
 
     @Override
     public E parse(final StringReader reader) throws CommandSyntaxException {
-        return LibUtil.getEnumConstant(reader.readUnquotedString(), this.enumClass)
-            .orElseThrow(() -> Exceptions.cmdSyntax(reader, "No such value"));
+        final var s = reader.readUnquotedString();
+        return LibUtil.getEnumConstant(s, this.enumClass)
+            .orElseThrow(() -> NO_SUCH_VALUE.createWithContext(reader, "No such value"));
     }
 
     @Override

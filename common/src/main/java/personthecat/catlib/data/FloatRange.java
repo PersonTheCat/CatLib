@@ -16,7 +16,7 @@ public record FloatRange(float min, float max) {
 
     private static final FloatRange EMPTY = new FloatRange(0);
     public static final Codec<FloatRange> CODEC =
-        CodecUtils.FLOAT_LIST.xmap(FloatRange::fromList, FloatRange::toList);
+        CodecUtils.easyList(Codec.FLOAT).xmap(FloatRange::fromList, FloatRange::toList);
 
     public FloatRange(float a) {
         this(a, a);

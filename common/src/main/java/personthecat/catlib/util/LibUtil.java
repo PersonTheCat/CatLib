@@ -9,7 +9,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Optional.empty;
-import static personthecat.catlib.exception.Exceptions.invalidConstant;
 
 /**
  * A collection of platform-agnostic <b>shorthand</b> utilities.
@@ -165,7 +164,7 @@ public final class LibUtil {
      */
     @NotNull
     public static <T extends Enum<T>> T assertEnumConstant(final String s, final Class<T> clazz) {
-        return getEnumConstant(s, clazz).orElseThrow(() -> invalidConstant(s, clazz));
+        return getEnumConstant(s, clazz).orElseThrow(() -> new InvalidEnumConstantException(s, clazz));
     }
 
     /**

@@ -1,14 +1,11 @@
 package personthecat.catlib.serialization.json;
 
 import com.mojang.datafixers.util.Either;
-import com.mojang.serialization.Codec;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
-import personthecat.catlib.exception.JsonFormatException;
-import personthecat.catlib.serialization.codec.XjsOps;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 import xjs.data.comments.CommentType;
@@ -22,8 +19,6 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import static java.util.Optional.empty;
-import static personthecat.catlib.exception.Exceptions.jsonFormatEx;
-import static personthecat.catlib.exception.Exceptions.unreachable;
 import static personthecat.catlib.util.LibUtil.f;
 
 /**
@@ -38,7 +33,6 @@ import static personthecat.catlib.util.LibUtil.f;
  * </p>
  */
 @Log4j2
-@SuppressWarnings("unused")
 public final class XjsUtils {
 
     private XjsUtils() {}
@@ -52,22 +46,8 @@ public final class XjsUtils {
     public static Optional<JsonObject> readJson(final File file) {
         return Result
             .define(FileNotFoundException.class, Result::WARN)
-            .define(SyntaxException.class, e -> { throw jsonFormatEx(file.getPath(), e); })
+            .define(SyntaxException.class, e -> { throw e; })
             .suppress(() -> Json.parse(file).asObject())
-            .get();
-    }
-
-    /**
-     * Reads a {@link JsonObject} from the given input stream.
-     *
-     * @param is The stream containing the serialized JSON object.
-     * @return The deserialized object, or else {@link Optional#empty}.
-     */
-    public static Optional<JsonObject> readJson(final InputStream is) {
-        return Result
-            .define(IOException.class, Result::WARN)
-            .define(SyntaxException.class, r -> { throw jsonFormatEx("Reading data"); })
-            .suppress(() -> Json.parse(is).asObject())
             .get();
     }
 
@@ -80,51 +60,6 @@ public final class XjsUtils {
      */
     public static Optional<JsonObject> readSuppressing(final File file) {
         return Result.suppress(() -> Json.parse(file).asObject()).get(Result::WARN);
-    }
-
-    /**
-     * Variant of {@link #readSuppressing(File)} which reads directly
-     * from an {@link InputStream}.
-     *
-     * @param is The data containing the serialized JSON object.
-     * @return The deserialized object, or else {@link Optional#empty}.
-     */
-    public static Optional<JsonObject> readSuppressing(final InputStream is) {
-        return Result.suppress(() -> Json.parse(is).asObject()).get(Result::WARN);
-    }
-
-    /**
-     * Reads <b>any</b> JSON data from the given string contents.
-     *
-     * @param contents The raw JSON data being parsed.
-     * @return The parsed JSON data, or else {@link Result#err} containing the exception.
-     */
-    public static Result<JsonValue, SyntaxException> readValue(final String contents) {
-        return Result.<JsonValue, SyntaxException>of(() -> Json.parse(contents)).ifErr(Result::IGNORE);
-    }
-
-    /**
-     * Reads an object from the given data when provided a codec.
-     *
-     * @param codec Instructions for deserializing the data.
-     * @param value The actual data being deserialized.
-     * @param <T> The type of object being returned.
-     * @return The deserialized object, or else {@link Optional#empty}.
-     */
-    public static <T> Optional<T> readOptional(final Codec<T> codec, final JsonValue value) {
-        return codec.parse(XjsOps.INSTANCE, value).result();
-    }
-
-    /**
-     * Reads an object from the given data, or else throws an exception.
-     *
-     * @param codec Instructions for deserializing the data.
-     * @param value The actual data being deserialized.
-     * @param <T> The type of object being returned.
-     * @return The deserialized object.
-     */
-    public static <T> T readThrowing(final Codec<T> codec, final JsonValue value) {
-        return codec.parse(XjsOps.INSTANCE, value).getOrThrow(JsonFormatException::new);
     }
 
     /**
@@ -148,35 +83,6 @@ public final class XjsUtils {
     public static Result<Void, IOException> writeJson(final JsonObject json, final File file) {
         return Result.with(() -> new FileWriter(file), writer -> { json.write(file); })
             .ifErr(e -> log.error("Writing file", e));
-    }
-
-    /**
-     * Writes the input value as JSON, returning {@link Optional#empty} if any errors
-     * occur in the process.
-     *
-     * @param codec The codec responsible for the serialization.
-     * @param a The data being serialized.
-     * @param <A> The type of data being serialized.
-     * @return The serialized data, or else {@link Optional#empty}.
-     */
-    public static <A> Optional<JsonValue> writeSuppressing(final Codec<A> codec, final @Nullable A a) {
-        if (a == null) return Optional.of(JsonLiteral.jsonNull());
-        return codec.encodeStart(XjsOps.INSTANCE, a).result();
-    }
-
-    /**
-     * Writes the input value as JSON, or else throwing an exception if any errors
-     * occur in the process.
-     *
-     * @param codec The codec responsible for the serialization.
-     * @param a The data being serialized.
-     * @param <A> The type of data being serialized.
-     * @return The serialized data.
-     */
-    public static <A> JsonValue writeThrowing(final Codec<A> codec, final @Nullable A a) {
-        if (a == null) return JsonLiteral.jsonNull();
-        return codec.encodeStart(XjsOps.INSTANCE, a).result()
-            .orElseThrow(() -> new JsonFormatException("Writing object: " + a));
     }
 
     /**
@@ -609,14 +515,9 @@ public final class XjsUtils {
      * @param either The accessor for the value at this location.
      */
     private static Optional<JsonValue> getEither(final JsonValue container, final Either<String, Integer> either) {
-        if (either.left().isPresent()) {
-            return Optional.ofNullable(container.asObject().get(either.left().get()));
-        } else if (either.right().isPresent()) {
-            final JsonArray array = container.asArray();
-            final int index = either.right().get();
-            return index < array.size() ? Optional.of(array.get(index)) : empty();
-        }
-        throw unreachable();
+        return either.map(
+            s -> Optional.ofNullable(container.asObject().get(s)),
+            i -> i < container.asArray().size() ? Optional.of(container.asArray().get(i)) : empty());
     }
 
     /**
@@ -651,41 +552,6 @@ public final class XjsUtils {
     }
 
     /**
-     * Adds a value to an array by name. The value will be coerced into an array, if needed.
-     * <p>
-     *   For example, when adding a string to the following JSON field:
-     * </p>
-     * <pre>
-     *   field: hello
-     * </pre>
-     * <p>
-     *   the field will be updated as follows:
-     * </p>
-     * <pre>
-     *   field: [
-     *     hello
-     *     world
-     *   ]
-     * </pre>
-     * @param json The JSON object containing these data.
-     * @param field The key for updating an array.
-     * @param value The value being added to the array.
-     * @return The original <code>json</code> passed in.
-     */
-    public static JsonObject addToArray(final JsonObject json, final String field, final JsonValue value) {
-        JsonValue array = json.get(field);
-        if (array == null) {
-            array = new JsonArray();
-            json.add(field, array);
-        } else if (!array.isArray()) {
-            array = new JsonArray().add(array);
-            json.set(field, array);
-        }
-        array.asArray().add(value);
-        return json;
-    }
-
-    /**
      * Sets the value at the given index, or else if <code>index == array.size()</code>, adds it.
      *
      * @param array The array being added into.
@@ -702,51 +568,7 @@ public final class XjsUtils {
     }
 
     /**
-     * Returns a list of {@link JsonObject}s from the given source.
-     * <p>
-     *   Note that the values in this array will be coerced into {@link JsonObject}s.
-     * </p>
-     * <p>
-     *   These objects can be stored in any number of dimensions, but will be coerced
-     *   into a single dimensional array. For example, each of the following values will
-     *   yield single dimensional object arrays:
-     * </p>
-     * <ul>
-     *   <li><code>array: [{},{},{}]</code></li>
-     *   <li><code>array: [[{}],[[{}]]]</code></li>
-     *   <li><code>array: {}</code></li>
-     * </ul>
-     * @param json The JSON parent containing the array.
-     * @param field The field where this array is stored.
-     * @return The JSON array in the form of a regular list.
-     */
-    public static List<JsonObject> getObjectArray(final JsonObject json, final String field) {
-        final List<JsonObject> array = new ArrayList<>();
-        json.getOptional(field).map(JsonValue::intoArray)
-            .ifPresent(a -> flatten(array, a));
-        return array;
-    }
-
-    /**
-     * Recursively flattens object arrays into a single dimension.
-     *
-     * @param array The list of JSON objects being accumulated into.
-     * @param source The original JSON array data source.
-     */
-    private static void flatten(final List<JsonObject> array, final JsonArray source) {
-        for (final JsonValue value: source) {
-            if (value.isArray()) {
-                flatten(array, value.asArray());
-            } else if (value.isObject()) {
-                array.add(value.asObject());
-            } else {
-                throw jsonFormatEx("Expected an array or object: {}", value);
-            }
-        }
-    }
-
-    /**
-     * Variant of {@link #getObjectArray} which does not coerce values into objects.
+     * Gets a list of any objects for the given key.
      * <p>
      *   Note that any non-object values in this array will <b>not be returned</b>.
      * </p>
@@ -776,7 +598,7 @@ public final class XjsUtils {
     }
 
     /**
-     * Variant of {@link #flatten} which does not coerce values into objects.
+     * Flattens arrays of objects into the given list.
      *
      * @param array The list of JSON objects being accumulated into.
      * @param source The original JSON array data source.

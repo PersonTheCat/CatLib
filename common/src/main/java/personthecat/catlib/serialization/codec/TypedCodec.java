@@ -30,13 +30,12 @@ public record TypedCodec<A>(Codec<A> wrapped, Class<A> type) implements Codec<A>
         return this.wrapped.encode(input, ops, prefix);
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> boolean isLiteralOps(DynamicOps<T> ops) {
+    private static boolean isLiteralOps(DynamicOps<?> ops) {
         while (true) {
             if (ops instanceof LiteralOps) {
                 return true;
-            } else if (ops instanceof DelegatingOps<T>) {
-                ops = ((DelegatingOpsAccessor<T>) ops).getDelegate();
+            } else if (ops instanceof DelegatingOps<?>) {
+                ops = ((DelegatingOpsAccessor<?>) ops).getDelegate();
             } else {
                 return false;
             }

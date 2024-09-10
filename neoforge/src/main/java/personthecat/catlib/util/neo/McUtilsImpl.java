@@ -7,7 +7,7 @@ import net.neoforged.neoforgespi.Environment;
 
 import java.io.File;
 
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") // all method are impls
 public final class McUtilsImpl {
 
     private McUtilsImpl() {}

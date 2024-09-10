@@ -5,12 +5,14 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.CommandUtils;
@@ -23,13 +25,13 @@ import java.io.File;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-import static personthecat.catlib.exception.Exceptions.cmdSyntax;
 import static personthecat.catlib.serialization.json.XjsUtils.readSuppressing;
 import static personthecat.catlib.util.PathUtils.extension;
 
-@SuppressWarnings("unused")
 public class JsonArgument implements ArgumentType<JsonArgument.Result> {
     public static final ArgumentTypeInfo<JsonArgument, Info.Template> INFO = new Info();
+    private static final DynamicCommandExceptionType UNSUPPORTED_FORMAT =
+        new DynamicCommandExceptionType(t -> Component.translatable("catlib.errorText.unsupportedFormat", t));
 
     private final FileArgument getter;
 
@@ -54,7 +56,7 @@ public class JsonArgument implements ArgumentType<JsonArgument.Result> {
         final File f = this.getter.parse(reader);
         final String ext = extension(f);
         if (f.exists() && !(f.isDirectory() || JsonContext.isKnownFormat(f))) {
-            throw cmdSyntax(reader, "Unsupported format");
+            throw UNSUPPORTED_FORMAT.createWithContext(reader, ext);
         }
         return new Result(getter.dir, f);
     }

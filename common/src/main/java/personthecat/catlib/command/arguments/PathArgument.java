@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-@SuppressWarnings("unused")
 public class PathArgument implements ArgumentType<JsonPath> {
 
     @Override

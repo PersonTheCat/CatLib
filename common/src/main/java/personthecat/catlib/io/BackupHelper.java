@@ -1,12 +1,14 @@
 package personthecat.catlib.io;
 
-import personthecat.catlib.exception.Exceptions;
+import personthecat.catlib.exception.ResourceException;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static personthecat.catlib.util.LibUtil.f;
 
 /**
  * A helper object used for backing up files. Will take care of renaming
@@ -42,7 +44,7 @@ public class BackupHelper {
             final int number = i + 1;
             final File newFile = new File(f.getParentFile(), base + " (" + number + ")" + ext);
             if (!f.renameTo(newFile)) {
-                throw Exceptions.resourceEx("Could not increment backup: {}", f.getName());
+                throw new ResourceException(f("Could not increment backup: {}", f.getName()));
             }
         }
         return matching.size();
@@ -69,7 +71,7 @@ public class BackupHelper {
 
     int getNumber(final File file) {
         final Matcher matcher = pattern.matcher(file.getName());
-        if (!matcher.find()) throw Exceptions.runEx("Backup deleted externally: {}", file.getName());
+        if (!matcher.find()) throw new RuntimeException(f("Backup deleted externally: {}", file.getName()));
         final String g2 = matcher.group(2);
         return g2 == null ? 0 : Integer.parseInt(g2);
     }

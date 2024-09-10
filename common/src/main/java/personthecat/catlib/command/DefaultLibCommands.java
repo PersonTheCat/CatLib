@@ -54,8 +54,10 @@ import static personthecat.catlib.command.CommandUtils.idArg;
 import static personthecat.catlib.command.CommandUtils.jsonFileArg;
 import static personthecat.catlib.command.CommandUtils.jsonPathArg;
 import static personthecat.catlib.command.CommandUtils.registryArg;
+import static personthecat.catlib.util.LibUtil.f;
 import static personthecat.catlib.util.PathUtils.extension;
 import static personthecat.catlib.util.PathUtils.noExtension;
+
 
 public final class DefaultLibCommands {
 
@@ -314,7 +316,7 @@ public final class DefaultLibCommands {
 
         final String header = file.file.getParentFile().getName() + "/" + file.file.getName();
         final Component headerComponent =
-            wrapper.createText(DISPLAY_HEADER, header).setStyle(DISPLAY_HEADER_STYLE);
+            Component.literal(f(DISPLAY_HEADER, header)).setStyle(DISPLAY_HEADER_STYLE);
 
         final String details = json.trim().toString(XjsUtils.noCr());
         final Component detailsComponent = wrapper.lintMessage(details);
@@ -355,7 +357,6 @@ public final class DefaultLibCommands {
         XjsUtils.writeJson(file.json.get(), file.file)
             .expect("Error writing to file: {}", file.file.getName());
 
-        // Send feedback.
         wrapper.generateMessage("Successfully updated {}.\n", file.file.getName())
             .append(fromLiteral.replace("\r", ""), DELETED_VALUE_STYLE)
             .append(" -> ")
@@ -383,7 +384,7 @@ public final class DefaultLibCommands {
     }
 
     private static void backup(final CommandContextWrapper wrapper) {
-        if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), wrapper.getFile(FILE_ARGUMENT), true)) {
+        if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getMod().backupFolder(), wrapper.getFile(FILE_ARGUMENT), true)) {
             wrapper.sendError("{} backups detected. Consider cleaning these out.", BACKUP_COUNT_WARNING);
         }
         wrapper.sendMessage("Backup created successfully.");
@@ -406,7 +407,7 @@ public final class DefaultLibCommands {
         if (PathUtils.isIn(wrapper.getMod().backupFolder(), file)) {
             FileIO.delete(file);
             wrapper.sendMessage("File deleted successfully.");
-        } else if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), wrapper.getFile(FILE_ARGUMENT), false)) {
+        } else if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getMod().backupFolder(), wrapper.getFile(FILE_ARGUMENT), false)) {
             wrapper.sendError("{} backups have been created. Consider cleaning these out.", BACKUP_COUNT_WARNING);
         }
         wrapper.sendMessage("File moved to backups.");
@@ -414,7 +415,7 @@ public final class DefaultLibCommands {
 
     private static void clean(final CommandContextWrapper wrapper) {
         final Optional<File> directory = wrapper.getOptional(DIRECTORY_ARGUMENT, File.class)
-            .filter(dir -> !dir.equals(wrapper.getBackupsFolder()));
+            .filter(dir -> !dir.equals(wrapper.getMod().backupFolder()));
         if (directory.isPresent()) {
             final File dir = directory.get();
             if (dir.isFile()) {
@@ -427,7 +428,7 @@ public final class DefaultLibCommands {
                 cleanFiles(wrapper, dir);
             }
         } else {
-            cleanFiles(wrapper, wrapper.getBackupsFolder());
+            cleanFiles(wrapper, wrapper.getMod().backupFolder());
         }
     }
 
@@ -466,7 +467,7 @@ public final class DefaultLibCommands {
         final JsonPath path = wrapper.getJsonPath(PATH_ARGUMENT);
         final JsonArgument.Result to = wrapper.getJsonFile(TO_ARGUMENT);
 
-        if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getBackupsFolder(), to.file, true)) {
+        if (BACKUP_COUNT_WARNING < FileIO.backup(wrapper.getMod().backupFolder(), to.file, true)) {
             wrapper.sendError("Created > {} backups. Consider cleaning these out.", BACKUP_COUNT_WARNING);
         }
         JsonCombiner.combine(from, to, path);
@@ -485,7 +486,7 @@ public final class DefaultLibCommands {
     private static void unTest(final CommandContextWrapper wrapper) {
         final Player player = wrapper.getPlayer();
         if (player != null) {
-            final GameType mode = Optional.ofNullable(wrapper.getServer())
+            final GameType mode = Optional.of(wrapper.getServer())
                 .map(MinecraftServer::getDefaultGameType)
                 .orElse(GameType.CREATIVE);
 
@@ -590,8 +591,8 @@ public final class DefaultLibCommands {
         final File converted = new File(source.getParentFile(), noExtension(source) + extension);
         XjsUtils.writeJson(json.get(), converted).expect("Error writing file.");
 
-        if (!PathUtils.isIn(wrapper.getBackupsFolder(), source)) {
-            FileIO.backup(wrapper.getBackupsFolder(), source, false);
+        if (!PathUtils.isIn(wrapper.getMod().backupFolder(), source)) {
+            FileIO.backup(wrapper.getMod().backupFolder(), source, false);
             wrapper.sendMessage("File converted successfully. The original was moved to the backups directory.");
         } else {
             wrapper.sendMessage("File converted successfully. The original could not be backed up.");

@@ -5,12 +5,9 @@
   "mixins": [
     "ChunkStatusMixin",
     "DelegatingOpsAccessor",
-    "DirectHolderSetAccessor",
     "MappedRegistryAccessor",
     "NamedHolderSetAccessor",
-    "ProtoChunkMixin",
-    "RecordCodecBuilderAccessor",
-    "ReferenceAccessor"
+    "ProtoChunkMixin"
   ],
   "client": [
     "TitleScreenMixin"

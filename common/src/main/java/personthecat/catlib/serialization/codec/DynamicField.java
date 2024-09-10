@@ -10,14 +10,13 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-@SuppressWarnings("unused")
-public class DynamicField<B, R, T> {
-    final @Nullable Codec<T> codec;
-    final @Nullable BiPredicate<R, T> outputFilter;
-    final String key;
-    final Function<R, T> getter;
-    final BiConsumer<B, T> setter;
-    final Type type;
+public record DynamicField<B, R, T>(
+        @Nullable Codec<T> codec,
+        String key,
+        Function<R, T> getter,
+        BiConsumer<B, T> setter,
+        Type type,
+        @Nullable BiPredicate<R, T> outputFilter) {
 
     public DynamicField(
             final @Nullable Codec<T> codec,
@@ -36,19 +35,7 @@ public class DynamicField<B, R, T> {
         this(codec, key, getter, setter, type, null);
     }
 
-    public DynamicField(
-            final @Nullable Codec<T> codec,
-            final String key,
-            final Function<R, T> getter,
-            final BiConsumer<B, T> setter,
-            final Type type,
-            final @Nullable BiPredicate<R, T> outputFilter) {
-        this.codec = codec;
-        this.outputFilter = outputFilter;
-        this.key = key;
-        this.getter = getter;
-        this.setter = setter;
-        this.type = type;
+    public DynamicField {
         if (codec == null && type == Type.IMPLICIT) throw new IllegalArgumentException("Implicit fields cannot be recursive");
     }
 
@@ -70,26 +57,6 @@ public class DynamicField<B, R, T> {
 
     public static <B, R, T> DynamicField<B, R, T> recursive(final String name, final Function<R, T> getter, final BiConsumer<B, T> setter) {
         return new DynamicField<>(null, name, getter, setter);
-    }
-
-    public @Nullable Codec<T> type() {
-        return this.codec;
-    }
-
-    public String key() {
-        return this.key;
-    }
-
-    public Function<R, T> getter() {
-        return this.getter;
-    }
-
-    public BiConsumer<B, T> setter() {
-        return this.setter;
-    }
-
-    public @Nullable BiPredicate<R, T> getOutputFilter() {
-        return this.outputFilter;
     }
 
     public DynamicField<B, R, T> withOutputFilter(final Predicate<T> filter) {

@@ -2,7 +2,10 @@ package personthecat.catlib.serialization.json;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.datafixers.util.Either;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.fresult.Result;
@@ -14,8 +17,6 @@ import xjs.data.PathFilter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static personthecat.catlib.exception.Exceptions.cmdSyntax;
-
 /**
  * An object representing every accessor in a JSON object leading to a value.
  *
@@ -23,6 +24,10 @@ import static personthecat.catlib.exception.Exceptions.cmdSyntax;
  * point to a value at some arbitrary depth in a JSON array or object.
  */
 public class JsonPath implements Iterable<Either<String, Integer>> {
+    private static final DynamicCommandExceptionType INVALID_CHARACTER =
+        new DynamicCommandExceptionType(c -> Component.translatable("catlib.errorText.invalidCharacter", c));
+    private static final SimpleCommandExceptionType UNEXPECTED_ACCESSOR =
+        new SimpleCommandExceptionType(Component.translatable("catlib.errorText.unexpectedAccessor"));
 
     private final List<Either<String, Integer>> path;
     private final String raw;
@@ -91,7 +96,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         final List<Either<String, Integer>> path = new ArrayList<>();
         final int begin = reader.getCursor();
 
-        while(reader.canRead() && reader.peek() != ' ') {
+        while (reader.canRead() && reader.peek() != ' ') {
             final char c = reader.read();
             if (c == '.') {
                 checkDot(reader, begin);
@@ -102,7 +107,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
                 path.add(Either.right(reader.readInt()));
                 reader.expect(']');
             } else {
-                throw cmdSyntax(reader, "Invalid character");
+                throw INVALID_CHARACTER.createWithContext(reader, c);
             }
         }
         return new JsonPath(path, reader.getString().substring(begin, reader.getCursor()));
@@ -124,7 +129,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         final int cursor = reader.getCursor();
         final char last = reader.getString().charAt(cursor - 2);
         if (cursor - 1 == begin || last == '.') {
-            throw cmdSyntax(reader, "Unexpected accessor");
+            throw UNEXPECTED_ACCESSOR.createWithContext(reader);
         }
     }
 

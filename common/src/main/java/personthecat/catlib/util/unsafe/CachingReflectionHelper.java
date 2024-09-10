@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static personthecat.catlib.util.LibUtil.f;
 
-@SuppressWarnings("unused")
 public class CachingReflectionHelper {
 
     private static final Map<Class<?>, Object> INSTANCE_MAP = new ConcurrentHashMap<>();

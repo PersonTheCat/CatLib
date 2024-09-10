@@ -16,7 +16,6 @@ import java.util.function.Supplier;
  * @param <T> The type of value being consumed by the wrapper.
  */
 @ThreadSafe
-@SuppressWarnings("unused")
 public class Lazy<T> implements Supplier<T> {
 
     /** The underlying value being wrapped by this object. */

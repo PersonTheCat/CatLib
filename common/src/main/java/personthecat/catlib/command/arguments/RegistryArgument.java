@@ -6,6 +6,7 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.CommandBuildContext;
@@ -13,6 +14,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
@@ -28,12 +30,12 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static personthecat.catlib.exception.Exceptions.cmdSyntax;
-
 public class RegistryArgument<T> implements ArgumentType<T> {
     private static final Map<Class<?>, RegistryArgument<?>> ARGUMENTS_BY_TYPE = new ConcurrentHashMap<>();
     private static final Map<ResourceLocation, RegistryArgument<?>> ARGUMENTS_BY_ID = new ConcurrentHashMap<>();
     public static final ArgumentTypeInfo<RegistryArgument<?>, Info.Template> INFO = new Info();
+    private static final Dynamic2CommandExceptionType NOT_IN_REGISTRY =
+        new Dynamic2CommandExceptionType((id, r) -> Component.translatable("catlib.errorText.notInRegistry", id, r));
 
     private final RegistryHandle<T> handle;
     private final ResettableLazy<List<String>> suggestions;
@@ -95,7 +97,7 @@ public class RegistryArgument<T> implements ArgumentType<T> {
         if (!this.handle.isRegistered(id)) {
             final ResourceKey<?> key = this.handle.key();
             final ResourceLocation registryId = key != null ? key.location() : null;
-            throw cmdSyntax(reader, id + " not found in registry: " + registryId);
+            throw NOT_IN_REGISTRY.createWithContext(reader, id, registryId);
         }
         return this.handle.lookup(id);
     }

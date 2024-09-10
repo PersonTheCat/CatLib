@@ -13,7 +13,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-@SuppressWarnings("unused")
 public class XjsOps implements DynamicOps<JsonValue> {
 
     public static final XjsOps INSTANCE = new XjsOps(false);

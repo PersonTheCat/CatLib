@@ -107,7 +107,6 @@ import static personthecat.catlib.util.LibUtil.f;
  *   Thanks for your help!
  * </p>
  */
-@SuppressWarnings("unused")
 public class JsonTransformer {
 
     private JsonTransformer() {}

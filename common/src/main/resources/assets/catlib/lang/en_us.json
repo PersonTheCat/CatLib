@@ -38,5 +38,10 @@
   "catlib.errorText.ioNotAllowed": "IO was blocked by the filesystem",
   "catlib.errorText.stackTrace": "Stack trace:",
   "catlib.errorText.clickHere": "New errors have occurred. Click here for details.",
-  "catlib.errorText.noErrors": "No errors available."
+  "catlib.errorText.noErrors": "No errors available.",
+  "catlib.errorText.unexpectedAccessor": "Unexpected accessor",
+  "catlib.errorText.invalidCharacter": "Invalid character: %s",
+  "catlib.errorText.unsupportedFormat": "Unsupported format: %s",
+  "catlib.errorText.notInRegistry": "%s not found in registry: %s",
+  "catlib.errorText.noSuchValue": "No such value: %s"
 }

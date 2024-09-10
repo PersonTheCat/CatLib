@@ -9,37 +9,23 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
-import personthecat.catlib.data.BiomeType;
 import personthecat.catlib.data.IdList;
-import personthecat.catlib.exception.JsonFormatException;
 import personthecat.catlib.util.LibUtil;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-@SuppressWarnings("unused")
 public class CodecUtils {
 
-    public static final ValueMapCodec<String> STRING_MAP = mapOf(Codec.STRING);
-    public static final ValueMapCodec<Boolean> BOOLEAN_MAP = mapOf(Codec.BOOL);
-    public static final ValueMapCodec<Integer> INT_MAP = mapOf(Codec.INT);
-    public static final ValueMapCodec<Float> FLOAT_MAP = mapOf(Codec.FLOAT);
-    public static final Codec<List<String>> STRING_LIST = easyList(Codec.STRING);
-    public static final Codec<List<Integer>> INT_LIST = easyList(Codec.INT);
-    public static final Codec<List<Float>> FLOAT_LIST = easyList(Codec.FLOAT);
-    public static final Codec<List<BiomeType>> CATEGORY_LIST = easyList(ofEnum(BiomeType.class));
-    @Deprecated public static final Codec<List<ResourceLocation>> ID_LIST = easyList(ResourceLocation.CODEC);
-
-    public static <A> ValueMapCodec<A> mapOf(final Codec<A> codec) {
-        return new ValueMapCodec<>(codec);
+    public static <A> Codec<Map<String, A>> mapOf(final Codec<A> codec) {
+        return Codec.unboundedMap(Codec.STRING, codec);
     }
 
     public static <A> Codec<List<A>> easyList(final @NotNull Codec<A> codec) {
@@ -68,10 +54,6 @@ public class CodecUtils {
 
     public static <A> Codec<IdList<A>> idList(final ResourceKey<? extends Registry<A>> key) {
         return IdList.codecOf(key);
-    }
-
-    public static <A> Codec<List<A>> autoFlatten(final @NotNull Codec<A> codec) {
-        return new AutoFlatListCodec<>(codec);
     }
 
     public static <E extends Enum<E>> Codec<E> ofEnum(final Class<E> e) {
@@ -160,12 +142,8 @@ public class CodecUtils {
         return (Codec<T>) NeverCodec.INSTANCE;
     }
 
-    public static <A, T> Optional<A> readOptional(final Codec<A> codec, final DynamicOps<T> ops, final T prefix) {
-        return codec.parse(ops, prefix).result();
-    }
-
-    public static <A, T> A readThrowing(final Codec<A> codec, final DynamicOps<T> ops, final T prefix) {
-        return codec.parse(ops, prefix).getOrThrow(JsonFormatException::new);
+    public static <T> MapCodec<T> neverMapCodec() {
+        return MapCodec.assumeMapUnsafe(neverCodec());
     }
 
     public static <T> EasyMapReader<T> easyReader(final DynamicOps<T> ops, final T prefix) {
@@ -173,11 +151,11 @@ public class CodecUtils {
     }
 
     public static <B> DynamicCodec.Builder<B, B, B> dynamic(final Supplier<B> builder) {
-        return new DynamicCodec.Builder<>(builder, Function.identity(), Function.identity());
+        return dynamic(builder, Function.identity());
     }
 
     public static <B, A> DynamicCodec.Builder<B, A, A> dynamic(final Supplier<B> builder, final Function<B, A> out) {
-        return new DynamicCodec.Builder<>(builder, Function.identity(), out);
+        return dynamic(builder, Function.identity(), out);
     }
 
     public static <B, R, A> DynamicCodec.Builder<B, R, A> dynamic(final Supplier<B> builder, final Function<A, R> in, final Function<B, A> out) {

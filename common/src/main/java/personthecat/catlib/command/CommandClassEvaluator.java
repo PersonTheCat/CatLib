@@ -21,6 +21,7 @@ import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.annotations.Node;
 import personthecat.catlib.command.arguments.ArgumentDescriptor;
 import personthecat.catlib.command.arguments.EnumArgument;
+import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.ListArgumentBuilder;
 import personthecat.catlib.command.arguments.RegistryArgument;
 import personthecat.catlib.command.LibCommandBuilder.CommandGenerator;
@@ -34,6 +35,7 @@ import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.unsafe.CachingReflectionHelper;
 import personthecat.fresult.functions.ThrowingBiConsumer;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -280,6 +282,8 @@ public class CommandClassEvaluator {
             return new ArgumentDescriptor<>(BoolArgumentType.bool());
         } else if (String.class.isAssignableFrom(type) && (node == null || node.stringValue().length == 0)) {
             return new ArgumentDescriptor<>(StringArgumentType.string());
+        } else if (File.class.isAssignableFrom(type)) {
+            return new ArgumentDescriptor<>(new FileArgument(this.mod.configFolder(), false));
         } else if (type.isEnum()) {
             return new ArgumentDescriptor<>(EnumArgument.of((Class) type));
         }

@@ -19,7 +19,7 @@ import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.minecraft.world.level.material.Fluid;
 
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") // not going to test all
 public class CommonRegistries {
     public static final RegistryHandle<Block> BLOCK = RegistryUtils.getHandle(Registries.BLOCK);
     public static final RegistryHandle<Fluid> FLUID = RegistryUtils.getHandle(Registries.FLUID);

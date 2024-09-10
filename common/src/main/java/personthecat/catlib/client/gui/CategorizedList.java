@@ -10,7 +10,6 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.collections.MultiValueMap;
 
 import java.util.ArrayList;
@@ -52,25 +51,12 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
         this.buttons.add(entry);
     }
 
-    public int numButtons() {
-        return this.buttons.size();
-    }
-
     public void selectButton(int button) {
         this.buttons.get(button).widget.active = false;
     }
 
     public void deselectAll() {
         this.buttons.forEach(b -> b.widget.active = true);
-    }
-
-    public AbstractWidget getButton(int button) {
-        return this.buttons.get(button).widget;
-    }
-
-    public @Nullable Tooltip getTooltipAtPosition(int x, int y) {
-        final ListEntry entry = this.getEntryAtPosition(x, y);
-        return entry != null ? entry.getTooltip() : null;
     }
 
     @Override
@@ -135,19 +121,10 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
         }
 
         @Override
-        public @Nullable Tooltip getTooltip() {
-            return this.widget.getTooltip();
-        }
-
-        @Override
         public @NotNull Component getNarration() {
             return Component.translatable("narrator.select", this.widget.getMessage());
         }
     }
 
-    public static abstract class ListEntry extends ObjectSelectionList.Entry<ListEntry> {
-        public @Nullable Tooltip getTooltip() {
-            return null;
-        }
-    }
+    public static abstract class ListEntry extends ObjectSelectionList.Entry<ListEntry> {}
 }

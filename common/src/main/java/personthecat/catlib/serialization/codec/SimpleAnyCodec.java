@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-@SuppressWarnings("unused")
 public class SimpleAnyCodec<A> implements Codec<A> {
     private final Function<A, Encoder<A>> encoder;
     private final List<Decoder<? extends A>> decoders;

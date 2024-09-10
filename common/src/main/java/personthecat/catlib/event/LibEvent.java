@@ -34,10 +34,6 @@ public class LibEvent<T> {
         return this;
     }
 
-    public boolean isRegistered(final T listener) {
-        return this.listeners.contains(listener);
-    }
-
     public void deregister(final T listener) {
         this.listeners.remove(listener);
     }

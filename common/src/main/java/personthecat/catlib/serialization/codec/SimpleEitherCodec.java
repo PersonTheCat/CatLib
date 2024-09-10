@@ -10,7 +10,6 @@ import com.mojang.serialization.Encoder;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-@SuppressWarnings("unused")
 public class SimpleEitherCodec<A> implements Codec<A> {
     private final Decoder<? extends A> first;
     private final Decoder<? extends A> second;

@@ -40,7 +40,7 @@ public class DummyGameProvider extends MinecraftGameProvider {
 
     public static class Delegate {
 
-        @SuppressWarnings("unused")
+        @SuppressWarnings("unused") // used reflectively
         public void launch() {
             SharedConstants.tryDetectVersion();
             Bootstrap.bootStrap();

@@ -36,7 +36,6 @@ import java.util.Objects;
  * </p>
  */
 @Builder
-@SuppressWarnings("unused")
 public record ModDescriptor(
     String name,
     String modId,
@@ -52,6 +51,7 @@ public record ModDescriptor(
         return new ResourceLocation(this.modId, path);
     }
 
+    @SuppressWarnings("unused") // is definitely used
     public static class ModDescriptorBuilder {
         public ModDescriptor build() {
             Objects.requireNonNull(this.name, "name must not be null");

@@ -13,7 +13,6 @@ package personthecat.catlib.util;
  *   unstable.
  * </p>
  */
-@SuppressWarnings("unused")
 public class RandomChunkSelector {
 
     /** Reflects the probability of selection for any given chunk. */

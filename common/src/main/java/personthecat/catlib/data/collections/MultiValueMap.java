@@ -12,7 +12,6 @@ import java.util.function.BiConsumer;
  * @param <K> The type of key.
  * @param <V> The type of value.
  */
-@SuppressWarnings("unused")
 public interface MultiValueMap<K, V> extends Map<K, List<V>> {
 
     /**

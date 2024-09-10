@@ -7,7 +7,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("unused")
 public class ListArgumentBuilder {
 
     /** The maximum number of values in a list argument. */

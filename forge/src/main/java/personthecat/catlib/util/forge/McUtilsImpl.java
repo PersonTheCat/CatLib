@@ -7,7 +7,6 @@ import net.minecraftforge.forgespi.Environment;
 
 import java.io.File;
 
-@SuppressWarnings("unused")
 public class McUtilsImpl {
 
     private McUtilsImpl() {}

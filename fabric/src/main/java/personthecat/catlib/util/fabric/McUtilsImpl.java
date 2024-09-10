@@ -5,7 +5,6 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.File;
 
-@SuppressWarnings("unused")
 public final class McUtilsImpl {
 
     private McUtilsImpl() {}

@@ -12,6 +12,7 @@ import personthecat.fresult.PartialResult;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 import personthecat.fresult.functions.ThrowingConsumer;
+import personthecat.fresult.functions.ThrowingRunnable;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,13 +29,10 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Optional.empty;
-import static personthecat.catlib.exception.Exceptions.directoryNotCreated;
-import static personthecat.catlib.exception.Exceptions.runEx;
-import static personthecat.catlib.exception.Exceptions.resourceEx;
 import static personthecat.catlib.util.LibUtil.f;
 
 @Log4j2
-@SuppressWarnings({"unused", "UnusedReturnValue"})
+@SuppressWarnings("UnusedReturnValue")
 public final class FileIO {
 
     /** For outputting the correct new line type. */
@@ -69,8 +67,8 @@ public final class FileIO {
     public static void mkdirsOrThrow(final File... files) {
         for (final File f : files) {
             Result.suppress(() -> f.exists() || f.mkdirs())
-                .mapErr(e -> directoryNotCreated(f, e))
-                .filter(b -> b, () -> directoryNotCreated(f))
+                .mapErr(e -> new DirectoryNotCreatedException(f, e))
+                .filter(b -> b, () -> new DirectoryNotCreatedException(f))
                 .throwIfErr();
         }
     }
@@ -371,58 +369,25 @@ public final class FileIO {
      */
     public static int backup(final File dir, final File f, final boolean copy) {
         if (f.getAbsolutePath().startsWith(dir.getAbsolutePath())) {
-            throw resourceEx("Cannot create backup inside backups directory: {}", f.getName());
+            throw new ResourceException(f("Cannot create backup inside backups directory: {}", f.getName()));
         }
         if (!mkdirs(dir)) {
-            throw resourceEx("Error creating backup directory: {}", dir);
+            throw new ResourceException(f("Error creating backup directory: {}", dir));
         }
         final File backup = new File(dir, f.getName());
         final BackupHelper helper = new BackupHelper(f);
         final int count = helper.cycle(dir);
         if (fileExists(backup)) {
-            throw resourceEx("Could not rename backups: {}", f.getName());
+            throw new ResourceException(f("Could not rename backups: {}", f.getName()));
         }
         if (copy) {
             copy(f, dir).ifErr(Result::THROW);
         } else {
             move(f, backup).ifErr(e -> {
-                throw resourceEx(f("Error moving {} to backups", f.getName()), e);
+                throw new ResourceException(f("Error moving {} to backups", f.getName()), e);
             });
         }
         return count + 1;
-    }
-
-    /**
-     * Variant of {@link #truncateBackups(File, File, int)} which never throws an exception.
-     *
-     * @param dir The directory containing the files being truncated.
-     * @param f The being moved into the backup folder.
-     * @param count The maximum number of matching backups to keep in this directory.
-     * @return A result wrapping the error, if applicable.
-     */
-    public static Result<Void, ResourceException> tryTruncateBackups(final File dir, final File f, final int count) {
-        try {
-            truncateBackups(dir, f, count);
-            return Result.ok();
-        } catch (final ResourceException e) {
-            return Result.err(e);
-        }
-    }
-
-    /**
-     * Deletes any matching file in the backup folder, keeping <code>count</code> files.
-     *
-     * @throws ResourceException If <b>any</b> IO exception occurs in the process.
-     * @param dir The directory containing the files being truncated.
-     * @param f The being moved into the backup folder.
-     * @param count The maximum number of matching backups to keep in this directory.
-     * @return <code>true</code>, if any backups were deleted.
-     */
-    public static boolean truncateBackups(final File dir, final File f, final int count) {
-        if (!mkdirs(dir)) {
-            throw resourceEx("Error creating backup directory: {}", dir);
-        }
-        return new BackupHelper(f).truncate(dir, count);
     }
 
     /**
@@ -434,7 +399,7 @@ public final class FileIO {
     public static void delete(final File f) {
         if (f.isFile()) {
             if (!f.delete()) {
-                throw resourceEx("Error deleting file {}.", f.getName());
+                throw new ResourceException(f("Error deleting file {}.", f.getName()));
             }
         } else {
             try (final Stream<Path> walk = Files.walk(f.toPath()).sorted(Comparator.reverseOrder())) {
@@ -444,7 +409,7 @@ public final class FileIO {
                     }
                 });
             } catch (final IOException e) {
-                throw resourceEx("Error deleting directory", e);
+                throw new ResourceException("Error deleting directory", e);
             }
         }
     }
@@ -459,7 +424,7 @@ public final class FileIO {
     public static Result<Void, RuntimeException> rename(final File f, final String name) {
         final File path = new File(f.getParentFile(), name);
         if (!f.renameTo(path)) {
-            return Result.err(runEx("Cannot rename: {}", path));
+            return Result.err(new RuntimeException(f("Cannot rename: {}", path)));
         }
         return Result.ok();
     }
@@ -535,7 +500,7 @@ public final class FileIO {
     @CheckReturnValue
     public static InputStream getRequiredResource(final String path) {
         return getResource(path).orElseThrow(() ->
-            resourceEx("The required file \"{}\" does not exist.", path));
+            new ResourceException(f("The required file \"{}\" does not exist.", path)));
     }
 
     /**

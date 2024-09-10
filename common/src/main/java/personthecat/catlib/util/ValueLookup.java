@@ -17,7 +17,6 @@ import java.util.Set;
  *   for any type that differs between the two platforms.
  * </p>
  */
-@SuppressWarnings("unused")
 public final class ValueLookup {
 
     /** A map of every vanilla sound type to its name */

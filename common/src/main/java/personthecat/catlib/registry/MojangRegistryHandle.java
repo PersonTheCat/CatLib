@@ -15,7 +15,6 @@ import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.mixin.MappedRegistryAccessor;
-import personthecat.catlib.mixin.ReferenceAccessor;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -48,12 +47,9 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <V extends T> V register(final ResourceLocation id, final V v) {
-        final Holder.Reference<T> reference = ((WritableRegistry<T>) this.registry)
+        ((WritableRegistry<T>) this.registry)
             .register(ResourceKey.create(this.registry.key(), id), v, RegistrationInfo.BUILT_IN);
-        // support convenient custom registries on fabric
-        ((ReferenceAccessor<T>) reference).invokeBindValue(v);
         return v;
     }
 

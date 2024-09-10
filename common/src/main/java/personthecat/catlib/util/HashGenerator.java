@@ -6,7 +6,6 @@ package personthecat.catlib.util;
  *   Thanks to FastNoise for a very similar algorithm!
  * </p>
  */
-@SuppressWarnings("unused")
 public class HashGenerator {
 
     private static final long X_MULTIPLE = 0x653;  // 1619

@@ -17,7 +17,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-@SuppressWarnings("unused")
 public class DynamicCodec<B, R, A> extends MapCodec<A> {
     private final Supplier<B> builder;
     private final Function<A, R> in;
@@ -76,7 +75,7 @@ public class DynamicCodec<B, R, A> extends MapCodec<A> {
     public final DynamicCodec<B, R, A> withoutFields(final DynamicField<B, R, ?>... fields) {
         final Map<String, DynamicField<B, R, ?>> map = new HashMap<>(this.fields);
         for (final DynamicField<B, R, ?> field : fields) {
-            map.remove(field.key);
+            map.remove(field.key());
         }
         return new DynamicCodec<>(this.builder, this.in, this.out, ImmutableMap.copyOf(map));
     }
@@ -100,7 +99,7 @@ public class DynamicCodec<B, R, A> extends MapCodec<A> {
     private static <B, R> Map<String, DynamicField<B, R, ?>> createMap(final DynamicField<B, R, ?>[] fields) {
         final ImmutableMap.Builder<String, DynamicField<B, R, ?>> map = ImmutableMap.builder();
         for (final DynamicField<B, R, ?> field : fields) {
-            map.put(field.key, field);
+            map.put(field.key(), field);
         }
         return map.build();
     }
@@ -110,8 +109,8 @@ public class DynamicCodec<B, R, A> extends MapCodec<A> {
 
         final ImmutableMap.Builder<String, DynamicField<B, R, ?>> fields = ImmutableMap.builder();
         for (final DynamicField<B, R, ?> field : all) {
-            if (field.type == type) {
-                fields.put(field.key, field);
+            if (field.type() == type) {
+                fields.put(field.key(), field);
             }
         }
         return fields.build();
@@ -119,7 +118,7 @@ public class DynamicCodec<B, R, A> extends MapCodec<A> {
 
     @Override
     public <T> Stream<T> keys(final DynamicOps<T> ops) {
-        return this.fields.values().stream().map(f -> ops.createString(f.key));
+        return this.fields.values().stream().map(f -> ops.createString(f.key()));
     }
 
     @Override
@@ -130,31 +129,31 @@ public class DynamicCodec<B, R, A> extends MapCodec<A> {
         final Map<String, DynamicField<B, R, ?>> required = new HashMap<>(this.requiredFields);
 
         for (final DynamicField<B, R, ?> field : this.implicitFields.values()) {
-            if (field.codec == null) throw new UnreachableException();
-            CodecUtils.asMapCodec(field.codec).decode(ops, input)
-                .ifSuccess((Object o) -> ((BiConsumer<B, Object>) field.setter).accept(builder, o))
-                .ifError(e -> errors.put(field.key, e.messageSupplier()));
+            if (field.codec() == null) throw new UnreachableException();
+            CodecUtils.asMapCodec(field.codec()).decode(ops, input)
+                .ifSuccess((Object o) -> ((BiConsumer<B, Object>) field.setter()).accept(builder, o))
+                .ifError(e -> errors.put(field.key(), e.messageSupplier()));
         }
         for (final DynamicField<B, R, ?> field : this.fields.values()) {
             if (field.isImplicit()) {
                 continue;
             }
-            final T value = input.get(field.key);
+            final T value = input.get(field.key());
             if (value == null) {
                 if (field.isNullable()) {
-                    field.setter.accept(builder, null);
+                    field.setter().accept(builder, null);
                 }
                 continue;
             }
-            required.remove(field.key);
+            required.remove(field.key());
             final DataResult<Object> result;
-            if (field.codec != null) { // parse normal field
-                result = ((Codec<Object>) field.codec).decode(ops, value).map(Pair::getFirst);
+            if (field.codec() != null) { // parse normal field
+                result = ((Codec<Object>) field.codec()).decode(ops, value).map(Pair::getFirst);
             } else { // parse recursive field
                 result = ((MapCodec<Object>) this).compressedDecode(ops, value);
             }
-            result.ifSuccess(o -> ((BiConsumer<B, Object>) field.setter).accept(builder, o))
-                .ifError(e -> errors.put(field.key, e.messageSupplier()));
+            result.ifSuccess(o -> ((BiConsumer<B, Object>) field.setter()).accept(builder, o))
+                .ifError(e -> errors.put(field.key(), e.messageSupplier()));
         }
         if (errors.isEmpty() && required.isEmpty()) {
             return DataResult.success(this.out.apply(builder));
@@ -183,22 +182,22 @@ public class DynamicCodec<B, R, A> extends MapCodec<A> {
         }
         final R reader = this.in.apply(input);
         for (final DynamicField<B, R, ?> field : this.fields.values()) {
-            final Object value = field.getter.apply(reader);
+            final Object value = field.getter().apply(reader);
             if (value == null) {
                 continue;
             }
-            final BiPredicate<R, Object> filter = (BiPredicate<R, Object>) field.outputFilter;
+            final BiPredicate<R, Object> filter = (BiPredicate<R, Object>) field.outputFilter();
             if (filter != null && !filter.test(reader, value)) {
                 continue;
             }
-            if (field.codec != null) {
+            if (field.codec() != null) {
                 if (field.isImplicit()) { // encode implicit field (multiple fields)
-                    prefix = CodecUtils.asMapCodec((Codec<Object>) field.codec).encode(value, ops, prefix);
+                    prefix = CodecUtils.asMapCodec((Codec<Object>) field.codec()).encode(value, ops, prefix);
                 } else { // encode normal field
-                    prefix.add(field.key, ((Codec<Object>) field.codec).encodeStart(ops, value));
+                    prefix.add(field.key(), ((Codec<Object>) field.codec()).encodeStart(ops, value));
                 }
             } else { // encode recursive field
-                prefix.add(field.key, ((MapCodec<Object>) this).encode(value, ops, this.compressedBuilder(ops)).build(ops.empty()));
+                prefix.add(field.key(), ((MapCodec<Object>) this).encode(value, ops, this.compressedBuilder(ops)).build(ops.empty()));
             }
         }
         return prefix;
