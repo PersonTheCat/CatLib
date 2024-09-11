@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static personthecat.catlib.io.FileIO.listFiles;
-import static personthecat.catlib.util.LibUtil.f;
 
 /**
  * A collection of tools used for interacting with file paths and {@link ResourceLocation}s.
@@ -16,56 +15,6 @@ import static personthecat.catlib.util.LibUtil.f;
 public final class PathUtils {
 
     private PathUtils() {}
-
-    /**
-     * Converts the input path into a fully-qualified ResourceLocation.
-     *
-     * @param path The raw file URI being decoded.
-     * @return The corresponding {@link ResourceLocation ID} of this path.
-     */
-    public static ResourceLocation getResourceLocation(final String path) {
-        final String namespace = getNamespaceFromPath(path);
-        final String result = path
-            .replaceAll("(assets|data)[/\\\\]", "")
-            .replaceAll(namespace + "[/\\\\]", "")
-            .replaceAll("^[/\\\\]", "");
-        return new ResourceLocation(namespace, result);
-    }
-
-    /**
-     * Looks for the first path component after one of the root resource folders.
-     *
-     * @param path The raw file URI being decoded.
-     * @return The namespace of the mod this refers to, if possible, else itself.
-     */
-    private static String getNamespaceFromPath(final String path) {
-        boolean rootFound = false;
-        for (String s : path.split("[/\\\\]")) {
-            if (rootFound && !s.isEmpty()) {
-                return s;
-            }
-            rootFound |= "assets".equals(s) || "data".equals(s);
-        }
-        return path;
-    }
-
-    /**
-     * Reuses a foreign path as a sub path. This function will specifically
-     * place the namespace after <code>block/</code> or <code>item/</code>
-     * <p>
-     *   For example, the resource ID <code>minecraft:block/id</code> will be
-     *   converted into <code>block/minecraft/id</code>
-     * </p>
-     * <p>
-     *   Note: this is unable to output backslashes instead of forward slashes.
-     * </p>
-     *
-     * @param id The resource location being transformed.
-     * @return The transformed path.
-     */
-    public static String namespaceToSub(final ResourceLocation id) {
-        return id.getPath().replaceFirst("(blocks?|items?|^)[/\\\\]?", "$1/" + id.getNamespace() + "/");
-    }
 
     /**
      * Removes all parent directories from a resource location as a string.
@@ -297,71 +246,5 @@ public final class PathUtils {
             .substring(root.getAbsolutePath().length())
             .replace("\\", "/")
             .substring(1);
-    }
-
-    /**
-     * Converts a {@link ResourceLocation} to a raw PNG texture path.
-     *
-     * @param id The texture's identifier.
-     * @return The raw path pointing to the image.
-     */
-    public static String asTexturePath(final ResourceLocation id) {
-        return asTexturePath(id.getNamespace(), id.getPath());
-    }
-
-    /**
-     * Generates a raw PNG texture path when given a mod's ID and relative
-     * file path.
-     *
-     * @param mod The mod's ID.
-     * @param path The relative path to the image.
-     * @return The raw path pointing to the image.
-     */
-    public static String asTexturePath(final String mod, final String path) {
-        return f("/assets/{}/textures/{}.png", mod, path);
-    }
-
-    /**
-     * Converts a {@link ResourceLocation} to a raw JSON model path.
-     *
-     * @param id The model's identifier.
-     * @return The raw path pointing to the model.
-     */
-    public static String asModelPath(final ResourceLocation id) {
-        return asModelPath(id.getNamespace(), id.getPath());
-    }
-
-    /**
-     * Generates a raw JSON model path when given a mod's ID and relative
-     * file path.
-     *
-     * @param mod The mod's ID.
-     * @param path The relative path to the model.
-     * @return The raw path pointing to the model.
-     */
-    public static String asModelPath(final String mod, final String path) {
-        return f("/assets/{}/models/{}.json", mod, path);
-    }
-
-    /**
-     * Converts a {@link ResourceLocation} to a raw block state model path.
-     *
-     * @param id The model's identifier.
-     * @return The raw path pointing to the model.
-     */
-    public static String asBlockStatePath(final ResourceLocation id) {
-        return asBlockStatePath(id.getNamespace(), id.getPath());
-    }
-
-    /**
-     * Generates a raw JSON block state path when given a mod's ID and
-     * relative file path.
-     *
-     * @param mod The mod's ID.
-     * @param path The relative path to the model.
-     * @return The raw path pointing to the model.
-     */
-    public static String asBlockStatePath(final String mod, final String path) {
-        return f("/assets/{}/blockstates/{}.json", mod, path);
     }
 }

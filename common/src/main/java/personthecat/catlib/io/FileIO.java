@@ -12,7 +12,6 @@ import personthecat.fresult.PartialResult;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 import personthecat.fresult.functions.ThrowingConsumer;
-import personthecat.fresult.functions.ThrowingRunnable;
 
 import java.io.BufferedReader;
 import java.io.File;
