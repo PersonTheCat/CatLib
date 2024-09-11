@@ -83,7 +83,7 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
 
     @Override
     public @Nullable Holder<T> getHolder(final ResourceLocation id) {
-        return this.registry.getHolder(ResourceKey.create(this.registry.key(), id)).orElse(null);
+        return this.registry.getHolder(id).orElse(null);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public HolderSet.@Nullable Named<T> getNamed(final TagKey<T> key) {
+    public @Nullable HolderSet.Named<T> getNamed(final TagKey<T> key) {
         return this.registry.getTag(key).orElse(null);
     }
 

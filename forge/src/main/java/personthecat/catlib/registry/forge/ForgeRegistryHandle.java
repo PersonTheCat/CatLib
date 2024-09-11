@@ -153,7 +153,7 @@ public class ForgeRegistryHandle<T> implements RegistryHandle<T> {
         @Override
         @NotNull
         public Stream<Holder.Reference<T>> listElements() {
-            return registry.getEntries().stream().map(entry -> this.newReference(entry.getKey()));
+            return holders().stream().map(holder -> (Holder.Reference<T>) holder);
         }
 
         @Override
@@ -165,20 +165,13 @@ public class ForgeRegistryHandle<T> implements RegistryHandle<T> {
         @Override
         @NotNull
         public Optional<Holder.Reference<T>> get(final @NotNull ResourceKey<T> key) {
-            if (registry.containsKey(key.location())) {
-                return Optional.of(this.newReference(key));
-            }
-            return Optional.empty();
+            return registry.getHolder(key).map(holder -> (Holder.Reference<T>) holder);
         }
 
         @Override
         @NotNull
         public Optional<HolderSet.Named<T>> get(final @NotNull TagKey<T> arg) {
             return Optional.ofNullable(getNamed(arg));
-        }
-
-        private Holder.Reference<T> newReference(final ResourceKey<T> key) {
-            return Holder.Reference.createStandAlone(this, key);
         }
     }
 }
