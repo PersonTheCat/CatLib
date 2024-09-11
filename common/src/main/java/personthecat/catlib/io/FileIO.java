@@ -12,6 +12,8 @@ import personthecat.fresult.PartialResult;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 import personthecat.fresult.functions.ThrowingConsumer;
+import personthecat.fresult.functions.ThrowingRunnable;
+import personthecat.fresult.functions.ThrowingSupplier;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -120,9 +122,10 @@ public final class FileIO {
      * @param to The directory or file being moved into.
      * @return The result of this operation, which you may wish to rethrow.
      */
+    @SuppressWarnings("RedundantCast") // workaround for incorrect type bug in Intellij
     public static Result<Path, IOException> move(final File f, final File to) {
         final File output = to.isDirectory() ? new File(to, f.getName()) : to;
-        return Result.of(() -> Files.move(f.toPath(), output.toPath()))
+        return Result.of((ThrowingSupplier<Path, IOException>) () -> Files.move(f.toPath(), output.toPath()))
             .ifErr(e -> log.error("moving file", e));
     }
 
@@ -437,8 +440,9 @@ public final class FileIO {
      * @param os The output stream being copied into.
      * @return The result of the operation. <b>Any errors should not be ignored</b>.
      */
+    @SuppressWarnings("RedundantCast") // workaround for incorrect type bug in Intellij
     public static Result<Void, IOException> copyStream(final InputStream is, final OutputStream os) {
-        return Result.of(() -> {
+        return Result.of((ThrowingRunnable<IOException>) () -> {
             final byte[] b = new byte[BUFFER_SIZE];
             int length;
             while ((length = is.read(b)) > 0) {
