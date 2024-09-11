@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,24 +16,19 @@ import java.util.stream.Stream;
 public class EasyMapReader<T> {
 
     private final DynamicOps<T> ops;
-    private final T prefix;
+    private final MapLike<T> map;
 
-    public EasyMapReader(final DynamicOps<T> ops, final T prefix) {
+    public EasyMapReader(final DynamicOps<T> ops, final MapLike<T> map) {
         this.ops = ops;
-        this.prefix = prefix;
+        this.map = map;
     }
 
     public <A> DataResult<A> run(final Function<Context<T>, A> runner) {
-        final DataResult<MapLike<T>> mapResult = this.ops.getMap(this.prefix);
-        if (mapResult.error().isPresent()) {
-            return DataResult.error(mapResult.error().get()::message);
-        }
-        assert mapResult.result().isPresent();
-        final Context<T> ctx = new Context<>(mapResult.result().get(), this.ops, this.prefix);
+        final Context<T> ctx = new Context<>(this.ops, this.map);
         try {
             return DataResult.success(runner.apply(ctx));
         } catch (final EasyMapException e) {
-            return DataResult.error((e::getMessage));
+            return DataResult.error(e::getMessage);
         }
     }
 
@@ -41,16 +37,14 @@ public class EasyMapReader<T> {
     }
 
     public static class Context<T> {
-        private final MapLike<T> map;
         private final DynamicOps<T> ops;
-        private final T prefix;
+        private final MapLike<T> map;
         private Class<? extends T> listClass;
         private Class<? extends T> mapClass;
 
-        private Context(final MapLike<T> map, final DynamicOps<T> ops, final T prefix) {
-            this.map = map;
+        private Context(final DynamicOps<T> ops, final MapLike<T> map) {
             this.ops = ops;
-            this.prefix = prefix;
+            this.map = map;
         }
 
         @Nullable
@@ -89,8 +83,8 @@ public class EasyMapReader<T> {
             return list;
         }
 
-        public <A> A readThis(final Codec<A> codec) {
-            return this.getOrThrow(codec, this.prefix);
+        public <A> A readThis(final MapCodec<A> codec) {
+            return this.getOrThrow(codec, this.map);
         }
 
         public boolean readBool(final String key) {
@@ -177,6 +171,10 @@ public class EasyMapReader<T> {
 
         private <A> A getOrThrow(final Codec<A> codec, final T t) {
             return codec.parse(this.ops, t).getOrThrow(EasyMapException::new);
+        }
+
+        private <A> A getOrThrow(final MapCodec<A> codec, final MapLike<T> map) {
+            return codec.decode(this.ops, map).getOrThrow(EasyMapException::new);
         }
     }
 

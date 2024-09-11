@@ -6,6 +6,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Decoder;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapLike;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -146,8 +147,8 @@ public class CodecUtils {
         return MapCodec.assumeMapUnsafe(neverCodec());
     }
 
-    public static <T> EasyMapReader<T> easyReader(final DynamicOps<T> ops, final T prefix) {
-        return new EasyMapReader<>(ops, prefix);
+    public static <T> EasyMapReader<T> easyReader(final DynamicOps<T> ops, final MapLike<T> map) {
+        return new EasyMapReader<>(ops, map);
     }
 
     public static <B> DynamicCodec.Builder<B, B, B> dynamic(final Supplier<B> builder) {
