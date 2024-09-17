@@ -312,8 +312,15 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public void removeSpawn(final MobCategory category) {
+    public void removeSpawns(final MobCategory category) {
         this.builder.getMobSpawnSettings().getSpawner(category).clear();
+    }
+
+    @Override
+    public void removeSpawn(final EntityType<?> type) {
+        for (final var category : MobCategory.values()) {
+            this.builder.getMobSpawnSettings().getSpawner(category).removeIf(data -> data.type == type);
+        }
     }
 
     @Override

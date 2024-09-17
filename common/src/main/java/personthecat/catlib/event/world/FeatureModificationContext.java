@@ -163,7 +163,9 @@ public abstract class FeatureModificationContext {
 
     public abstract void setSpawnCost(final EntityType<?> type, final double mass, final double gravityLimit);
 
-    public abstract void removeSpawn(final MobCategory category);
+    public abstract void removeSpawns(final MobCategory category);
+
+    public abstract void removeSpawn(final EntityType<?> type);
 
     public abstract void removeSpawnCost(final EntityType<?> type);
 }
