@@ -334,6 +334,11 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
+    public void setCreatureSpawnProbability(final float probability) {
+        this.modifications.getSpawnSettings().setCreatureSpawnProbability(probability);
+    }
+
+    @Override
     public void addSpawn(final MobCategory category, final SpawnerData data) {
         this.modifications.getSpawnSettings().addSpawn(category, data);
     }

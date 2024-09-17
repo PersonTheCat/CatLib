@@ -174,6 +174,8 @@ public abstract class FeatureModificationContext {
 
     public abstract float getCreatureGenerationProbability();
 
+    public abstract void setCreatureSpawnProbability(final float probability);
+
     public abstract void addSpawn(final MobCategory category, final SpawnerData data);
 
     public void addSpawn(final MobCategory category, final EntityType<?> type, int weight, int minCount, int maxCount) {
