@@ -218,7 +218,7 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public void getAmbientLoopSound(final @Nullable Holder<SoundEvent> event) {
+    public void setAmbientLoopSound(final @Nullable Holder<SoundEvent> event) {
         ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
             .setAmbientLoopSoundEvent(Optional.ofNullable(event));
     }

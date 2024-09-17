@@ -239,7 +239,7 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public void getAmbientLoopSound(final @Nullable Holder<SoundEvent> event) {
+    public void setAmbientLoopSound(final @Nullable Holder<SoundEvent> event) {
         this.modifications.getEffects().setAmbientSound(Optional.ofNullable(event));
     }
 

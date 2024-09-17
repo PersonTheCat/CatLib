@@ -93,7 +93,7 @@ public abstract class FeatureModificationContext {
 
     public abstract void setAmbientParticleSettings(final @Nullable AmbientParticleSettings settings);
 
-    public abstract void getAmbientLoopSound(final @Nullable Holder<SoundEvent> event);
+    public abstract void setAmbientLoopSound(final @Nullable Holder<SoundEvent> event);
 
     public abstract void setAmbientMoodSound(final @Nullable AmbientMoodSettings settings);
 
