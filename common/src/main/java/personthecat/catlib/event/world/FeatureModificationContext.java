@@ -113,7 +113,7 @@ public abstract class FeatureModificationContext {
         return anyRemoved;
     }
 
-    public boolean removeCarver(final Predicate<ConfiguredWorldCarver<?>> predicate) {
+    public boolean removeCarver(final Predicate<Holder<ConfiguredWorldCarver<?>>> predicate) {
         boolean anyRemoved = false;
         for (final Carving step : Carving.values()) {
             anyRemoved |= this.removeCarver(step, predicate);
@@ -123,7 +123,7 @@ public abstract class FeatureModificationContext {
 
     public abstract boolean removeCarver(final Carving step, final ResourceLocation id);
 
-    public abstract boolean removeCarver(final Carving step, final Predicate<ConfiguredWorldCarver<?>> predicate);
+    public abstract boolean removeCarver(final Carving step, final Predicate<Holder<ConfiguredWorldCarver<?>>> predicate);
 
     public boolean removeFeature(final ResourceLocation id) {
         boolean anyRemoved = false;
@@ -133,7 +133,7 @@ public abstract class FeatureModificationContext {
         return anyRemoved;
     }
 
-    public boolean removeFeature(final Predicate<PlacedFeature> predicate) {
+    public boolean removeFeature(final Predicate<Holder<PlacedFeature>> predicate) {
         boolean anyRemoved = false;
         for (final Decoration step : Decoration.values()) {
             anyRemoved |= this.removeFeature(step, predicate);
@@ -143,11 +143,30 @@ public abstract class FeatureModificationContext {
 
     public abstract boolean removeFeature(final Decoration step, final ResourceLocation id);
 
-    public abstract boolean removeFeature(final Decoration step, final Predicate<PlacedFeature> predicate);
+    public abstract boolean removeFeature(final Decoration step, final Predicate<Holder<PlacedFeature>> predicate);
 
-    public abstract void addCarver(final Carving step, final ConfiguredWorldCarver<?> carver);
+    public void addCarver(final Carving step, final ConfiguredWorldCarver<?> carver) {
+        this.addCarver(step, getHolder(this.getCarverRegistry(), carver));
+    }
 
-    public abstract void addFeature(final Decoration step, final PlacedFeature feature);
+    public void addFeature(final Decoration step, final PlacedFeature feature) {
+        this.addFeature(step, getHolder(this.getFeatureRegistry(), feature));
+    }
+
+    protected static <T> Holder<T> getHolder(final Registry<T> registry, final T value) {
+        final var key = registry.getResourceKey(value);
+        if (key.isPresent()) {
+            final var holder = registry.getHolder(key.get());
+            if (holder.isPresent()) {
+                return holder.get();
+            }
+        }
+        return Holder.direct(value);
+    }
+
+    public abstract void addCarver(final Carving step, final Holder<ConfiguredWorldCarver<?>> carver);
+
+    public abstract void addFeature(final Decoration step, final Holder<PlacedFeature> feature);
 
     public abstract Collection<MobCategory> getSpawnCategories();
 

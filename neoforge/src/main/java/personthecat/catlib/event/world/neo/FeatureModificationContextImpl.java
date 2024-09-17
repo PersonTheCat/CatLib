@@ -258,9 +258,8 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public boolean removeCarver(final Carving step, final Predicate<ConfiguredWorldCarver<?>> predicate) {
-        return this.builder.getGenerationSettings().getCarvers(step)
-            .removeIf(holder -> predicate.test(holder.value()));
+    public boolean removeCarver(final Carving step, final Predicate<Holder<ConfiguredWorldCarver<?>>> predicate) {
+        return this.builder.getGenerationSettings().getCarvers(step).removeIf(predicate);
     }
 
     @Override
@@ -270,19 +269,18 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public boolean removeFeature(final Decoration step, final Predicate<PlacedFeature> predicate) {
-        return this.builder.getGenerationSettings().getFeatures(step)
-            .removeIf(holder -> predicate.test(holder.value()));
+    public boolean removeFeature(final Decoration step, final Predicate<Holder<PlacedFeature>> predicate) {
+        return this.builder.getGenerationSettings().getFeatures(step).removeIf(predicate);
     }
 
     @Override
-    public void addCarver(final Carving step, final ConfiguredWorldCarver<?> carver) {
-        this.builder.getGenerationSettings().addCarver(step, Holder.direct(carver));
+    public void addCarver(final Carving step, final Holder<ConfiguredWorldCarver<?>> carver) {
+        this.builder.getGenerationSettings().addCarver(step, carver);
     }
 
     @Override
-    public void addFeature(final Decoration step, final PlacedFeature feature) {
-        this.builder.getGenerationSettings().addFeature(step, Holder.direct(feature));
+    public void addFeature(final Decoration step, final Holder<PlacedFeature> feature) {
+        this.builder.getGenerationSettings().addFeature(step, feature);
     }
 
     @Override

@@ -35,8 +35,8 @@ import personthecat.catlib.mixin.fabric.BiomeModificationContextAccessor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class FeatureModificationContextImpl extends FeatureModificationContext {
@@ -278,11 +278,11 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public boolean removeCarver(final Carving step, final Predicate<ConfiguredWorldCarver<?>> predicate) {
+    public boolean removeCarver(final Carving step, final Predicate<Holder<ConfiguredWorldCarver<?>>> predicate) {
         boolean anyRemoved = false;
-        for (final Map.Entry<ResourceKey<ConfiguredWorldCarver<?>>, ConfiguredWorldCarver<?>> entry : this.carvers.entrySet()) {
-            if (predicate.test(entry.getValue())) {
-                anyRemoved |= this.modifications.getGenerationSettings().removeCarver(step, entry.getKey());
+        for (final var holder : this.carvers.holders().toList()) {
+            if (predicate.test(holder)) {
+                anyRemoved |= this.modifications.getGenerationSettings().removeCarver(step, holder.key());
             }
         }
         return anyRemoved;
@@ -294,27 +294,27 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public boolean removeFeature(final Decoration step, final Predicate<PlacedFeature> predicate) {
+    public boolean removeFeature(final Decoration step, final Predicate<Holder<PlacedFeature>> predicate) {
         boolean anyRemoved = false;
-        for (final Map.Entry<ResourceKey<PlacedFeature>, PlacedFeature> entry : this.features.entrySet()) {
-             if (predicate.test(entry.getValue())) {
-                 anyRemoved |= this.modifications.getGenerationSettings().removeFeature(step, entry.getKey());
-             }
-         }
+        for (final var holder : this.features.holders().toList()) {
+            if (predicate.test(holder)) {
+                anyRemoved |= this.modifications.getGenerationSettings().removeFeature(step, holder.key());
+            }
+        }
          return anyRemoved;
     }
 
     @Override
-    public void addCarver(final Carving step, final ConfiguredWorldCarver<?> carver) {
-        final ResourceKey<ConfiguredWorldCarver<?>> key = this.carvers.getResourceKey(carver)
-            .orElseThrow(() -> new NullPointerException("Carvers must be registered prior to feature modification"));
+    public void addCarver(final Carving step, final Holder<ConfiguredWorldCarver<?>> carver) {
+        final var key = carver.unwrap().map(Function.identity(), v -> this.carvers.getResourceKey(v)
+            .orElseThrow(() -> new NullPointerException("Carvers must be registered prior to feature modification")));
         this.modifications.getGenerationSettings().addCarver(step, key);
     }
 
     @Override
-    public void addFeature(final Decoration step, final PlacedFeature feature) {
-        final ResourceKey<PlacedFeature> key = this.features.getResourceKey(feature)
-            .orElseThrow(() -> new NullPointerException("Features must be registered prior to feature modification"));
+    public void addFeature(final Decoration step, final Holder<PlacedFeature> feature) {
+        final var key = feature.unwrap().map(Function.identity(), v -> this.features.getResourceKey(v)
+            .orElseThrow(() -> new NullPointerException("Features must be registered prior to feature modification")));
         this.modifications.getGenerationSettings().addFeature(step, key);
     }
 
