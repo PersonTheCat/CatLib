@@ -104,6 +104,10 @@ public interface RegistryHandle<T> extends Iterable<T> {
         return key != null ? this.getTag(TagKey.create(key, id)) : Collections.emptySet();
     }
 
+    default Registry<T> asRegistry() {
+        throw new UnsupportedOperationException("Not a Mojang registry: " + this);
+    }
+
     default boolean isEmpty() {
         return this.size() == 0;
     }

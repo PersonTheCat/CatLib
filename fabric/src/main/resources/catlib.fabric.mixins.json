@@ -4,8 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BiomeModificationContextAccessor",
-    "MinecraftServerMixin",
-    "RegistryDataLoaderMixin"
+    "MinecraftServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

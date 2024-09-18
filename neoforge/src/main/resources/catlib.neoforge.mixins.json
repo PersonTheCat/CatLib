@@ -5,7 +5,7 @@
   "mixins": [
     "BiomeSpecialEffectsBuilderAccessor",
     "MinecraftServerMixin",
-    "RegistryDataLoaderMixin"
+    "ModifiableBiomeInfoAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

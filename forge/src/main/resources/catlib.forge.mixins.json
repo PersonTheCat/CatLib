@@ -7,8 +7,8 @@
     "ForgeRegistryMixin",
     "MinecraftServerMixin",
     "MobSpawnSettingsBuilderAccessor",
-    "MojangRegistryMixin",
-    "RegistryDataLoaderMixin"
+    "ModifiableBiomeInfoAccessor",
+    "MojangRegistryMixin"
   ],
   "injectors": {
     "defaultRequire": 1

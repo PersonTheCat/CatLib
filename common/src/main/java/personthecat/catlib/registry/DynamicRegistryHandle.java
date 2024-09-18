@@ -157,8 +157,12 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public Registry<T> asRegistry() {
+        return this.wrapped.asRegistry();
+    }
+
+    @Override
     public int getId() {
-        if (this.wrapped != null) return this.wrapped.getId();
-        return RegistryHandle.super.getId();
+        return this.wrapped.getId();
     }
 }

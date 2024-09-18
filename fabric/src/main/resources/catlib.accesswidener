@@ -1,8 +1,5 @@
 accessWidener v2 named
 
-# dynamic world generation
-accessible class net/minecraft/resources/RegistryDataLoader$Loader
-
 # because some types are not visible, we use AWs instead of Mixin
 accessible class net/minecraft/world/level/biome/Biome$ClimateSettings
 accessible field net/minecraft/world/level/biome/Biome climateSettings Lnet/minecraft/world/level/biome/Biome$ClimateSettings;

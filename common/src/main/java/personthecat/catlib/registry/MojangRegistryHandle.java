@@ -135,6 +135,11 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public Registry<T> asRegistry() {
+        return this.registry;
+    }
+
+    @Override
     public Stream<T> stream() {
         return this.registry.stream();
     }

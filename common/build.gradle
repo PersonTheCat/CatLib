@@ -7,6 +7,10 @@ architectury {
     }
 }
 
+loom {
+    accessWidenerPath.set file("src/main/resources/catlib.common.accesswidener")
+}
+
 configurations {
     bundle { transitive = false }
     implementation.extendsFrom bundle

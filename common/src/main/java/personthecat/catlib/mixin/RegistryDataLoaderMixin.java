@@ -1,4 +1,4 @@
-package personthecat.catlib.mixin.neo;
+package personthecat.catlib.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -16,8 +16,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import personthecat.catlib.event.registry.ClientDataRegistryEvent;
 import personthecat.catlib.event.registry.DataRegistryEvent;
-import personthecat.catlib.event.registry.DataRegistryEvent.Source;
+import personthecat.catlib.event.registry.RegistrySource;
 import personthecat.catlib.event.registry.RegistryMapSource;
 
 import java.util.List;
@@ -49,12 +50,14 @@ public class RegistryDataLoaderMixin {
             target = "Ljava/util/List;forEach(Ljava/util/function/Consumer;)V",
             ordinal = 0))
     private static void beforeLoad(
-            @Coerce Object f, RegistryAccess registries, List<RegistryData<?>> list, CallbackInfoReturnable<Frozen> cir,
+            @Coerce Object f, RegistryAccess registries, List<RegistryData<?>> list, CallbackInfoReturnable<RegistryAccess.Frozen> cir,
             @Local(ordinal = 1) List<Loader<?>> loaders,
-            @Share("source") LocalRef<Source> source) {
+            @Share("source") LocalRef<RegistrySource> source) {
+        source.set(new RegistryMapSource(loaders.stream().map(Loader::registry)));
         if (IS_SERVER.get()) {
-            source.set(new RegistryMapSource(loaders.stream().map(Loader::registry)));
             DataRegistryEvent.PRE.invoker().accept(source.get());
+        } else {
+            ClientDataRegistryEvent.PRE.invoker().accept(source.get());
         }
     }
 
@@ -65,10 +68,14 @@ public class RegistryDataLoaderMixin {
             target = "Ljava/util/List;forEach(Ljava/util/function/Consumer;)V",
             ordinal = 1))
     private static void afterLoad(
-            @Coerce Object f, RegistryAccess registries, List<RegistryData<?>> list, CallbackInfoReturnable<Frozen> cir,
-            @Share("source") LocalRef<Source> source) {
+            @Coerce Object f, RegistryAccess registries, List<RegistryData<?>> list, CallbackInfoReturnable<RegistryAccess.Frozen> cir,
+            @Share("source") LocalRef<RegistrySource> source) {
         if (source.get() != null) {
-            DataRegistryEvent.POST.invoker().accept(source.get());
+            if (IS_SERVER.get()) {
+                DataRegistryEvent.POST.invoker().accept(source.get());
+            } else {
+                ClientDataRegistryEvent.POST.invoker().accept(source.get());
+            }
         }
     }
 }

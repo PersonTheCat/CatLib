@@ -16,9 +16,11 @@ import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.event.player.CommonPlayerEvent;
+import personthecat.catlib.event.registry.ClientDataRegistryEvent;
 import personthecat.catlib.event.registry.DataRegistryEvent;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
+import personthecat.catlib.event.world.ClientFeatureHook;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.registry.DynamicRegistries;
@@ -70,6 +72,11 @@ public abstract class CatLib {
                 LibErrorContext.broadcastErrors(e);
             }
         });
+    }
+
+    protected final void clientSetup() {
+        ClientDataRegistryEvent.POST.register(source ->
+            ClientFeatureHook.modifyBiomes(source.asRegistryAccess()));
     }
 
     private void registerArgumentTypes() {

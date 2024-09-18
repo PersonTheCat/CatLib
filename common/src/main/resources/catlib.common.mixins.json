@@ -7,7 +7,8 @@
     "DelegatingOpsAccessor",
     "MappedRegistryAccessor",
     "NamedHolderSetAccessor",
-    "ProtoChunkMixin"
+    "ProtoChunkMixin",
+    "RegistryDataLoaderMixin"
   ],
   "client": [
     "TitleScreenMixin"

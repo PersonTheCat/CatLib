@@ -27,6 +27,10 @@ import java.util.function.Predicate;
 
 public abstract class FeatureModificationContext {
 
+    public boolean isServerSide() {
+        return true;
+    }
+
     public abstract Holder<Biome> getBiome();
 
     public abstract ResourceLocation getName();

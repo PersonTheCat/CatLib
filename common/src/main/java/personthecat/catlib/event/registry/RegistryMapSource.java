@@ -9,7 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record RegistryMapSource(Map<ResourceKey<? extends Registry<?>>, Registry<?>> map) implements DataRegistryEvent.Source {
+public record RegistryMapSource(Map<ResourceKey<? extends Registry<?>>, Registry<?>> map) implements RegistrySource {
     public RegistryMapSource(final Stream<Registry<?>> registries) {
         this(registries.collect(Collectors.toMap(Registry::key, Function.identity())));
     }

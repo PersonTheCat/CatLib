@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-// todo: Support phases
+// todo: Support phases, consider separating client-only changes
 public class FeatureModificationEvent {
     private static final LibEvent<Consumer<FeatureModificationContext>> GLOBAL_EVENT =
         LibEvent.create(callbacks -> ctx -> callbacks.forEach(c -> c.accept(ctx)));
