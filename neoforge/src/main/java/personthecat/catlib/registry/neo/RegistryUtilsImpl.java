@@ -82,7 +82,8 @@ public final class RegistryUtilsImpl {
     @Nullable
     private static RegistryHandle<?> findMojang(final Class<?> clazz) {
         for (final Registry<?> r : BuiltInRegistries.REGISTRY) {
-            if (clazz.isInstance(r.iterator().next())) {
+            final var itr = r.iterator();
+            if (itr.hasNext() && clazz.isInstance(itr.next())) {
                 return new MojangRegistryHandle<>(r);
             }
         }
