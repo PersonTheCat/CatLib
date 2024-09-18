@@ -2,6 +2,7 @@ package personthecat.catlib.registry.neo;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -93,7 +94,7 @@ public final class RegistryUtilsImpl {
     @Nullable
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static RegistryHandle<?> findCreateDynamic(final Class<?> clazz) {
-        for (final Field f : clazz.getFields()) {
+        for (final Field f : Registries.class.getFields()) {
             if (Modifier.isStatic(f.getModifiers()) && clazz.equals(resolveRegistryType(f))) {
                 try {
                     final var key = (ResourceKey) f.get(null);
