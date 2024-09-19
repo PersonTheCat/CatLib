@@ -97,21 +97,25 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     @Override
     public void setHasPrecipitation(final boolean hasPrecipitation) {
         this.builder.getClimateSettings().setHasPrecipitation(hasPrecipitation);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setTemperature(final float temperature) {
         this.builder.getClimateSettings().setTemperature(temperature);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setTemperatureModifier(final TemperatureModifier modifier) {
         this.builder.getClimateSettings().setTemperatureModifier(modifier);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setDownfall(final float downfall) {
         this.builder.getClimateSettings().setDownfall(downfall);
+        this.clientFeaturesModified();
     }
 
     @Override
@@ -177,68 +181,80 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     @Override
     public void setFogColor(final int color) {
         this.builder.getSpecialEffects().fogColor(color);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setWaterColor(final int color) {
         this.builder.getSpecialEffects().waterColor(color);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setWaterFogColor(final int color) {
         this.builder.getSpecialEffects().waterFogColor(color);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setSkyColor(final int color) {
         this.builder.getSpecialEffects().skyColor(color);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setGrassColorModifier(final GrassColorModifier modifier) {
         this.builder.getSpecialEffects().grassColorModifier(modifier);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setFoliageColorOverride(final @Nullable Integer override) {
         ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
             .setFoliageColorOverride(Optional.ofNullable(override));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setGrassColorOverride(final @Nullable Integer override) {
         ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
             .setGrassColorOverride(Optional.ofNullable(override));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setAmbientParticleSettings(final @Nullable AmbientParticleSettings settings) {
         ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
             .setAmbientParticle(Optional.ofNullable(settings));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setAmbientLoopSound(final @Nullable Holder<SoundEvent> event) {
         ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
             .setAmbientLoopSoundEvent(Optional.ofNullable(event));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setAmbientMoodSound(final @Nullable AmbientMoodSettings settings) {
         ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
             .setAmbientMoodSettings(Optional.ofNullable(settings));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setAmbientAdditionsSound(final @Nullable AmbientAdditionsSettings settings) {
         ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
             .setAmbientAdditionsSettings(Optional.ofNullable(settings));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setBackgroundMusic(final @Nullable Music music) {
         ((BiomeSpecialEffectsBuilderAccessor) this.builder.getSpecialEffects())
             .setBackgroundMusic(Optional.ofNullable(music));
+        this.clientFeaturesModified();
     }
 
     @Override

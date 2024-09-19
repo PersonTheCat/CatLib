@@ -121,21 +121,25 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     @Override
     public void setHasPrecipitation(final boolean hasPrecipitation) {
         this.modifications.getWeather().setPrecipitation(hasPrecipitation);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setTemperature(final float temperature) {
         this.modifications.getWeather().setTemperature(temperature);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setTemperatureModifier(final TemperatureModifier modifier) {
         this.modifications.getWeather().setTemperatureModifier(modifier);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setDownfall(final float downfall) {
         this.modifications.getWeather().setDownfall(downfall);
+        this.clientFeaturesModified();
     }
 
     @Override
@@ -201,61 +205,73 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     @Override
     public void setFogColor(final int color) {
         this.modifications.getEffects().setFogColor(color);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setWaterColor(final int color) {
         this.modifications.getEffects().setWaterColor(color);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setWaterFogColor(final int color) {
         this.modifications.getEffects().setWaterFogColor(color);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setSkyColor(final int color) {
         this.modifications.getEffects().setSkyColor(color);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setGrassColorModifier(final GrassColorModifier modifier) {
         this.modifications.getEffects().setGrassColorModifier(modifier);
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setFoliageColorOverride(final @Nullable Integer override) {
         this.modifications.getEffects().setFoliageColor(Optional.ofNullable(override));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setGrassColorOverride(final @Nullable Integer override) {
         this.modifications.getEffects().setGrassColor(Optional.ofNullable(override));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setAmbientParticleSettings(final @Nullable AmbientParticleSettings settings) {
         this.modifications.getEffects().setParticleConfig(Optional.ofNullable(settings));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setAmbientLoopSound(final @Nullable Holder<SoundEvent> event) {
         this.modifications.getEffects().setAmbientSound(Optional.ofNullable(event));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setAmbientMoodSound(final @Nullable AmbientMoodSettings settings) {
         this.modifications.getEffects().setMoodSound(Optional.ofNullable(settings));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setAmbientAdditionsSound(final @Nullable AmbientAdditionsSettings settings) {
         this.modifications.getEffects().setAdditionsSound(Optional.ofNullable(settings));
+        this.clientFeaturesModified();
     }
 
     @Override
     public void setBackgroundMusic(final @Nullable Music music) {
         this.modifications.getEffects().setMusic(Optional.ofNullable(music));
+        this.clientFeaturesModified();
     }
 
     @Override

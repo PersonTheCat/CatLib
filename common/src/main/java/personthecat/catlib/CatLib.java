@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
+import net.minecraft.util.CommonColors;
 import personthecat.catlib.command.CatLibCommands;
 import personthecat.catlib.command.CommandRegistrationContext;
 import personthecat.catlib.command.arguments.EnumArgument;
@@ -20,6 +21,7 @@ import personthecat.catlib.event.registry.DataRegistryEvent;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
+import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.util.LibUtil;
@@ -43,10 +45,6 @@ public abstract class CatLib {
     }
 
     protected final void commonSetup() {
-        if (LibConfig.enableTestError()) {
-            LibErrorContext.error(MOD,
-                new GenericFormattedException(new RuntimeException("test error"), "tooltip working!"));
-        }
         RegistryAccessEvent.EVENT.register(RegistryAddedEvent::onRegistryAccess);
         DataRegistryEvent.PRE.register(source ->
             DynamicRegistries.updateRegistries(source.asRegistryAccess()));
@@ -71,6 +69,7 @@ public abstract class CatLib {
                 LibErrorContext.broadcastErrors(e);
             }
         });
+        enableDebugFeatures();
     }
 
     private void registerArgumentTypes() {
@@ -96,5 +95,20 @@ public abstract class CatLib {
 
     protected final void shutdown() {
         DynamicRegistries.onSeverClosed();
+    }
+
+    private void enableDebugFeatures() {
+        if (LibConfig.enableTestError()) {
+            LibErrorContext.error(MOD,
+                new GenericFormattedException(new RuntimeException("test error"), "tooltip working!"));
+        }
+        if (LibConfig.enableTestColors()) {
+            FeatureModificationEvent.global().register(ctx -> {
+                log.info("Updating biome with debug colors: {}", ctx.getBiome());
+                ctx.setSkyColor(CommonColors.BLACK);
+                ctx.setWaterColor(CommonColors.RED);
+                ctx.setFoliageColorOverride(CommonColors.WHITE);
+            });
+        }
     }
 }

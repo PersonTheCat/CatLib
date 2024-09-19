@@ -3,6 +3,8 @@ package personthecat.catlib.event.world;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.Music;
 import net.minecraft.sounds.SoundEvent;
@@ -20,16 +22,14 @@ import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.util.SyncTracker;
 
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 public abstract class FeatureModificationContext {
-
-    public boolean isServerSide() {
-        return true;
-    }
+    private boolean clientFeaturesModified = false;
 
     public abstract Holder<Biome> getBiome();
 
@@ -104,6 +104,15 @@ public abstract class FeatureModificationContext {
     public abstract void setAmbientAdditionsSound(final @Nullable AmbientAdditionsSettings settings);
 
     public abstract void setBackgroundMusic(final @Nullable Music music);
+
+    @SuppressWarnings("unchecked")
+    protected final void clientFeaturesModified() {
+        if (!this.clientFeaturesModified) {
+            final var biomes = this.getRegistryAccess().registryOrThrow(Registries.BIOME);
+            ((SyncTracker<Biome>) biomes).markUpdated(ResourceKey.create(biomes.key(), this.getName()));
+            this.clientFeaturesModified = true;
+        }
+    }
 
     public abstract Iterable<Holder<ConfiguredWorldCarver<?>>> getCarvers(final Carving step);
 

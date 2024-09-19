@@ -68,6 +68,10 @@ public class LibConfig implements Config.Listener {
         return INSTANCE.debug.enableTestError;
     }
 
+    public static boolean enableTestColors() {
+        return INSTANCE.debug.enableTestColors;
+    }
+
     public static int defaultUsageLineLength() {
         return INSTANCE.commands.defaultUsageLineLength;
     }
@@ -153,5 +157,8 @@ public class LibConfig implements Config.Listener {
 
         @Comment("Whether to add a debug error message to the error menu.")
         boolean enableTestError = false;
+
+        @Comment("Whether to modify colors in all biomes to test client-side biome modifications.")
+        boolean enableTestColors = true;
     }
 }

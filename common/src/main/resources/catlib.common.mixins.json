@@ -6,6 +6,7 @@
     "ChunkStatusMixin",
     "DelegatingOpsAccessor",
     "MappedRegistryAccessor",
+    "MappedRegistryMixin",
     "NamedHolderSetAccessor",
     "ProtoChunkMixin",
     "RegistryDataLoaderMixin"
