@@ -51,6 +51,7 @@ processResources {
 
 shadowJar {
     configurations = [project.configurations.shadowCommon]
+    exclude "catlib.common.accessWidener"
     archiveClassifier.set "dev-shadow"
 }
 

@@ -50,6 +50,7 @@ shadowJar {
 
 remapJar {
     inputFile.set shadowJar.archiveFile
+    exclude "catlib.common.accessWidener"
     dependsOn shadowJar
     archiveClassifier.set null
 }
