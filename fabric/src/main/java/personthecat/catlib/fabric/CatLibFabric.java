@@ -46,7 +46,6 @@ public class CatLibFabric extends CatLib implements ModInitializer, ClientModIni
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(mc ->
             ClientTickEvent.END.invoker().accept(mc));
-        this.clientSetup();
     }
 
     private void setupBiomeModificationHook() {

@@ -16,9 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import personthecat.catlib.event.registry.ClientDataRegistryEvent;
 import personthecat.catlib.event.registry.DataRegistryEvent;
-import personthecat.catlib.event.registry.RegistrySource;
 import personthecat.catlib.event.registry.RegistryMapSource;
 
 import java.util.List;
@@ -52,12 +50,10 @@ public class RegistryDataLoaderMixin {
     private static void beforeLoad(
             @Coerce Object f, RegistryAccess registries, List<RegistryData<?>> list, CallbackInfoReturnable<RegistryAccess.Frozen> cir,
             @Local(ordinal = 1) List<Loader<?>> loaders,
-            @Share("source") LocalRef<RegistrySource> source) {
-        source.set(new RegistryMapSource(loaders.stream().map(Loader::registry)));
+            @Share("source") LocalRef<DataRegistryEvent.Source> source) {
         if (IS_SERVER.get()) {
+            source.set(new RegistryMapSource(loaders.stream().map(Loader::registry)));
             DataRegistryEvent.PRE.invoker().accept(source.get());
-        } else {
-            ClientDataRegistryEvent.PRE.invoker().accept(source.get());
         }
     }
 
@@ -69,13 +65,9 @@ public class RegistryDataLoaderMixin {
             ordinal = 1))
     private static void afterLoad(
             @Coerce Object f, RegistryAccess registries, List<RegistryData<?>> list, CallbackInfoReturnable<RegistryAccess.Frozen> cir,
-            @Share("source") LocalRef<RegistrySource> source) {
+            @Share("source") LocalRef<DataRegistryEvent.Source> source) {
         if (source.get() != null) {
-            if (IS_SERVER.get()) {
-                DataRegistryEvent.POST.invoker().accept(source.get());
-            } else {
-                ClientDataRegistryEvent.POST.invoker().accept(source.get());
-            }
+            DataRegistryEvent.POST.invoker().accept(source.get());
         }
     }
 }

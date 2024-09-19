@@ -43,10 +43,7 @@ public class CatLibNeo extends CatLib {
             this.setupCommonTranslations();
             this.commonSetup();
         });
-        modBus.addListener((FMLClientSetupEvent e) -> {
-            this.clientSetup();
-            this.setupClientTranslations();
-        });
+        modBus.addListener((FMLClientSetupEvent e) -> this.setupClientTranslations());
         eventBus.addListener((ServerStoppedEvent e) ->
             this.shutdown());
         eventBus.addListener((RegisterCommandsEvent e) ->
