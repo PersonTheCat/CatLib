@@ -104,7 +104,6 @@ public abstract class CatLib {
         }
         if (LibConfig.enableTestColors()) {
             FeatureModificationEvent.global().register(ctx -> {
-                log.info("Updating biome with debug colors: {}", ctx.getBiome());
                 ctx.setSkyColor(CommonColors.BLACK);
                 ctx.setWaterColor(CommonColors.RED);
                 ctx.setFoliageColorOverride(CommonColors.WHITE);

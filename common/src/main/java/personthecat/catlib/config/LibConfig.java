@@ -159,6 +159,6 @@ public class LibConfig implements Config.Listener {
         boolean enableTestError = false;
 
         @Comment("Whether to modify colors in all biomes to test client-side biome modifications.")
-        boolean enableTestColors = true;
+        boolean enableTestColors = false;
     }
 }
