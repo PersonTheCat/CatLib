@@ -9,7 +9,8 @@
     "MappedRegistryMixin",
     "NamedHolderSetAccessor",
     "ProtoChunkMixin",
-    "RegistryDataLoaderMixin"
+    "RegistryDataLoaderMixin",
+    "WorldDimensionsMixin"
   ],
   "client": [
     "TitleScreenMixin"

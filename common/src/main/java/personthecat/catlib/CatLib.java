@@ -21,6 +21,7 @@ import personthecat.catlib.event.registry.DataRegistryEvent;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
+import personthecat.catlib.event.world.DimensionBakeEvent;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.registry.DynamicRegistries;

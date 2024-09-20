@@ -30,6 +30,8 @@ public abstract class FormattedException extends Exception {
         super(cause);
     }
 
+    public FormattedException() {}
+
     @NotNull
     public String getCategory() {
         return "catlib.errorMenu.misc";

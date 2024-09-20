@@ -56,6 +56,10 @@ public class LibConfig implements Config.Listener {
         return INSTANCE.general.errorLevel;
     }
 
+    public static boolean suppressDimensionLifecycleWarnings() {
+        return INSTANCE.general.suppressDimensionLifecycleWarnings;
+    }
+
     public static boolean wrapText() {
         return INSTANCE.commands.wrapText;
     }
@@ -88,6 +92,9 @@ public class LibConfig implements Config.Listener {
 
         @Comment("The minimum error level to display in the error menu.")
         Severity errorLevel = Severity.ERROR;
+
+        @Comment("Whether to suppress warnings that occur due to custom dimensions")
+        boolean suppressDimensionLifecycleWarnings = true;
     }
 
     static class Commands {
