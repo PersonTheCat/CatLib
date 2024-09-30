@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.ApiStatus;
+import personthecat.catlib.client.gui.LibErrorMenu;
 import personthecat.catlib.command.CommandUtils;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.data.ModDescriptor;
@@ -196,6 +197,10 @@ public class LibErrorContext {
     private static void broadcastErrors() {
         final LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
+            if (!FATAL_ERRORS.isEmpty()) {
+                final var mc = Minecraft.getInstance();
+                mc.forceSetScreen(new LibErrorMenu(mc.screen));
+            }
             broadcastErrors(player);
         }
     }

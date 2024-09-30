@@ -28,7 +28,7 @@ public class WorldDimensionsMixin {
     @Inject(
         method = "bake",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/core/WritableRegistry;freeze()Lnet/minecraft/core/Registry;", ordinal = 0))
-    private void onRegistryBake(
+    private void onDimensionBake(
             Registry<LevelStem> registry,
             CallbackInfoReturnable<WorldDimensions.Complete> cir,
             @Local WritableRegistry<LevelStem> writableRegistry) {
