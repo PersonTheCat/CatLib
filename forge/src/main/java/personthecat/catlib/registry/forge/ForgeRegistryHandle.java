@@ -140,6 +140,11 @@ public class ForgeRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public Codec<Holder<T>> holderCodec() {
+        return this.codec().comapFlatMap(this::tryGetHolder, Holder::value);
+    }
+
+    @Override
     public Codec<T> codec() {
         return this.registry.getCodec();
     }

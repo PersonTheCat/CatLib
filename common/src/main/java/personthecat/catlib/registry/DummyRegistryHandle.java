@@ -113,7 +113,16 @@ public record DummyRegistryHandle<T>(ResourceKey<? extends Registry<T>> key) imp
     }
 
     @Override
+    public Codec<Holder<T>> holderCodec() {
+        throw this.codecNotSupported();
+    }
+
+    @Override
     public Codec<T> codec() {
+        throw this.codecNotSupported();
+    }
+
+    private UnsupportedOperationException codecNotSupported() {
         throw new UnsupportedOperationException("Tried to get codec of dummy registry -- access this codec directly!");
     }
 

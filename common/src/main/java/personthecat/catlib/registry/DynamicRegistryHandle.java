@@ -1,7 +1,6 @@
 package personthecat.catlib.registry;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
@@ -15,7 +14,11 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.event.registry.DataRegistryEvent;
 import personthecat.catlib.serialization.codec.CodecUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -150,15 +153,13 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public Codec<T> codec() {
-        return RegistryFileCodec.create(this.key(), CodecUtils.neverCodec(), false)
-            .flatComapMap(Holder::value, this::tryGetHolder);
+    public Codec<Holder<T>> holderCodec() {
+        return RegistryFileCodec.create(this.key(), CodecUtils.neverCodec(), false);
     }
 
-    private DataResult<Holder<T>> tryGetHolder(final T t) {
-        return Optional.ofNullable(this.getHolder(t))
-            .map(DataResult::success)
-            .orElseGet(() -> DataResult.error(() -> "Unregistered value (no key): " + t));
+    @Override
+    public Codec<T> codec() {
+        return this.holderCodec().flatComapMap(Holder::value, this::tryGetHolder);
     }
 
     @Override

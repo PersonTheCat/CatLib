@@ -1,6 +1,7 @@
 package personthecat.catlib.registry;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Lifecycle;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.Holder;
@@ -18,6 +19,7 @@ import personthecat.catlib.data.ModDescriptor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
@@ -38,6 +40,7 @@ public interface RegistryHandle<T> extends Iterable<T> {
     Set<Map.Entry<ResourceKey<T>, T>> entrySet();
     HolderLookup<T> asLookup();
     Stream<T> stream();
+    Codec<Holder<T>> holderCodec();
     Codec<T> codec();
     int size();
 
@@ -91,6 +94,12 @@ public interface RegistryHandle<T> extends Iterable<T> {
     default @Nullable Holder<T> getHolder(final T t) {
         final ResourceLocation l = this.getKey(t);
         return l != null ? this.getHolder(l) : null;
+    }
+
+    default DataResult<Holder<T>> tryGetHolder(final T t) {
+        return Optional.ofNullable(this.getHolder(t))
+            .map(DataResult::success)
+            .orElseGet(() -> DataResult.error(() -> "Unregistered value (no key): " + t));
     }
 
     default Collection<T> getTag(final TagKey<T> key) {

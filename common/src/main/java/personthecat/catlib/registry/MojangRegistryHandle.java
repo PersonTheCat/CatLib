@@ -145,6 +145,11 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
+    public Codec<Holder<T>> holderCodec() {
+        return this.registry.holderByNameCodec();
+    }
+
+    @Override
     public Codec<T> codec() {
         return this.registry.byNameCodec();
     }
