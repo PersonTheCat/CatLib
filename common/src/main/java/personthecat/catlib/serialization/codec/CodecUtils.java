@@ -17,6 +17,7 @@ import personthecat.catlib.util.LibUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -145,6 +146,14 @@ public class CodecUtils {
 
     public static <T> MapCodec<T> neverMapCodec() {
         return MapCodec.assumeMapUnsafe(neverCodec());
+    }
+
+    public static <T> Codec<T> nullableCodec(final Codec<T> codec) {
+        return optionalCodec(codec).xmap(optional -> optional.orElse(null), Optional::ofNullable);
+    }
+
+    public static <T> Codec<Optional<T>> optionalCodec(final Codec<T> codec) {
+        return new OptionalCodec<>(codec);
     }
 
     public static <T> EasyMapReader<T> easyReader(final DynamicOps<T> ops, final MapLike<T> map) {
