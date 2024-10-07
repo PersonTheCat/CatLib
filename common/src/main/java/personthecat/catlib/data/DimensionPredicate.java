@@ -39,12 +39,12 @@ public class DimensionPredicate extends IdList<DimensionType> {
 
     public boolean test(final ChunkAccess chunk) {
         if (chunk instanceof DimInjector) {
-            final DimensionType type = ((DimInjector) chunk).getType();
+            final Holder<DimensionType> type = ((DimInjector) chunk).getType();
             if (type != null) {
                 return this.test(type);
             }
-        } else if (chunk instanceof LevelChunk) {
-            return this.test(((LevelChunk) chunk).getLevel());
+        } else if (chunk instanceof LevelChunk levelChunk) {
+            return this.test(levelChunk.getLevel().dimensionTypeRegistration());
         }
         return this.isEmpty();
     }

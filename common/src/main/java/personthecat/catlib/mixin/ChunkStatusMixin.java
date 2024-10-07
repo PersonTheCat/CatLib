@@ -20,6 +20,6 @@ public class ChunkStatusMixin {
     public void injectDims(
             WorldGenContext ctx, Executor e, ToFullChunk toFullChunk,
             List<ChunkAccess> chunks, CallbackInfoReturnable<?> cir) {
-        chunks.forEach(chunk -> DimInjector.setType(chunk, ctx.level().dimensionType()));
+        chunks.forEach(chunk -> DimInjector.setType(chunk, ctx.level().dimensionTypeRegistration()));
     }
 }

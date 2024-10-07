@@ -1,5 +1,6 @@
 package personthecat.catlib.mixin;
 
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.chunk.ProtoChunk;
 import net.minecraft.world.level.dimension.DimensionType;
 import org.jetbrains.annotations.NotNull;
@@ -12,15 +13,15 @@ import personthecat.catlib.util.DimInjector;
 public class ProtoChunkMixin implements DimInjector {
 
     @Unique
-    DimensionType catlibInjectedDim;
+    Holder<DimensionType> catlibInjectedDim;
 
     @Override
-    public void setType(final @NotNull DimensionType type) {
+    public void setType(final @NotNull Holder<DimensionType> type) {
         this.catlibInjectedDim = type;
     }
 
     @Override
-    public @Nullable DimensionType getType() {
+    public @Nullable Holder<DimensionType> getType() {
         return this.catlibInjectedDim;
     }
 }

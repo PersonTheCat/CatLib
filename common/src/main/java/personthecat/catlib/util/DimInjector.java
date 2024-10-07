@@ -1,5 +1,6 @@
 package personthecat.catlib.util;
 
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.dimension.DimensionType;
 import org.apache.logging.log4j.LogManager;
@@ -15,17 +16,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public interface DimInjector {
     Set<Class<?>> UNSUPPORTED = ConcurrentHashMap.newKeySet();
-    Set<DimensionType> MAPPED = Collections.newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
+    Set<Holder<DimensionType>> MAPPED = Collections.newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
     Logger LOG = LogManager.getLogger(DimInjector.class);
 
-    void setType(final @NotNull DimensionType type);
-    @Nullable DimensionType getType();
+    void setType(final @NotNull Holder<DimensionType> type);
+    @Nullable Holder<DimensionType> getType();
 
-    static void setType(final ChunkAccess chunk, final @NotNull DimensionType type) {
+    static void setType(final ChunkAccess chunk, final @NotNull Holder<DimensionType> type) {
         if (chunk instanceof DimInjector) {
             ((DimInjector) chunk).setType(type);
             if (MAPPED.add(type)) {
-                LOG.info("Successfully injecting dim keys for {}", DynamicRegistries.DIMENSION_TYPE.getKey(type));
+                LOG.info("Successfully injecting dim keys for {}", DynamicRegistries.DIMENSION_TYPE.keyOf(type));
             }
         } else if (UNSUPPORTED.add(chunk.getClass())) {
             LOG.error("Cannot inject into chunk of type {}", chunk.getClass());
