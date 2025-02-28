@@ -23,6 +23,7 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public class CodecUtils {
 
@@ -137,6 +138,25 @@ public class CodecUtils {
     @SuppressWarnings("unchecked")
     public static <T> Codec<T> asParent(final Codec<? extends T> codec) {
         return (Codec<T>) codec;
+    }
+
+    public static <T, R> Codec<R> cast(final Codec<T> codec, final Class<T> t, final Class<R> r) {
+        return codec.flatXmap(ta -> tryCast(ta, r), ra -> tryCast(ra, t));
+    }
+
+    private static <T, R> Codec<R> cast(
+            final Codec<T> codec, final Class<T> t, final Class<R> r, final String tErr, final String rErr) {
+        return codec.flatXmap(
+            ta -> tryCast(ta, r, ta2 -> String.format(tErr, r, ta2)),
+            ra -> tryCast(ra, t, ra2 -> String.format(rErr, t, ra2)));
+    }
+
+    public static <T, R> DataResult<R> tryCast(final T t, final Class<R> r) {
+        return tryCast(t, r, a -> "Not an instance of " + r.getSimpleName() + ": " + t);
+    }
+
+    public static <T, R> DataResult<R> tryCast(final T t, final Class<R> r, final Function<T, String> error) {
+        return r.isInstance(t) ? DataResult.success(r.cast(t)) : DataResult.error(() -> error.apply(t));
     }
 
     @SuppressWarnings("unchecked")
