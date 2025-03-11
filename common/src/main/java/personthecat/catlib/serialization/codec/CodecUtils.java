@@ -106,11 +106,11 @@ public class CodecUtils {
         return new SimpleEitherCodec<>(first, second);
     }
 
-    public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final Codec<T> defaultType) {
+    public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final Codec<? extends T> defaultType) {
         return defaultType(dispatcher, defaultType, (t, ops) -> false);
     }
     
-    public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final Codec<T> defaultType, final BiPredicate<T, DynamicOps<?>> isDefaultType) {
+    public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final Codec<? extends T> defaultType, final BiPredicate<T, DynamicOps<?>> isDefaultType) {
         return new DefaultTypeCodec<>(dispatcher, defaultType, isDefaultType);
     }
 
