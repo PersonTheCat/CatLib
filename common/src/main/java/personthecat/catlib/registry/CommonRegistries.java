@@ -20,6 +20,7 @@ import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
 import net.minecraft.world.level.levelgen.structure.placement.StructurePlacementType;
+import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTestType;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.minecraft.world.level.material.Fluid;
 
@@ -43,6 +44,7 @@ public class CommonRegistries {
     public static final RegistryHandle<StructureType<?>> STRUCTURE_TYPE = RegistryUtils.getHandle(Registries.STRUCTURE_TYPE);
     public static final RegistryHandle<StructureProcessorType<?>> STRUCTURE_PROCESSOR = RegistryUtils.getHandle(Registries.STRUCTURE_PROCESSOR);
     public static final RegistryHandle<PlacementModifierType<?>> PLACEMENT_MODIFIER_TYPE = RegistryUtils.getHandle(Registries.PLACEMENT_MODIFIER_TYPE);
+    public static final RegistryHandle<RuleTestType<?>> RULE_TEST_TYPE = RegistryUtils.getHandle(Registries.RULE_TEST);
 
     public static <T> RegistryHandle<T> get(final ResourceKey<Registry<T>> key) {
         return RegistryUtils.getHandle(key);
