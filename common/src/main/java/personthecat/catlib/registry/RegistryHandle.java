@@ -134,8 +134,9 @@ public interface RegistryHandle<T> extends Iterable<T> {
     }
 
     record DeferredRegister<T>(RegistryHandle<T> handle, String modId) {
-        public <V extends T> void register(String id, V v) {
+        public <V extends T> DeferredRegister<T> register(String id, V v) {
             this.handle.deferredRegister(this.modId, id, v);
+            return this;
         }
     }
 }
