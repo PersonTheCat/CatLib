@@ -7,6 +7,7 @@ import com.mojang.serialization.JavaOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
+import io.netty.util.concurrent.FastThreadLocal;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
@@ -18,9 +19,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@SuppressWarnings("preview")
 public abstract class CapturingCodec<A> extends MapCodec<A> {
-    private static final ScopedValue<Deque<MapFrame<?>>> FRAMES = ScopedValue.newInstance();
+    private static final FastThreadLocal<Deque<MapFrame<?>>> FRAMES = new FastThreadLocal<>();
     protected final MapCodec<A> delegate;
 
     private CapturingCodec(MapCodec<A> delegate) {
@@ -44,20 +44,18 @@ public abstract class CapturingCodec<A> extends MapCodec<A> {
     }
 
     private static <T, R> R capture(DynamicOps<T> ops, MapLike<T> map, Function<MapStack<T>, R> fn) {
-        if (FRAMES.isBound()) {
-            return handleFrame(ops, map, fn);
+        var frames = FRAMES.get();
+        if (frames == null) {
+            FRAMES.set(frames = new ArrayDeque<>());
         }
-        return ScopedValue.where(FRAMES, new ArrayDeque<>())
-            .get(() -> handleFrame(ops, map, fn));
-    }
-
-    private static <T, R> R handleFrame(DynamicOps<T> ops, MapLike<T> map, Function<MapStack<T>, R> fn) {
-        final var frames = FRAMES.get();
         frames.add(new MapFrame<>(ops, map));
         try {
             return fn.apply(new MapStack<>(frames.reversed(), ops));
         } finally {
             frames.pop();
+            if (frames.isEmpty()) {
+                FRAMES.remove();
+            }
         }
     }
 
@@ -76,7 +74,7 @@ public abstract class CapturingCodec<A> extends MapCodec<A> {
 
         @Override
         public <T> DataResult<A> decode(DynamicOps<T> ops, MapLike<T> input) {
-            return capture(ops, this.filterMap(ops, input), _ -> this.delegate.decode(ops, input));
+            return capture(ops, this.filterMap(ops, input), stack -> this.delegate.decode(ops, input));
         }
 
         @Override
@@ -130,7 +128,7 @@ public abstract class CapturingCodec<A> extends MapCodec<A> {
         }
 
         private boolean testKey(T t) {
-            return this.ops.getStringValue(t).mapOrElse(this.predicate::test, _ -> false);
+            return this.ops.getStringValue(t).mapOrElse(this.predicate::test, e -> false);
         }
     }
 

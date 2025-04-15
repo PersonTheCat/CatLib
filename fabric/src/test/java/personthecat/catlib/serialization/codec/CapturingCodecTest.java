@@ -70,6 +70,8 @@ public class CapturingCodecTest {
             ]
             """);
         assertTrue(result.isError());
+        final var error = result.error().orElseThrow();
+        assertTrue(error.message().contains("No key count"));
     }
 
     @Test
@@ -78,6 +80,9 @@ public class CapturingCodecTest {
             entries: [{}]
             """);
         assertTrue(result.isError());
+        final var error = result.error().orElseThrow();
+        assertTrue(error.message().contains("No key radius"));
+        assertTrue(error.message().contains("No key count"));
     }
 
     private record TestSubject(List<Entry> entries) {

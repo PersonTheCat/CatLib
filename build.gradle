@@ -75,7 +75,6 @@ allprojects {
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
-        options.compilerArgs += '--enable-preview'
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -99,10 +98,6 @@ allprojects {
     java {
         withJavadocJar()
         withSourcesJar()
-    }
-
-    test {
-        jvmArgs(['--enable-preview'])
     }
 
     if (enable_publishing == 'true') {
