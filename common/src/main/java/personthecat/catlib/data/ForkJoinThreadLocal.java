@@ -140,11 +140,15 @@ public abstract class ForkJoinThreadLocal<T> implements Supplier<T> {
         @SuppressWarnings("unchecked")
         public T get() {
             final var i = getThreadIndex();
-            var t = this.values[i];
-            if (t == null) {
-                t = this.values[i] = this.valueSupplier.get();
+            if (i >= 0) {
+                var t = this.values[i];
+                if (t == null) {
+                    t = this.values[i] = this.valueSupplier.get();
+                }
+                return (T) t;
             }
-            return (T) t;
+            // getFallback uses lazy eval for sad path
+            return this.getFallback();
         }
     }
 
