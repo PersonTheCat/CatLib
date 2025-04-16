@@ -7,8 +7,8 @@ import com.mojang.serialization.JavaOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
-import io.netty.util.concurrent.FastThreadLocal;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.data.ForkJoinThreadLocal;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class CapturingCodec<A> extends MapCodec<A> {
-    private static final FastThreadLocal<Deque<MapFrame<?>>> FRAMES = new FastThreadLocal<>();
+    private static final ForkJoinThreadLocal<Deque<MapFrame<?>>> FRAMES = ForkJoinThreadLocal.create();
     protected final MapCodec<A> delegate;
 
     private CapturingCodec(MapCodec<A> delegate) {
