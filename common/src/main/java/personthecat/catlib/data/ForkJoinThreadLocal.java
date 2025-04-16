@@ -2,10 +2,12 @@ package personthecat.catlib.data;
 
 import io.netty.util.concurrent.FastThreadLocal;
 import io.netty.util.concurrent.FastThreadLocalThread;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.function.Supplier;
 
+@Log4j2
 public abstract class ForkJoinThreadLocal<T> implements Supplier<T> {
     private static final int SIZE = Math.max(1, Math.min(255, Runtime.getRuntime().availableProcessors() - 1));
     protected final Object[] values = new Object[SIZE];
@@ -102,7 +104,7 @@ public abstract class ForkJoinThreadLocal<T> implements Supplier<T> {
 
     private void warnFallback() {
         if (this.warnFallback) {
-            System.err.printf("Accessing thread-local data in fallback mode: %s", Mode.get());
+            log.warn("Accessing thread-local data in fallback mode: {}", Mode.get());
             this.warnFallback = false;
         }
     }
