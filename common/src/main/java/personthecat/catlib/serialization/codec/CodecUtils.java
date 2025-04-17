@@ -107,11 +107,19 @@ public class CodecUtils {
     }
 
     public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final Codec<? extends T> defaultType) {
-        return defaultType(dispatcher, defaultType, (t, ops) -> false);
+        return defaultType("type", dispatcher, defaultType, (t, ops) -> false);
+    }
+
+    public static <T> Codec<T> defaultType(final String typeKey, final Codec<T> dispatcher, final Codec<? extends T> defaultType) {
+        return defaultType(typeKey, dispatcher, defaultType, (t, ops) -> false);
     }
     
     public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final Codec<? extends T> defaultType, final BiPredicate<T, DynamicOps<?>> isDefaultType) {
-        return new DefaultTypeCodec<>(dispatcher, defaultType, isDefaultType);
+        return defaultType("type", dispatcher, defaultType, isDefaultType);
+    }
+
+    public static <T> Codec<T> defaultType(final String typeKey, final Codec<T> dispatcher, final Codec<? extends T> defaultType, final BiPredicate<T, DynamicOps<?>> isDefaultType) {
+        return new DefaultTypeCodec<>(typeKey, dispatcher, defaultType, isDefaultType);
     }
 
     public static <T> MapCodec<T> asMapCodec(final Codec<T> codec) {

@@ -9,14 +9,17 @@ import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
 public class DefaultTypeCodec<A> implements Codec<A> {
+    private final String typeKey;
     private final Codec<A> dispatcher;
     private final Codec<A> defaultType;
     private final BiPredicate<A, DynamicOps<?>> isDefaultType;
 
     public DefaultTypeCodec(
+            final String typeKey,
             final Codec<A> dispatcher,
             final Codec<? extends A> defaultType,
             final BiPredicate<A, DynamicOps<?>> isDefaultType) {
+        this.typeKey = typeKey;
         this.dispatcher = dispatcher;
         this.defaultType = CodecUtils.asParent(defaultType);
         this.isDefaultType = isDefaultType;
@@ -43,7 +46,7 @@ public class DefaultTypeCodec<A> implements Codec<A> {
     }
 
     private <T> boolean hasExplicitType(final DynamicOps<T> ops, final T input) {
-        return ops.getMap(input).mapOrElse(map -> map.get("type") != null, e -> false);
+        return ops.getMap(input).mapOrElse(map -> map.get(this.typeKey) != null, e -> false);
     }
 
     @Override
