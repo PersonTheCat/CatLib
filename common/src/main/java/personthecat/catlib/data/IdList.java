@@ -148,6 +148,14 @@ public class IdList<T> implements Predicate<Holder<T>> {
         return codecFromTypes(key, IdMatcher.DEFAULT_TYPES, filter);
     }
 
+    public static <T> Codec<IdList<T>> listCodec(final ResourceKey<? extends Registry<T>> key) {
+        return listCodec(key, false);
+    }
+
+    public static <T> Codec<IdList<T>> listCodec(final ResourceKey<? extends Registry<T>> key, final boolean filter) {
+        return listCodec(key, IdMatcher.DEFAULT_TYPES, filter, (Constructor<T, IdList<T>>) IdList::new);
+    }
+
     public static <T> Codec<IdList<T>> codecFromTypes(
             final ResourceKey<? extends Registry<T>> key, final List<Info<?>> types, final boolean filter) {
         return codecFromTypes(key, types, filter, (Constructor<T, IdList<T>>) IdList::new);
