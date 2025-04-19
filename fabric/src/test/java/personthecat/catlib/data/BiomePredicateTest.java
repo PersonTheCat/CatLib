@@ -84,6 +84,11 @@ public class BiomePredicateTest {
     }
 
     @Test
+    public void allBiomes_alwaysReturnsTrue() {
+        assertTrue(BiomePredicate.ALL_BIOMES.test(DynamicRegistries.BIOME.getHolder(new ResourceLocation("forest"))));
+    }
+
+    @Test
     public void simplify_sortsNamedBiomes_intoCategories() {
         final BiomePredicate predicate = BiomePredicate.builder()
             .addEntries(

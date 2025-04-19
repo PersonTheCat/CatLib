@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 @Log4j2
 public abstract class ForkJoinThreadLocal<T> implements Supplier<T> {
-    private static final int SIZE = Math.max(1, Math.min(255, Runtime.getRuntime().availableProcessors() - 1));
+    private static final int SIZE = Math.max(1, Math.min(255, Runtime.getRuntime().availableProcessors()));
     protected final Object[] values = new Object[SIZE];
     private final FastThreadLocal<T> fallback;
     private volatile boolean warnFallback;

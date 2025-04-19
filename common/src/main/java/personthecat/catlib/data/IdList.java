@@ -57,15 +57,20 @@ public class IdList<T> implements Predicate<Holder<T>> {
     }
 
     public Predicate<Holder<T>> optimize() {
-        if (this.optimized != null) {
-            return this.optimized;
-        }
-        if (this.isEmpty()) {
-            return this.blacklist ? holder -> true : holder -> false;
+        final var optimized = this.optimized;
+        if (optimized != null) {
+            return optimized;
         }
         synchronized (this) {
+            if (this.isEmpty()) {
+                return this.optimized = this.blacklist ? holder -> true : holder -> false;
+            }
             final RegistryHandle<T> handle = this.handle;
             final HolderSet<T> compiled = this.compile();
+            if (compiled.size() == 1) {
+                final Holder<T> entry = compiled.get(0);
+                return this.optimized = this.blacklist ? holder -> !entry.equals(handle) : entry::equals;
+            }
             if (compiled.size() < (handle.size() / 2)) {
                 return this.optimized = compiled::contains;
             }

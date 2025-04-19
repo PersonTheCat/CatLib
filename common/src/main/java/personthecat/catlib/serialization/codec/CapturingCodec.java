@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class CapturingCodec<A> extends MapCodec<A> {
-    private static final ForkJoinThreadLocal<Deque<MapFrame<?>>> FRAMES = ForkJoinThreadLocal.create();
+    private static final ForkJoinThreadLocal<Deque<MapFrame<?>>> FRAMES = ForkJoinThreadLocal.create(false);
     protected final MapCodec<A> delegate;
 
     private CapturingCodec(MapCodec<A> delegate) {
