@@ -148,6 +148,11 @@ public class CodecUtils {
         return (Codec<T>) codec;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> MapCodec<T> asParent(final MapCodec<? extends T> codec) {
+        return (MapCodec<T>) codec;
+    }
+
     public static <T, R> Codec<R> cast(final Codec<T> codec, final Class<T> t, final Class<R> r) {
         return codec.flatXmap(ta -> tryCast(ta, r), ra -> tryCast(ra, t));
     }
