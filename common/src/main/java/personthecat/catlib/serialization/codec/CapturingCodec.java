@@ -52,7 +52,7 @@ public abstract class CapturingCodec<A> extends MapCodec<A> {
         try {
             return fn.apply(new MapStack<>(frames.reversed(), ops));
         } finally {
-            frames.pop();
+            frames.removeLast();
             if (frames.isEmpty()) {
                 FRAMES.remove();
             }

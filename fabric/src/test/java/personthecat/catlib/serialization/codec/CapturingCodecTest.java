@@ -85,6 +85,23 @@ public class CapturingCodecTest {
         assertTrue(error.message().contains("No key count"));
     }
 
+    @Test
+    public void decode_withValuesAtCaptor_andMultipleReceivers_returnsSuccess() {
+        final var expected = new TestSubject(List.of(
+            new Entry(3, 4),
+            new Entry(2, 4)
+        ));
+        final var result = TestSubject.parse("""
+            radius: 4
+            entries: [
+              { count: 3 }
+              { count: 2 }
+            ]
+            """);
+        assertTrue(result.isSuccess());
+        assertEquals(expected, result.getOrThrow());
+    }
+
     private record TestSubject(List<Entry> entries) {
         private static final MapCodec<TestSubject> CODEC = captor(
             Entry.CODEC.codec().listOf().fieldOf("entries").xmap(TestSubject::new, TestSubject::entries),
