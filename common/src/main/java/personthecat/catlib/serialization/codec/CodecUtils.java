@@ -122,6 +122,14 @@ public class CodecUtils {
         return new DefaultTypeCodec<>(typeKey, dispatcher, defaultType, isDefaultType);
     }
 
+    public static <T> Codec<T> ifMap(final Codec<T> codec, final MapCodec<T> map) {
+        return ifMap(codec, map, (t, ops) -> false);
+    }
+
+    public static <T> Codec<T> ifMap(final Codec<T> codec, final MapCodec<T> map, final BiPredicate<T, DynamicOps<?>> isMap) {
+        return new IfMapCodec<>(codec, map, isMap);
+    }
+
     public static <T> MapCodec<T> asMapCodec(final Codec<T> codec) {
         return codec instanceof MapCodec.MapCodecCodec<T> map ? map.codec() : MapCodec.assumeMapUnsafe(codec);
     }
