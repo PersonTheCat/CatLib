@@ -108,6 +108,19 @@ public class IdListTest {
     }
 
     @Test
+    public void idList_supportsAllInverted() {
+        final RegistryHandle<Block> blocks = CommonRegistries.BLOCK;
+        final IdList<Block> list =
+            IdList.builder(Registries.BLOCK)
+                .addEntries(IdMatcher.id(true, new ResourceLocation("sand")))
+                .addEntries(IdMatcher.id(true, new ResourceLocation("dirt")))
+                .build();
+        assertFalse(list.test(blocks.getHolder(new ResourceLocation("sand"))));
+        assertFalse(list.test(blocks.getHolder(new ResourceLocation("dirt"))));
+        assertTrue(list.test(blocks.getHolder(new ResourceLocation("clay"))));
+    }
+
+    @Test
     public void idList_emptyList_matchesNone() {
         final RegistryHandle<Item> items = CommonRegistries.ITEM;
         final IdList<Item> list = IdList.builder(Registries.ITEM).build();
