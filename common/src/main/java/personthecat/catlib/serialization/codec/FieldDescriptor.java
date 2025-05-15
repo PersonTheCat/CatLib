@@ -1,6 +1,7 @@
 package personthecat.catlib.serialization.codec;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -35,6 +36,17 @@ public abstract class FieldDescriptor<O, T, R> {
         return passthrough(type.optionalFieldOf(name).xmap(
             o -> o.orElseGet(def), t -> Objects.equals(t, def.get()) ? Optional.empty() : Optional.of(t)
         ).forGetter(getter));
+    }
+
+    public static <O, T> FieldDescriptor<O, T, T> defaultTry(final Codec<T> type, final String name, final Supplier<DataResult<T>> def, final Function<O, T> getter) {
+        return passthrough(type.optionalFieldOf(name).flatXmap(
+            o -> o.map(DataResult::success).orElseGet(() -> def.get().mapError(e -> "No key " + name + "; " + e)),
+            t -> DataResult.success(isDefaultResult(t, def.get()) ? Optional.empty() : Optional.of(t))
+        ).forGetter(getter));
+    }
+
+    private static <T> boolean isDefaultResult(T actual, DataResult<T> def) {
+        return def.mapOrElse(t -> Objects.equals(actual, t), e -> false);
     }
 
     public static <O, T> Passthrough<O, T> passthrough(final RecordCodecBuilder<O, T> f) {
