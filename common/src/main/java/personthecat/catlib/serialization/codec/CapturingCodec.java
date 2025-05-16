@@ -15,6 +15,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -39,11 +40,16 @@ public class CapturingCodec<A> extends MapCodec<A> {
 
     @SafeVarargs
     public static <T> Captor<T> capture(String key, Codec<T> codec, T... implicitType) {
-        return capture(key, codec.fieldOf(key), implicitType);
+        return capture(key, codec.optionalFieldOf(key), implicitType);
     }
 
     @SafeVarargs
-    public static <T> Captor<T> capture(String key, MapCodec<T> codec, T... implicitType) {
+    public static <T> Captor<T> lenientCapture(String key, MapCodec<T> codec, T... implicitType) {
+        return capture(key, LenientMapCodec.of(codec), implicitType);
+    }
+
+    @SafeVarargs
+    public static <T> Captor<T> capture(String key, MapCodec<Optional<T>> codec, T... implicitType) {
         return new DefaultGetter<>(Key.of(key, implicitType), codec);
     }
 
@@ -133,11 +139,14 @@ public class CapturingCodec<A> extends MapCodec<A> {
         }
     }
 
-    protected record DefaultGetter<T>(Key<T> key, MapCodec<T> codec) implements Captor<T> {
+    protected record DefaultGetter<T>(Key<T> key, MapCodec<Optional<T>> codec) implements Captor<T> {
 
         @Override
         public <O> void capture(Captures captures, DynamicOps<O> ops, MapLike<O> input) {
-            captures.put(this.key, () -> this.codec.decode(ops, input));
+            captures.put(this.key, () -> this.codec.decode(ops, input).mapOrElse(
+                o -> o.map(DataResult::success).orElse( null),
+                e -> DataResult.error(e.messageSupplier())
+            ));
         }
     }
 

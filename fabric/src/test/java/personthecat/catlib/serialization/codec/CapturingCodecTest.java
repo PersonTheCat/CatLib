@@ -189,6 +189,46 @@ public class CapturingCodecTest {
         assertSuccess(expected, result);
     }
 
+    @Test
+    public void decode_withCaptorOfDefaulted_withValueAtCaptor_usesGivenValue() {
+        final var expected = new TestSubject(List.of(
+            new Entry("h", "i", "j")
+        ));
+        final var result = parse(TestSubject.CAPTURE_OVERRIDE, """
+            defaulted: 'j'
+            entries: [
+              { required: 'h', receiver: 'i' }
+            ]
+            """);
+        assertSuccess(expected, result);
+    }
+
+    @Test
+    public void decode_withCaptorOfDefaulted_whenValueIsPresent_usesGivenValue() {
+        final var expected = new TestSubject(List.of(
+            new Entry("q", "r", "s")
+        ));
+        final var result = parse(TestSubject.CAPTURE_OVERRIDE, """
+            entries: [
+              { required: 'q', receiver: 'r', defaulted: 's' }
+            ]
+            """);
+        assertSuccess(expected, result);
+    }
+
+    @Test
+    public void decode_withCaptorOfDefaulted_whenValueIsAbsent_usesOriginalDefault() {
+        final var expected = new TestSubject(List.of(
+            new Entry("t", "u", Entry.DEFAULT_VALUE)
+        ));
+        final var result = parse(TestSubject.CAPTURE_OVERRIDE, """
+            entries: [
+              { required: 't', receiver: 'u' }
+            ]
+            """);
+        assertSuccess(expected, result);
+    }
+
     private static DataResult<TestSubject> parse(MapCodec<TestSubject> codec, String json) {
         return codec.codec().parse(XjsOps.INSTANCE, Json.parse(json));
     }
@@ -230,6 +270,8 @@ public class CapturingCodecTest {
             CapturingCodec.of(CODEC).capturing(supply("defaulted", OVERRIDE_VALUE));
         private static final MapCodec<TestSubject> DOUBLE_OVERRIDE =
             CapturingCodec.of(OVERRIDE).capturing(supply("defaulted", DOUBLE_OVERRIDE_VALUE));
+        private static final MapCodec<TestSubject> CAPTURE_OVERRIDE =
+            CapturingCodec.of(CODEC).capturing(capture("defaulted", Codec.STRING));
     }
 
     private record Entry(String required, String receiver, String defaulted) {
