@@ -79,12 +79,15 @@ public class CapturingCodec<A> extends MapCodec<A> {
     }
 
     public CapturingCodec<A> capturing(Captor<?>... captors) {
+        return this.capturing(List.of(captors));
+    }
+
+    public CapturingCodec<A> capturing(List<Captor<?>> captors) {
         return new CapturingCodec<>(this.delegate, append(this.captors, captors));
     }
 
-    @SafeVarargs
-    private static <T> List<T> append(List<T> list, T... entries) {
-        return ImmutableList.<T>builder().addAll(list).add(entries).build();
+    private static <T> List<T> append(List<T> list, List<T> entries) {
+        return ImmutableList.<T>builder().addAll(list).addAll(entries).build();
     }
 
     @Override

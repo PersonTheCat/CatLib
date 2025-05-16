@@ -140,6 +140,14 @@ public class DynamicCodec<B, R, A> extends MapCodec<A> {
             }
             final T value = input.get(field.key());
             if (value == null) {
+                final var defaultResult = field.defaultSupplier().get();
+                if (defaultResult != null) {
+                    if (defaultResult.isSuccess()) {
+                        ((BiConsumer<B, Object>) field.setter()).accept(builder, defaultResult.getOrThrow());
+                    } else {
+                        errors.put(field.key(), defaultResult.error().orElseThrow().messageSupplier());
+                    }
+                }
                 if (field.isNullable()) {
                     field.setter().accept(builder, null);
                 }

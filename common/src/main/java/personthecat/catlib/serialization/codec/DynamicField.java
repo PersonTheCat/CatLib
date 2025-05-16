@@ -1,14 +1,12 @@
 package personthecat.catlib.serialization.codec;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 
 public record DynamicField<B, R, T>(
         @Nullable Codec<T> codec,
@@ -16,7 +14,8 @@ public record DynamicField<B, R, T>(
         Function<R, T> getter,
         BiConsumer<B, T> setter,
         Type type,
-        @Nullable BiPredicate<R, T> outputFilter) {
+        @Nullable BiPredicate<R, T> outputFilter,
+        Supplier<DataResult<T>> defaultSupplier) {
 
     public DynamicField(
             final @Nullable Codec<T> codec,
@@ -32,7 +31,7 @@ public record DynamicField<B, R, T>(
             final Function<R, T> getter,
             final BiConsumer<B, T> setter,
             final Type type) {
-        this(codec, key, getter, setter, type, null);
+        this(codec, key, getter, setter, type, null, () -> null);
     }
 
     public DynamicField {
@@ -64,7 +63,7 @@ public record DynamicField<B, R, T>(
     }
 
     public DynamicField<B, R, T> withOutputFilter(final BiPredicate<R, T> filter) {
-        return new DynamicField<>(this.codec, this.key, this.getter, this.setter, this.type, filter);
+        return new DynamicField<>(this.codec, this.key, this.getter, this.setter, this.type, filter, () -> null);
     }
 
     public DynamicField<B, R, T> ignoring(final R reader) {
@@ -73,6 +72,10 @@ public record DynamicField<B, R, T>(
 
     public DynamicField<B, R, T> ignoringValue(final T value) {
         return this.withOutputFilter(t -> !Objects.equals(t, value));
+    }
+
+    public DynamicField<B, R, T> withDefaultSupplier(final Supplier<DataResult<T>> defaultSupplier) {
+        return new DynamicField<>(this.codec, this.key, this.getter, this.setter, this.type, this.outputFilter, defaultSupplier);
     }
 
     public boolean isImplicit() {
