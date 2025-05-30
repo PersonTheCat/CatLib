@@ -40,7 +40,6 @@ public class SimpleEitherCodec<A> implements Codec<A> {
     }
 
     @Override
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public <T> DataResult<Pair<A, T>> decode(final DynamicOps<T> ops, final T input) {
         final DataResult<Pair<A, T>> r1 = downcast(this.first.decode(ops, input));
         if (r1.result().isPresent()) {
@@ -50,9 +49,9 @@ public class SimpleEitherCodec<A> implements Codec<A> {
         if (r2.result().isPresent()) {
             return r2;
         }
-        final Supplier<String> m1 = r1.error().get().messageSupplier();
-        final Supplier<String> m2 = r2.error().get().messageSupplier();
-        return DataResult.error(() -> "Fix either: [\"" + m1.get() + "\",\"" + m2.get() + "\"]");
+        final Supplier<String> m1 = r1.error().orElseThrow().messageSupplier();
+        final Supplier<String> m2 = r2.error().orElseThrow().messageSupplier();
+        return DataResult.error(() -> "Fix either; " + m1.get() + "; " + m2.get());
     }
 
     @SuppressWarnings("unchecked")

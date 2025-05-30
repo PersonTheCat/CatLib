@@ -82,6 +82,7 @@ public final class ValueLookup {
             .put("POLISHED_TUFF", SoundType.POLISHED_TUFF)
             .put("CALCITE", SoundType.CALCITE)
             .put("DRIPSTONE_BLOCK", SoundType.DRIPSTONE_BLOCK)
+            .put("POINTED_DRIPSTONE", SoundType.POINTED_DRIPSTONE)
             .put("COPPER", SoundType.COPPER)
             .put("COPPER_BULB", SoundType.COPPER_BULB)
             .put("COPPER_GRATE", SoundType.COPPER_GRATE)
@@ -93,12 +94,14 @@ public final class ValueLookup {
             .put("PINK_PETALS", SoundType.PINK_PETALS)
             .put("MOSS", SoundType.MOSS)
             .put("BIG_DRIPLEAF", SoundType.BIG_DRIPLEAF)
+            .put("SMALL_DRIPLEAF", SoundType.SMALL_DRIPLEAF)
             .put("ROOTED_DIRT", SoundType.ROOTED_DIRT)
             .put("HANGING_ROOTS", SoundType.HANGING_ROOTS)
             .put("AZALEA_LEAVES", SoundType.AZALEA_LEAVES)
             .put("SCULK_SENSOR", SoundType.SCULK_SENSOR)
             .put("SCULK_CATALYST", SoundType.SCULK_CATALYST)
             .put("SCULK", SoundType.SCULK)
+            .put("SKULK_VEIN", SoundType.SCULK_VEIN)
             .put("SCULK_SHRIEKER", SoundType.SCULK_SHRIEKER)
             .put("GLOW_LICHEN", SoundType.GLOW_LICHEN)
             .put("DEEPSLATE", SoundType.DEEPSLATE)
@@ -129,6 +132,9 @@ public final class ValueLookup {
             .put("TRIAL_SPAWNER", SoundType.TRIAL_SPAWNER)
             .put("SPONGE", SoundType.SPONGE)
             .put("WET_SPONGE", SoundType.WET_SPONGE)
+            .put("VAULT", SoundType.VAULT)
+            .put("HEAVY_CORE", SoundType.HEAVY_CORE)
+            .put("COBWEB", SoundType.COBWEB)
             .build();
 
     /** A map of every vanilla material color to its name. */

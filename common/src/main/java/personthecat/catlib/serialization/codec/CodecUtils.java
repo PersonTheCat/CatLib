@@ -1,11 +1,28 @@
 package personthecat.catlib.serialization.codec;
 
-import com.mojang.datafixers.util.*;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.datafixers.util.Either;
+import com.mojang.datafixers.util.Function3;
+import com.mojang.datafixers.util.Function4;
+import com.mojang.datafixers.util.Function5;
+import com.mojang.datafixers.util.Function6;
+import com.mojang.datafixers.util.Function7;
+import com.mojang.datafixers.util.Function8;
+import com.mojang.datafixers.util.Function9;
+import com.mojang.datafixers.util.Function10;
+import com.mojang.datafixers.util.Function11;
+import com.mojang.datafixers.util.Function12;
+import com.mojang.datafixers.util.Function13;
+import com.mojang.datafixers.util.Function14;
+import com.mojang.datafixers.util.Function15;
+import com.mojang.datafixers.util.Function16;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Decoder;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapDecoder;
+import com.mojang.serialization.MapEncoder;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
@@ -18,12 +35,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 public class CodecUtils {
 
@@ -37,20 +52,6 @@ public class CodecUtils {
             list -> {
                 if (list == null) return Either.right(Collections.emptyList());
                 return list.size() == 1 ? Either.left(list.getFirst()) : Either.right(list);
-            }
-        );
-    }
-
-    public static <A> SetCodec<A> setOf(final @NotNull Codec<A> codec) {
-        return new SetCodec<>(codec);
-    }
-
-    public static <A> Codec<Set<A>> easySet(final @NotNull Codec<A> codec) {
-        return Codec.either(codec, setOf(codec)).xmap(
-            either -> either.map(Collections::singleton, Function.identity()),
-            set -> {
-                if (set == null) return Either.right(Collections.emptySet());
-                return set.size() == 1 ? Either.left(set.iterator().next()) : Either.right(set);
             }
         );
     }
@@ -106,20 +107,30 @@ public class CodecUtils {
         return new SimpleEitherCodec<>(first, second);
     }
 
-    public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final Codec<? extends T> defaultType) {
+    public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final MapCodec<? extends T> defaultType) {
         return defaultType("type", dispatcher, defaultType, (t, ops) -> false);
     }
 
-    public static <T> Codec<T> defaultType(final String typeKey, final Codec<T> dispatcher, final Codec<? extends T> defaultType) {
+    public static <T> Codec<T> defaultType(final String typeKey, final Codec<T> dispatcher, final MapCodec<? extends T> defaultType) {
         return defaultType(typeKey, dispatcher, defaultType, (t, ops) -> false);
     }
     
-    public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final Codec<? extends T> defaultType, final BiPredicate<T, DynamicOps<?>> isDefaultType) {
+    public static <T> Codec<T> defaultType(final Codec<T> dispatcher, final MapCodec<? extends T> defaultType, final BiPredicate<DynamicOps<?>, T> isDefaultType) {
         return defaultType("type", dispatcher, defaultType, isDefaultType);
     }
 
-    public static <T> Codec<T> defaultType(final String typeKey, final Codec<T> dispatcher, final Codec<? extends T> defaultType, final BiPredicate<T, DynamicOps<?>> isDefaultType) {
-        return new DefaultTypeCodec<>(typeKey, dispatcher, defaultType, isDefaultType);
+    public static <T> Codec<T> defaultType(final String typeKey, final Codec<T> dispatcher, final MapCodec<? extends T> defaultType, final BiPredicate<DynamicOps<?>, T> isDefaultType) {
+        return defaultType(
+                typeKey, dispatcher, (ops, map) -> DataResult.success(defaultType), (ops, map) -> DataResult.success(defaultType))
+            .filterEncoder(isDefaultType);
+    }
+
+    public static <T> DefaultTypeCodec<T> defaultType(
+            final String typeKey,
+            final Codec<T> dispatcher,
+            final BiFunction<DynamicOps<?>, MapLike<?>, DataResult<? extends MapDecoder<? extends T>>> defaultDecoder,
+            final BiFunction<DynamicOps<?>, ? super T, DataResult<? extends MapEncoder<? extends T>>> defaultEncoder) {
+        return new DefaultTypeCodec<>(typeKey, dispatcher, defaultDecoder, defaultEncoder);
     }
 
     public static <T> Codec<T> ifMap(final Codec<T> codec, final MapCodec<T> map) {
@@ -161,6 +172,11 @@ public class CodecUtils {
         return (MapCodec<T>) codec;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> DataResult<T> asParent(final DataResult<? extends T> result) {
+        return (DataResult<T>) result;
+    }
+
     public static <T, R> Codec<R> cast(final Codec<T> codec, final Class<T> t, final Class<R> r) {
         return codec.flatXmap(ta -> tryCast(ta, r), ra -> tryCast(ra, t));
     }
@@ -189,16 +205,8 @@ public class CodecUtils {
         return MapCodec.assumeMapUnsafe(neverCodec());
     }
 
-    public static <T> Codec<T> nullableCodec(final Codec<T> codec) {
-        return optionalCodec(codec).xmap(optional -> optional.orElse(null), Optional::ofNullable);
-    }
-
     public static <T> Codec<Optional<T>> optionalCodec(final Codec<T> codec) {
         return new OptionalCodec<>(codec);
-    }
-
-    public static <T> EasyMapReader<T> easyReader(final DynamicOps<T> ops, final MapLike<T> map) {
-        return new EasyMapReader<>(ops, map);
     }
 
     public static <B> DynamicCodec.Builder<B, B, B> dynamic(final Supplier<B> builder) {
@@ -357,127 +365,6 @@ public class CodecUtils {
         return RecordCodecBuilder.mapCodec(i -> i.group(f1.f, f2.f, f3.f, f4.f, f5.f, f6.f, f7.f, f8.f, f9.f, f10.f, f11.f, f12.f, f13.f, f14.f, f15.f, f16.f)
             .apply(i, (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16) ->
                 c.apply(f1.r(t1), f2.r(t2), f3.r(t3), f4.r(t4), f5.r(t5), f6.r(t6), f7.r(t7), f8.r(t8), f9.r(t9), f10.r(t10), f11.r(t11), f12.r(t12), f13.r(t13), f14.r(t14), f15.r(t15), f16.r(t16))));
-    }
-
-    public static <O, T1> MapCodec<O> codecOf(RecordCodecBuilder<O, T1> t1, Function<T1, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1).apply(i, f));
-    }
-
-    public static <O, T1, T2> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, BiFunction<T1, T2, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            Function3<T1, T2, T3, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, Function4<T1, T2, T3, T4, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, Function5<T1, T2, T3, T4, T5, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            Function6<T1, T2, T3, T4, T5, T6, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6, T7> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            RecordCodecBuilder<O, T7> t7, Function7<T1, T2, T3, T4, T5, T6, T7, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6, T7, T8> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            RecordCodecBuilder<O, T7> t7, RecordCodecBuilder<O, T8> t8, Function8<T1, T2, T3, T4, T5, T6, T7, T8, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7, t8).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6, T7, T8, T9> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            RecordCodecBuilder<O, T7> t7, RecordCodecBuilder<O, T8> t8, RecordCodecBuilder<O, T9> t9,
-            Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7, t8, t9).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            RecordCodecBuilder<O, T7> t7, RecordCodecBuilder<O, T8> t8, RecordCodecBuilder<O, T9> t9,
-            RecordCodecBuilder<O, T10> t10, Function10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            RecordCodecBuilder<O, T7> t7, RecordCodecBuilder<O, T8> t8, RecordCodecBuilder<O, T9> t9,
-            RecordCodecBuilder<O, T10> t10, RecordCodecBuilder<O, T11> t11,
-            Function11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            RecordCodecBuilder<O, T7> t7, RecordCodecBuilder<O, T8> t8, RecordCodecBuilder<O, T9> t9,
-            RecordCodecBuilder<O, T10> t10, RecordCodecBuilder<O, T11> t11, RecordCodecBuilder<O, T12> t12,
-            Function12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            RecordCodecBuilder<O, T7> t7, RecordCodecBuilder<O, T8> t8, RecordCodecBuilder<O, T9> t9,
-            RecordCodecBuilder<O, T10> t10, RecordCodecBuilder<O, T11> t11, RecordCodecBuilder<O, T12> t12,
-            RecordCodecBuilder<O, T13> t13, Function13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            RecordCodecBuilder<O, T7> t7, RecordCodecBuilder<O, T8> t8, RecordCodecBuilder<O, T9> t9,
-            RecordCodecBuilder<O, T10> t10, RecordCodecBuilder<O, T11> t11, RecordCodecBuilder<O, T12> t12,
-            RecordCodecBuilder<O, T13> t13, RecordCodecBuilder<O, T14> t14,
-            Function14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            RecordCodecBuilder<O, T7> t7, RecordCodecBuilder<O, T8> t8, RecordCodecBuilder<O, T9> t9,
-            RecordCodecBuilder<O, T10> t10, RecordCodecBuilder<O, T11> t11, RecordCodecBuilder<O, T12> t12,
-            RecordCodecBuilder<O, T13> t13, RecordCodecBuilder<O, T14> t14, RecordCodecBuilder<O, T15> t15,
-            Function15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15).apply(i, f));
-    }
-
-    public static <O, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> MapCodec<O> codecOf(
-            RecordCodecBuilder<O, T1> t1, RecordCodecBuilder<O, T2> t2, RecordCodecBuilder<O, T3> t3,
-            RecordCodecBuilder<O, T4> t4, RecordCodecBuilder<O, T5> t5, RecordCodecBuilder<O, T6> t6,
-            RecordCodecBuilder<O, T7> t7, RecordCodecBuilder<O, T8> t8, RecordCodecBuilder<O, T9> t9,
-            RecordCodecBuilder<O, T10> t10, RecordCodecBuilder<O, T11> t11, RecordCodecBuilder<O, T12> t12,
-            RecordCodecBuilder<O, T13> t13, RecordCodecBuilder<O, T14> t14, RecordCodecBuilder<O, T15> t15,
-            RecordCodecBuilder<O, T16> t16, Function16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, O> f) {
-        return RecordCodecBuilder.mapCodec(i -> i.group(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16).apply(i, f));
     }
 
     private static class NeverCodec implements Codec<Object> {

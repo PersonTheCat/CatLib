@@ -54,13 +54,13 @@ public class SimpleAnyCodec<A> implements Codec<A> {
             if (result.result().isPresent()) {
                 return result;
             }
-            result.error().ifPresent(e -> errors.add(e.messageSupplier()));
+            errors.add(result.error().orElseThrow().messageSupplier());
         }
         return DataResult.error(() -> {
             final StringBuilder message =
-                new StringBuilder("Fix any: [\"").append('"').append(errors.getFirst().get()).append(",\"");
+                new StringBuilder("Fix any; ").append(errors.getFirst().get());
             for (int i = 1; i < errors.size(); i++) {
-                message.append('"').append(errors.get(i).get()).append('"');
+                message.append("; ").append(errors.get(i).get());
             }
             return message.append(']').toString();
         });

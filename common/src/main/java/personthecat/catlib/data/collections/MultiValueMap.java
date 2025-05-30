@@ -1,5 +1,7 @@
 package personthecat.catlib.data.collections;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -49,6 +51,16 @@ public interface MultiValueMap<K, V> extends Map<K, List<V>> {
      */
     default List<V> createList() {
         return new ArrayList<>();
+    }
+
+    /**
+     * Gets the underlying list of values, or else an empty list.
+     *
+     * @param k The key which the given value is mapped to.
+     * @return Alls values mapped to this key.
+     */
+    default @NotNull List<V> getOrEmpty(final K k) {
+        return this.getOrDefault(k, List.of());
     }
 
     /**
