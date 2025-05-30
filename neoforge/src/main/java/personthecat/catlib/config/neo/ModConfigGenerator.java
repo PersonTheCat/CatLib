@@ -41,7 +41,7 @@ public class ModConfigGenerator extends ConfigGenerator {
 
     private void apply(Builder builder, ConfigValue value) {
         final String comment = value.comment();
-        final String name = value.name();
+        final String name = value.formattedName();
         final Object def = value.defaultValue();
         if (comment != null) {
             builder.comment(comment);
@@ -86,19 +86,19 @@ public class ModConfigGenerator extends ConfigGenerator {
     private boolean defineEnum(Builder builder, ConfigValue value, Object def, Validations validations) {
         if (!value.type().isEnum()) return false;
         builder.defineEnum(
-            value.name(), () -> (Enum) def, EnumGetMethod.NAME_IGNORECASE, validations.typeValidator(), (Class<Enum>) value.type());
+            value.formattedName(), () -> (Enum) def, EnumGetMethod.NAME_IGNORECASE, validations.typeValidator(), (Class<Enum>) value.type());
         return true;
     }
 
     private boolean defineArray(Builder builder, ConfigValue value, Object def, Validations validations) {
         if (!value.type().isArray()) return false;
-        builder.defineListAllowEmpty(value.name(), ConfigUtil.arrayToList(def), validations.entryTypeValidator());
+        builder.defineListAllowEmpty(value.formattedName(), ConfigUtil.arrayToList(def), validations.entryTypeValidator());
         return true;
     }
 
     private void defineNullUnknown(Builder builder, ConfigValue value, Object def, Validations validations) {
         // this is fine because the validator will handle types for us
-        builder.define(Lists.newArrayList(value.name()), () -> def, validations.typeValidator(), value.type());
+        builder.define(Lists.newArrayList(value.formattedName()), () -> def, validations.typeValidator(), value.type());
     }
 
     private boolean defineInt(Builder builder, ConfigValue value, Object def, Validations validations) {
@@ -106,39 +106,39 @@ public class ModConfigGenerator extends ConfigGenerator {
         Range range = validations.take(Range.class, () -> Validation.range(value.type()));
         final int min = Math.clamp(range.min(), Integer.MIN_VALUE, Integer.MAX_VALUE);
         final int max = Math.clamp(range.max(), Integer.MIN_VALUE, Integer.MAX_VALUE);
-        builder.defineInRange(value.name(), ((Number) def).intValue(), min, max);
+        builder.defineInRange(value.formattedName(), ((Number) def).intValue(), min, max);
         return true;
     }
 
     private boolean defineLong(Builder builder, ConfigValue value, Object def, Validations validations) {
         if (!ConfigUtil.isLong(value.type())) return false;
         Range range = validations.take(Range.class, () -> Validation.LONG_RANGE);
-        builder.defineInRange(value.name(), ((Number) def).longValue(), range.min(), range.max());
+        builder.defineInRange(value.formattedName(), ((Number) def).longValue(), range.min(), range.max());
         return true;
     }
 
     private boolean defineDouble(Builder builder, ConfigValue value, Object def, Validations validations) {
         if (!ConfigUtil.isDouble(value.type()) && !ConfigUtil.isFloat(value.type())) return false;
         DecimalRange range = validations.take(DecimalRange.class, () -> Validation.decimalRange(value.type()));
-        builder.defineInRange(value.name(), ((Number) def).doubleValue(), range.min(), range.max());
+        builder.defineInRange(value.formattedName(), ((Number) def).doubleValue(), range.min(), range.max());
         return true;
     }
 
     private boolean defineBoolean(Builder builder, ConfigValue value, Object def) {
         if (!ConfigUtil.isBoolean(value.type())) return false;
-        builder.define(value.name(), ((Boolean) def).booleanValue());
+        builder.define(value.formattedName(), ((Boolean) def).booleanValue());
         return true;
     }
 
     private boolean defineCollection(Builder builder, ConfigValue value, Object def, Validations validations) {
         if (!Collection.class.isAssignableFrom(value.type())) return false;
-        builder.defineListAllowEmpty(value.name(), ConfigUtil.collectionToList(def), validations.entryTypeValidator());
+        builder.defineListAllowEmpty(value.formattedName(), ConfigUtil.collectionToList(def), validations.entryTypeValidator());
         return true;
     }
 
     private void updateAll(ModConfigSpec spec, List<String> prefix, Object instance, CategoryValue config) {
         for (final ConfigValue value : config.values()) {
-            final List<String> path = append(prefix, value.name());
+            final List<String> path = append(prefix, value.formattedName());
             if (value instanceof CategoryValue category) {
                 updateAll(spec, path, value.get(this.mod, instance), category);
                 continue;

@@ -4,6 +4,7 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.ModDescriptor;
+import personthecat.catlib.data.TextCase;
 import personthecat.catlib.event.error.LibErrorContext;
 import personthecat.catlib.exception.FormattedException;
 
@@ -19,8 +20,9 @@ public class FieldValue implements ConfigValue {
     private final Field field;
     private final Object defaultValue;
     private final List<Validation<?>> validations;
+    private final TextCase preferredCase;
 
-    public FieldValue(ModDescriptor mod, Field field, Object instance) {
+    public FieldValue(ModDescriptor mod, Field field, Object instance, TextCase preferredCase) {
         this.field = field;
 
         this.validations = new ArrayList<>();
@@ -30,6 +32,7 @@ public class FieldValue implements ConfigValue {
             LibErrorContext.error(mod, new FieldException("Error setting accessible", e, this.field));
         }
         this.defaultValue = this.get(mod, instance);
+        this.preferredCase = preferredCase;
         loadValidations(this.validations, field);
     }
 
@@ -108,6 +111,11 @@ public class FieldValue implements ConfigValue {
     @Override
     public boolean canBeNull() {
         return this.defaultValue == null || this.field.isAnnotationPresent(Config.CanBeNull.class);
+    }
+
+    @Override
+    public TextCase preferredCase() {
+        return this.preferredCase;
     }
 
     @Override

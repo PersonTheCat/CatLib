@@ -1,6 +1,7 @@
 package personthecat.catlib.config;
 
 import org.intellij.lang.annotations.RegExp;
+import personthecat.catlib.data.TextCase;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -22,6 +23,12 @@ public @interface Config {
     @Retention(RetentionPolicy.RUNTIME)
     @interface Comment {
         String value();
+    }
+
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface PreferredCase {
+        TextCase value();
     }
 
     @Target(ElementType.FIELD)

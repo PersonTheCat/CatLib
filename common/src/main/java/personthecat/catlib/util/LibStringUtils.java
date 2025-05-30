@@ -1,5 +1,7 @@
 package personthecat.catlib.util;
 
+import personthecat.catlib.data.TextCase;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -128,6 +130,24 @@ public final class LibStringUtils {
     }
 
     /**
+     * Converts a string in camel or pascal case to snake case.
+     *
+     * @param camel The text in camel or pascal case.
+     * @param screaming Whether to output as screaming snake case.
+     * @return The equivalent message in snake case.
+     */
+    public static String toSnakeCase(final String camel, final boolean screaming) {
+        if (camel.isEmpty()) return camel;
+
+        final var sb = new StringBuilder();
+        for (final var token : tokenize(camel)) {
+            if (!sb.isEmpty()) sb.append('_');
+            sb.append(screaming ? token.toUpperCase() : token.toLowerCase());
+        }
+        return sb.toString();
+    }
+
+    /**
      * Converts a <b>single</b> word to capital case.
      *
      * @param word The single word of text in any case.
@@ -137,6 +157,23 @@ public final class LibStringUtils {
         if (word.isEmpty()) return "";
         if (word.length() == 1) return String.valueOf(Character.toUpperCase(word.charAt(0)));
         return Character.toUpperCase(word.charAt(0)) + word.substring(1);
+    }
+
+    /**
+     * Converts a string in camel or pascal case to another case.
+     *
+     * @param camel The text in camel or pascal case.
+     * @param c The target case to convert to.
+     * @return The equivalent message in the requested case.
+     */
+    public static String convertFromCamel(final String camel, final TextCase c) {
+        return switch (c) {
+            case TITLE -> toTitleCase(camel, true);
+            case SNAKE -> toSnakeCase(camel, false);
+            case SCREAMING_SNAKE -> toSnakeCase(camel, true);
+            case CAMEL, GIVEN -> camel;
+            case PASCAL -> capitalize(camel);
+        };
     }
 
     /**
@@ -196,4 +233,5 @@ public final class LibStringUtils {
         // Get exclusive range for last word.
         return index == camel.length() - 1 ? camel.length() : index;
     }
+
 }

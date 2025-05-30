@@ -2,10 +2,12 @@ package personthecat.catlib.config;
 
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.ModDescriptor;
+import personthecat.catlib.data.TextCase;
 
 import java.util.List;
 
-public record CategoryValue(ConfigValue parent, List<ConfigValue> values) implements ConfigValue {
+public record CategoryValue(
+        ConfigValue parent, List<ConfigValue> values, @Nullable TextCase preferredCase) implements ConfigValue {
 
     @Override
     public Class<?> type() {
@@ -40,5 +42,10 @@ public record CategoryValue(ConfigValue parent, List<ConfigValue> values) implem
     @Override
     public List<Validation<?>> validations() {
         return this.parent.validations();
+    }
+
+    @Override
+    public TextCase preferredCase() {
+        return this.preferredCase != null ? this.preferredCase : this.parent.preferredCase();
     }
 }

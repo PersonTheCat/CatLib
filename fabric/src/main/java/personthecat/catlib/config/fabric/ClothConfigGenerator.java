@@ -40,7 +40,7 @@ public class ClothConfigGenerator extends ConfigGenerator {
     private void loadCategory(CategoryValue category, Object instance, JsonObject json) {
         for (final ConfigValue value : category.values()) {
             final Object o = value.get(this.mod, instance);
-            final JsonValue j = json.get(value.name());
+            final JsonValue j = json.get(value.formattedName());
             if (j == null) {
                 continue;
             }
@@ -75,7 +75,7 @@ public class ClothConfigGenerator extends ConfigGenerator {
                 json.setComment(comment);
             }
             for (final ConfigValue v : category.values()) {
-                json.add(v.name(), toJson(v, o));
+                json.add(v.formattedName(), toJson(v, o));
             }
             return json;
         }

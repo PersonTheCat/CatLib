@@ -3,6 +3,7 @@ package personthecat.catlib.config;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import lombok.extern.log4j.Log4j2;
 import personthecat.catlib.data.ModDescriptor;
+import personthecat.catlib.data.TextCase;
 import personthecat.catlib.util.unsafe.CachingReflectionHelper;
 
 import java.io.File;
@@ -36,12 +37,13 @@ public class ConfigEvaluator {
     private static CategoryValue buildCategory(
             ConfigValue parent, Object instance, ModDescriptor mod, Class<?> clazz) {
         final List<ConfigValue> values = new ArrayList<>();
+        final var preferredCase = getPreferredCase(parent, clazz);
         for (final Field f : clazz.getDeclaredFields()) {
             final int m = f.getModifiers();
             if (Modifier.isStatic(m) || Modifier.isTransient(m)) {
                 continue;
             }
-            final FieldValue value = new FieldValue(mod, f, instance);
+            final FieldValue value = new FieldValue(mod, f, instance, preferredCase);
             if (ConfigUtil.isLiteralValue(f.getType())) {
                 values.add(value);
             } else {
@@ -50,7 +52,12 @@ public class ConfigEvaluator {
                 value.set(mod, instance, o);
             }
         }
-        return new CategoryValue(parent, values);
+        return new CategoryValue(parent, values, preferredCase);
+    }
+
+    private static TextCase getPreferredCase(ConfigValue parent, Class<?> clazz) {
+        final var a = clazz.getAnnotation(Config.PreferredCase.class);
+        return a != null ? a.value() : parent.preferredCase();
     }
 
     @ExpectPlatform
