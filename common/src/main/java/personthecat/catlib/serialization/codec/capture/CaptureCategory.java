@@ -36,8 +36,12 @@ public class CaptureCategory<O> {
         return get(Key.of(name, type));
     }
 
+    public static <O> CaptureCategory<O> get(Class<O> type) {
+        return get(Key.of(type.getSimpleName(), type));
+    }
+
     @SuppressWarnings("unchecked")
-    private static <O> CaptureCategory<O> get(Key<O> key) {
+    public static <O> CaptureCategory<O> get(Key<O> key) {
         return (CaptureCategory<O>) CATEGORIES.computeIfAbsent(key, CaptureCategory::new);
     }
 
