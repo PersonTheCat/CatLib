@@ -25,6 +25,7 @@ public interface Receiver<T> extends Supplier<DataResult<T>> {
         return this.get().mapOrElse(t -> Objects.equals(actual, t), e -> false);
     }
 
+    @FunctionalInterface
     interface OptionalReceiver<T> extends Receiver<Optional<T>> {
         default MapCodec<Optional<T>> wrapOptional(String name, Codec<T> codec) {
             return this.wrapOptional(name, codec.optionalFieldOf(name));
