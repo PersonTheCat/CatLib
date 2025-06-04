@@ -216,6 +216,7 @@ public class IdList<T> implements Predicate<Holder<T>> {
             @Override
             public <T> DataResult<Pair<InvertibleEntry, T>> decode(final DynamicOps<T> ops, final T input) {
                 return ops.getStringValue(input).flatMap(s -> {
+                    if (s.startsWith("!")) s = s.substring(1);
                     for (final Map.Entry<String, Codec<InvertibleEntry>> e : decoderMap.entrySet()) {
                         if (!e.getKey().isEmpty() && s.startsWith(e.getKey())) {
                             return e.getValue().decode(ops, input);

@@ -211,6 +211,20 @@ public class IdListTest {
     }
 
     @Test
+    public void idList_fromList_canInvertPrefixedEntries() {
+        final IdList<Block> parsed = parseBlockList("""
+            [ '!#iron_ores', '!@quark' ]
+            """);
+        final IdList<Block> expected = IdList.builder(Registries.BLOCK)
+            .addEntries(
+                IdMatcher.tag(true, new ResourceLocation("iron_ores")),
+                IdMatcher.mod(true, "quark"))
+            .format(IdList.Format.LIST)
+            .build();
+        assertEquals(expected, parsed);
+    }
+
+    @Test
     public void idList_fromObject_supportsAdditionalKeys() {
         final IdList<Block> parsed = parseBlockList("""
             {
