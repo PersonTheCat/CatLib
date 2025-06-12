@@ -15,11 +15,11 @@ import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.resources.ResourceLocation;
 import personthecat.catlib.CatLib;
 import personthecat.catlib.event.lifecycle.ClientTickEvent;
+import personthecat.catlib.event.lifecycle.ServerEvents;
 import personthecat.catlib.event.player.CommonPlayerEvent;
-import personthecat.catlib.event.world.FeatureModificationContext;
 import personthecat.catlib.event.world.CommonWorldEvent;
-import personthecat.catlib.event.world.fabric.FeatureModificationContextImpl;
 import personthecat.catlib.event.world.FeatureModificationEvent;
+import personthecat.catlib.event.world.fabric.FeatureModificationContextImpl;
 
 @Log4j2
 public class CatLibFabric extends CatLib implements ModInitializer, ClientModInitializer {
@@ -40,6 +40,10 @@ public class CatLibFabric extends CatLib implements ModInitializer, ClientModIni
             CommonPlayerEvent.LOGOUT.invoker().accept(h.player, s));
         ServerLifecycleEvents.SERVER_STOPPED.register((s) ->
             this.shutdown());
+        ServerLifecycleEvents.SERVER_STARTING.register((s) ->
+            ServerEvents.LOAD.invoker().accept(s));
+        ServerLifecycleEvents.SERVER_STOPPING.register((s) ->
+            ServerEvents.UNLOAD.invoker().accept(s));
     }
 
     @Override
@@ -49,12 +53,22 @@ public class CatLibFabric extends CatLib implements ModInitializer, ClientModIni
     }
 
     private void setupBiomeModificationHook() {
-        BiomeModifications.create(new ResourceLocation(CatLib.ID, "biome_updates"))
-            .add(ModificationPhase.REMOVALS, s -> FeatureModificationEvent.hasEvent(s.getBiomeKey().location()), (s, m) -> {
-                final FeatureModificationContext ctx = new FeatureModificationContextImpl(s, m);
-                FeatureModificationEvent.global().invoker().accept(ctx);
-                FeatureModificationEvent.get(s.getBiomeKey().location()).accept(ctx);
-            });
+        for (final var phase : FeatureModificationEvent.Phase.values()) {
+            final var id = new ResourceLocation(CatLib.ID, phase.name().toLowerCase());
+            final var listener = FeatureModificationEvent.get(phase);
+            BiomeModifications.create(id).add(
+                convertPhase(phase),
+                s -> listener.isValidForBiome(s.getBiomeRegistryEntry()),
+                (s, m) -> listener.modifyBiome(new FeatureModificationContextImpl(s, m)));
+        }
+    }
+
+    private static ModificationPhase convertPhase(FeatureModificationEvent.Phase phase) {
+        return switch (phase) {
+            case ADDITIONS -> ModificationPhase.ADDITIONS;
+            case REMOVALS -> ModificationPhase.REMOVALS;
+            case MODIFICATIONS -> ModificationPhase.REPLACEMENTS;
+        };
     }
 
     @Override

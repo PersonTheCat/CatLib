@@ -15,12 +15,15 @@ import net.neoforged.neoforge.common.world.BiomeModifier;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import personthecat.catlib.CatLib;
 import personthecat.catlib.command.neo.LibCommandRegistrarImpl;
 import personthecat.catlib.event.lifecycle.ClientTickEvent;
+import personthecat.catlib.event.lifecycle.ServerEvents;
 import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.neo.FeatureModificationHook;
@@ -44,6 +47,10 @@ public class CatLibNeo extends CatLib {
             this.commonSetup();
         });
         modBus.addListener((FMLClientSetupEvent e) -> this.setupClientTranslations());
+        eventBus.addListener((ServerAboutToStartEvent e) ->
+            ServerEvents.LOAD.invoker().accept(e.getServer()));
+        eventBus.addListener((ServerStoppingEvent e) ->
+            ServerEvents.UNLOAD.invoker().accept(e.getServer()));
         eventBus.addListener((ServerStoppedEvent e) ->
             this.shutdown());
         eventBus.addListener((RegisterCommandsEvent e) ->

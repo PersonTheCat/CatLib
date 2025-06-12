@@ -21,7 +21,6 @@ import personthecat.catlib.event.registry.DataRegistryEvent;
 import personthecat.catlib.event.registry.RegistryAccessEvent;
 import personthecat.catlib.event.registry.RegistryAddedEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
-import personthecat.catlib.event.world.DimensionBakeEvent;
 import personthecat.catlib.event.world.FeatureModificationEvent;
 import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.registry.DynamicRegistries;
@@ -104,7 +103,7 @@ public abstract class CatLib {
                 new GenericFormattedException(new RuntimeException("test error"), "tooltip working!"));
         }
         if (LibConfig.enableTestColors()) {
-            FeatureModificationEvent.global().register(ctx -> {
+            FeatureModificationEvent.register(ctx -> {
                 ctx.setSkyColor(CommonColors.BLACK);
                 ctx.setWaterColor(CommonColors.RED);
                 ctx.setFoliageColorOverride(CommonColors.WHITE);

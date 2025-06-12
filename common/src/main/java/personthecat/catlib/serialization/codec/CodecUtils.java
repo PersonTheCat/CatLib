@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class CodecUtils {
@@ -131,6 +132,10 @@ public class CodecUtils {
             final BiFunction<DynamicOps<?>, MapLike<?>, DataResult<? extends MapDecoder<? extends T>>> defaultDecoder,
             final BiFunction<DynamicOps<?>, ? super T, DataResult<? extends MapEncoder<? extends T>>> defaultEncoder) {
         return new DefaultTypeCodec<>(typeKey, dispatcher, defaultDecoder, defaultEncoder);
+    }
+
+    public static <T> MapCodec<T> filter(final MapCodec<T> codec, final Predicate<T> filter) {
+        return new FilteredMapCodec<>(codec, filter);
     }
 
     public static <T> Codec<T> ifMap(final Codec<T> codec, final MapCodec<T> map) {

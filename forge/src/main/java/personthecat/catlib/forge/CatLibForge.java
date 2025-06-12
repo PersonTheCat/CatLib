@@ -11,6 +11,8 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -22,6 +24,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import personthecat.catlib.CatLib;
 import personthecat.catlib.command.forge.LibCommandRegistrarImpl;
 import personthecat.catlib.event.lifecycle.ClientTickEvent;
+import personthecat.catlib.event.lifecycle.ServerEvents;
 import personthecat.catlib.event.player.CommonPlayerEvent;
 import personthecat.catlib.event.world.CommonWorldEvent;
 import personthecat.catlib.event.world.forge.FeatureModificationHook;
@@ -46,6 +49,10 @@ public class CatLibForge extends CatLib {
             this.commonSetup();
         });
         modBus.addListener((FMLClientSetupEvent e) -> this.setupClientTranslations());
+        eventBus.addListener((ServerAboutToStartEvent e) ->
+            ServerEvents.LOAD.invoker().accept(e.getServer()));
+        eventBus.addListener((ServerStoppingEvent e) ->
+            ServerEvents.UNLOAD.invoker().accept(e.getServer()));
         eventBus.addListener((ServerStoppedEvent e) ->
             this.shutdown());
         eventBus.addListener((RegisterCommandsEvent e) ->
