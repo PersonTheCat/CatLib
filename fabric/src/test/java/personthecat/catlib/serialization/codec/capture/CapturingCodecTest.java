@@ -1,17 +1,12 @@
 package personthecat.catlib.serialization.codec.capture;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import org.junit.jupiter.api.Test;
 import personthecat.catlib.command.annotations.Nullable;
-import personthecat.catlib.serialization.codec.XjsOps;
-import xjs.data.Json;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.AssertionFailureBuilder.assertionFailure;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.defaulted;
 import static personthecat.catlib.serialization.codec.FieldDescriptor.nullable;
 import static personthecat.catlib.serialization.codec.capture.CapturingCodec.receiveType;
@@ -23,6 +18,11 @@ import static personthecat.catlib.serialization.codec.FieldDescriptor.field;
 import static personthecat.catlib.serialization.codec.capture.CapturingCodec.capture;
 import static personthecat.catlib.serialization.codec.capture.CapturingCodec.receive;
 import static personthecat.catlib.serialization.codec.capture.CapturingCodec.supply;
+import static personthecat.catlib.test.TestUtils.assertContains;
+import static personthecat.catlib.test.TestUtils.assertError;
+import static personthecat.catlib.test.TestUtils.assertSuccess;
+import static personthecat.catlib.test.TestUtils.getMessage;
+import static personthecat.catlib.test.TestUtils.parse;
 
 public class CapturingCodecTest {
 
@@ -560,33 +560,6 @@ public class CapturingCodecTest {
             ]
             """);
         assertSuccess(expected, result);
-    }
-
-    private static <T> DataResult<T> parse(MapCodec<T> codec, String json) {
-        return codec.codec().parse(XjsOps.INSTANCE, Json.parse(json));
-    }
-
-    private static <T> void assertSuccess(T expected, DataResult<T> actual) {
-        if (!actual.isSuccess()) {
-            assertionFailure().message(getMessage(actual)).actual("error").expected("success").buildAndThrow();
-        }
-        assertEquals(expected, actual.getOrThrow());
-    }
-
-    private static <T> void assertError(DataResult<T> actual) {
-        if (!actual.isError()) {
-            assertionFailure().message("parsed: " + actual.getOrThrow()).actual("success").expected("error").buildAndThrow();
-        }
-    }
-
-    private static void assertContains(String s, String contains) {
-        if (!s.contains(contains)) {
-            assertionFailure().message("actual does not contain expected").actual(s).expected(contains).buildAndThrow();
-        }
-    }
-
-    private static String getMessage(DataResult<?> result) {
-        return result.error().orElseThrow().message();
     }
 
     private record TestSubject(List<Entry> entries) {
