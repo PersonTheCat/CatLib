@@ -40,7 +40,7 @@ public enum BiomeType {
         new ResourceLocation("is_" + this.name().toLowerCase()));
 
     public static Collection<BiomeType> getCategories(final Holder<Biome> b) {
-        return TYPE_MAP.computeIfAbsent(DynamicRegistries.BIOME.keyOf(b), key ->
+        return TYPE_MAP.computeIfAbsent(DynamicRegistries.BIOME.idOf(b), id ->
             Stream.of(values())
                 .filter(type -> type.matches(b))
                 .collect(Collectors.toSet()));

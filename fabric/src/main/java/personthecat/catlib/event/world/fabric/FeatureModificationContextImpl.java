@@ -8,7 +8,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.Music;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
@@ -62,8 +61,8 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public ResourceLocation getName() {
-        return this.biome.getBiomeKey().location();
+    public ResourceKey<Biome> getKey() {
+        return this.biome.getBiomeKey();
     }
 
     @Override
@@ -289,8 +288,8 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public boolean removeCarver(final Carving step, final ResourceLocation id) {
-        return this.modifications.getGenerationSettings().removeCarver(step, ResourceKey.create(Registries.CONFIGURED_CARVER, id));
+    public boolean removeCarver(final Carving step, final ResourceKey<ConfiguredWorldCarver<?>> key) {
+        return this.modifications.getGenerationSettings().removeCarver(step, key);
     }
 
     @Override
@@ -305,8 +304,8 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public boolean removeFeature(final Decoration step, final ResourceLocation id) {
-        return this.modifications.getGenerationSettings().removeFeature(step, ResourceKey.create(Registries.PLACED_FEATURE, id));
+    public boolean removeFeature(final Decoration step, final ResourceKey<PlacedFeature> key) {
+        return this.modifications.getGenerationSettings().removeFeature(step, key);
     }
 
     @Override

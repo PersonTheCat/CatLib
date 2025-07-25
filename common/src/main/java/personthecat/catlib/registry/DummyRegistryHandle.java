@@ -21,17 +21,17 @@ import java.util.stream.Stream;
 public record DummyRegistryHandle<T>(ResourceKey<? extends Registry<T>> key) implements RegistryHandle<T> {
 
     @Override
-    public @Nullable ResourceLocation getKey(final T t) {
+    public @Nullable ResourceKey<T> getKey(final T t) {
         return null;
     }
 
     @Override
-    public @Nullable T lookup(final ResourceLocation id) {
+    public @Nullable T lookup(final ResourceKey<T> id) {
         return null;
     }
 
     @Override
-    public <V extends T> V register(final ResourceLocation id, V v) {
+    public <V extends T> V register(final ResourceKey<T> key, V v) {
         log.error("Attempted to register through dummy handle. This will have no effect.");
         return v;
     }
@@ -42,18 +42,18 @@ public record DummyRegistryHandle<T>(ResourceKey<? extends Registry<T>> key) imp
     }
 
     @Override
-    public void forEach(final BiConsumer<ResourceLocation, T> f) {}
+    public void forEach(final BiConsumer<ResourceKey<T>, T> f) {}
 
     @Override
-    public void forEachHolder(final BiConsumer<ResourceLocation, Holder<T>> f) {}
+    public void forEachHolder(final BiConsumer<ResourceKey<T>, Holder<T>> f) {}
 
     @Override
-    public boolean isRegistered(final ResourceLocation id) {
+    public boolean isRegistered(final ResourceKey<T> key) {
         return false;
     }
 
     @Override
-    public @Nullable Holder<T> getHolder(final ResourceLocation id) {
+    public @Nullable Holder<T> getHolder(final ResourceKey<T> key) {
         return null;
     }
 
@@ -68,7 +68,7 @@ public record DummyRegistryHandle<T>(ResourceKey<? extends Registry<T>> key) imp
     }
 
     @Override
-    public Set<ResourceLocation> keySet() {
+    public Set<ResourceKey<T>> keySet() {
         return Collections.emptySet();
     }
 

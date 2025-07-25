@@ -2,12 +2,12 @@ package personthecat.catlib.data;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import personthecat.catlib.data.IdMatcher.InvertibleEntry;
 import personthecat.catlib.data.collections.InvertibleSet;
@@ -36,7 +36,7 @@ public class BiomePredicate extends IdList<Biome> {
 
     protected BiomePredicate(
             final ResourceKey<? extends Registry<Biome>> key,
-            final List<IdMatcher.InvertibleEntry> entries,
+            final List<InvertibleEntry<Biome>> entries,
             final boolean blacklist,
             final Format format) {
         super(key, entries, blacklist, format);
@@ -67,15 +67,15 @@ public class BiomePredicate extends IdList<Biome> {
         }
         final InvertibleSet<Holder<Biome>> biomes = this.reconstruct();
         final MultiValueMap<BiomeType, Holder<Biome>> categories = categorize(biomes.entries());
-        final List<InvertibleEntry> entries = new ArrayList<>();
+        final List<InvertibleEntry<Biome>> entries = new ArrayList<>();
 
         for (final Map.Entry<BiomeType, List<Holder<Biome>>> entry : categories.entrySet()) {
             final var possible = entry.getKey().getTag();
             if (possible.size() == entry.getValue().size()) {
-                entries.add(new InvertibleEntry(false, new TypeMatcher(entry.getKey())));
+                entries.add(new InvertibleEntry<>(false, new TypeMatcher(entry.getKey())));
             } else {
                 for (final Holder<Biome> biome : entry.getValue()) {
-                    entries.add(new InvertibleEntry(false, new IdMatcher.Id(DynamicRegistries.BIOME.keyOf(biome))));
+                    entries.add(IdMatcher.id(false, DynamicRegistries.BIOME.keyOf(biome)));
                 }
             }
         }
@@ -107,12 +107,12 @@ public class BiomePredicate extends IdList<Biome> {
         }
 
         @Override
-        public Builder addEntries(final InvertibleEntry... entries) {
-           return (Builder) super.addEntries(entries);
+        public Builder addEntry(final InvertibleEntry<Biome> entry) {
+           return (Builder) super.addEntry(entry);
         }
 
         @Override
-        public Builder addEntries(final List<InvertibleEntry> entries) {
+        public Builder addEntries(final List<InvertibleEntry<Biome>> entries) {
             return (Builder) super.addEntries(entries);
         }
 
@@ -132,11 +132,11 @@ public class BiomePredicate extends IdList<Biome> {
         }
     }
 
-    public static InvertibleEntry type(final boolean invert, final BiomeType biomeType) {
-        return new InvertibleEntry(invert, new TypeMatcher(biomeType));
+    public static InvertibleEntry<Biome> type(final boolean invert, final BiomeType biomeType) {
+        return new InvertibleEntry<>(invert, new TypeMatcher(biomeType));
     }
 
-    public record TypeMatcher(BiomeType biomeType) implements IdMatcher.Typed<Biome> {
+    public record TypeMatcher(BiomeType biomeType) implements IdMatcher<Biome> {
         public static final Info<TypeMatcher> INFO = new StringRepresentable<>() {
             @Override
             public String valueOf(final TypeMatcher typeMatcher) {
@@ -144,13 +144,16 @@ public class BiomePredicate extends IdList<Biome> {
             }
 
             @Override
-            public TypeMatcher newFromString(final String s) {
+            @SuppressWarnings("unchecked")
+            public <T> DataResult<InvertibleEntry<T>> newFromString(ResourceKey<Registry<T>> key, boolean invert, String s) {
+                if (!key.equals(Registries.BIOME)) {
+                    return DataResult.error(() -> "TypeMatcher is for biomes only");
+                }
                 return LibUtil.getEnumConstant(s, BiomeType.class)
-                    .map(TypeMatcher::new)
-                    .orElse(null);
+                    .map(t -> DataResult.success((InvertibleEntry<T>) new InvertibleEntry<>(invert, new TypeMatcher(t))))
+                    .orElseGet(() -> DataResult.error(() -> "No such type: " + s));
             }
-
-            @Override
+             @Override
             public String fieldName() {
                 return "types";
             }
@@ -162,17 +165,12 @@ public class BiomePredicate extends IdList<Biome> {
         };
 
         @Override
-        public ResourceKey<? extends Registry<Biome>> type() {
-            return Registries.BIOME;
-        }
-
-        @Override
-        public void addTyped(final RegistryHandle<Biome> handle, final Set<ResourceLocation> out) {
+        public void add(final RegistryHandle<Biome> handle, final Set<ResourceKey<Biome>> out) {
             this.biomeType.getTag().forEach(holder -> out.add(handle.keyOf(holder)));
         }
 
         @Override
-        public Info<? extends IdMatcher> info() {
+        public Info<TypeMatcher> info() {
             return INFO;
         }
     }

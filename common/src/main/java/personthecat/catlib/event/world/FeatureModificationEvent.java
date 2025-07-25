@@ -1,6 +1,8 @@
 package personthecat.catlib.event.world;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
@@ -39,15 +41,19 @@ public class FeatureModificationEvent {
     }
 
     public static LocalRegistrar forBiome(final ResourceLocation id) {
-        return forBiomes(new IdMatcher.Id(id));
+        return forBiome(ResourceKey.create(Registries.BIOME, id));
+    }
+
+    public static LocalRegistrar forBiome(final ResourceKey<Biome> key) {
+        return forBiomes(new IdMatcher.Id<>(key));
     }
 
     public static LocalRegistrar forBiomes(final TagKey<Biome> tag) {
-        return forBiomes(new IdMatcher.Tag(tag.location()));
+        return forBiomes(new IdMatcher.Tag<>(tag));
     }
 
-    public static LocalRegistrar forBiomes(final IdMatcher matcher) {
-        return forBiomes(BiomePredicate.builder().addEntries(new IdMatcher.InvertibleEntry(false, matcher)).build());
+    public static LocalRegistrar forBiomes(final IdMatcher<Biome> matcher) {
+        return forBiomes(BiomePredicate.builder().addEntry(matcher.entry(false)).build());
     }
 
     public static LocalRegistrar forBiomes(final Predicate<Holder<Biome>> filter) {

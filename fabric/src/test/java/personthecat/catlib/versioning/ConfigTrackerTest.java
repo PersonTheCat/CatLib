@@ -54,6 +54,7 @@ public final class ConfigTrackerTest {
     @Test
     public void scheduledEvent_savesAutomatically() {
         ConfigTracker.forMod(this.testDescriptor).track(new TestCache(true)).save();
+        GameReadyEvent.COMMON.clear();
 
         final ConfigTracker<TestCache> newCache = ConfigTracker.forMod(this.testDescriptor)
             .scheduleSave(ConfigTracker.PersistOption.GAME_READY).track(new TestCache(false));

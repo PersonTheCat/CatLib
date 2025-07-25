@@ -5,7 +5,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.Music;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
@@ -33,16 +32,16 @@ import java.util.function.Predicate;
 
 public class FeatureModificationContextImpl extends FeatureModificationContext {
     private final Holder<Biome> biome;
-    private final ResourceLocation name;
+    private final ResourceKey<Biome> key;
     private final Builder builder;
     private final Registry<ConfiguredWorldCarver<?>> carvers;
     private final Registry<PlacedFeature> features;
     private final RegistryAccess registries;
 
     public FeatureModificationContextImpl(
-            Holder<Biome> biome, ResourceLocation name, RegistryAccess registries, Builder builder) {
+            Holder<Biome> biome, ResourceKey<Biome> key, RegistryAccess registries, Builder builder) {
         this.biome = biome;
-        this.name = name;
+        this.key = key;
         this.builder = builder;
         this.carvers = registries.registryOrThrow(Registries.CONFIGURED_CARVER);
         this.features = registries.registryOrThrow(Registries.PLACED_FEATURE);
@@ -55,8 +54,8 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public ResourceLocation getName() {
-        return this.name;
+    public ResourceKey<Biome> getKey() {
+        return this.key;
     }
 
     @Override
@@ -268,9 +267,9 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public boolean removeCarver(final Carving step, final ResourceLocation id) {
+    public boolean removeCarver(final Carving step, final ResourceKey<ConfiguredWorldCarver<?>> key) {
         return this.builder.getGenerationSettings().getCarvers(step)
-            .removeIf(holder -> id.equals(keyOf(this.carvers, holder)));
+            .removeIf(holder -> key.equals(keyOf(this.carvers, holder)));
     }
 
     @Override
@@ -279,9 +278,9 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
     }
 
     @Override
-    public boolean removeFeature(final Decoration step, final ResourceLocation id) {
+    public boolean removeFeature(final Decoration step, final ResourceKey<PlacedFeature> key) {
         return this.builder.getGenerationSettings().getFeatures(step)
-            .removeIf(holder -> id.equals(keyOf(this.features, holder)));
+            .removeIf(holder -> key.equals(keyOf(this.features, holder)));
     }
 
     @Override
@@ -346,9 +345,8 @@ public class FeatureModificationContextImpl extends FeatureModificationContext {
         this.builder.getMobSpawnSettings().removeSpawnCost(type);
     }
 
-    private static <T> ResourceLocation keyOf(final Registry<T> registry, final Holder<T> holder) {
-        return holder.unwrapKey()
-            .map(ResourceKey::location) // value must be present if no location
-            .orElseGet(() -> registry.getKey(holder.value()));
+    @Nullable
+    private static <T> ResourceKey<T> keyOf(final Registry<T> registry, final Holder<T> holder) {
+        return holder.unwrapKey().orElseGet(() -> registry.getResourceKey(holder.value()).orElse(null));
     }
 }

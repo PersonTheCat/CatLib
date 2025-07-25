@@ -6,14 +6,17 @@ import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import personthecat.catlib.data.IdMatcher.InvertibleEntry;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.registry.DynamicRegistryHandle;
 import personthecat.catlib.registry.MojangRegistryHandle;
@@ -40,32 +43,30 @@ public class BiomePredicateTest {
         final RegistryHandle<Biome> handle = new MojangRegistryHandle<>(biomes);
 
         // add test biomes
-        handle.register(new ResourceLocation("forest"), dummyBiome());
-        handle.register(new ResourceLocation("birch_forest"), dummyBiome());
-        handle.register(new ResourceLocation("plains"), dummyBiome());
-        handle.register(new ResourceLocation("desert"), dummyBiome());
-        handle.register(new ResourceLocation("swamp"), dummyBiome());
-        handle.register(new ResourceLocation("jungle"), dummyBiome());
-        handle.register(new ResourceLocation("tundra"), dummyBiome());
-        handle.register(new ResourceLocation("ocean"), dummyBiome());
-        handle.register(new ResourceLocation("deep_ocean"), dummyBiome());
+        handle.register(Biomes.FOREST, dummyBiome());
+        handle.register(Biomes.BIRCH_FOREST, dummyBiome());
+        handle.register(Biomes.PLAINS, dummyBiome());
+        handle.register(Biomes.DESERT, dummyBiome());
+        handle.register(Biomes.SWAMP, dummyBiome());
+        handle.register(Biomes.JUNGLE, dummyBiome());
+        handle.register(Biomes.SNOWY_PLAINS, dummyBiome());
+        handle.register(Biomes.OCEAN, dummyBiome());
+        handle.register(Biomes.DEEP_OCEAN, dummyBiome());
 
         // register test tags
-        final TagKey<Biome> isForest = TagKey.create(Registries.BIOME, new ResourceLocation("is_forest"));
-        final TagKey<Biome> isOcean = TagKey.create(Registries.BIOME, new ResourceLocation("is_ocean"));
-        biomes.getOrCreateTag(isForest);
-        biomes.getOrCreateTag(isOcean);
+        biomes.getOrCreateTag(BiomeTags.IS_FOREST);
+        biomes.getOrCreateTag(BiomeTags.IS_OCEAN);
 
         // bind tag values
         final Map<TagKey<Biome>, List<Holder<Biome>>> map = new HashMap<>();
         Stream.of(BiomeType.values())
             .forEach(type -> map.put(type.getKey(), List.of()));
-        map.put(isForest, List.of(
-            handle.getHolder(new ResourceLocation("forest")),
-            handle.getHolder(new ResourceLocation("birch_forest"))));
-        map.put(isOcean, List.of(
-            handle.getHolder(new ResourceLocation("ocean")),
-            handle.getHolder(new ResourceLocation("deep_ocean"))));
+        map.put(BiomeTags.IS_FOREST, List.of(
+            handle.getHolder(Biomes.FOREST),
+            handle.getHolder(Biomes.BIRCH_FOREST)));
+        map.put(BiomeTags.IS_OCEAN, List.of(
+            handle.getHolder(Biomes.OCEAN),
+            handle.getHolder(Biomes.DEEP_OCEAN)));
         biomes.bindTags(map);
 
         ((DynamicRegistryHandle<Biome>) DynamicRegistries.BIOME).updateRegistry(handle);
@@ -76,11 +77,11 @@ public class BiomePredicateTest {
         final RegistryHandle<Biome> biomes = DynamicRegistries.BIOME;
         final BiomePredicate predicate =
             BiomePredicate.builder()
-                .addEntries(BiomePredicate.type(false, BiomeType.OCEAN))
+                .addEntry(BiomePredicate.type(false, BiomeType.OCEAN))
                 .build();
-        assertTrue(predicate.test(biomes.getHolder(new ResourceLocation("ocean"))));
-        assertTrue(predicate.test(biomes.getHolder(new ResourceLocation("deep_ocean"))));
-        assertFalse(predicate.test(biomes.getHolder(new ResourceLocation("forest"))));
+        assertTrue(predicate.test(biomes.getHolder(Biomes.OCEAN)));
+        assertTrue(predicate.test(biomes.getHolder(Biomes.DEEP_OCEAN)));
+        assertFalse(predicate.test(biomes.getHolder(Biomes.FOREST)));
     }
 
     @Test
@@ -91,17 +92,17 @@ public class BiomePredicateTest {
     @Test
     public void simplify_sortsNamedBiomes_intoCategories() {
         final BiomePredicate predicate = BiomePredicate.builder()
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("forest")),
-                IdMatcher.id(false, new ResourceLocation("ocean")),
-                IdMatcher.id(false, new ResourceLocation("deep_ocean")))
+            .addEntries(List.of(
+                IdMatcher.id(false, Biomes.FOREST),
+                IdMatcher.id(false, Biomes.OCEAN),
+                IdMatcher.id(false, Biomes.DEEP_OCEAN)))
             .format(IdList.Format.OBJECT)
             .build();
         // type is simplified because of tag values in beforeEach
         final BiomePredicate expected = BiomePredicate.builder()
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("forest")),
-                BiomePredicate.type(false, BiomeType.OCEAN))
+            .addEntries(List.of(
+                IdMatcher.id(false, Biomes.FOREST),
+                BiomePredicate.type(false, BiomeType.OCEAN)))
             .format(IdList.Format.OBJECT)
             .build();
         assertEquals(expected, predicate.simplify());
@@ -109,12 +110,12 @@ public class BiomePredicateTest {
 
     @Test
     public void simplify_whenMostPossibleEntriesArePresent_convertsToBlacklist() {
-        final List<IdMatcher.InvertibleEntry> entries = new ArrayList<>();
+        final List<InvertibleEntry<Biome>> entries = new ArrayList<>();
         // user listed all entries except minecraft:forest
-        DynamicRegistries.BIOME.forEach((id, holder) ->
-            entries.add(IdMatcher.id(false, id)));
+        DynamicRegistries.BIOME.forEach((key, holder) ->
+            entries.add(IdMatcher.id(false, key)));
         entries.removeIf(entry ->
-            ((IdMatcher.Id) entry.matcher()).id().equals(new ResourceLocation("forest")));
+            ((IdMatcher.Id<Biome>) entry.matcher()).id().equals(Biomes.FOREST));
         final BiomePredicate predicate =
             BiomePredicate.builder()
                 .addEntries(entries)
@@ -122,7 +123,7 @@ public class BiomePredicateTest {
                 .build();
         final BiomePredicate expected =
             BiomePredicate.builder()
-                .addEntries(IdMatcher.id(false, new ResourceLocation("forest")))
+                .addEntry(IdMatcher.id(false, Biomes.FOREST))
                 .blacklist(true)
                 .format(IdList.Format.OBJECT)
                 .build();

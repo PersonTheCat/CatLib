@@ -57,7 +57,7 @@ public class CodecUtils {
         );
     }
 
-    public static <A> Codec<IdList<A>> idList(final ResourceKey<? extends Registry<A>> key) {
+    public static <A> Codec<IdList<A>> idList(final ResourceKey<Registry<A>> key) {
         return IdList.codecOf(key);
     }
 

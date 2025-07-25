@@ -34,9 +34,9 @@ public class FeatureModificationHook implements BiomeModifier {
         final var server = Objects.requireNonNull(
             ServerLifecycleHooks.getCurrentServer(), "Modification hook called out of sequence");
         final var registries = server.registryAccess();
-        final var id = DynamicRegistries.BIOME.keyOf(biome);
+        final var key = DynamicRegistries.BIOME.keyOf(biome);
 
-        event.modifyBiome(new FeatureModificationContextImpl(biome, id, registries, builder));
+        event.modifyBiome(new FeatureModificationContextImpl(biome, key, registries, builder));
     }
 
     private static @Nullable FeatureModificationEvent.Phase convertPhase(final Phase phase) {

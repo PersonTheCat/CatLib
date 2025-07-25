@@ -43,8 +43,8 @@ public class RegistryAddedEventImpl {
     public static void onRegistryAccess(final RegistryAccess registries) {
         DYNAMIC_EVENT_MAP.forEach((key, event) -> {
             final RegistryHandle<Object> registry = (RegistryHandle<Object>) registries.registryOrThrow((ResourceKey) key);
-            registry.forEach((id, t) -> ((LibEvent<RegistryAddedCallback<Object>>) (Object) event).invoker()
-                .onRegistryAdded(registry, id, t));
+            registry.forEach((k, t) -> ((LibEvent<RegistryAddedCallback<Object>>) (Object) event).invoker()
+                .onRegistryAdded(registry, k, t));
         });
     }
 
@@ -52,7 +52,7 @@ public class RegistryAddedEventImpl {
         final RegistryHandle<T> handle = RegistryUtils.getHandle(key);
         final LibEvent<RegistryAddedCallback<T>> event = newEvent();
         RegistryEntryAddedCallback.event(((MojangRegistryHandle<T>) handle).getRegistry()).register((i, id, t) ->
-            event.invoker().onRegistryAdded(handle, id, t));
+            event.invoker().onRegistryAdded(handle, ResourceKey.create(key, id), t));
         return event;
     }
 

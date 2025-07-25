@@ -10,6 +10,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
+import personthecat.catlib.data.IdMatcher.InvertibleEntry;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.util.DimInjector;
 
@@ -23,7 +24,7 @@ public class DimensionPredicate extends IdList<DimensionType> {
 
     protected DimensionPredicate(
             final ResourceKey<? extends Registry<DimensionType>> key,
-            final List<IdMatcher.InvertibleEntry> entries,
+            final List<InvertibleEntry<DimensionType>> entries,
             final boolean blacklist,
             final Format format) {
         super(key, entries, blacklist, format);
@@ -69,12 +70,12 @@ public class DimensionPredicate extends IdList<DimensionType> {
         }
 
         @Override
-        public Builder addEntries(final IdMatcher.InvertibleEntry... entries) {
-            return (Builder) super.addEntries(entries);
+        public Builder addEntry(final InvertibleEntry<DimensionType> entry) {
+            return (Builder) super.addEntry(entry);
         }
 
         @Override
-        public Builder addEntries(final List<IdMatcher.InvertibleEntry> entries) {
+        public Builder addEntries(final List<InvertibleEntry<DimensionType>> entries) {
             return (Builder) super.addEntries(entries);
         }
 

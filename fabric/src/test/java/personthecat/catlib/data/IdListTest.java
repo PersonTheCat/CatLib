@@ -7,6 +7,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -29,6 +30,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(McBootstrapExtension.class)
 public class IdListTest {
+    private static final ResourceKey<Block> SAND_KEY = blockKey("sand");
+    private static final ResourceKey<Block> DIRT_KEY = blockKey("dirt");
+    private static final ResourceKey<Block> CLAY_KEY = blockKey("clay");
+    private static final ResourceKey<Block> GRAVEL_KEY = blockKey("gravel");
+    private static final ResourceKey<Block> OAK_LOG_KEY = blockKey("oak_log");
+    private static final ResourceKey<Block> BIRCH_LOG_KEY = blockKey("birch_log");
+    private static final ResourceKey<Block> GOLD_ORE_KEY = blockKey("gold_ore");
+    private static final ResourceKey<Block> IRON_ORE_KEY = blockKey("iron_ore");
+    private static final ResourceKey<Block> COPPER_ORE_KEY = blockKey("copper_ore");
+
+    private static final ResourceKey<ArgumentTypeInfo<?, ?>> DOUBLE_KEY = argKey("brigadier:double");
+    private static final ResourceKey<ArgumentTypeInfo<?, ?>> STRING_KEY = argKey("brigadier:string");
+    private static final ResourceKey<ArgumentTypeInfo<?, ?>> ENTITY_KEY = argKey("minecraft:entity");
+    private static final ResourceKey<ArgumentTypeInfo<?, ?>> FLOAT_KEY = argKey("brigadier:float");
+
+    private static final ResourceKey<Item> CROSSBOW_KEY = itemKey("crossbow");
+    private static final ResourceKey<Item> GOLD_ORE_ITEM_KEY = itemKey("gold_ore");
+    private static final ResourceKey<Item> DIAMOND_KEY = itemKey("diamond");
 
     @Test
     public void newInstance_isPossibleToTest() {
@@ -40,12 +59,12 @@ public class IdListTest {
         final RegistryHandle<Block> blocks = CommonRegistries.BLOCK;
         final IdList<Block> list =
             IdList.builder(Registries.BLOCK)
-                .addEntries(IdMatcher.id(false, new ResourceLocation("sand")))
-                .addEntries(IdMatcher.id(false, new ResourceLocation("dirt")))
+                .addEntry(IdMatcher.id(false, SAND_KEY))
+                .addEntry(IdMatcher.id(false, DIRT_KEY))
                 .build();
-        assertTrue(list.test(blocks.getHolder(new ResourceLocation("sand"))));
-        assertTrue(list.test(blocks.getHolder(new ResourceLocation("dirt"))));
-        assertFalse(list.test(blocks.getHolder(new ResourceLocation("clay"))));
+        assertTrue(list.test(blocks.getHolder(SAND_KEY)));
+        assertTrue(list.test(blocks.getHolder(DIRT_KEY)));
+        assertFalse(list.test(blocks.getHolder(CLAY_KEY)));
     }
 
     @Test
@@ -54,29 +73,28 @@ public class IdListTest {
             CommonRegistries.get(Registries.COMMAND_ARGUMENT_TYPE);
         final IdList<ArgumentTypeInfo<?, ?>> list =
             IdList.builder(Registries.COMMAND_ARGUMENT_TYPE)
-                .addEntries(IdMatcher.mod(false, "brigadier"))
+                .addEntry(IdMatcher.mod(false, "brigadier"))
                 .build();
-        assertTrue(list.test(argumentTypes.getHolder(new ResourceLocation("brigadier:double"))));
-        assertTrue(list.test(argumentTypes.getHolder(new ResourceLocation("brigadier:string"))));
-        assertFalse(list.test(argumentTypes.getHolder(new ResourceLocation("minecraft:entity"))));
+        assertTrue(list.test(argumentTypes.getHolder(DOUBLE_KEY)));
+        assertTrue(list.test(argumentTypes.getHolder(STRING_KEY)));
+        assertFalse(list.test(argumentTypes.getHolder(ENTITY_KEY)));
     }
 
     @Test
     public void idList_matchesByTag() {
         final Registry<Block> blocks = BuiltInRegistries.BLOCK;
-        final ResourceLocation tagId = new ResourceLocation("test");
-        final TagKey<Block> tagKey = TagKey.create(Registries.BLOCK, tagId);
+        final TagKey<Block> tagKey = TagKey.create(Registries.BLOCK, new ResourceLocation("test"));
         blocks.getOrCreateTag(tagKey);
         blocks.bindTags(Map.of(tagKey, List.of(
-            blocks.getHolder(ResourceKey.create(Registries.BLOCK, new ResourceLocation("gravel"))).orElseThrow(),
-            blocks.getHolder(ResourceKey.create(Registries.BLOCK, new ResourceLocation("oak_log"))).orElseThrow())));
+            blocks.getHolder(GRAVEL_KEY).orElseThrow(),
+            blocks.getHolder(OAK_LOG_KEY).orElseThrow())));
         final IdList<Block> list =
             IdList.builder(Registries.BLOCK)
-                .addEntries(IdMatcher.tag(false, tagId))
+                .addEntry(IdMatcher.tag(false, tagKey))
                 .build();
-        assertTrue(list.test(blocks.getHolder(ResourceKey.create(Registries.BLOCK, new ResourceLocation("gravel"))).orElseThrow()));
-        assertTrue(list.test(blocks.getHolder(ResourceKey.create(Registries.BLOCK, new ResourceLocation("oak_log"))).orElseThrow()));
-        assertFalse(list.test(blocks.getHolder(ResourceKey.create(Registries.BLOCK, new ResourceLocation("birch_log"))).orElseThrow()));
+        assertTrue(list.test(blocks.getHolder(GRAVEL_KEY).orElseThrow()));
+        assertTrue(list.test(blocks.getHolder(OAK_LOG_KEY).orElseThrow()));
+        assertFalse(list.test(blocks.getHolder(BIRCH_LOG_KEY).orElseThrow()));
     }
 
     @Test
@@ -84,13 +102,13 @@ public class IdListTest {
         final RegistryHandle<Block> blocks = CommonRegistries.BLOCK;
         final IdList<Block> list =
             IdList.builder(Registries.BLOCK)
-                .addEntries(IdMatcher.id(false, new ResourceLocation("sand")))
-                .addEntries(IdMatcher.id(false, new ResourceLocation("dirt")))
+                .addEntry(IdMatcher.id(false, SAND_KEY))
+                .addEntry(IdMatcher.id(false, DIRT_KEY))
                 .blacklist(true)
                 .build();
-        assertFalse(list.test(blocks.getHolder(new ResourceLocation("sand"))));
-        assertFalse(list.test(blocks.getHolder(new ResourceLocation("dirt"))));
-        assertTrue(list.test(blocks.getHolder(new ResourceLocation("clay"))));
+        assertFalse(list.test(blocks.getHolder(SAND_KEY)));
+        assertFalse(list.test(blocks.getHolder(DIRT_KEY)));
+        assertTrue(list.test(blocks.getHolder(CLAY_KEY)));
     }
 
     @Test
@@ -99,12 +117,12 @@ public class IdListTest {
             CommonRegistries.get(Registries.COMMAND_ARGUMENT_TYPE);
         final IdList<ArgumentTypeInfo<?, ?>> list =
             IdList.builder(Registries.COMMAND_ARGUMENT_TYPE)
-                .addEntries(IdMatcher.mod(false, "brigadier"))
-                .addEntries(IdMatcher.id(true, new ResourceLocation("brigadier:string")))
+                .addEntry(IdMatcher.mod(false, "brigadier"))
+                .addEntry(IdMatcher.id(true, STRING_KEY))
                 .build();
-        assertTrue(list.test(argumentTypes.getHolder(new ResourceLocation("brigadier:float"))));
-        assertTrue(list.test(argumentTypes.getHolder(new ResourceLocation("brigadier:double"))));
-        assertFalse(list.test(argumentTypes.getHolder(new ResourceLocation("brigadier:string"))));
+        assertTrue(list.test(argumentTypes.getHolder(FLOAT_KEY)));
+        assertTrue(list.test(argumentTypes.getHolder(DOUBLE_KEY)));
+        assertFalse(list.test(argumentTypes.getHolder(STRING_KEY)));
     }
 
     @Test
@@ -112,30 +130,30 @@ public class IdListTest {
         final RegistryHandle<Block> blocks = CommonRegistries.BLOCK;
         final IdList<Block> list =
             IdList.builder(Registries.BLOCK)
-                .addEntries(IdMatcher.id(true, new ResourceLocation("sand")))
-                .addEntries(IdMatcher.id(true, new ResourceLocation("dirt")))
+                .addEntry(IdMatcher.id(true, SAND_KEY))
+                .addEntry(IdMatcher.id(true, DIRT_KEY))
                 .build();
-        assertFalse(list.test(blocks.getHolder(new ResourceLocation("sand"))));
-        assertFalse(list.test(blocks.getHolder(new ResourceLocation("dirt"))));
-        assertTrue(list.test(blocks.getHolder(new ResourceLocation("clay"))));
+        assertFalse(list.test(blocks.getHolder(SAND_KEY)));
+        assertFalse(list.test(blocks.getHolder(DIRT_KEY)));
+        assertTrue(list.test(blocks.getHolder(CLAY_KEY)));
     }
 
     @Test
     public void idList_emptyList_matchesNone() {
         final RegistryHandle<Item> items = CommonRegistries.ITEM;
         final IdList<Item> list = IdList.builder(Registries.ITEM).build();
-        assertFalse(list.test(items.getHolder(new ResourceLocation("crossbow"))));
-        assertFalse(list.test(items.getHolder(new ResourceLocation("gold_ore"))));
-        assertFalse(list.test(items.getHolder(new ResourceLocation("diamond"))));
+        assertFalse(list.test(items.getHolder(CROSSBOW_KEY)));
+        assertFalse(list.test(items.getHolder(GOLD_ORE_ITEM_KEY)));
+        assertFalse(list.test(items.getHolder(DIAMOND_KEY)));
     }
 
     @Test
     public void idList_emptyBlacklist_matchesAll() {
         final RegistryHandle<Item> items = CommonRegistries.ITEM;
         final IdList<Item> list = IdList.builder(Registries.ITEM).blacklist(true).build();
-        assertTrue(list.test(items.getHolder(new ResourceLocation("crossbow"))));
-        assertTrue(list.test(items.getHolder(new ResourceLocation("gold_ore"))));
-        assertTrue(list.test(items.getHolder(new ResourceLocation("diamond"))));
+        assertTrue(list.test(items.getHolder(CROSSBOW_KEY)));
+        assertTrue(list.test(items.getHolder(GOLD_ORE_ITEM_KEY)));
+        assertTrue(list.test(items.getHolder(DIAMOND_KEY)));
     }
 
     @Test
@@ -144,9 +162,8 @@ public class IdListTest {
             [ 'iron_ore', 'copper_ore' ]
             """);
         final IdList<Block> expected = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("iron_ore")),
-                IdMatcher.id(false, new ResourceLocation("copper_ore")))
+            .addEntry(IdMatcher.id(false, IRON_ORE_KEY))
+            .addEntry(IdMatcher.id(false, COPPER_ORE_KEY))
             .format(IdList.Format.LIST)
             .build();
         assertEquals(expected, parsed);
@@ -158,8 +175,7 @@ public class IdListTest {
             'iron_ore'
             """);
         final IdList<Block> expected = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("iron_ore")))
+            .addEntry(IdMatcher.id(false, IRON_ORE_KEY))
             .format(IdList.Format.LIST)
             .build();
         assertEquals(expected, parsed);
@@ -172,9 +188,8 @@ public class IdListTest {
               names: [ 'iron_ore', 'copper_ore' ],
             }""");
         final IdList<Block> expected = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("iron_ore")),
-                IdMatcher.id(false, new ResourceLocation("copper_ore")))
+            .addEntry(IdMatcher.id(false, IRON_ORE_KEY))
+            .addEntry(IdMatcher.id(false, COPPER_ORE_KEY))
             .format(IdList.Format.OBJECT)
             .build();
         assertEquals(expected, parsed);
@@ -186,10 +201,9 @@ public class IdListTest {
             [ 'iron_ore', '#mineable/axe', '@quark' ]
             """);
         final IdList<Block> expected = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("iron_ore")),
-                IdMatcher.tag(false, new ResourceLocation("mineable/axe")),
-                IdMatcher.mod(false, "quark"))
+            .addEntry(IdMatcher.id(false, IRON_ORE_KEY))
+            .addEntry(IdMatcher.tag(false, BlockTags.MINEABLE_WITH_AXE))
+            .addEntry(IdMatcher.mod(false, "quark"))
             .format(IdList.Format.LIST)
             .build();
         assertEquals(expected, parsed);
@@ -201,10 +215,9 @@ public class IdListTest {
             [ '!iron_ore', 'gold_ore', '!copper_ore' ]
             """);
         final IdList<Block> expected = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.id(true, new ResourceLocation("iron_ore")),
-                IdMatcher.id(false, new ResourceLocation("gold_ore")),
-                IdMatcher.id(true, new ResourceLocation("copper_ore")))
+            .addEntry(IdMatcher.id(true, IRON_ORE_KEY))
+            .addEntry(IdMatcher.id(false, GOLD_ORE_KEY))
+            .addEntry(IdMatcher.id(true, COPPER_ORE_KEY))
             .format(IdList.Format.LIST)
             .build();
         assertEquals(expected, parsed);
@@ -216,9 +229,8 @@ public class IdListTest {
             [ '!#iron_ores', '!@quark' ]
             """);
         final IdList<Block> expected = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.tag(true, new ResourceLocation("iron_ores")),
-                IdMatcher.mod(true, "quark"))
+            .addEntry(IdMatcher.tag(true, BlockTags.IRON_ORES))
+            .addEntry(IdMatcher.mod(true, "quark"))
             .format(IdList.Format.LIST)
             .build();
         assertEquals(expected, parsed);
@@ -232,10 +244,9 @@ public class IdListTest {
               mods: [ 'quark' ],
             }""");
         final IdList<Block> expected = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("iron_ore")),
-                IdMatcher.id(false, new ResourceLocation("copper_ore")),
-                IdMatcher.mod(false, "quark"))
+            .addEntry(IdMatcher.id(false, IRON_ORE_KEY))
+            .addEntry(IdMatcher.id(false, COPPER_ORE_KEY))
+            .addEntry(IdMatcher.mod(false, "quark"))
             .format(IdList.Format.OBJECT)
             .build();
         assertEquals(expected, parsed);
@@ -249,9 +260,8 @@ public class IdListTest {
               blacklist: true,
             }""");
         final IdList<Block> expected = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("iron_ore")),
-                IdMatcher.id(false, new ResourceLocation("copper_ore")))
+            .addEntry(IdMatcher.id(false, IRON_ORE_KEY))
+            .addEntry(IdMatcher.id(false, COPPER_ORE_KEY))
             .format(IdList.Format.OBJECT)
             .blacklist(true)
             .build();
@@ -261,9 +271,8 @@ public class IdListTest {
     @Test
     public void idList_fromList_isSerializedAsList() {
         final IdList<Block> list = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("iron_ore")),
-                IdMatcher.id(false, new ResourceLocation("copper_ore")))
+            .addEntry(IdMatcher.id(false, IRON_ORE_KEY))
+            .addEntry(IdMatcher.id(false, COPPER_ORE_KEY))
             .format(IdList.Format.LIST)
             .build();
         final JsonValue expected =
@@ -274,9 +283,8 @@ public class IdListTest {
     @Test
     public void idList_fromObject_isSerializedAsObject() {
         final IdList<Block> list = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("iron_ore")),
-                IdMatcher.id(false, new ResourceLocation("copper_ore")))
+            .addEntry(IdMatcher.id(false, IRON_ORE_KEY))
+            .addEntry(IdMatcher.id(false, COPPER_ORE_KEY))
             .format(IdList.Format.OBJECT)
             .build();
         final JsonValue expected =
@@ -287,9 +295,8 @@ public class IdListTest {
     @Test
     public void idList_inBlacklistMode_isNeverSerializedAsList() {
         final IdList<Block> list = IdList.builder(Registries.BLOCK)
-            .addEntries(
-                IdMatcher.id(false, new ResourceLocation("iron_ore")),
-                IdMatcher.id(false, new ResourceLocation("copper_ore")))
+            .addEntry(IdMatcher.id(false, IRON_ORE_KEY))
+            .addEntry(IdMatcher.id(false, COPPER_ORE_KEY))
             .blacklist(true)
             .format(IdList.Format.OBJECT)
             .build();
@@ -316,5 +323,17 @@ public class IdListTest {
         if (!expected.matches(actual)) {
             throw new AssertionError("Expected: " + expected + "\nbut was: " + actual + "\n");
         }
+    }
+
+    private static ResourceKey<Block> blockKey(String id) {
+        return ResourceKey.create(Registries.BLOCK, new ResourceLocation(id));
+    }
+
+    private static ResourceKey<ArgumentTypeInfo<?, ?>> argKey(String id) {
+        return ResourceKey.create(Registries.COMMAND_ARGUMENT_TYPE, new ResourceLocation(id));
+    }
+
+    private static ResourceKey<Item> itemKey(String id) {
+        return ResourceKey.create(Registries.ITEM, new ResourceLocation(id));
     }
 }

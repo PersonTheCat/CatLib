@@ -37,8 +37,18 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public @Nullable ResourceLocation getKey(final T t) {
+    public @Nullable ResourceKey<T> getKey(final T t) {
+        return this.registry.getResourceKey(t).orElse(null);
+    }
+
+    @Override
+    public @Nullable ResourceLocation getId(final T t) {
         return this.registry.getKey(t);
+    }
+
+    @Override
+    public @Nullable T lookup(final ResourceKey<T> key) {
+        return this.registry.get(key);
     }
 
     @Override
@@ -47,9 +57,8 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public <V extends T> V register(final ResourceLocation id, final V v) {
-        ((WritableRegistry<T>) this.registry)
-            .register(ResourceKey.create(this.registry.key(), id), v, RegistrationInfo.BUILT_IN);
+    public <V extends T> V register(final ResourceKey<T> key, final V v) {
+        ((WritableRegistry<T>) this.registry).register(key, v, RegistrationInfo.BUILT_IN);
         return v;
     }
 
@@ -59,26 +68,35 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public void forEach(final BiConsumer<ResourceLocation, T> f) {
+    public void forEach(final BiConsumer<ResourceKey<T>, T> f) {
         for (final Map.Entry<ResourceKey<T>, T> entry : new HashSet<>(this.registry.entrySet())) {
-            f.accept(entry.getKey().location(), entry.getValue());
+            f.accept(entry.getKey(), entry.getValue());
         }
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void forEachHolder(final BiConsumer<ResourceLocation, Holder<T>> f) {
+    public void forEachHolder(final BiConsumer<ResourceKey<T>, Holder<T>> f) {
         if (this.registry instanceof MappedRegistry<T> mapped) {
-            ((MappedRegistryAccessor<T>) mapped).getHolderMap().forEach((key, holder) ->
-                f.accept(key.location(), holder));
+            ((MappedRegistryAccessor<T>) mapped).getHolderMap().forEach(f);
             return;
         }
         throw new UnsupportedOperationException("Unsupported registry in handle: " + this.registry.getClass());
     }
 
     @Override
+    public boolean isRegistered(final ResourceKey<T> key) {
+        return this.registry.containsKey(key);
+    }
+
+    @Override
     public boolean isRegistered(final ResourceLocation id) {
         return this.registry.containsKey(id);
+    }
+
+    @Override
+    public @Nullable Holder<T> getHolder(final ResourceKey<T> k) {
+        return this.registry.getHolder(k).orElse(null);
     }
 
     @Override
@@ -101,8 +119,9 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public ResourceKey<? extends Registry<T>> key() {
-        return this.registry.key();
+    @SuppressWarnings("unchecked")
+    public ResourceKey<Registry<T>> key() {
+        return (ResourceKey<Registry<T>>) this.registry.key();
     }
 
     @Override
@@ -115,8 +134,8 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public Set<ResourceLocation> keySet() {
-        return this.registry.keySet();
+    public Set<ResourceKey<T>> keySet() {
+        return this.registry.registryKeySet();
     }
 
     @Override

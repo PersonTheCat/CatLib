@@ -20,6 +20,7 @@ import net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData;
 import net.minecraft.world.level.levelgen.GenerationStep.Carving;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.util.SyncTracker;
@@ -33,7 +34,7 @@ public abstract class FeatureModificationContext {
 
     public abstract Holder<Biome> getBiome();
 
-    public abstract ResourceLocation getName();
+    public abstract ResourceKey<Biome> getKey();
 
     public abstract Registry<ConfiguredWorldCarver<?>> getCarverRegistry();
 
@@ -105,11 +106,15 @@ public abstract class FeatureModificationContext {
 
     public abstract void setBackgroundMusic(final @Nullable Music music);
 
+    public final ResourceLocation getName() {
+        return this.getKey().location();
+    }
+
     @SuppressWarnings("unchecked")
     protected final void clientFeaturesModified() {
         if (!this.clientFeaturesModified) {
             final var biomes = this.getRegistryAccess().registryOrThrow(Registries.BIOME);
-            ((SyncTracker<Biome>) biomes).markUpdated(ResourceKey.create(biomes.key(), this.getName()));
+            ((SyncTracker<Biome>) biomes).markUpdated(this.getKey());
             this.clientFeaturesModified = true;
         }
     }
@@ -118,10 +123,14 @@ public abstract class FeatureModificationContext {
 
     public abstract Iterable<Holder<PlacedFeature>> getFeatures(final Decoration step);
 
-    public boolean removeCarver(final ResourceLocation id) {
+    public final boolean removeCarver(final ResourceLocation id) {
+        return this.removeCarver(ResourceKey.create(Registries.CONFIGURED_CARVER, id));
+    }
+
+    public boolean removeCarver(final ResourceKey<ConfiguredWorldCarver<?>> key) {
         boolean anyRemoved = false;
         for (final Carving step : Carving.values()) {
-            anyRemoved |= this.removeCarver(step, id);
+            anyRemoved |= this.removeCarver(step, key);
         }
         return anyRemoved;
     }
@@ -134,11 +143,19 @@ public abstract class FeatureModificationContext {
         return anyRemoved;
     }
 
-    public abstract boolean removeCarver(final Carving step, final ResourceLocation id);
+    public final boolean removeCarver(final Carving step, final ResourceLocation id) {
+        return this.removeCarver(step, ResourceKey.create(Registries.CONFIGURED_CARVER, id));
+    }
+
+    public abstract boolean removeCarver(final Carving step, final ResourceKey<ConfiguredWorldCarver<?>> key);
 
     public abstract boolean removeCarver(final Carving step, final Predicate<Holder<ConfiguredWorldCarver<?>>> predicate);
 
-    public boolean removeFeature(final ResourceLocation id) {
+    public final boolean removeFeature(final ResourceLocation id) {
+        return this.removeFeature(ResourceKey.create(Registries.PLACED_FEATURE, id));
+    }
+
+    public boolean removeFeature(final ResourceKey<PlacedFeature> id) {
         boolean anyRemoved = false;
         for (final Decoration step : Decoration.values()) {
             anyRemoved |= this.removeFeature(step, id);
@@ -154,7 +171,11 @@ public abstract class FeatureModificationContext {
         return anyRemoved;
     }
 
-    public abstract boolean removeFeature(final Decoration step, final ResourceLocation id);
+    public final boolean removeFeature(final Decoration step, final ResourceLocation id) {
+        return this.removeFeature(step, ResourceKey.create(Registries.PLACED_FEATURE, id));
+    }
+
+    public abstract boolean removeFeature(final Decoration step, final ResourceKey<PlacedFeature> id);
 
     public abstract boolean removeFeature(final Decoration step, final Predicate<Holder<PlacedFeature>> predicate);
 

@@ -57,14 +57,30 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
 
     @Nullable
     @Override
-    public ResourceLocation getKey(final T t) {
+    public ResourceKey<T> getKey(final T t) {
         return this.wrapped.getKey(t);
+    }
+
+    @Override
+    public ResourceLocation getId(final T t) {
+        return this.wrapped.getId(t);
+    }
+
+    @Nullable
+    @Override
+    public T lookup(final ResourceKey<T> key) {
+        return this.wrapped.lookup(key);
     }
 
     @Nullable
     @Override
     public T lookup(final ResourceLocation id) {
         return this.wrapped.lookup(id);
+    }
+
+    @Override
+    public <V extends T> V register(final ResourceKey<T> key, final V v) {
+        return this.wrapped.register(key, v);
     }
 
     @Override
@@ -87,18 +103,28 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public void forEach(final BiConsumer<ResourceLocation, T> f) {
+    public void forEach(final BiConsumer<ResourceKey<T>, T> f) {
         this.wrapped.forEach(f);
     }
 
     @Override
-    public void forEachHolder(final BiConsumer<ResourceLocation, Holder<T>> f) {
+    public void forEachHolder(final BiConsumer<ResourceKey<T>, Holder<T>> f) {
         this.wrapped.forEachHolder(f);
+    }
+
+    @Override
+    public boolean isRegistered(final ResourceKey<T> key) {
+        return this.wrapped.isRegistered(key);
     }
 
     @Override
     public boolean isRegistered(final ResourceLocation id) {
         return this.wrapped.isRegistered(id);
+    }
+
+    @Override
+    public @Nullable Holder<T> getHolder(ResourceKey<T> key) {
+        return this.wrapped.getHolder(key);
     }
 
     @Override
@@ -127,7 +153,7 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public Set<ResourceLocation> keySet() {
+    public Set<ResourceKey<T>> keySet() {
         return this.wrapped.keySet();
     }
 

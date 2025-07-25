@@ -109,7 +109,7 @@ public class RegistryArgument<T> implements ArgumentType<T> {
 
     private static List<String> computeSuggestions(final RegistryHandle<?> handle) {
         final ImmutableList.Builder<String> builder = ImmutableList.builder();
-        handle.forEach((id, value) -> {
+        handle.streamEntries().map(e -> e.getKey().location()).forEach(id -> {
             if ("minecraft".equals(id.getNamespace())) builder.add(id.getPath());
             builder.add(id.toString());
         });

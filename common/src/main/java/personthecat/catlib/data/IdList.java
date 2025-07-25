@@ -8,7 +8,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import personthecat.catlib.data.IdMatcher.Info;
 import personthecat.catlib.data.IdMatcher.InvertibleEntry;
 import personthecat.catlib.data.IdMatcher.StringRepresentable;
@@ -32,7 +31,7 @@ import static personthecat.catlib.serialization.codec.CodecUtils.simpleAny;
 
 public class IdList<T> implements Predicate<Holder<T>> {
     protected final RegistryHandle<T> handle;
-    protected final List<InvertibleEntry> entries;
+    protected final List<InvertibleEntry<T>> entries;
     protected final Format format;
     protected final boolean blacklist;
     protected HolderSet<T> compiled;
@@ -40,7 +39,7 @@ public class IdList<T> implements Predicate<Holder<T>> {
 
     protected IdList(
             final ResourceKey<? extends Registry<T>> key,
-            final List<InvertibleEntry> entries,
+            final List<InvertibleEntry<T>> entries,
             final boolean blacklist,
             final Format format) {
         this.handle = DynamicRegistries.get(key);
@@ -87,7 +86,7 @@ public class IdList<T> implements Predicate<Holder<T>> {
             return HolderSet.direct();
         }
         final Set<Holder<T>> matching = new HashSet<>();
-        for (final ResourceLocation id : this.compileIds()) {
+        for (final ResourceKey<T> id : this.compileKeys()) {
             final Holder<T> holder = this.handle.getHolder(id);
             if (holder != null) {
                 matching.add(holder);
@@ -96,14 +95,14 @@ public class IdList<T> implements Predicate<Holder<T>> {
         return this.compiled = toHolderSet(matching);
     }
 
-    public Set<ResourceLocation> compileIds() {
-        Set<ResourceLocation> white = new HashSet<>();
-        Set<ResourceLocation> black = new HashSet<>();
-        for (final InvertibleEntry e : this.entries) {
+    public Set<ResourceKey<T>> compileKeys() {
+        Set<ResourceKey<T>> white = new HashSet<>();
+        Set<ResourceKey<T>> black = new HashSet<>();
+        for (final InvertibleEntry<T> e : this.entries) {
             e.add(this.handle, white, black);
         }
         if (this.blacklist) {
-            final Set<ResourceLocation> temp = white;
+            final Set<ResourceKey<T>> temp = white;
             white = black;
             black = temp;
         }
@@ -111,7 +110,9 @@ public class IdList<T> implements Predicate<Holder<T>> {
             white.removeAll(black);
             return white;
         }
-        white.addAll(this.handle.keySet());
+        for (final var e : this.handle.entrySet()) {
+            white.add(e.getKey());
+        }
         white.removeAll(black);
         return white;
     }
@@ -137,37 +138,37 @@ public class IdList<T> implements Predicate<Holder<T>> {
         return toHolderSet(inverted);
     }
 
-    public static <T> Builder<T> builder(final ResourceKey<? extends Registry<T>> key) {
+    public static <T> Builder<T> builder(final ResourceKey<Registry<T>> key) {
         return new Builder<>(key);
     }
 
-    public static <T> IdList<T> all(final ResourceKey<? extends Registry<T>> key) {
+    public static <T> IdList<T> all(final ResourceKey<Registry<T>> key) {
         return new IdList<>(key, List.of(), true, Format.OBJECT);
     }
 
-    public static <T> Codec<IdList<T>> codecOf(final ResourceKey<? extends Registry<T>> key) {
+    public static <T> Codec<IdList<T>> codecOf(final ResourceKey<Registry<T>> key) {
         return codecOf(key, false);
     }
 
-    public static <T> Codec<IdList<T>> codecOf(final ResourceKey<? extends Registry<T>> key, final boolean filter) {
+    public static <T> Codec<IdList<T>> codecOf(final ResourceKey<Registry<T>> key, final boolean filter) {
         return codecFromTypes(key, IdMatcher.DEFAULT_TYPES, filter);
     }
 
-    public static <T> Codec<IdList<T>> listCodec(final ResourceKey<? extends Registry<T>> key) {
+    public static <T> Codec<IdList<T>> listCodec(final ResourceKey<Registry<T>> key) {
         return listCodec(key, false);
     }
 
-    public static <T> Codec<IdList<T>> listCodec(final ResourceKey<? extends Registry<T>> key, final boolean filter) {
+    public static <T> Codec<IdList<T>> listCodec(final ResourceKey<Registry<T>> key, final boolean filter) {
         return listCodec(key, IdMatcher.DEFAULT_TYPES, filter, (Constructor<T, IdList<T>>) IdList::new);
     }
 
     public static <T> Codec<IdList<T>> codecFromTypes(
-            final ResourceKey<? extends Registry<T>> key, final List<Info<?>> types, final boolean filter) {
+            final ResourceKey<Registry<T>> key, final List<Info<?>> types, final boolean filter) {
         return codecFromTypes(key, types, filter, (Constructor<T, IdList<T>>) IdList::new);
     }
 
     protected static <T, R extends IdList<T>> Codec<R> codecFromTypes(
-            final ResourceKey<? extends Registry<T>> key,
+            final ResourceKey<Registry<T>> key,
             final List<Info<?>> types,
             final boolean filter,
             final Constructor<T, R> constructor) {
@@ -183,30 +184,31 @@ public class IdList<T> implements Predicate<Holder<T>> {
     }
 
     protected static <T, R extends IdList<T>> Codec<R> listCodec(
-            final ResourceKey<? extends Registry<T>> key,
+            final ResourceKey<Registry<T>> key,
             final List<Info<?>> types,
             final boolean filter,
             final Constructor<T, R> constructor) {
-        return easyList(entryCodec(types)).xmap(
+        return easyList(entryCodec(key, types)).xmap(
             entries -> constructor.construct(key, entries, filter && entries.isEmpty(), Format.LIST),
             l -> l.entries);
     }
 
-    protected static Codec<InvertibleEntry> entryCodec(final List<Info<?>> types) {
-        final Map<Info<?>, Codec<InvertibleEntry>> encoderMap = new HashMap<>();
-        final Map<String, Codec<InvertibleEntry>> decoderMap = new HashMap<>();
+    protected static <T> Codec<InvertibleEntry<T>> entryCodec(
+            final ResourceKey<Registry<T>> key, final List<Info<?>> types) {
+        final Map<Info<?>, Codec<InvertibleEntry<T>>> encoderMap = new HashMap<>();
+        final Map<String, Codec<InvertibleEntry<T>>> decoderMap = new HashMap<>();
         for (final Info<?> info : types) {
             if (info instanceof StringRepresentable<?> r && r.prefix() != null) {
-                final Codec<InvertibleEntry> codec = info.prefixedCodec();
+                final Codec<InvertibleEntry<T>> codec = info.prefixedCodec(key);
                 encoderMap.put(info, codec);
                 decoderMap.put(r.prefix(), codec);
             }
         }
         return new Codec<>() {
             @Override
-            public <T> DataResult<T> encode(final InvertibleEntry input, final DynamicOps<T> ops, final T prefix) {
+            public <O> DataResult<O> encode(final InvertibleEntry<T> input, final DynamicOps<O> ops, final O prefix) {
                 final Info<?> info = input.matcher().info();
-                final Codec<InvertibleEntry> encoder = encoderMap.get(info);
+                final Codec<InvertibleEntry<T>> encoder = encoderMap.get(info);
                 if (encoder == null) {
                     return DataResult.error(() -> "no encoder for type: " + info);
                 }
@@ -214,15 +216,15 @@ public class IdList<T> implements Predicate<Holder<T>> {
             }
 
             @Override
-            public <T> DataResult<Pair<InvertibleEntry, T>> decode(final DynamicOps<T> ops, final T input) {
+            public <O> DataResult<Pair<InvertibleEntry<T>, O>> decode(final DynamicOps<O> ops, final O input) {
                 return ops.getStringValue(input).flatMap(s -> {
                     if (s.startsWith("!")) s = s.substring(1);
-                    for (final Map.Entry<String, Codec<InvertibleEntry>> e : decoderMap.entrySet()) {
+                    for (final Map.Entry<String, Codec<InvertibleEntry<T>>> e : decoderMap.entrySet()) {
                         if (!e.getKey().isEmpty() && s.startsWith(e.getKey())) {
                             return e.getValue().decode(ops, input);
                         }
                     }
-                    final Codec<InvertibleEntry> decoder = decoderMap.get("");
+                    final Codec<InvertibleEntry<T>> decoder = decoderMap.get("");
                     if (decoder == null) {
                         return DataResult.error(() -> "no default decoder");
                     }
@@ -239,7 +241,7 @@ public class IdList<T> implements Predicate<Holder<T>> {
     }
 
     protected static <T, R extends IdList<T>> Codec<R> objectCodec(
-            final ResourceKey<? extends Registry<T>> key,
+            final ResourceKey<Registry<T>> key,
             final List<Info<?>> types,
             final Constructor<T, R> constructor) {
         final List<DynamicField<Builder<T>, R, ?>> fields = new ArrayList<>();
@@ -247,8 +249,8 @@ public class IdList<T> implements Predicate<Holder<T>> {
             field(Codec.BOOL, "blacklist", r -> r.blacklist, Builder::blacklist);
         fields.add(blacklistField.withOutputFilter(blacklist -> blacklist));
         for (final Info<?> i : types) {
-            final DynamicField<Builder<T>, R, List<InvertibleEntry>> field =
-                field(easyList(i.codec()), i.fieldName(), r -> r.getByType(i), Builder::addEntries);
+            final DynamicField<Builder<T>, R, List<InvertibleEntry<T>>> field =
+                field(easyList(i.codec(key)), i.fieldName(), r -> r.getByType(i), Builder::addEntries);
             fields.add(field.withOutputFilter(list -> !list.isEmpty()));
         }
         return dynamic(
@@ -257,7 +259,7 @@ public class IdList<T> implements Predicate<Holder<T>> {
             .create(fields).codec();
     }
 
-    protected List<InvertibleEntry> getByType(final Info<?> info) {
+    protected List<InvertibleEntry<T>> getByType(final Info<?> info) {
         return this.entries.stream().filter(e -> e.matcher().info() == info).toList();
     }
 
@@ -316,7 +318,7 @@ public class IdList<T> implements Predicate<Holder<T>> {
     @SuppressWarnings("UnusedReturnValue")
     public static class Builder<T> {
         protected final ResourceKey<? extends Registry<T>> key;
-        protected final List<InvertibleEntry> entries = new ArrayList<>();
+        protected final List<InvertibleEntry<T>> entries = new ArrayList<>();
         protected Format format = Format.ANY;
         protected boolean blacklist = false;
 
@@ -324,11 +326,12 @@ public class IdList<T> implements Predicate<Holder<T>> {
             this.key = key;
         }
 
-        public Builder<T> addEntries(final InvertibleEntry... entries) {
-            return this.addEntries(List.of(entries));
+        public Builder<T> addEntry(final InvertibleEntry<T> entry) {
+            this.entries.add(entry);
+            return this;
         }
 
-        public Builder<T> addEntries(final List<InvertibleEntry> entries) {
+        public Builder<T> addEntries(final List<InvertibleEntry<T>> entries) {
             this.entries.addAll(entries);
             return this;
         }
@@ -355,7 +358,7 @@ public class IdList<T> implements Predicate<Holder<T>> {
     @FunctionalInterface
     public interface Constructor<T, R extends IdList<T>> {
         R construct(
-            ResourceKey<? extends Registry<T>> key, List<InvertibleEntry> entries, boolean blacklist, Format format);
+            ResourceKey<? extends Registry<T>> key, List<InvertibleEntry<T>> entries, boolean blacklist, Format format);
     }
 
     public enum Format {
