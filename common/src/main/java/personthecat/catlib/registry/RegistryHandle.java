@@ -28,7 +28,7 @@ public interface RegistryHandle<T> extends Iterable<T> {
     @Nullable ResourceKey<T> getKey(final T t);
     @Nullable T lookup(final ResourceKey<T> key);
     <V extends T> V register(final ResourceKey<T> key, V v);
-    <V extends T> void deferredRegister(final String modId, final ResourceLocation id, V v);
+    <V extends T> void deferredRegister(final String modId, final ResourceKey<T> key, V v);
     void forEach(final BiConsumer<ResourceKey<T>, T> f);
     void forEachHolder(final BiConsumer<ResourceKey<T>, Holder<T>> f);
     boolean isRegistered(final ResourceKey<T> key);
@@ -98,11 +98,15 @@ public interface RegistryHandle<T> extends Iterable<T> {
     }
 
     default <V extends T> void deferredRegister(final String modId, final String id, final V v) {
-        this.deferredRegister(modId, new ResourceLocation(modId, id), v);
+        this.deferredRegister(modId, createKey(this.key(), new ResourceLocation(modId, id)), v);
     }
 
     default <V extends T> void deferredRegister(final ResourceLocation id, final V v) {
-        this.deferredRegister(id.getNamespace(), id, v);
+        this.deferredRegister(createKey(this.key(), id), v);
+    }
+
+    default <V extends T> void deferredRegister(final ResourceKey<T> key, final V v) {
+        this.deferredRegister(key.location().getNamespace(), key, v);
     }
 
     default @Nullable ResourceKey<T> keyOf(final Holder<T> holder) {

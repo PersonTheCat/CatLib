@@ -18,7 +18,7 @@ public class DataRegistryEvent {
     public static final LibEvent<Consumer<Source>> POST =
         LibEvent.create(callbacks -> src -> callbacks.forEach(c -> c.accept(src)));
 
-    public static interface Source {
+    public interface Source {
         @Nullable
         <T> Registry<T> getRegistry(final ResourceKey<? extends Registry<T>> key);
 

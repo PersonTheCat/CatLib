@@ -37,8 +37,8 @@ public record DummyRegistryHandle<T>(ResourceKey<? extends Registry<T>> key) imp
     }
 
     @Override
-    public <V extends T> void deferredRegister(String modId, ResourceLocation id, V v) {
-        this.register(id, v);
+    public <V extends T> void deferredRegister(String modId, ResourceKey<T> key, V v) {
+        this.register(key, v);
     }
 
     @Override

@@ -63,8 +63,8 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public <V extends T> void deferredRegister(final String modId, final ResourceLocation id, final V v) {
-        doDeferredRegister(this.registry.key(), modId, id, v);
+    public <V extends T> void deferredRegister(final String modId, final ResourceKey<T> key, final V v) {
+        doDeferredRegister(modId, key, v);
     }
 
     @Override
@@ -179,6 +179,5 @@ public class MojangRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @ExpectPlatform
-    private static <T, V extends T> void doDeferredRegister(
-            final ResourceKey<? extends Registry<T>> key, final String modId, final ResourceLocation id, final V t) {}
+    private static <T, V extends T> void doDeferredRegister(final String modId, final ResourceKey<T> key, final V t) {}
 }

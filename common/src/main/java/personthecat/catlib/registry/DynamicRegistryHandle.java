@@ -89,15 +89,15 @@ public class DynamicRegistryHandle<T> implements RegistryHandle<T> {
     }
 
     @Override
-    public <V extends T> void deferredRegister(final String modId, final ResourceLocation id, final V v) {
+    public <V extends T> void deferredRegister(final String modId, final ResourceKey<T> key, final V v) {
         if (!(this.wrapped instanceof DummyRegistryHandle)) {
-            this.wrapped.deferredRegister(modId, id, v);
+            this.wrapped.deferredRegister(modId, key, v);
             return;
         }
         DataRegistryEvent.PRE.register(src -> {
             final Registry<T> registry = src.getRegistry(this.key());
             if (registry != null) {
-                Registry.register(registry, id, v);
+                Registry.register(registry, key, v);
             }
         });
     }
