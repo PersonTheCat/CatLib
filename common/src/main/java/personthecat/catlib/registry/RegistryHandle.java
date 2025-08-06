@@ -59,7 +59,7 @@ public interface RegistryHandle<T> extends Iterable<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     static <T> void addToRoot(final ModDescriptor mod, final RegistryHandle<T> handle) {
         if (handle instanceof MojangRegistryHandle<T> m) { // platforms will handle other types, events, etc
-            Registry.register((Registry) BuiltInRegistries.REGISTRY, (ResourceKey) m.key(), m.getRegistry());
+            Registry.register((Registry) BuiltInRegistries.REGISTRY, m.key(), m.getRegistry());
         }
     }
 
