@@ -5,6 +5,7 @@ import com.mojang.serialization.DataResult;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.serialization.codec.CodecUtils;
 
@@ -71,6 +72,10 @@ public record Range(int min, int max) implements Iterable<Integer> {
 
     public boolean isEmpty() {
         return false;
+    }
+
+    public int clamp(int i) {
+        return Mth.clamp(i, this.min, this.max);
     }
 
     public IntList toList() {

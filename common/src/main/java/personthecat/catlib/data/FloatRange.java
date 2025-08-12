@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.floats.FloatLists;
+import net.minecraft.util.Mth;
 import personthecat.catlib.serialization.codec.CodecUtils;
 
 import java.util.List;
@@ -54,6 +55,10 @@ public record FloatRange(float min, float max) {
 
     public float diff() {
         return max - min;
+    }
+
+    public float clamp(float f) {
+        return Mth.clamp(f, this.min, this.max);
     }
 
     public FloatList toList() {
