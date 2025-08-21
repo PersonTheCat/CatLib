@@ -50,11 +50,15 @@ public record FloatRange(float min, float max) {
     }
 
     public float rand(Random rand) {
-        return numBetween(rand, min, max);
+        return numBetween(rand, this.min, this.max);
+    }
+
+    public boolean contains(float num) {
+        return num >= this.min && num < this.max;
     }
 
     public float diff() {
-        return max - min;
+        return this.max - this.min;
     }
 
     public float clamp(float f) {

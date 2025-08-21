@@ -59,19 +59,15 @@ public record Range(int min, int max) implements Iterable<Integer> {
     }
 
     public int rand(Random rand) {
-        return numBetween(rand, min, max);
+        return numBetween(rand, this.min, this.max);
     }
 
     public boolean contains(int num) {
-        return num >= min && num < max;
+        return num >= this.min && num < this.max;
     }
 
     public int diff() {
-        return max - min;
-    }
-
-    public boolean isEmpty() {
-        return false;
+        return this.max - this.min;
     }
 
     public int clamp(int i) {
