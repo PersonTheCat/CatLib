@@ -9,6 +9,7 @@ import personthecat.catlib.serialization.codec.CodecUtils;
 
 import java.util.List;
 import java.util.Random;
+import java.util.function.Function;
 
 import static personthecat.catlib.util.LibUtil.f;
 import static personthecat.catlib.util.LibUtil.numBetween;
@@ -18,6 +19,8 @@ public record FloatRange(float min, float max) {
     private static final FloatRange EMPTY = new FloatRange(0);
     public static final Codec<FloatRange> CODEC =
         CodecUtils.easyList(Codec.FLOAT).xmap(FloatRange::fromList, FloatRange::toList);
+    public static final Codec<FloatRange> RANGE_UP_CODEC =
+        CODEC.xmap(r -> r.diff() == 0 ? of(r.min, Float.MAX_VALUE) : r, Function.identity());
 
     public FloatRange(float a) {
         this(a, a);

@@ -9,7 +9,10 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.serialization.codec.CodecUtils;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.function.Function;
 
 import static personthecat.catlib.util.LibUtil.f;
 import static personthecat.catlib.util.LibUtil.numBetween;
@@ -19,6 +22,8 @@ public record Range(int min, int max) implements Iterable<Integer> {
     private static final Range EMPTY = new Range(0);
     public static final Codec<Range> CODEC =
         CodecUtils.easyList(Codec.INT).xmap(Range::fromList, Range::toList);
+    public static final Codec<Range> RANGE_UP_CODEC =
+        CODEC.xmap(r -> r.diff() == 0 ? of(r.min, Integer.MAX_VALUE) : r, Function.identity());
 
     public Range(int max) {
         this(max, max);
