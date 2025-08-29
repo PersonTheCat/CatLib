@@ -24,6 +24,7 @@ public final class VersionTest {
     public void parse_returnsExpectedValue() {
         assertEquals(Version.parse("1.0"), Version.create(1, 0));
         assertEquals(Version.parse("1.999.999-tag"), Version.create(1, 999, 999, "tag"));
+        assertEquals(Version.parse("3.0-tag+1.20.6"), Version.create(3, 0, 0, "tag", "1.20.6"));
         assertEquals(Version.parse("65536"), Version.create(65536, 0));
     }
 
