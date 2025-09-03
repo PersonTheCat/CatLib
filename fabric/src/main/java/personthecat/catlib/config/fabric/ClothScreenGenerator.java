@@ -94,11 +94,11 @@ public record ClothScreenGenerator(ClothConfigGenerator generator) {
         final Object o = value.get(this.generator.getMod(), instance);
         if (value instanceof CategoryValue source) {
             final SubCategoryBuilder category =
-                    builder.entryBuilder().startSubCategory(this.getTitleName(source));
+                builder.entryBuilder().startSubCategory(this.getTitleName(source));
             for (final ConfigValue v : source.values()) {
                 final AbstractConfigListEntry<?> entry = this.buildEntry(builder, o, v);
                 if (entry != null) {
-                    final String comment = value.comment();
+                    final String comment = v.comment();
                     if (comment != null) {
                         category.add(builder.entryBuilder().startTextDescription(Component.literal(comment)).build());
                     }
