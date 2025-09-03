@@ -12,6 +12,7 @@
     "sources": "${mod_sources}"
   },
   "license": "${pom_license_name}",
+  "icon": "assets/catlib/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
