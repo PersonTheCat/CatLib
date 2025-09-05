@@ -56,7 +56,7 @@ public abstract class CatLib {
         ctx.registerAll();
         GameReadyEvent.COMMON.register(() -> {
             if (VERSION_TRACKER.isUpgraded()) {
-                log.info("Upgrade detected. Welcome to Pangaea {}", VERSION);
+                log.info("Upgrade detected. Welcome to CatLib {}", VERSION);
             }
         });
         CommonWorldEvent.LOAD.register(a -> {
