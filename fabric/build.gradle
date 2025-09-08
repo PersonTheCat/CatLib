@@ -56,3 +56,8 @@ remapJar {
 jar {
     archiveClassifier.set 'dev'
 }
+
+test {
+    mkdir file("$projectDir/runTest")
+    workingDir = file("$projectDir/runTest")
+}

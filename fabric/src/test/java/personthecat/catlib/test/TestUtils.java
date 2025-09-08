@@ -1,5 +1,6 @@
 package personthecat.catlib.test;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JavaOps;
 import com.mojang.serialization.MapCodec;
@@ -24,11 +25,19 @@ public final class TestUtils {
     private TestUtils() {}
 
     public static <T> DataResult<T> parse(MapCodec<T> codec, String json) {
-        return codec.codec().parse(XjsOps.INSTANCE, Json.parse(json));
+        return parse(codec.codec(), json);
+    }
+
+    public static <T> DataResult<T> parse(Codec<T> codec, String json) {
+        return codec.parse(XjsOps.INSTANCE, Json.parse(json));
     }
 
     public static <T> DataResult<Object> encode(MapCodec<T> codec, T value) {
-        return codec.codec().encodeStart(JavaOps.INSTANCE, value);
+        return encode(codec.codec(), value);
+    }
+
+    public static <T> DataResult<Object> encode(Codec<T> codec, T value) {
+        return codec.encodeStart(JavaOps.INSTANCE, value);
     }
 
     public static <T> void assertSuccess(T expected, DataResult<T> actual) {

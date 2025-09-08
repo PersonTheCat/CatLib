@@ -3,6 +3,7 @@ build/
 .gradle/
 .idea/
 run/
+runTest/
 runServer/
 .vscode/
 logs/

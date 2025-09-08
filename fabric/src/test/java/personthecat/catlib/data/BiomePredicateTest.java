@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static personthecat.catlib.test.TestUtils.encode;
 
 @ExtendWith(McBootstrapExtension.class)
 public class BiomePredicateTest {
@@ -105,7 +106,10 @@ public class BiomePredicateTest {
                 BiomePredicate.type(false, BiomeType.OCEAN)))
             .format(IdList.Format.OBJECT)
             .build();
-        assertEquals(expected, predicate.simplify());
+        // compare encoded data due to order issues
+        assertEquals(
+            encode(BiomePredicate.CODEC, expected),
+            encode(BiomePredicate.CODEC, predicate.simplify()));
     }
 
     @Test
