@@ -6,27 +6,20 @@ import net.minecraft.network.chat.Component;
 import personthecat.catlib.command.annotations.Nullable;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 public final class DecodeContext {
     private final Deque<ErrorNode> stack = new ArrayDeque<>();
     private final ErrorNode root = ErrorNode.root();
     private final Map<String, CategorizedErrors> errors = new HashMap<>();
+    private final List<String> categories = new ArrayList<>();
     private volatile @Nullable Object data;
-
-    public void pushCategory(String category) {
-        this.peek().setCategory(category);
-    }
-
-    public void popCategory() {
-        this.peek().setCategory(null);
-    }
 
     public void push(String key) {
         this.push(Either.left(key));
@@ -54,6 +47,21 @@ public final class DecodeContext {
         if (this.stack.size() <= 1) { // reset root category
             this.root.setCategory(null);
         }
+    }
+
+    public void pushCategory(String category) {
+        this.categories.add(category);
+        this.resetCategory();
+    }
+
+    public void popCategory() {
+        this.categories.removeLast();
+        this.resetCategory();
+    }
+
+    private void resetCategory() {
+        final var cat = this.categories.isEmpty() ? null : this.categories.getLast();
+        this.peek().setCategory(cat);
     }
 
     public void reportError(String message) {

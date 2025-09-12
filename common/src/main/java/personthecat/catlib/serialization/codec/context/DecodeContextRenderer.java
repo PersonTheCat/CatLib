@@ -31,7 +31,7 @@ public final class DecodeContextRenderer {
         final var comp = Component.empty();
 
         if (!root.messageSuppliers.isEmpty()) {
-            comp.append(Component.translatable(ROOT_ERRORS).withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
+            comp.append(Component.translatable(ROOT_ERRORS).append(":").withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
             comp.append("\n\n");
             final var counter = new AtomicInteger();
             for (final var msg : root.messages.get()) {
@@ -61,12 +61,12 @@ public final class DecodeContextRenderer {
         }
         if (errors.category() != null) {
             comp.append("\n");
-            comp.append(Component.literal(errors.category() + ":").withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
+            comp.append(Component.translatable(errors.category()).append(":").withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
             comp.append("\n");
         }
         comp.append("\n");
-        comp.append(Component.translatable(LEAF_ERRORS).withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
-        comp.append("\n");
+        comp.append(Component.translatable(LEAF_ERRORS).append(":").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
+        comp.append("\n\n");
 
         errors.erredLeaves().forEach((path, messages) -> {
             comp.append(Component.literal("  - ").withStyle(ChatFormatting.DARK_GRAY));

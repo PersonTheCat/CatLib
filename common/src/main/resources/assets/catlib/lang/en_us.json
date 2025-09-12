@@ -48,7 +48,7 @@
   "catlib.errorText.dataEntryTitle": "Error in data entry: %s",
   "catlib.errorText.dataEntryDisplay": "Error in %s",
   "catlib.errorText.dataEntryDetail": "Error loading registry entry: %s",
-  "catlib.errorText.rootErrors": "Root errors:",
-  "catlib.errorText.leafErrors": "Leaf errors:",
+  "catlib.errorText.rootErrors": "Root errors",
+  "catlib.errorText.leafErrors": "Leaf errors",
   "catlib.errorText.originalData": "Original data:"
 }
