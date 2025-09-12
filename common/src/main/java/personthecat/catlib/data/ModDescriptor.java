@@ -3,12 +3,15 @@ package personthecat.catlib.data;
 import lombok.Builder;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.linting.SyntaxLinter;
 import personthecat.catlib.versioning.Version;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A platform-agnostic DTO containing information about a given mod's
@@ -47,6 +50,16 @@ public record ModDescriptor(
     @Nullable File preferredDirectory,
     SyntaxLinter defaultLinter) {
 
+    private static final Map<String, ModDescriptor> DESCRIPTORS = new ConcurrentHashMap<>();
+
+    public static ModDescriptor forMod(final String modId) {
+        final var libMod = DESCRIPTORS.get(modId);
+        if (libMod != null) return libMod;
+        final var platformMod = McUtils.getMod(modId);
+        if (platformMod.isPresent()) return platformMod.get();
+        return builder().modId(modId).name(LibStringUtils.toTitleCase(modId)).build();
+    }
+
     public ResourceLocation id(final String path) {
         return new ResourceLocation(this.modId, path);
     }
@@ -64,6 +77,12 @@ public record ModDescriptor(
             if (this.defaultLinter == null) this.defaultLinter = SyntaxLinter.DEFAULT_LINTER;
 
             return new ModDescriptor(name, modId, version, commandPrefix, configFolder, configFile, backupFolder, preferredDirectory, defaultLinter);
+        }
+
+        public ModDescriptor buildAndRegister() {
+            final var d = this.build();
+            DESCRIPTORS.put(this.modId, d);
+            return d;
         }
     }
 }

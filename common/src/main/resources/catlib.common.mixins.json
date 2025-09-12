@@ -5,14 +5,19 @@
   "mixins": [
     "ChunkStatusMixin",
     "DelegatingOpsAccessor",
+    "FieldDecoderMixin",
+    "ListCodecMixin",
     "MappedRegistryAccessor",
     "MappedRegistryMixin",
     "NamedHolderSetAccessor",
+    "OptionalFieldCodecMixin",
     "ProtoChunkMixin",
     "RegistryDataLoaderMixin",
+    "RegistryOpsMixin",
     "WorldDimensionsMixin"
   ],
   "client": [
+    "DatapackLoadFailureScreenMixin",
     "TitleScreenMixin"
   ],
   "server": [

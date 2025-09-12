@@ -36,7 +36,7 @@ public abstract class CatLib {
     public static final String RAW_VERSION = "@MOD_VERSION@";
     public static final Version VERSION = Version.parse(RAW_VERSION);
     public static final ModDescriptor MOD =
-        ModDescriptor.builder().modId(ID).name(NAME).version(VERSION).configFolder(McUtils.getConfigDir()).build();
+        ModDescriptor.builder().modId(ID).name(NAME).version(VERSION).configFolder(McUtils.getConfigDir()).buildAndRegister();
     public static final VersionTracker VERSION_TRACKER = VersionTracker.trackModVersion(MOD);
 
     protected final void init() {

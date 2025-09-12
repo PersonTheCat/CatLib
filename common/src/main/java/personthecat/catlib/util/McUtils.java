@@ -1,9 +1,11 @@
 package personthecat.catlib.util;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.exception.MissingOverrideException;
 
 import java.io.File;
+import java.util.Optional;
 
 public final class McUtils {
 
@@ -47,5 +49,14 @@ public final class McUtils {
      */
     public static boolean isClientSide() {
         return !isDedicatedServer();
+    }
+
+    /**
+     * @param id The id of the mod being researched.
+     * @return Information from the mod platform for the given mod ID.
+     */
+    @ExpectPlatform
+    public static Optional<ModDescriptor> getMod(String id) {
+        throw new MissingOverrideException();
     }
 }

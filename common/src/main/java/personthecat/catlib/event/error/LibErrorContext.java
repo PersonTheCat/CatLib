@@ -196,7 +196,7 @@ public class LibErrorContext {
     @Environment(EnvType.CLIENT)
     private static void broadcastErrors() {
         final LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null) {
+        if (player != null) { // can't force set screen unless in-game
             if (!FATAL_ERRORS.isEmpty()) {
                 final var mc = Minecraft.getInstance();
                 mc.forceSetScreen(new LibErrorMenu(mc.screen));

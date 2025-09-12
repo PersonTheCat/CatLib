@@ -68,8 +68,6 @@ public class XjsOps implements DynamicOps<JsonValue> {
             return DataResult.error(() -> "Not a number: null");
         } else if (input.isNumber()) {
             return DataResult.success(input.asDouble());
-        } else if (input.isBoolean()) {
-            return DataResult.success(input.asBoolean() ? 1 : 0);
         }
         if (this.compressed && input.isString()) {
             try {
