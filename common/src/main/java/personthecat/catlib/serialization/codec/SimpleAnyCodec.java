@@ -58,7 +58,7 @@ public class SimpleAnyCodec<A> implements Codec<A> {
         }
         return DataResult.error(() -> {
             final StringBuilder message =
-                new StringBuilder("Fix any; ").append(errors.getFirst().get());
+                new StringBuilder(errors.getFirst().get());
             for (int i = 1; i < errors.size(); i++) {
                 message.append("; ").append(errors.get(i).get());
             }

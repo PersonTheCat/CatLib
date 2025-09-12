@@ -51,7 +51,7 @@ public class SimpleEitherCodec<A> implements Codec<A> {
         }
         final Supplier<String> m1 = r1.error().orElseThrow().messageSupplier();
         final Supplier<String> m2 = r2.error().orElseThrow().messageSupplier();
-        return DataResult.error(() -> "Fix either; " + m1.get() + "; " + m2.get());
+        return DataResult.error(() -> m1.get() + "; " + m2.get());
     }
 
     @SuppressWarnings("unchecked")
