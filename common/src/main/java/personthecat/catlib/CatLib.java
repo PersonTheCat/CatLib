@@ -101,6 +101,8 @@ public abstract class CatLib {
         if (LibConfig.enableTestError()) {
             LibErrorContext.error(MOD,
                 new GenericFormattedException(new RuntimeException("test error"), "tooltip working!"));
+            LibErrorContext.warn(ModDescriptor.builder().modId("test").name("Test Mod").build(),
+                new GenericFormattedException(new RuntimeException("test error 2"), "tooltip working... 2!"));
         }
         if (LibConfig.enableTestColors()) {
             FeatureModificationEvent.register(ctx -> {

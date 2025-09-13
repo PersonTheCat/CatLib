@@ -1,6 +1,7 @@
 package personthecat.catlib.client.gui;
 
 import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -60,6 +61,30 @@ public class LibMenu extends Screen {
         super.render(graphics, x, y, partial);
         this.renderMenu(graphics, x, y, partial);
         this.renderDetails(graphics, x, y, partial);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int x, int z, float partial) {
+        super.renderBackground(graphics, x, z, partial);
+        this.renderBorder(graphics);
+    }
+
+    @Override
+    protected void renderMenuBackground(GuiGraphics graphics) {
+        RenderSystem.enableBlend();
+        graphics.blit(MENU_BACKGROUND, 0, Y0, this.width, this.menuHeight(), this.width, this.menuHeight(), 32, 32);
+        RenderSystem.disableBlend();
+    }
+
+    protected void renderBorder(GuiGraphics graphics) {
+        RenderSystem.enableBlend();
+        graphics.blit(HEADER_SEPARATOR, 0, Y0 - 2, 0.0F, 0.0F, this.width, 2, 32, 2);
+        graphics.blit(FOOTER_SEPARATOR, 0, this.height - Y1, 0.0F, 0.0F, this.width, 2, 32, 2);
+        RenderSystem.disableBlend();
+    }
+
+    protected int menuHeight() {
+        return this.height - Y0 - Y1;
     }
 
     protected void renderMenu(GuiGraphics graphics, int x, int y, float partial) {}

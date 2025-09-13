@@ -238,11 +238,10 @@ public class LibErrorMenu extends LibMenu {
         this.updateMod(mod);
     }
 
-    @SuppressWarnings("unchecked")
     private void updateMod(ModDescriptor mod) {
-        this.children().remove(this.current);
+        this.removeWidget(this.current);
         this.current = this.options.get(mod);
-        ((List<GuiEventListener>) this.children()).add(this.current);
+        this.addRenderableWidget(this.current);
         this.setFocused(this.current);
 
         if (this.mods != null) {

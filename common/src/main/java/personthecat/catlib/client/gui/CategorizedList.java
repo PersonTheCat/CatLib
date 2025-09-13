@@ -7,18 +7,18 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.data.collections.MultiValueMap;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEntry>{
+public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEntry> {
 
-    private static final int BORDER = 35;
-    private static final int PAD = 15;
     private final List<ButtonEntry> buttons = new ArrayList<>();
 
     // i = width, j = height, k = y, 0 = x
@@ -32,9 +32,9 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
             ws.forEach(this::addButton);
         });
         this.setX(x0);
-        this.setY(BORDER);
+        this.setY(LibMenu.Y0);
         this.width = x1 - x0;
-        this.height = parent.height - BORDER - PAD;
+        this.height = parent.height - LibMenu.Y1 - LibMenu.Y0;
     }
 
     public static Button createButton(Component display, Button.OnPress onPress) {
@@ -63,6 +63,9 @@ public class CategorizedList extends ObjectSelectionList<CategorizedList.ListEnt
     protected int getScrollbarPosition() {
         return (this.width + this.getX()) - 6;
     }
+
+    @Override
+    public void setFocused(@Nullable GuiEventListener listener) {}
 
     @Override
     protected void renderListBackground(GuiGraphics graphics) {}
