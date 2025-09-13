@@ -1,5 +1,6 @@
 package personthecat.catlib.serialization.codec.context;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
@@ -7,8 +8,6 @@ import com.mojang.datafixers.util.Either;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import personthecat.catlib.linting.SyntaxLinter;
 import xjs.data.JsonFormat;
 import xjs.data.JsonValue;
@@ -109,7 +108,7 @@ public final class DecodeContextRenderer {
             return SyntaxLinter.DEFAULT_LINTER.lint(v.toString(JsonFormat.JSON_FORMATTED));
         }
         try {
-            final var s = ReflectionToStringBuilder.toString(data, ToStringStyle.JSON_STYLE);
+            final var s = new GsonBuilder().setPrettyPrinting().setLenient().create().toJson(data);
             return SyntaxLinter.DEFAULT_LINTER.lint(s);
         } catch (Exception e) {
             log.error("Error rendering original data: {}", data, e);
