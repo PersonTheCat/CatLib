@@ -28,7 +28,7 @@ public class DetailedDataLoadException extends FormattedException {
 
     @Override
     public @NotNull Component getTitleMessage() {
-        return Component.translatable(DATA_ENTRY_TITLE_ERROR, this.key.location());
+        return Component.translatable(DATA_ENTRY_TITLE_ERROR, this.key.location().toString());
     }
 
     @Override
