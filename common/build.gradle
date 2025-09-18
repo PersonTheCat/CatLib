@@ -18,7 +18,7 @@ configurations {
 
 dependencies {
     // Only needed for suppressing Fabric build spam
-    modImplementation "net.fabricmc:fabric-loader:$loader_version"
+    modImplementation group: 'net.fabricmc', name: 'fabric-loader', version: loader_version
 
     bundle group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
     bundle group: 'com.personthecat', name: 'fresult', version: fresult_version

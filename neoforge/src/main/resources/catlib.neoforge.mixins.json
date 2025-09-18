@@ -4,8 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BiomeSpecialEffectsBuilderAccessor",
-    "MinecraftServerMixin",
-    "ModifiableBiomeInfoAccessor"
+    "MinecraftServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
