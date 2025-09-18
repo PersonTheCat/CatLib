@@ -23,7 +23,7 @@ public final class McUtils {
      * @return The name of the current platform, e.g. <code>forge</code>.
      */
     @ExpectPlatform
-    public static String getPlatform() {
+    public static ModPlatform getPlatform() {
         throw new MissingOverrideException();
     }
 

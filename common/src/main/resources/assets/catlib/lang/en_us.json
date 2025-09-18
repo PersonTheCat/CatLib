@@ -50,5 +50,8 @@
   "catlib.errorText.dataEntryDetail": "Error loading registry entry: %s",
   "catlib.errorText.rootErrors": "Root errors",
   "catlib.errorText.leafErrors": "Leaf errors",
-  "catlib.errorText.originalData": "Original data:"
+  "catlib.errorText.splitErrors": "Split errors",
+  "catlib.errorText.originalData": "Original data:",
+  "catlib.errorText.leavesNotAvailable": "Mapped error details not available for this codec on %s platform",
+  "catlib.errorText.errorNumber": "Error #%s"
 }

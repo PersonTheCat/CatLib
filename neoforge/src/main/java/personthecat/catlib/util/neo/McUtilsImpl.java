@@ -6,6 +6,7 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforgespi.Environment;
 import personthecat.catlib.data.ModDescriptor;
+import personthecat.catlib.util.ModPlatform;
 import personthecat.catlib.versioning.Version;
 
 import java.io.File;
@@ -20,8 +21,8 @@ public final class McUtilsImpl {
         return FMLPaths.CONFIGDIR.get().toFile();
     }
 
-    public static String getPlatform() {
-        return "neoforge";
+    public static ModPlatform getPlatform() {
+        return ModPlatform.NEO_FORGE;
     }
 
     public static boolean isModLoaded(final String id) {

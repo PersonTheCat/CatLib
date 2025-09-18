@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import personthecat.catlib.data.ModDescriptor;
+import personthecat.catlib.util.ModPlatform;
 import personthecat.catlib.versioning.Version;
 
 import java.io.File;
@@ -17,8 +18,8 @@ public final class McUtilsImpl {
         return FabricLoader.getInstance().getConfigDir().toFile();
     }
 
-    public static String getPlatform() {
-        return "fabric";
+    public static ModPlatform getPlatform() {
+        return ModPlatform.FABRIC;
     }
 
     public static boolean isModLoaded(final String id) {
