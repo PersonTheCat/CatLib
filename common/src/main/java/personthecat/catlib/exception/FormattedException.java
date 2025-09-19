@@ -52,7 +52,7 @@ public abstract class FormattedException extends Exception {
 
     @NotNull
     public Component getDetailMessage() {
-        return StackTraceLinter.format(this.readStacktrace());
+        return StackTraceLinter.INSTANCE.lint(this.readStacktrace());
     }
 
     @NotNull

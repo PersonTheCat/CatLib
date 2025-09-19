@@ -2,13 +2,14 @@ package personthecat.catlib.linting;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StackTraceLinter extends SyntaxLinter {
+import static personthecat.catlib.command.CommandUtils.displayOnHover;
 
+public final class StackTraceLinter {
     private static final Pattern AT_PATTERN = Pattern.compile("\\bat\\s", Pattern.MULTILINE);
     private static final Pattern PACKAGE_PATTERN = Pattern.compile("(?<=[\\s/])[a-z]+(\\.[a-z]+)+(?=\\.)", Pattern.MULTILINE);
     private static final Pattern METHOD_PATTERN = Pattern.compile("[\\w$]+(?=\\()", Pattern.MULTILINE);
@@ -16,25 +17,17 @@ public class StackTraceLinter extends SyntaxLinter {
     private static final Pattern LINE_PATTERN = Pattern.compile("(?<=\\()(\\w+\\.\\w+:\\d+)(?=\\))", Pattern.MULTILINE);
     private static final Pattern MESSAGE_PATTERN = Pattern.compile(":\\s(.+)", Pattern.MULTILINE);
 
-    private static final Highlighter[] HIGHLIGHTERS = {
-        new RegexHighlighter(AT_PATTERN, color(ChatFormatting.DARK_GREEN)),
+    public static final Linter INSTANCE = Linter.of(
+        new RegexHighlighter(AT_PATTERN, ChatFormatting.DARK_GREEN),
         new SourceHighlighter(),
-        new RegexHighlighter(PACKAGE_PATTERN, color(ChatFormatting.GRAY)),
-        new RegexHighlighter(METHOD_PATTERN, color(ChatFormatting.GOLD).withItalic(true)),
-        new RegexHighlighter(SPECIAL_METHOD_PATTERN, color(ChatFormatting.GOLD).withItalic(true).withBold(true)),
-        new RegexHighlighter(LINE_PATTERN, color(ChatFormatting.DARK_PURPLE).applyFormat(ChatFormatting.UNDERLINE)),
-        new RegexHighlighter(MESSAGE_PATTERN, color(ChatFormatting.RED))
-    };
+        new RegexHighlighter(PACKAGE_PATTERN, ChatFormatting.GRAY),
+        new RegexHighlighter(METHOD_PATTERN, ChatFormatting.GOLD, ChatFormatting.ITALIC),
+        new RegexHighlighter(SPECIAL_METHOD_PATTERN, ChatFormatting.GOLD, ChatFormatting.BOLD, ChatFormatting.ITALIC),
+        new RegexHighlighter(LINE_PATTERN, ChatFormatting.DARK_PURPLE, ChatFormatting.UNDERLINE),
+        new RegexHighlighter(MESSAGE_PATTERN, ChatFormatting.RED)
+    ).compose(StackTraceLinter::collapsePackages);
 
-    public static final StackTraceLinter INSTANCE = new StackTraceLinter();
-
-    private StackTraceLinter() {
-        super(HIGHLIGHTERS);
-    }
-
-    public static Component format(final String stacktrace) {
-        return INSTANCE.lint(collapsePackages(stacktrace));
-    }
+    private StackTraceLinter() {}
 
     private static String collapsePackages(final String stacktrace) {
         final StringBuilder sb = new StringBuilder(stacktrace.length());
@@ -101,8 +94,10 @@ public class StackTraceLinter extends SyntaxLinter {
 
             @Override
             public Component replacement() {
-                return stc("...").withStyle(color(ChatFormatting.GRAY).withUnderlined(true).withHoverEvent(
-                    new HoverEvent(HoverEvent.Action.SHOW_TEXT, stc(this.matcher.group()))));
+                return Component.literal("...").withStyle(
+                    Style.EMPTY.withColor(ChatFormatting.GRAY)
+                        .withUnderlined(true)
+                        .withHoverEvent(displayOnHover(this.matcher.group())));
             }
         }
     }

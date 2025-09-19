@@ -24,31 +24,31 @@ import java.util.regex.Pattern;
 
 public class TokenHighlighter implements Highlighter {
     private final Function<String, TokenStream> tokenizer;
-    private final Map<TokenType, Style> tokenStyles;
-    private final Map<StringType, Style> stringStyles;
-    private final Map<Pattern, Style> stringPatternStyles;
-    private final Map<CommentStyle, Style> commentStyles;
-    private final Map<Pattern, Style> commentPatternStyles;
-    private final Map<Pattern, Style> wordStyles;
-    private final @Nullable Style keyStyle;
+    private final Map<TokenType, Linter> tokenLinters;
+    private final Map<StringType, Linter> stringLinters;
+    private final Map<Pattern, Linter> stringPatternLinters;
+    private final Map<CommentStyle, Linter> commentLinters;
+    private final Map<Pattern, Linter> commentPatternLinters;
+    private final Map<Pattern, Linter> wordLinters;
+    private final @Nullable Linter keyLinter;
 
     private TokenHighlighter(
             Function<String, TokenStream> tokenizer,
-            Map<TokenType, Style> tokenStyles,
-            Map<StringType, Style> stringStyles,
-            Map<Pattern, Style> stringPatternStyles,
-            Map<CommentStyle, Style> commentStyles,
-            Map<Pattern, Style> commentPatternStyles,
-            Map<Pattern, Style> wordStyles,
-            Style keyStyle) {
+            Map<TokenType, Linter> tokenLinters,
+            Map<StringType, Linter> stringLinters,
+            Map<Pattern, Linter> stringPatternLinters,
+            Map<CommentStyle, Linter> commentLinters,
+            Map<Pattern, Linter> commentPatternLinters,
+            Map<Pattern, Linter> wordLinters,
+            Linter keyLinter) {
         this.tokenizer = tokenizer;
-        this.tokenStyles = tokenStyles;
-        this.stringStyles = stringStyles;
-        this.stringPatternStyles = stringPatternStyles;
-        this.commentStyles = commentStyles;
-        this.commentPatternStyles = commentPatternStyles;
-        this.wordStyles = wordStyles;
-        this.keyStyle = keyStyle;
+        this.tokenLinters = tokenLinters;
+        this.stringLinters = stringLinters;
+        this.stringPatternLinters = stringPatternLinters;
+        this.commentLinters = commentLinters;
+        this.commentPatternLinters = commentPatternLinters;
+        this.wordLinters = wordLinters;
+        this.keyLinter = keyLinter;
     }
 
     public static Builder builder() {
@@ -60,51 +60,51 @@ public class TokenHighlighter implements Highlighter {
         return new Instance(this.tokenizer.apply(text), text);
     }
 
-    private @Nullable Style getStyle(Token token, boolean expectingKey) {
+    private @Nullable Linter getLinter(Token token, boolean expectingKey) {
         final var type = token.type();
-        final var def = this.tokenStyles.get(type);
+        final var def = this.tokenLinters.get(type);
 
         if (type == TokenType.COMMENT) {
             final var s = token.parsed();
-            for (final var e : this.commentPatternStyles.entrySet()) {
+            for (final var e : this.commentPatternLinters.entrySet()) {
                 if (e.getKey().matcher(s).find()) {
                     return e.getValue();
                 }
             }
-            return this.commentStyles.getOrDefault(token.commentStyle(), def);
+            return this.commentLinters.getOrDefault(token.commentStyle(), def);
         }
         if (type == TokenType.STRING || type == TokenType.WORD) {
-            if (expectingKey && this.keyStyle != null) {
-                return this.keyStyle;
+            if (expectingKey && this.keyLinter != null) {
+                return this.keyLinter;
             }
             final var s = token.parsed();
             if (type == TokenType.WORD) {
-                for (final var e : this.wordStyles.entrySet()) {
+                for (final var e : this.wordLinters.entrySet()) {
                     if (e.getKey().matcher(s).find()) {
                         return e.getValue();
                     }
                 }
             }
-            for (final var e : this.stringPatternStyles.entrySet()) {
+            for (final var e : this.stringPatternLinters.entrySet()) {
                 if (e.getKey().matcher(s).find()) {
                     return e.getValue();
                 }
             }
             final var st = type == TokenType.WORD ? StringType.IMPLICIT : token.stringType();
-            return this.stringStyles.getOrDefault(st, def);
+            return this.stringLinters.getOrDefault(st, def);
         }
         return def;
     }
 
     public static class Builder {
         private @NotNull Function<String, TokenStream> tokenizer = DjsTokenizer::stream;
-        private final Map<TokenType, Style> tokenStyles = new HashMap<>();
-        private final Map<StringType, Style> stringStyles = new HashMap<>();
-        private final Map<Pattern, Style> stringPatternStyles = new HashMap<>();
-        private final Map<CommentStyle, Style> commentStyles = new HashMap<>();
-        private final Map<Pattern, Style> commentPatternStyles = new HashMap<>();
-        private final Map<Pattern, Style> wordStyles = new HashMap<>();
-        private @Nullable Style keyStyle;
+        private final Map<TokenType, Linter> tokenLinters = new HashMap<>();
+        private final Map<StringType, Linter> stringLinters = new HashMap<>();
+        private final Map<Pattern, Linter> stringPatternLinters = new HashMap<>();
+        private final Map<CommentStyle, Linter> commentLinters = new HashMap<>();
+        private final Map<Pattern, Linter> commentPatternLinters = new HashMap<>();
+        private final Map<Pattern, Linter> wordLinters = new HashMap<>();
+        private @Nullable Linter keyLinter;
 
         public Builder tokenizer(@NotNull Function<String, TokenStream> tokenizer) {
             this.tokenizer = tokenizer;
@@ -112,78 +112,106 @@ public class TokenHighlighter implements Highlighter {
         }
 
         public Builder token(TokenType type, ChatFormatting... formats) {
-            return this.token(type, Style.EMPTY.applyFormats(formats));
+            return this.token(type, Linter.from(formats));
         }
 
         public Builder token(TokenType type, Style style) {
-            this.tokenStyles.put(type, style);
+            return this.token(type, Linter.from(style));
+        }
+
+        public Builder token(TokenType type, Linter linter) {
+            this.tokenLinters.put(type, linter);
             return this;
         }
 
         public Builder string(Pattern pattern, ChatFormatting... formats) {
-            return this.string(pattern, Style.EMPTY.applyFormats(formats));
+            return this.string(pattern, Linter.from(formats));
         }
 
         public Builder string(Pattern pattern, Style style) {
-            this.stringPatternStyles.put(pattern, style);
+            return this.string(pattern, Linter.from(style));
+        }
+
+        public Builder string(Pattern pattern, Linter linter) {
+            this.stringPatternLinters.put(pattern, linter);
             return this;
         }
 
         public Builder string(StringType type, ChatFormatting... formats) {
-            return this.string(type, Style.EMPTY.applyFormats(formats));
+            return this.string(type, Linter.from(formats));
         }
 
         public Builder string(StringType type, Style style) {
-            this.stringStyles.put(type, style);
+            return this.string(type, Linter.from(style));
+        }
+
+        public Builder string(StringType type, Linter linter) {
+            this.stringLinters.put(type, linter);
             return this;
         }
 
         public Builder comment(CommentStyle cs, ChatFormatting... formats) {
-            return this.comment(cs, Style.EMPTY.applyFormats(formats));
+            return this.comment(cs, Linter.from(formats));
         }
 
         public Builder comment(CommentStyle cs, Style style) {
-            this.commentStyles.put(cs, style);
+            return this.comment(cs, Linter.from(style));
+        }
+
+        public Builder comment(CommentStyle cs, Linter linter) {
+            this.commentLinters.put(cs, linter);
             return this;
         }
 
         public Builder comment(Pattern pattern, ChatFormatting... formats) {
-            return this.comment(pattern, Style.EMPTY.applyFormats(formats));
+            return this.comment(pattern, Linter.from(formats));
         }
 
         public Builder comment(Pattern pattern, Style style) {
-            this.commentPatternStyles.put(pattern, style);
+            return this.comment(pattern, Linter.from(style));
+        }
+
+        public Builder comment(Pattern pattern, Linter linter) {
+            this.commentPatternLinters.put(pattern, linter);
             return this;
         }
 
         public Builder key(ChatFormatting... formats) {
-            return this.key(Style.EMPTY.applyFormats(formats));
+            return this.key(Linter.from(formats));
         }
 
         public Builder key(@Nullable Style style) {
-            this.keyStyle = style;
+            return this.key(Linter.from(style));
+        }
+
+        public Builder key(@Nullable Linter linter) {
+            this.keyLinter = linter;
             return this;
         }
 
         public Builder word(Pattern pattern, ChatFormatting... formats) {
-            return this.word(pattern, Style.EMPTY.applyFormats(formats));
+            return this.word(pattern, Linter.from(formats));
         }
 
         public Builder word(Pattern pattern, Style style) {
-            this.wordStyles.put(pattern, style);
+            return this.word(pattern, Linter.from(style));
+        }
+
+        public Builder word(Pattern pattern, Linter linter) {
+            this.wordLinters.put(pattern, linter);
             return this;
         }
 
         public TokenHighlighter build() {
             return new TokenHighlighter(
                 this.tokenizer,
-                ImmutableMap.copyOf(this.tokenStyles),
-                ImmutableMap.copyOf(this.stringStyles),
-                ImmutableMap.copyOf(this.stringPatternStyles),
-                ImmutableMap.copyOf(this.commentStyles),
-                ImmutableMap.copyOf(this.commentPatternStyles),
-                ImmutableMap.copyOf(this.wordStyles),
-                this.keyStyle);
+                ImmutableMap.copyOf(this.tokenLinters),
+                ImmutableMap.copyOf(this.stringLinters),
+                ImmutableMap.copyOf(this.stringPatternLinters),
+                ImmutableMap.copyOf(this.commentLinters),
+                ImmutableMap.copyOf(this.commentPatternLinters),
+                ImmutableMap.copyOf(this.wordLinters),
+                this.keyLinter);
         }
     }
 
@@ -191,7 +219,7 @@ public class TokenHighlighter implements Highlighter {
         private final Deque<Character> openers = new ArrayDeque<>();
         private final TokenStream.Itr itr;
         private final String text;
-        private @Nullable Style foundStyle;
+        private @Nullable Linter foundLinter;
         private @Nullable Token current;
         private boolean isUnbalanced;
 
@@ -203,15 +231,14 @@ public class TokenHighlighter implements Highlighter {
 
         @Override
         public void next() {
-            this.foundStyle = null;
+            this.foundLinter = null;
             this.current = null;
 
-            while (!this.isUnbalanced && this.foundStyle == null && this.itr.hasNext()) {
+            while (!this.isUnbalanced && this.foundLinter == null && this.itr.hasNext()) {
                 final var next = this.itr.next();
                 final boolean expectingKey = this.expectingKey();
                 this.trackContainers(next);
-                final var style = TokenHighlighter.this.getStyle(next, expectingKey);
-                this.foundStyle = SyntaxLinter.checkStyle(style, this.itr.getIndex());
+                this.foundLinter = TokenHighlighter.this.getLinter(next, expectingKey);
                 this.current = next;
             }
         }
@@ -249,7 +276,7 @@ public class TokenHighlighter implements Highlighter {
 
         @Override
         public boolean found() {
-            return this.foundStyle != null;
+            return this.foundLinter != null;
         }
 
         @Override
@@ -264,15 +291,15 @@ public class TokenHighlighter implements Highlighter {
 
         @Override
         public Component replacement() {
-            return Component.literal(this.current().textOf(this.text)).withStyle(this.currentStyle());
+            return this.currentLinter().lint(this.current().textOf(this.text));
         }
 
         private Token current() {
             return Objects.requireNonNull(this.current, "No such element");
         }
 
-        private Style currentStyle() {
-            return Objects.requireNonNull(this.foundStyle, "No such element");
+        private Linter currentLinter() {
+            return Objects.requireNonNull(this.foundLinter, "No such element");
         }
     }
 }

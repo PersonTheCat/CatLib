@@ -22,8 +22,8 @@ import net.minecraft.world.level.GameType;
 import personthecat.catlib.client.gui.SimpleTextPage;
 import personthecat.catlib.command.arguments.JsonArgument;
 import personthecat.catlib.config.LibConfig;
-import personthecat.catlib.linting.ResourceArrayLinter;
-import personthecat.catlib.linting.SyntaxLinter;
+import personthecat.catlib.linting.Linter;
+import personthecat.catlib.linting.IdListLinter;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.serialization.codec.CodecSupport;
@@ -60,7 +60,6 @@ import static personthecat.catlib.util.PathUtils.noExtension;
 
 
 public final class DefaultLibCommands {
-
     public static final String FILE_ARGUMENT = "file";
     public static final String TO_ARGUMENT = "to";
     public static final String PATH_ARGUMENT = "path";
@@ -167,7 +166,6 @@ public final class DefaultLibCommands {
         return LibCommandBuilder.named("debug")
             .arguments("<registry> [<item>]")
             .append("Dumps registry details to the chat")
-            .linter(ResourceArrayLinter.class)
             .generate((builder, utl) ->
                 builder.executes(utl.wrap(DefaultLibCommands::debug))
                     .then(registryArg(REGISTRY_ARGUMENT, DynamicRegistries.rootKey())
@@ -319,18 +317,18 @@ public final class DefaultLibCommands {
             Component.literal(f(DISPLAY_HEADER, header)).setStyle(DISPLAY_HEADER_STYLE);
 
         final String details = json.trim().toString(XjsUtils.noCr());
-        final Component detailsComponent = wrapper.lintMessage(details);
+        final Component detailsComponent = Linter.DJS.lint(details);
 
         final long numLines = details.chars().filter(c -> c == '\n').count();
         if (McUtils.isClientSide() && numLines >= LibConfig.displayLength()) {
             loadTextPage(wrapper, headerComponent, detailsComponent);
             return;
         }
-        wrapper.generateMessage("")
-            .append(headerComponent)
-            .append("\n")
-            .append(detailsComponent)
-            .sendMessage();
+        wrapper.sendMessage(
+            Component.empty()
+                .append(headerComponent)
+                .append("\n")
+                .append(detailsComponent));
     }
 
     @Environment(EnvType.CLIENT)
@@ -357,13 +355,13 @@ public final class DefaultLibCommands {
         XjsUtils.writeJson(file.json.get(), file.file)
             .expect("Error writing to file: {}", file.file.getName());
 
-        wrapper.generateMessage("Successfully updated {}.\n", file.file.getName())
-            .append(fromLiteral.replace("\r", ""), DELETED_VALUE_STYLE)
-            .append(" -> ")
-            .append(toLiteral, REPLACED_VALUE_STYLE)
-            .append(" ")
-            .append(generateUndo(wrapper.getInput(), fromEscaped, toEscaped))
-            .sendMessage();
+        wrapper.sendMessage(
+            Component.literal(f("Successfully updated {}.\n", file.file.getName()))
+                .append(Component.literal(fromLiteral.replace("\r", "")).withStyle(DELETED_VALUE_STYLE))
+                .append(" -> ")
+                .append(Component.literal(toLiteral).withStyle(REPLACED_VALUE_STYLE))
+                .append(" ")
+                .append(generateUndo(wrapper.getInput(), fromEscaped, toEscaped)));
     }
 
     private static Component generateUndo(final String input, final String from, final String to) {
@@ -502,7 +500,8 @@ public final class DefaultLibCommands {
         }
         final ResourceLocation id = wrapper.getOptional(ITEM_ARGUMENT, ResourceLocation.class).orElse(null);
         if (id == null) {
-            wrapper.sendLintedMessage(Arrays.toString(handle.keySet().toArray()));
+            final var text = Arrays.toString(handle.keySet().toArray());
+            wrapper.sendMessage(IdListLinter.INSTANCE.lint(text));
             return;
         }
         final Object item = handle.lookup(id);
@@ -512,7 +511,7 @@ public final class DefaultLibCommands {
         }
         final String s = CodecSupport.anyToString(item);
         if (s != null) {
-            wrapper.sendMessage(SyntaxLinter.DEFAULT_LINTER.lint(s.replaceAll("\r\n", "\n")));
+            wrapper.sendMessage(Linter.DJS.lint(s.replaceAll("\r\n", "\n")));
         } else {
             wrapper.sendMessage(item.toString());
         }

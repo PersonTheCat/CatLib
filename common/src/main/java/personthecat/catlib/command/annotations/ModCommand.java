@@ -5,7 +5,6 @@ import net.fabricmc.api.Environment;
 import personthecat.catlib.command.CommandContextWrapper;
 import personthecat.catlib.command.CommandSide;
 import personthecat.catlib.command.CommandType;
-import personthecat.catlib.linting.SyntaxLinter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -170,17 +169,6 @@ public @interface ModCommand {
      * help entry for this command.
      */
     String[] description() default {};
-
-    /**
-     * An optional linter used to highlight text output in the chat. If a linter
-     * is not provided, the default {@link SyntaxLinter} instance will be used
-     * instead. Note that your output messages will not be linted automatically.
-     * <p>
-     *   You must call a variant of {@link CommandContextWrapper#sendLintedMessage}
-     *   to take advantage of the feature.
-     * </p>
-     */
-    Class<? extends SyntaxLinter>[] linter() default {};
 
     /**
      * An array of command node descriptors used for generating {@link ArgumentBuilder}s.

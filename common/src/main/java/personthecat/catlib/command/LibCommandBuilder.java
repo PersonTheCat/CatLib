@@ -10,8 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.McUtils;
-import personthecat.catlib.linting.SyntaxLinter;
-import personthecat.catlib.util.unsafe.CachingReflectionHelper;
 import personthecat.fresult.Result;
 
 import java.lang.reflect.InvocationTargetException;
@@ -102,9 +100,6 @@ public record LibCommandBuilder(
         private CommandSide side;
 
         @Nullable
-        private SyntaxLinter linter;
-
-        @Nullable
         private ModDescriptor mod;
 
         private Template(final String name) {
@@ -179,29 +174,6 @@ public record LibCommandBuilder(
         }
 
         /**
-         * An optional linter which can be used to highlight text in the chat.
-         * This will be provided to the exit nodes via {@link CommandContextWrapper}.
-         *
-         * @param linter The syntax highlighter used by the context wrapper.
-         * @return <code>this</code>, for method chaining.
-         */
-        public Template linter(final SyntaxLinter linter) {
-            this.linter = linter;
-            return this;
-        }
-
-        /**
-         * Variant of {@link #linter(SyntaxLinter)} accepting the type of linter
-         * to use.
-         *
-         * @param clazz The type of syntax linter to use.
-         * @return <code>this</code>, for method chaining.
-         */
-        public Template linter(final Class<? extends SyntaxLinter> clazz) {
-            return this.linter(CachingReflectionHelper.tryInstantiate(clazz));
-        }
-
-        /**
          * Configures this command's mod descriptor which will be used by the
          * registration context and certain argument types to provide a customized
          * experience to the command function.
@@ -241,13 +213,12 @@ public record LibCommandBuilder(
          */
         public LibCommandBuilder generate(final CommandGenerator<CommandSourceStack> generator) {
             if (this.mod == null) this.mod = CommandRegistrationContext.getActiveModOrThrow();
-            if (this.linter == null) this.linter = this.mod.defaultLinter();
 
             final LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal(this.name);
             final HelpCommandInfo helpInfo = new HelpCommandInfo(this.name, this.arguments, this.description, this.type);
 
             if (this.side.canRegister(McUtils.isDedicatedServer())) {
-                final BuilderUtil util = new BuilderUtil(this.wrappers, this.linter, this.mod);
+                final BuilderUtil util = new BuilderUtil(this.wrappers, this.mod);
                 return new LibCommandBuilder(generator.apply(builder, util), helpInfo, this.type, this.side);
             }
             return new LibCommandBuilder(builder, helpInfo, this.type, this.side);
@@ -256,17 +227,17 @@ public record LibCommandBuilder(
 
     private static class CommandMapBuilder extends HashMap<String, CommandFunction> {}
 
-    public record BuilderUtil(Map<String, CommandFunction> map, SyntaxLinter linter, ModDescriptor mod) {
+    public record BuilderUtil(Map<String, CommandFunction> map, ModDescriptor mod) {
 
         public Command<CommandSourceStack> get(final String key) {
             final CommandFunction fn = this.map.get(key);
             Objects.requireNonNull(fn, "No command function for key: " + key);
 
-            return ctx -> this.wrapCommand(new CommandContextWrapper(ctx, this.linter, this.mod), fn);
+            return ctx -> this.wrapCommand(new CommandContextWrapper(ctx, this.mod), fn);
         }
 
         public Command<CommandSourceStack> wrap(final CommandFunction fn) {
-            return ctx -> this.wrapCommand(new CommandContextWrapper(ctx, this.linter, this.mod), fn);
+            return ctx -> this.wrapCommand(new CommandContextWrapper(ctx, this.mod), fn);
         }
 
         private int wrapCommand(final CommandContextWrapper wrapper, final CommandFunction fn) {

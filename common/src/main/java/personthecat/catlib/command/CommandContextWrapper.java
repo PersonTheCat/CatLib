@@ -14,7 +14,6 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -31,7 +30,6 @@ import personthecat.catlib.event.lifecycle.ClientTickEvent;
 import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.exception.CommandExecutionException;
-import personthecat.catlib.linting.SyntaxLinter;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 
@@ -44,8 +42,7 @@ import java.util.function.Supplier;
 import static personthecat.catlib.util.LibUtil.f;
 
 @Log4j2
-public record CommandContextWrapper(
-        CommandContext<CommandSourceStack> ctx, SyntaxLinter linter, ModDescriptor mod) {
+public record CommandContextWrapper(CommandContext<CommandSourceStack> ctx, ModDescriptor mod) {
 
     public String getString(final String key) {
         return this.get(key, String.class);
@@ -142,10 +139,6 @@ public record CommandContextWrapper(
         this.ctx.getSource().sendSuccess(supplier, true);
     }
 
-    public void sendLintedMessage(final String message) {
-        this.sendMessage(this.linter.lint(message));
-    }
-
     public void sendError(final String msg) {
         this.ctx.getSource().sendFailure(Component.literal(msg));
     }
@@ -160,34 +153,6 @@ public record CommandContextWrapper(
 
     public void sendError(final Component msg) {
         this.ctx.getSource().sendFailure(msg);
-    }
-
-    public PendingMessageWrapper generateMessage(final String msg) {
-        return new PendingMessageWrapper(this, Component.literal(msg));
-    }
-
-    public PendingMessageWrapper generateMessage() {
-        return new PendingMessageWrapper(this, Component.empty());
-    }
-
-    public PendingMessageWrapper generateMessage(final String msg, final Object... args) {
-        return this.generateMessage(f(msg, args));
-    }
-
-    public PendingMessageWrapper generateMessage(final String msg, final Style style) {
-        return new PendingMessageWrapper(this, Component.literal(msg).setStyle(style));
-    }
-
-    public PendingMessageWrapper generateMessage(final MutableComponent component) {
-        return new PendingMessageWrapper(this, component);
-    }
-
-    public Component lintMessage(final String msg) {
-        return this.linter.lint(msg);
-    }
-
-    public Component lintMessage(final String msg, final Object... args) {
-        return this.linter.lint(f(msg, args));
     }
 
     @Environment(EnvType.CLIENT)

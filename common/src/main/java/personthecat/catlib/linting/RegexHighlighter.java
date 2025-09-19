@@ -1,10 +1,10 @@
 package personthecat.catlib.linting;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import org.intellij.lang.annotations.RegExp;
-import personthecat.catlib.command.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,20 +17,24 @@ import java.util.regex.Pattern;
  */
 public class RegexHighlighter implements Highlighter {
     private final Pattern pattern;
-    private final @Nullable Style style;
+    private final Linter linter;
     private final boolean useGroups;
 
-    public RegexHighlighter(final @RegExp String pattern, final @Nullable Style style) {
-        this(Pattern.compile(pattern, Pattern.MULTILINE), style);
+    public RegexHighlighter(final Pattern pattern, final ChatFormatting... formats) {
+        this(pattern, Linter.from(formats));
     }
 
-    public RegexHighlighter(final Pattern pattern, final @Nullable Style style) {
-        this(pattern, style, false);
+    public RegexHighlighter(final Pattern pattern, final Style style) {
+        this(pattern, Linter.from(style));
     }
 
-    public RegexHighlighter(final Pattern pattern, final @Nullable Style style, final boolean useGroups) {
+    public RegexHighlighter(final Pattern pattern, final Linter linter) {
+        this(pattern, linter, false);
+    }
+
+    public RegexHighlighter(final Pattern pattern, final Linter linter, final boolean useGroups) {
         this.pattern = pattern;
-        this.style = style;
+        this.linter = Objects.requireNonNull(linter);
         this.useGroups = useGroups;
     }
 
@@ -45,7 +49,6 @@ public class RegexHighlighter implements Highlighter {
         final int groups;
         boolean found;
         int group;
-        int m;
 
         public RegexHighlighterInstance(final String text) {
             this.matcher = pattern.matcher(text);
@@ -53,7 +56,6 @@ public class RegexHighlighter implements Highlighter {
             this.groups = useGroups ? matcher.groupCount() : 0;
             this.found = matcher.find();
             this.group = found && groups > 0 ? 1 : 0;
-            this.m = 0;
         }
 
         @Override
@@ -62,9 +64,6 @@ public class RegexHighlighter implements Highlighter {
                 this.group++;
             } else {
                 this.found = this.matcher.find();
-                if (this.found) {
-                    this.m++;
-                }
             }
         }
 
@@ -85,11 +84,7 @@ public class RegexHighlighter implements Highlighter {
 
         @Override
         public Component replacement() {
-            return Component.literal(this.text.substring(this.start(), this.end())).setStyle(this.getStyle());
-        }
-
-        private Style getStyle() {
-            return SyntaxLinter.checkStyle(RegexHighlighter.this.style, this.m);
+            return RegexHighlighter.this.linter.lint(this.text.substring(this.start(), this.end()));
         }
     }
 }

@@ -5,7 +5,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.McUtils;
-import personthecat.catlib.linting.SyntaxLinter;
 import personthecat.catlib.versioning.Version;
 
 import java.io.File;
@@ -47,8 +46,7 @@ public record ModDescriptor(
     File configFolder,
     File configFile,
     File backupFolder,
-    @Nullable File preferredDirectory,
-    SyntaxLinter defaultLinter) {
+    @Nullable File preferredDirectory) {
 
     private static final Map<String, ModDescriptor> DESCRIPTORS = new ConcurrentHashMap<>();
 
@@ -74,9 +72,8 @@ public record ModDescriptor(
             if (this.configFolder == null) this.configFolder = new File(McUtils.getConfigDir(), this.modId);
             if (this.configFile == null) this.configFile = new File(McUtils.getConfigDir(), this.modId + ".djs");
             if (this.backupFolder == null) this.backupFolder = new File(this.configFolder, "backups");
-            if (this.defaultLinter == null) this.defaultLinter = SyntaxLinter.DEFAULT_LINTER;
 
-            return new ModDescriptor(name, modId, version, commandPrefix, configFolder, configFile, backupFolder, preferredDirectory, defaultLinter);
+            return new ModDescriptor(name, modId, version, commandPrefix, configFolder, configFile, backupFolder, preferredDirectory);
         }
 
         public ModDescriptor buildAndRegister() {

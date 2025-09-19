@@ -1,10 +1,9 @@
 package personthecat.catlib.exception;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import personthecat.catlib.linting.IdLinter;
 import personthecat.catlib.serialization.codec.context.DecodeContext;
 
 public class DetailedDataLoadException extends FormattedException {
@@ -33,28 +32,14 @@ public class DetailedDataLoadException extends FormattedException {
 
     @Override
     public @NotNull Component getDisplayMessage() {
-        return Component.translatable(DATA_ENTRY_DISPLAY_ERROR, this.formatKey());
+        return Component.translatable(DATA_ENTRY_DISPLAY_ERROR, IdLinter.lint(this.key));
     }
 
     @Override
     public @NotNull Component getDetailMessage() {
         return Component.empty()
-            .append(Component.translatable(DATA_ENTRY_DETAIL_ERROR, this.formatKey()))
+            .append(Component.translatable(DATA_ENTRY_DETAIL_ERROR, IdLinter.lint(this.key)))
             .append("\n\n")
             .append(this.ctx.render());
-    }
-
-    private Component formatKey() {
-        return Component.empty()
-            .append(this.formatId(this.key.registry()))
-            .append(Component.literal(" -> ").withStyle(ChatFormatting.DARK_GRAY))
-            .append(this.formatId(this.key.location()));
-    }
-
-    private Component formatId(ResourceLocation id) {
-        return Component.empty()
-            .append(Component.literal(id.getNamespace()).withStyle(ChatFormatting.AQUA))
-            .append(":")
-            .append(Component.literal(id.getPath()).withStyle(ChatFormatting.GREEN));
     }
 }

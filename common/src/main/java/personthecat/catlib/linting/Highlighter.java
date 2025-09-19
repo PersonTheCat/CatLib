@@ -26,13 +26,9 @@ public interface Highlighter {
      */
     interface Instance {
         void next();
-
         boolean found();
-
         int start();
-
         int end();
-
         Component replacement();
     }
 }

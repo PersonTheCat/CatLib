@@ -5,8 +5,6 @@ import net.minecraft.network.chat.Style;
 
 import java.util.BitSet;
 
-import static personthecat.catlib.linting.SyntaxLinter.error;
-
 /**
  * A simple highlighter used for locating any unclosed or unexpected container
  * elements. These characters will be highlighted in red and underlined with a
@@ -23,8 +21,8 @@ import static personthecat.catlib.linting.SyntaxLinter.error;
  */
 public class UnbalancedTokenHighlighter implements Highlighter {
     public static final UnbalancedTokenHighlighter INSTANCE = new UnbalancedTokenHighlighter();
-    private static final Style UNCLOSED_ERROR = error("catlib.errorText.unclosed");
-    private static final Style UNEXPECTED_ERROR = error("catlib.errorText.unclosed");
+    private static final Style UNCLOSED_ERROR = Linter.error("catlib.errorText.unclosed");
+    private static final Style UNEXPECTED_ERROR = Linter.error("catlib.errorText.unclosed");
 
     private UnbalancedTokenHighlighter() {}
 
@@ -149,7 +147,7 @@ public class UnbalancedTokenHighlighter implements Highlighter {
             final int start = this.start();
             final char c = this.text.charAt(start);
             final Style style = start == this.unclosedIndex ? UNCLOSED_ERROR : UNEXPECTED_ERROR;
-            return SyntaxLinter.stc(String.valueOf(c)).withStyle(style);
+            return Component.literal(String.valueOf(c)).withStyle(style);
         }
     }
 }
