@@ -136,19 +136,19 @@ public final class DecodeContextRenderer {
     }
 
     private static Component renderData(Object data) {
-        if (data instanceof JsonElement e) { // gson
-            final var sw = new StringWriter();
-            final var writer = new JsonWriter(sw);
-            writer.setLenient(true);
-            writer.setIndent("  ");
-            try {
-                Streams.write(e, writer);
-            } catch (IOException ignored) { /* unreachable */ }
-            return SyntaxLinter.DEFAULT_LINTER.lint(sw.toString());
-        } else if (data instanceof JsonValue v) { // xjs
-            return SyntaxLinter.DEFAULT_LINTER.lint(v.toString(JsonFormat.JSON_FORMATTED));
-        }
         try {
+            if (data instanceof JsonElement e) { // gson
+                final var sw = new StringWriter();
+                final var writer = new JsonWriter(sw);
+                writer.setLenient(true);
+                writer.setIndent("  ");
+                try {
+                    Streams.write(e, writer);
+                } catch (IOException ignored) { /* unreachable */ }
+                return SyntaxLinter.DEFAULT_LINTER.lint(sw.toString());
+            } else if (data instanceof JsonValue v) { // xjs
+                return SyntaxLinter.DEFAULT_LINTER.lint(v.toString(JsonFormat.JSON_FORMATTED));
+            }
             final var s = new GsonBuilder().setPrettyPrinting().setLenient().create().toJson(data);
             return SyntaxLinter.DEFAULT_LINTER.lint(s);
         } catch (Exception e) {

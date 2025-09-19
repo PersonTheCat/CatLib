@@ -8,10 +8,12 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LibMenu extends Screen {
+    protected static final ResourceLocation MENU_LIST_BACKGROUND = new ResourceLocation("textures/gui/menu_list_background.png");
 
     protected static final int Y0 = 35;
     protected static final int Y1 = 50;
@@ -72,7 +74,7 @@ public class LibMenu extends Screen {
     @Override
     protected void renderMenuBackground(GuiGraphics graphics) {
         RenderSystem.enableBlend();
-        graphics.blit(MENU_BACKGROUND, 0, Y0, this.width, this.menuHeight(), this.width, this.menuHeight(), 32, 32);
+        graphics.blit(MENU_LIST_BACKGROUND, 0, Y0, this.width, this.menuHeight(), this.width, this.menuHeight(), 32, 32);
         RenderSystem.disableBlend();
     }
 
