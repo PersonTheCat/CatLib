@@ -8,7 +8,6 @@ import xjs.data.serialization.token.TokenType;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
@@ -88,8 +87,8 @@ public interface Linter {
      * @return A new {@link Linter linter} with background applied.
      */
     default Linter withBackground(Style style) {
-        final var rand = new Random(1234); // not supposed to be random, but a sequence
-        return this.andThen(c -> Component.empty().withStyle(Colors.get(style, rand.nextInt())));
+        final var supplier = Colors.getter(style);
+        return this.andThen(c -> Component.empty().withStyle(supplier.get()));
     }
 
     /**
@@ -139,8 +138,8 @@ public interface Linter {
      * @return A function which generates a {@link Component component} from text.
      */
     static Linter from(Style style) {
-        final var rand = new Random(1234); // not supposed to be random, but a sequence
-        return text -> Component.literal(text).withStyle(Colors.get(style, rand.nextInt()));
+        final var supplier = Colors.getter(style);
+        return text -> Component.literal(text).withStyle(supplier.get());
     }
 
     /**

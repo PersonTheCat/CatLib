@@ -39,18 +39,18 @@ public class RegexHighlighter implements Highlighter {
     }
 
     @Override
-    public Instance get(final String text) {
-        return new RegexHighlighterInstance(text);
+    public Highlighter.Instance get(final String text) {
+        return new Instance(text);
     }
 
-    public class RegexHighlighterInstance implements Instance {
+    private class Instance implements Highlighter.Instance {
         final Matcher matcher;
         final String text;
         final int groups;
         boolean found;
         int group;
 
-        public RegexHighlighterInstance(final String text) {
+        private Instance(final String text) {
             this.matcher = pattern.matcher(text);
             this.text = text;
             this.groups = useGroups ? matcher.groupCount() : 0;

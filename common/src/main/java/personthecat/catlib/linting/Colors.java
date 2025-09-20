@@ -3,10 +3,13 @@ package personthecat.catlib.linting;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Style;
 
-final class Colors {
-    public static final Style STYLE = Style.EMPTY.applyFormats();
+import java.util.Random;
+import java.util.function.Supplier;
 
-    private static final Style[] COLORS = {
+final class Colors {
+    static final Style STYLE = Style.EMPTY.applyFormats();
+
+    static final Style[] COLORS = {
         color(ChatFormatting.YELLOW),
         color(ChatFormatting.GREEN),
         color(ChatFormatting.AQUA),
@@ -22,7 +25,9 @@ final class Colors {
         return Style.EMPTY.withColor(color);
     }
 
-    static Style get(final Style style, int idx) {
-        return style != STYLE ? style : COLORS[idx % COLORS.length];
+    static Supplier<Style> getter(final Style style) {
+        if (style != STYLE) return () -> style;
+        final var rand = new Random(1234); // not supposed to be random, but a sequence
+        return () -> COLORS[rand.nextInt() % COLORS.length];
     }
 }

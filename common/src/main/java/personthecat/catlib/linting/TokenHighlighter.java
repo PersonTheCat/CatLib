@@ -56,7 +56,7 @@ public class TokenHighlighter implements Highlighter {
     }
 
     @Override
-    public Instance get(String text) {
+    public Highlighter.Instance get(String text) {
         return new Instance(this.tokenizer.apply(text), text);
     }
 
@@ -215,7 +215,7 @@ public class TokenHighlighter implements Highlighter {
         }
     }
 
-    public class Instance implements Highlighter.Instance {
+    private class Instance implements Highlighter.Instance {
         private final Deque<Character> openers = new ArrayDeque<>();
         private final TokenStream.Itr itr;
         private final String text;

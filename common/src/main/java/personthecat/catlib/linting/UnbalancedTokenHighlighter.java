@@ -27,18 +27,18 @@ public class UnbalancedTokenHighlighter implements Highlighter {
     private UnbalancedTokenHighlighter() {}
 
     @Override
-    public Instance get(final String text) {
-        return new UnbalancedTokenHighlighterInstance(text);
+    public Highlighter.Instance get(final String text) {
+        return new Instance(text);
     }
 
-    public static class UnbalancedTokenHighlighterInstance implements Instance {
+    private static class Instance implements Highlighter.Instance {
         final BitSet unclosed = new BitSet();
         final BitSet unexpected = new BitSet();
         int unclosedIndex = 0;
         int unexpectedIndex = 0;
         final String text;
 
-        public UnbalancedTokenHighlighterInstance(final String text) {
+        private Instance(final String text) {
             this.text = text;
             this.resolveErrors();
             this.next();
