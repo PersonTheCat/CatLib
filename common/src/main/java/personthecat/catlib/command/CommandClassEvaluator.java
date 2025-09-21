@@ -38,6 +38,7 @@ import personthecat.fresult.functions.ThrowingBiConsumer;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -64,7 +65,8 @@ public class CommandClassEvaluator {
 
     private static final Mapping<?, ?>[] AUTOMATIC_MAPPINGS = {
         new Mapping<>(BlockInput.class, BlockState.class, BlockInput::getState),
-        new Mapping<>(ItemInput.class, Item.class, ItemInput::getItem)
+        new Mapping<>(ItemInput.class, Item.class, ItemInput::getItem),
+        new Mapping<>(File.class, Path.class, File::toPath),
     };
 
     private final List<LibCommandBuilder> builders;
@@ -281,8 +283,8 @@ public class CommandClassEvaluator {
             return new ArgumentDescriptor<>(BoolArgumentType.bool());
         } else if (String.class.isAssignableFrom(type) && (node == null || node.stringValue().length == 0)) {
             return new ArgumentDescriptor<>(StringArgumentType.string());
-        } else if (File.class.isAssignableFrom(type)) {
-            return new ArgumentDescriptor<>(new FileArgument(this.mod.configFolder(), false));
+        } else if (Path.class.isAssignableFrom(type) || File.class.isAssignableFrom(type)) {
+            return new ArgumentDescriptor<>(new FileArgument(this.mod.configFolder()));
         } else if (type.isEnum()) {
             return new ArgumentDescriptor<>(EnumArgument.of((Class) type));
         }

@@ -37,12 +37,17 @@ import personthecat.catlib.util.PathUtils;
 import xjs.data.Json;
 import xjs.data.JsonObject;
 import xjs.data.JsonValue;
+import xjs.data.serialization.JsonContext;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.minecraft.commands.Commands.literal;
 import static personthecat.catlib.command.LibSuggestions.CURRENT_JSON;
@@ -312,11 +317,15 @@ public final class DefaultLibCommands {
             .flatMap(result -> XjsUtils.getValueFromPath(file.json.get(), result))
             .orElseGet(file.json);
 
-        final String header = file.file.getParentFile().getName() + "/" + file.file.getName();
+        final String header = file.file.getParent().getFileName() + "/" + file.file.getFileName();
         final Component headerComponent =
             Component.literal(f(DISPLAY_HEADER, header)).setStyle(DISPLAY_HEADER_STYLE);
 
-        final String details = json.trim().toString(XjsUtils.noCr());
+        String details = "";
+        try {
+            details = JsonContext.getWriter(extension(file.file)).stringify(json.trim(), XjsUtils.noCr());
+        } catch (IOException ignored) {}
+
         final Component detailsComponent = Linter.DJS.lint(details);
 
         final long numLines = details.chars().filter(c -> c == '\n').count();
@@ -352,11 +361,10 @@ public final class DefaultLibCommands {
 
         // Write the new value.
         XjsUtils.setValueFromPath(file.json.get(), path, toValue.isNull() ? null : toValue);
-        XjsUtils.writeJson(file.json.get(), file.file)
-            .expect("Error writing to file: {}", file.file.getName());
+        XjsUtils.writeJson(file.json.get(), file.file);
 
         wrapper.sendMessage(
-            Component.literal(f("Successfully updated {}.\n", file.file.getName()))
+            Component.literal(f("Successfully updated {}.\n", file.file.getFileName()))
                 .append(Component.literal(fromLiteral.replace("\r", "")).withStyle(DELETED_VALUE_STYLE))
                 .append(" -> ")
                 .append(Component.literal(toLiteral).withStyle(REPLACED_VALUE_STYLE))
@@ -389,19 +397,17 @@ public final class DefaultLibCommands {
     }
 
     private static void copy(final CommandContextWrapper wrapper) {
-        FileIO.copy(wrapper.getFile(FILE_ARGUMENT), wrapper.getFile(DIRECTORY_ARGUMENT))
-            .expect("The file could not be copied.");
+        FileIO.copy(wrapper.getFile(FILE_ARGUMENT), wrapper.getFile(DIRECTORY_ARGUMENT));
         wrapper.sendMessage("File copied successfully.");
     }
 
     private static void move(final CommandContextWrapper wrapper) {
-        FileIO.move(wrapper.getFile(FILE_ARGUMENT), wrapper.getFile(DIRECTORY_ARGUMENT))
-            .expect("The file could not be moved.");
+        FileIO.move(wrapper.getFile(FILE_ARGUMENT), wrapper.getFile(DIRECTORY_ARGUMENT));
         wrapper.sendMessage("File moved successfully.");
     }
 
     private static void delete(final CommandContextWrapper wrapper) {
-        final File file = wrapper.getFile(FILE_ARGUMENT);
+        final Path file = wrapper.getFile(FILE_ARGUMENT);
         if (PathUtils.isIn(wrapper.getMod().backupFolder(), file)) {
             FileIO.delete(file);
             wrapper.sendMessage("File deleted successfully.");
@@ -412,16 +418,13 @@ public final class DefaultLibCommands {
     }
 
     private static void clean(final CommandContextWrapper wrapper) {
-        final Optional<File> directory = wrapper.getOptional(DIRECTORY_ARGUMENT, File.class)
-            .filter(dir -> !dir.equals(wrapper.getMod().backupFolder()));
+        final Optional<Path> directory = wrapper.getOptional(DIRECTORY_ARGUMENT, Path.class)
+            .filter(dir -> !FileIO.isSameFile(dir, wrapper.getMod().backupFolder()));
         if (directory.isPresent()) {
-            final File dir = directory.get();
-            if (dir.isFile()) {
-                if (!dir.delete()) {
-                    wrapper.sendError("Error deleting {}", dir.getName());
-                } else {
-                    wrapper.sendMessage("Deleted {}", dir.getName());
-                }
+            final Path dir = directory.get();
+            if (Files.isRegularFile(dir)) {
+                FileIO.delete(dir);
+                wrapper.sendMessage("Deleted {}", dir.getFileName());
             } else {
                 cleanFiles(wrapper, dir);
             }
@@ -430,7 +433,7 @@ public final class DefaultLibCommands {
         }
     }
 
-    private static void cleanFiles(final CommandContextWrapper wrapper, final File dir) {
+    private static void cleanFiles(final CommandContextWrapper wrapper, final Path dir) {
         final int deleted = deleteNotRecursive(dir);
         if (deleted < 0) {
             wrapper.sendError("Some files could not be deleted.");
@@ -439,25 +442,32 @@ public final class DefaultLibCommands {
         }
     }
 
-    private static int deleteNotRecursive(final File dir) {
-        int deleted = 0;
-        for (final File f : FileIO.listFiles(dir)) {
-            if (f.isFile() && !f.delete()) {
-                return -1;
-            }
-            deleted++;
+    private static int deleteNotRecursive(final Path dir) {
+        final AtomicInteger deleted = new AtomicInteger();
+        try {
+            FileIO.forEach(dir, f -> {
+                if (Files.isRegularFile(f)) {
+                    FileIO.delete(f);
+                    deleted.incrementAndGet();
+                }
+            });
+        } catch (final UncheckedIOException e) {
+            return -1;
         }
-        return deleted;
+        return deleted.get();
     }
 
     private static void rename(final CommandContextWrapper wrapper) {
-        FileIO.rename(wrapper.getFile(FILE_ARGUMENT), wrapper.getString(NAME_ARGUMENT))
-            .expect("Error renaming file.");
+        FileIO.rename(wrapper.getFile(FILE_ARGUMENT), wrapper.getString(NAME_ARGUMENT));
         wrapper.sendMessage("File renamed successfully.");
     }
 
     private static void open(final CommandContextWrapper wrapper) {
-        Util.getPlatform().openFile(wrapper.getFile(FILE_ARGUMENT));
+        final var file = wrapper.getFile(FILE_ARGUMENT);
+        if (!Files.exists(file)) {
+            XjsUtils.writeJson(Json.object(), file);
+        }
+        Util.getPlatform().openUri(file.toUri());
     }
 
     private static void combine(final CommandContextWrapper wrapper) {
@@ -572,8 +582,8 @@ public final class DefaultLibCommands {
     }
 
     private static void convert(final CommandContextWrapper wrapper, final boolean toJson) {
-        final File source = wrapper.getFile(FILE_ARGUMENT);
-        if (!source.exists()) {
+        final Path source = wrapper.getFile(FILE_ARGUMENT);
+        if (!Files.exists(source)) {
             wrapper.sendError("Found not found.");
             return;
         }
@@ -587,8 +597,8 @@ public final class DefaultLibCommands {
             return;
         }
         final String extension = toJson ? "json" : "djs";
-        final File converted = new File(source.getParentFile(), noExtension(source) + extension);
-        XjsUtils.writeJson(json.get(), converted).expect("Error writing file.");
+        final Path converted = source.resolveSibling(noExtension(source) + extension);
+        XjsUtils.writeJson(json.get(), converted);
 
         if (!PathUtils.isIn(wrapper.getMod().backupFolder(), source)) {
             FileIO.backup(wrapper.getMod().backupFolder(), source, false);

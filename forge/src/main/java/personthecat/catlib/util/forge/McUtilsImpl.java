@@ -5,14 +5,14 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.forgespi.Environment;
 
-import java.io.File;
+import java.nio.files.Path;
 
 public class McUtilsImpl {
 
     private McUtilsImpl() {}
 
-    public static File getConfigDir() {
-        return FMLPaths.CONFIGDIR.get().toFile();
+    public static Path getConfigDir() {
+        return FMLPaths.CONFIGDIR.get();
     }
 
     public static String getPlatform() {

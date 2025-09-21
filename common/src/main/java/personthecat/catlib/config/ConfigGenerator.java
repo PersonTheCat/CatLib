@@ -101,6 +101,10 @@ public abstract class ConfigGenerator {
         this.error(new ValueException(message, this.filename(), value));
     }
 
+    protected void error(ConfigValue value, String message, Throwable cause) {
+        this.error(new ValueException(message, this.filename(), value, cause));
+    }
+
     protected void error(FormattedException e) {
         LibErrorContext.error(this.mod, e);
     }

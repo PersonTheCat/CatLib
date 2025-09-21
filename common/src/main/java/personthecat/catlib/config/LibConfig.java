@@ -108,7 +108,7 @@ public class LibConfig implements Config.Listener {
         @Range(min = 0)
         @Comment("How many lines for the display command to render in the chat before opening a\n" +
                 "dedicated screen. Set this to 0 to always open a screen.")
-        int displayLength = 35;
+        int displayLength = 20;
 
         @Comment("The default number of characters per line on generated help pages.")
         int defaultUsageLineLength = 60;

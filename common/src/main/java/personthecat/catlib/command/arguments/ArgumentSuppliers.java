@@ -8,6 +8,8 @@ import personthecat.catlib.command.annotations.ModCommand;
 import personthecat.catlib.command.LibSuggestions;
 import personthecat.catlib.data.ModDescriptor;
 
+import java.nio.file.Path;
+
 import static personthecat.catlib.command.CommandRegistrationContext.getActiveModOrThrow;
 
 /**
@@ -24,32 +26,12 @@ public final class ArgumentSuppliers {
     private ArgumentSuppliers() {}
 
     /**
-     * Provides a {@link FileArgument} with the current mod's config folder as the root.
-     */
-    public static class RecursiveFile implements ArgumentSupplier<java.io.File> {
-        public ArgumentDescriptor<java.io.File> get() {
-            final ModDescriptor mod = getActiveModOrThrow();
-            return new ArgumentDescriptor<>(new FileArgument(mod.configFolder(), mod.preferredDirectory()));
-        }
-    }
-
-    /**
      * Provides a {@link FileArgument} which does not search recursively.
      */
-    public static class File implements ArgumentSupplier<java.io.File> {
-        public ArgumentDescriptor<java.io.File> get() {
+    public static class File implements ArgumentSupplier<Path> {
+        public ArgumentDescriptor<Path> get() {
             final ModDescriptor mod = getActiveModOrThrow();
-            return new ArgumentDescriptor<>(new FileArgument(mod.configFolder(), false));
-        }
-    }
-
-    /**
-     * Provides an {@link JsonArgument} with the current mod's config folder as the root.
-     */
-    public static class RecursiveJsonFile implements ArgumentSupplier<JsonArgument.Result> {
-        public ArgumentDescriptor<JsonArgument.Result> get() {
-            final ModDescriptor mod = getActiveModOrThrow();
-            return new ArgumentDescriptor<>(new JsonArgument(mod.configFolder(), mod.preferredDirectory(), true));
+            return new ArgumentDescriptor<>(new FileArgument(mod.configFolder()));
         }
     }
 
@@ -59,7 +41,7 @@ public final class ArgumentSuppliers {
     public static class JsonFile implements ArgumentSupplier<JsonArgument.Result> {
         public ArgumentDescriptor<JsonArgument.Result> get() {
             final ModDescriptor mod = getActiveModOrThrow();
-            return new ArgumentDescriptor<>(new JsonArgument(mod.configFolder(), false));
+            return new ArgumentDescriptor<>(new JsonArgument(mod.configFolder()));
         }
     }
 

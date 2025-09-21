@@ -9,8 +9,10 @@ import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.event.lifecycle.GameReadyEvent;
 import personthecat.catlib.test.McBootstrapExtension;
 
-import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,9 +45,9 @@ public final class ConfigTrackerTest {
     }
 
     @Test
-    public void missingFile_isFlagged() {
-        final File file = ConfigTracker.forMod(this.testDescriptor).track(new TestCache(true)).getFile();
-        assertTrue(!file.exists() || file.delete());
+    public void missingFile_isFlagged() throws IOException {
+        final Path file = ConfigTracker.forMod(this.testDescriptor).track(new TestCache(true)).getFile();
+        if (Files.exists(file)) Files.delete(file);
 
         final ConfigTracker<TestCache> newCache = ConfigTracker.forMod(this.testDescriptor).track(new TestCache(true));
         assertTrue(newCache.isUpdated());

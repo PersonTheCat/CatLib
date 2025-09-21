@@ -9,7 +9,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import personthecat.catlib.config.CategoryValue;
 import personthecat.catlib.data.ModDescriptor;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
 
 public class ConfigEvaluatorImpl {
@@ -17,7 +17,7 @@ public class ConfigEvaluatorImpl {
         DjsConfigFormat.registerFileFormat();
     }
 
-    public static void register(ModDescriptor mod, File file, CategoryValue config) {
+    public static void register(ModDescriptor mod, Path file, CategoryValue config) {
         final ModContainer ctx = ModLoadingContext.get().getActiveContainer();
         final String expected = mod.modId();
         final String modId = ctx.getModId();
@@ -26,7 +26,7 @@ public class ConfigEvaluatorImpl {
         }
         final ModConfigGenerator generator = new ModConfigGenerator(mod, config);
         final ModConfigSpec spec = generator.generateSpec();
-        ctx.addConfig(new ModConfig(ModConfig.Type.COMMON, spec, ctx, file.getAbsolutePath()));
+        ctx.addConfig(new ModConfig(ModConfig.Type.COMMON, spec, ctx, file.toAbsolutePath().toString()));
         generator.fireOnConfigUpdated();
 
         final IEventBus modBus = Objects.requireNonNull(ctx.getEventBus(), "No event bus for mod: " + modId);

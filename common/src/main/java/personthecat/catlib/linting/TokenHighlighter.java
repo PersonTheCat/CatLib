@@ -267,7 +267,7 @@ public class TokenHighlighter implements Highlighter {
             int amount = 1;
             Token peek;
             while ((peek = this.itr.peek(amount++)) != null) {
-                if (peek.type() == TokenType.SYMBOL) {
+                if (peek instanceof SymbolToken) {
                     return ((SymbolToken) peek).symbol;
                 }
             }

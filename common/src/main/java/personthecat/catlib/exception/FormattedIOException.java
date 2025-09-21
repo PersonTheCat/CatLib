@@ -1,37 +1,43 @@
 package personthecat.catlib.exception;
 
+import lombok.extern.log4j.Log4j2;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.util.PathUtils;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
+@Log4j2
 public class FormattedIOException extends FormattedException {
 
-    final File root;
-    final File file;
+    final Path root;
+    final Path file;
     final String relative;
     final String msg;
 
-    public FormattedIOException(final File file, final Throwable cause) {
-        this(file.getParentFile(), file, cause);
+    public FormattedIOException(final Path file, final Throwable cause) {
+        this(file.getParent(), file, cause);
     }
 
-    public FormattedIOException(final File file, final Throwable cause, final String msg) {
-        this(file.getParentFile(), file, cause, msg);
+    public FormattedIOException(final Path file, final Throwable cause, final String msg) {
+        this(file.getParent(), file, cause, msg);
     }
 
-    public FormattedIOException(final File root, final File file, final Throwable cause) {
+    public FormattedIOException(final Path root, final Path file, final Throwable cause) {
         this(root, file, cause, createMsg(cause));
     }
 
-    public FormattedIOException(final File root, final File file, final Throwable cause, final String msg) {
+    public FormattedIOException(final Path root, final Path file, final Throwable cause, final String msg) {
         super(msg, cause);
         this.root = root;
         this.file = file;
-        this.relative = PathUtils.getRelativePath(root, file);
+        this.relative = file.relativize(root).toString();
         this.msg = msg;
     }
 
@@ -75,14 +81,14 @@ public class FormattedIOException extends FormattedException {
         final Style red = Style.EMPTY.withColor(ChatFormatting.RED);
 
         try {
-            final boolean exists = this.file.exists();
+            final boolean exists = Files.exists(this.file);
             component.append(bullet);
             component.append(Component.translatable("catlib.errorText.fileExists").withStyle(purple));
             component.append(space);
             component.append(Component.literal(String.valueOf(exists)).withStyle(orange));
             component.append(newLine);
 
-            final boolean dirExists = this.file.getParentFile().exists();
+            final boolean dirExists = Files.exists(this.file.getParent());
             component.append(bullet);
             component.append(Component.translatable("catlib.errorText.directoryExists").withStyle(purple));
             component.append(space);
@@ -95,13 +101,16 @@ public class FormattedIOException extends FormattedException {
             component.append(space);
             component.append(Component.literal(type).withStyle(green));
             component.append(newLine);
-
-            final long kb = this.file.length() / 1000;
-            component.append(bullet);
-            component.append(Component.translatable("catlib.errorText.fileSize").withStyle(purple));
-            component.append(space);
-            component.append(Component.literal(kb + "kb").withStyle(blue));
-            component.append(newLine);
+            try {
+                final long kb = Files.size(this.file) / 1000;
+                component.append(bullet);
+                component.append(Component.translatable("catlib.errorText.fileSize").withStyle(purple));
+                component.append(space);
+                component.append(Component.literal(kb + "kb").withStyle(blue));
+                component.append(newLine);
+            } catch (final IOException e) {
+                log.error("Error getting file size", e);
+            }
         } catch (final SecurityException ignored) {
             component.append(Component.translatable("catlib.errorText.ioNotAllowed").withStyle(red));
             component.append(newLine);

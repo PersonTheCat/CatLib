@@ -3,11 +3,8 @@ package personthecat.catlib.serialization.json;
 import com.mojang.datafixers.util.Either;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.command.arguments.PathArgument;
-import personthecat.fresult.Result;
-import personthecat.fresult.Void;
 import xjs.data.comments.CommentType;
 import xjs.data.*;
 import xjs.data.exception.SyntaxException;
@@ -15,6 +12,7 @@ import xjs.data.serialization.JsonContext;
 import xjs.data.serialization.writer.JsonWriterOptions;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -43,23 +41,31 @@ public final class XjsUtils {
      * @param file The file containing the serialized JSON object.
      * @return The deserialized object, or else {@link Optional#empty}.
      */
-    public static Optional<JsonObject> readJson(final File file) {
-        return Result
-            .define(FileNotFoundException.class, Result::WARN)
-            .define(SyntaxException.class, e -> { throw e; })
-            .suppress(() -> Json.parse(file).asObject())
-            .get();
+    public static Optional<JsonObject> readJson(final Path file) {
+        try {
+            return Optional.of(Json.parse(file.toFile()).asObject());
+        } catch (final IOException e) {
+            if (!(e instanceof FileNotFoundException)) {
+                log.warn("Error parsing JSON file", e);
+            }
+        }
+        return Optional.empty();
     }
 
     /**
-     * Variant of {@link #readJson(File)} which ignores syntax errors
+     * Variant of {@link #readJson(Path)} which ignores syntax errors
      * and simply returns {@link Optional#empty} if any error occurs.
      *
      * @param file The file containing the serialized JSON object.
      * @return The deserialized object, or else {@link Optional#empty}.
      */
-    public static Optional<JsonObject> readSuppressing(final File file) {
-        return Result.suppress(() -> Json.parse(file).asObject()).get(Result::WARN);
+    public static Optional<JsonObject> readSuppressing(final Path file) {
+        try {
+            return readJson(file);
+        } catch (final SyntaxException e) {
+            log.warn("Suppressing syntax exception in file: {}", file.toAbsolutePath(), e);
+            return Optional.empty();
+        }
     }
 
     /**
@@ -78,11 +84,13 @@ public final class XjsUtils {
      * </p>
      * @param json The JSON data being serialized.
      * @param file The destination file containing these data.
-     * @return A result which potentially contains an error.
      */
-    public static Result<Void, IOException> writeJson(final JsonObject json, final File file) {
-        return Result.with(() -> new FileWriter(file), writer -> { json.write(file); })
-            .ifErr(e -> log.error("Writing file", e));
+    public static void writeJson(final JsonObject json, final Path file) {
+        try {
+            JsonContext.autoWrite(file.toFile(), json);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**
@@ -99,15 +107,13 @@ public final class XjsUtils {
      *   The output of this expression will be applied to the original file.
      * </p>
      * @param file the file containing JSON data.
-     * @param f Instructions for updating the JSON data.
-     * @return A result which potentially contains an error.
+     * @param f    Instructions for updating the JSON data.
      */
-    @CheckReturnValue
-    public static Result<Void, IOException> updateJson(final File file, final Consumer<JsonObject> f) {
+    public static void updateJson(final Path file, final Consumer<JsonObject> f) {
         // If #readJson returned empty, it's because the file didn't exist.
-        final JsonObject json = readJson(file).orElseGet(JsonObject::new);
+        final var json = readJson(file).orElseGet(JsonObject::new);
         f.accept(json);
-        return writeJson(json, file);
+        writeJson(json, file);
     }
 
     /**
@@ -450,9 +456,13 @@ public final class XjsUtils {
      * @return A list of all adjacent paths.
      */
     public static List<String> getPaths(final JsonObject json, final JsonPath path) {
-        final JsonValue container = Result.of(() -> getLastContainer(json, path))
-            .get(Result::WARN)
-            .orElse(json);
+        JsonValue container;
+        try {
+            container = getLastContainer(json, path);
+        } catch (final Exception e) {
+            log.warn("Error getting container value", e);
+            container = json;
+        }
         int end = path.size() - 1;
         if (end < 0) {
             return getNeighbors("", container);

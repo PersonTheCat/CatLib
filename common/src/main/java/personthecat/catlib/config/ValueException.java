@@ -12,7 +12,11 @@ public class ValueException extends FormattedException {
     private final ConfigValue value;
 
     public ValueException(String msg, String filename, ConfigValue value) {
-        super(msg);
+        this(msg, filename, value, null);
+    }
+
+    public ValueException(String msg, String filename, ConfigValue value, @Nullable Throwable cause) {
+        super(msg, cause);
         this.filename = filename;
         this.value = value;
     }

@@ -9,7 +9,7 @@ import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.ModPlatform;
 import personthecat.catlib.versioning.Version;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Optional;
 
 @SuppressWarnings("unused") // all method are impls
@@ -17,8 +17,8 @@ public final class McUtilsImpl {
 
     private McUtilsImpl() {}
 
-    public static File getConfigDir() {
-        return FMLPaths.CONFIGDIR.get().toFile();
+    public static Path getConfigDir() {
+        return FMLPaths.CONFIGDIR.get();
     }
 
     public static ModPlatform getPlatform() {

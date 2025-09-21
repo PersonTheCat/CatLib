@@ -3,8 +3,11 @@ package personthecat.catlib.io;
 import lombok.extern.log4j.Log4j2;
 import personthecat.catlib.exception.ResourceException;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Enumeration;
 import java.util.function.UnaryOperator;
@@ -16,29 +19,29 @@ import java.util.zip.ZipOutputStream;
 @Log4j2
 public class ZipIO {
 
-    public static void extract(final File zip, final File out) {
-        if (out.isFile()) {
+    public static void extract(final Path zip, final Path out) {
+        if (Files.isRegularFile(out)) {
             throw new ResourceException("Expected a folder");
         }
-        if (!zip.exists()) {
+        if (!Files.exists(zip)) {
             throw new ResourceException("Nothing to extract: " + zip);
         }
-        try (final ZipInputStream zis = new ZipInputStream(new FileInputStream(zip))) {
+        try (final ZipInputStream zis = new ZipInputStream(Files.newInputStream(zip))) {
             doExtract(zis, out);
         } catch (final IOException e) {
             throw new ResourceException("Extracting file", e);
         }
     }
 
-    private static void doExtract(final ZipInputStream zip, final File out) throws IOException {
+    private static void doExtract(final ZipInputStream zip, final Path out) throws IOException {
         final byte[] buffer = new byte[1024];
         ZipEntry entry = zip.getNextEntry();
         while (entry != null) {
-            final File file = createFile(out, entry);
+            final Path file = createFile(out, entry);
             if (entry.isDirectory()) {
-                mkdirs(file);
+                Files.createDirectories(file);
             } else {
-                mkdirs(file.getParentFile());
+                Files.createDirectories(file.getParent());
                 writeFile(file, buffer, zip);
             }
             entry = zip.getNextEntry();
@@ -46,48 +49,41 @@ public class ZipIO {
         zip.closeEntry();
     }
 
-    private static File createFile(final File dir, final ZipEntry entry) throws IOException {
-        final File out = new File(dir, entry.getName());
-        if (!out.getCanonicalPath().startsWith(dir.getCanonicalPath() + File.separator)) {
+    private static Path createFile(final Path dir, final ZipEntry entry) throws IOException {
+        final Path out = dir.resolve(entry.getName());
+        if (!out.toRealPath().startsWith(dir.toRealPath())) {
             throw new IOException("Attempted to slip entry outside of target directory");
         }
         return out;
     }
 
-    private static void mkdirs(final File file) throws IOException {
-        if (!file.isDirectory() && !file.mkdirs()) {
-            throw new IOException("Creating directory: " + file);
-        }
-    }
-
-    private static void writeFile(final File file, final byte[] buffer, final ZipInputStream zip) throws IOException {
-        try (final FileOutputStream fos = new FileOutputStream(file)) {
+    private static void writeFile(final Path file, final byte[] buffer, final ZipInputStream zip) throws IOException {
+        try (final OutputStream os = Files.newOutputStream(file)) {
             int len;
             while ((len = zip.read(buffer)) > 0) {
-                fos.write(buffer, 0, len);
+                os.write(buffer, 0, len);
             }
         }
     }
 
-    public static void compress(final File in, final File zip) {
-        try (final ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zip))) {
-            doCompress(in, in.getName(), zos);
+    public static void compress(final Path in, final Path zip) {
+        try (final ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zip))) {
+            doCompress(in, in.getFileName().toString(), zos);
         } catch (final IOException e) {
             throw new ResourceException("Compressing file", e);
         }
     }
 
-    private static void doCompress(final File in, final String name, final ZipOutputStream zip) throws IOException {
-        if (in.isHidden()) {
+    private static void doCompress(final Path in, final String name, final ZipOutputStream zip) throws IOException {
+        if (Files.isHidden(in)) {
             return;
         }
-        if (in.isDirectory()) {
+        if (Files.isDirectory(in)) {
             zip.putNextEntry(new ZipEntry(name.endsWith("/") ? name : name + "/"));
             zip.closeEntry();
-            final File[] files = in.listFiles();
-            if (files != null) {
-                for (final File file : files) {
-                    doCompress(file, name + "/" + file.getName(), zip);
+            try (final var files = Files.list(in)) {
+                for (final Path file : files.toList()) {
+                    doCompress(file, name + "/" + file.getFileName(), zip);
                 }
             }
         } else {
@@ -95,24 +91,24 @@ public class ZipIO {
         }
     }
 
-    private static void writeEntry(final File in, final String name, final ZipOutputStream zip) throws IOException {
-        writeEntry(new FileInputStream(in), name, zip);
+    private static void writeEntry(final Path in, final String name, final ZipOutputStream zip) throws IOException {
+        writeEntry(Files.newInputStream(in), name, zip);
     }
 
-    public static void transform(final File zip, final UnaryOperator<InputStreamProvider> transformer) {
-        if (!zip.exists()) {
+    public static void transform(final Path zip, final UnaryOperator<InputStreamProvider> transformer) {
+        if (!Files.exists(zip)) {
             throw new ResourceException("Nothing to transform: " + zip);
         }
-        final File temp = new File(zip.getParent(), zip.getName() + ".temp.out");
-        try (final ZipFile zf = new ZipFile(zip)) {
-            try (final ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(temp))) {
+        final Path temp = zip.resolveSibling(zip.getFileName() + ".temp.out");
+        try (final ZipFile zf = new ZipFile(zip.toFile())) {
+            try (final ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(temp))) {
                 doTransform(zf, zos, transformer);
             }
         } catch (final IOException e) {
             throw new ResourceException("Transforming zip", e);
         } finally {
             try {
-                Files.move(temp.toPath(), zip.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                Files.move(temp, zip, StandardCopyOption.REPLACE_EXISTING);
             } catch (final IOException e) {
                 log.error("Could not delete temporary file: {}", temp, e);
             }

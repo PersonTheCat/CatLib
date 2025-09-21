@@ -5,9 +5,9 @@ import lombok.extern.log4j.Log4j2;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.unsafe.CachingReflectionHelper;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,12 +19,12 @@ public class ConfigEvaluator {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> void loadAndRegister(ModDescriptor mod, File file, T t) {
+    public static <T> void loadAndRegister(ModDescriptor mod, Path file, T t) {
         loadAndRegister(mod, file, (Class<T>) t.getClass(), t);
     }
 
-    private static <T> void loadAndRegister(ModDescriptor mod, File file, Class<T> clazz, T t) {
-        final ConfigValue root = new SimpleValue<>(clazz, file.getName(), t, null);
+    private static <T> void loadAndRegister(ModDescriptor mod, Path file, Class<T> clazz, T t) {
+        final ConfigValue root = new SimpleValue<>(clazz, file.getFileName().toString(), t, null);
         root.set(mod, null, t);
         final CategoryValue category = buildCategory(root, t, mod, clazz);
         if (t instanceof Config.Listener c) {
@@ -54,6 +54,6 @@ public class ConfigEvaluator {
     }
 
     @ExpectPlatform
-    private static void register(ModDescriptor mod, File file, CategoryValue config) {}
+    private static void register(ModDescriptor mod, Path file, CategoryValue config) {}
 
 }

@@ -11,13 +11,18 @@ import personthecat.catlib.exception.UnreachableException;
 import personthecat.catlib.io.FileIO;
 import personthecat.catlib.util.McUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.Consumer;
 
 @Log4j2
 public class ConfigTracker<T extends Serializable> {
     private final ModDescriptor mod;
-    private final File file;
+    private final Path file;
     private volatile T current;
     @Nullable private final T cached;
     private final boolean updated;
@@ -40,16 +45,19 @@ public class ConfigTracker<T extends Serializable> {
         return new Builder(mod);
     }
 
-    private static File createFile(final Builder builder) {
-        return new File(McUtils.getConfigDir(), CatLib.ID + "/versioning/"
-            + builder.mod.modId() + "/" + builder.category + ".cft");
+    private static Path createFile(final Builder builder) {
+        return McUtils.getConfigDir()
+            .resolve(CatLib.ID)
+            .resolve("versioning")
+            .resolve(builder.mod.modId())
+            .resolve(builder.category + ".cft");
     }
 
     @Nullable
     @SuppressWarnings("unchecked")
-    private static <T extends Serializable> T readCached(final File file) {
-        if (!file.exists()) return null;
-        try (final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+    private static <T extends Serializable> T readCached(final Path file) {
+        if (!Files.exists(file)) return null;
+        try (final ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file))) {
             return (T) ois.readObject();
         } catch (final IOException e) {
             log.error("Error reading config tracker. This will eventually be logged in the error menu.");
@@ -83,7 +91,7 @@ public class ConfigTracker<T extends Serializable> {
         return this.updated;
     }
 
-    public File getFile() {
+    public Path getFile() {
         return this.file;
     }
 
@@ -109,9 +117,9 @@ public class ConfigTracker<T extends Serializable> {
     }
 
     private synchronized void writeCurrent() {
-        FileIO.mkdirsOrThrow(this.file.getParentFile());
+        FileIO.mkdirsOrThrow(this.file.getParent());
 
-        try (final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(this.file))) {
+        try (final ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(this.file))) {
             oos.writeObject(this.current);
             oos.flush();
             this.saved = true;

@@ -2,12 +2,11 @@ package personthecat.catlib.data;
 
 import lombok.Builder;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.versioning.Version;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,10 +42,9 @@ public record ModDescriptor(
     String modId,
     Version version,
     String commandPrefix,
-    File configFolder,
-    File configFile,
-    File backupFolder,
-    @Nullable File preferredDirectory) {
+    Path configFolder,
+    Path configFile,
+    Path backupFolder) {
 
     private static final Map<String, ModDescriptor> DESCRIPTORS = new ConcurrentHashMap<>();
 
@@ -69,11 +67,11 @@ public record ModDescriptor(
             Objects.requireNonNull(this.modId, "modId must not be null");
             if (this.version == null) this.version = Version.ZERO;
             if (this.commandPrefix == null) this.commandPrefix = this.modId;
-            if (this.configFolder == null) this.configFolder = new File(McUtils.getConfigDir(), this.modId);
-            if (this.configFile == null) this.configFile = new File(McUtils.getConfigDir(), this.modId + ".djs");
-            if (this.backupFolder == null) this.backupFolder = new File(this.configFolder, "backups");
+            if (this.configFolder == null) this.configFolder = McUtils.getConfigDir().resolve(this.modId);
+            if (this.configFile == null) this.configFile = McUtils.getConfigDir().resolve(this.modId + ".djs");
+            if (this.backupFolder == null) this.backupFolder = this.configFolder.resolve("backups");
 
-            return new ModDescriptor(name, modId, version, commandPrefix, configFolder, configFile, backupFolder, preferredDirectory);
+            return new ModDescriptor(name, modId, version, commandPrefix, configFolder, configFile, backupFolder);
         }
 
         public ModDescriptor buildAndRegister() {

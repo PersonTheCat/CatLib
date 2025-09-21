@@ -15,13 +15,13 @@ import xjs.data.Json;
 import xjs.data.JsonObject;
 import xjs.data.JsonValue;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 public class ClothConfigGenerator extends ConfigGenerator {
-    private final File file;
+    private final Path file;
 
-    public ClothConfigGenerator(ModDescriptor mod, File file, CategoryValue config) {
+    public ClothConfigGenerator(ModDescriptor mod, Path file, CategoryValue config) {
         super(mod, config);
         this.file = file;
     }
@@ -62,8 +62,11 @@ public class ClothConfigGenerator extends ConfigGenerator {
     }
 
     public void saveConfig() {
-        XjsUtils.writeJson(this.toJson(this.config, this.instance).asObject(), this.file)
-            .ifErr(e -> this.error(this.config, "Could not save value to the disk."));
+        try {
+            XjsUtils.writeJson(this.toJson(this.config, this.instance).asObject(), this.file);
+        } catch (final Exception e) {
+            this.error(this.config, "Could not save value to the disk", e);
+        }
     }
 
     private JsonValue toJson(ConfigValue value, Object instance) {

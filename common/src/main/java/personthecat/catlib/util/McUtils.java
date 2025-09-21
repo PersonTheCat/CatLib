@@ -4,7 +4,7 @@ import dev.architectury.injectables.annotations.ExpectPlatform;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.exception.MissingOverrideException;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Optional;
 
 public final class McUtils {
@@ -12,10 +12,10 @@ public final class McUtils {
     private McUtils() {}
 
     /**
-     * @return A {@link File} pointing to the game's config directory.
+     * @return A {@link Path} pointing to the game's config directory.
      */
     @ExpectPlatform
-    public static File getConfigDir() {
+    public static Path getConfigDir() {
         throw new MissingOverrideException();
     }
 

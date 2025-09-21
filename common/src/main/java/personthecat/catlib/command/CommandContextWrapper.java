@@ -33,7 +33,7 @@ import personthecat.catlib.exception.CommandExecutionException;
 import personthecat.fresult.Result;
 import personthecat.fresult.Void;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -68,8 +68,8 @@ public record CommandContextWrapper(CommandContext<CommandSourceStack> ctx, ModD
         return this.get(key, ItemInput.class).getItem();
     }
 
-    public File getFile(final String key) {
-        return this.get(key, File.class);
+    public Path getFile(final String key) {
+        return this.get(key, Path.class);
     }
 
     public JsonArgument.Result getJsonFile(final String key) {

@@ -7,15 +7,15 @@ import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.ModPlatform;
 import personthecat.catlib.versioning.Version;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Optional;
 
 public final class McUtilsImpl {
 
     private McUtilsImpl() {}
 
-    public static File getConfigDir() {
-        return FabricLoader.getInstance().getConfigDir().toFile();
+    public static Path getConfigDir() {
+        return FabricLoader.getInstance().getConfigDir();
     }
 
     public static ModPlatform getPlatform() {

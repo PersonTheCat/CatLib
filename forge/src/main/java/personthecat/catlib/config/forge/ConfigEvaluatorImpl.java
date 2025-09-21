@@ -10,7 +10,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import personthecat.catlib.config.CategoryValue;
 import personthecat.catlib.data.ModDescriptor;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
 
 public class ConfigEvaluatorImpl {
@@ -18,7 +18,7 @@ public class ConfigEvaluatorImpl {
         DjsConfigFormat.registerFileFormat();
     }
 
-    public static void register(ModDescriptor mod, File file, CategoryValue config) {
+    public static void register(ModDescriptor mod, Path file, CategoryValue config) {
         final ModContainer container = ModLoadingContext.get().getActiveContainer();
         final String expected = mod.modId();
         final String modId = container.getModId();
@@ -27,7 +27,7 @@ public class ConfigEvaluatorImpl {
         }
         final ModConfigGenerator generator = new ModConfigGenerator(mod, config);
         final ForgeConfigSpec spec = generator.generateSpec();
-        container.addConfig(new ModConfig(ModConfig.Type.COMMON, spec, container, file.getAbsolutePath()));
+        container.addConfig(new ModConfig(ModConfig.Type.COMMON, spec, container, file.toAbsolutePath().toString()));
         generator.fireOnConfigUpdated();
 
         final FMLJavaModLoadingContext ctx = FMLJavaModLoadingContext.get();
