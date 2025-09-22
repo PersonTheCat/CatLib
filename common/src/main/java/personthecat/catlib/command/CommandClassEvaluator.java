@@ -33,7 +33,6 @@ import personthecat.catlib.exception.FormattedException;
 import personthecat.catlib.exception.UncheckedFormattedException;
 import personthecat.catlib.util.LibStringUtils;
 import personthecat.catlib.util.unsafe.CachingReflectionHelper;
-import personthecat.fresult.functions.ThrowingBiConsumer;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -603,5 +602,10 @@ public class CommandClassEvaluator {
         public @Nullable Component getTooltip() {
             return Component.translatable(LIST_NODE, this.name);
         }
+    }
+
+    @FunctionalInterface
+    interface ThrowingBiConsumer<T1, T2, E extends Exception> {
+        void accept(T1 t1, T2 t2) throws E;
     }
 }

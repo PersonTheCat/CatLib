@@ -1,15 +1,15 @@
 package personthecat.catlib.io;
 
-import personthecat.fresult.functions.ThrowingSupplier;
+import net.minecraft.server.packs.resources.IoSupplier;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class InputStreamProvider {
     private final String name;
-    private final ThrowingSupplier<InputStream, IOException> is;
+    private final IoSupplier<InputStream> is;
 
-    public InputStreamProvider(final String name, final ThrowingSupplier<InputStream, IOException> is) {
+    public InputStreamProvider(final String name, final IoSupplier<InputStream> is) {
         this.name = name;
         this.is = is;
     }

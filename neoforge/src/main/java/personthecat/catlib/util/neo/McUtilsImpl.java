@@ -42,7 +42,7 @@ public final class McUtilsImpl {
         return ModDescriptor.builder()
             .modId(info.getModId())
             .name(info.getDisplayName())
-            .version(Version.tryParse(info.getVersion().toString()).orElse(Version.ZERO))
+            .version(Version.tryParse(info.getVersion().toString()).result().orElse(Version.ZERO))
             .build();
     }
 }

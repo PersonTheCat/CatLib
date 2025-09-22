@@ -29,7 +29,6 @@ subprojects {
         mappings loom.officialMojangMappings()
 
         api group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
-        api group: 'com.personthecat', name: 'fresult', version: fresult_version
         api group: 'org.exjson', name: 'xjs-data', version: xjs_data_version
         api group: 'org.exjson', name: 'xjs-compat', version: xjs_compat_version
 

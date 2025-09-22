@@ -21,7 +21,6 @@ dependencies {
     modImplementation group: 'net.fabricmc', name: 'fabric-loader', version: loader_version
 
     bundle group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
-    bundle group: 'com.personthecat', name: 'fresult', version: fresult_version
     bundle group: 'org.exjson', name: 'xjs-data', version: xjs_data_version
     bundle group: 'org.exjson', name: 'xjs-compat', version: xjs_compat_version
 }

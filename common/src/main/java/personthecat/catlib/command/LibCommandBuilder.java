@@ -11,7 +11,6 @@ import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.McUtils;
-import personthecat.fresult.Result;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -242,9 +241,13 @@ public record LibCommandBuilder(
         }
 
         private int wrapCommand(final CommandContextWrapper wrapper, final CommandFunction fn) {
-            return Result.suppress(() -> fn.execute(wrapper))
-                .ifErr(e -> this.handleException(wrapper, e))
-                .fold(v -> 1, e -> -1);
+            try {
+                fn.execute(wrapper);
+                return 1;
+            } catch (final Throwable e) {
+                this.handleException(wrapper, e);
+                return -1;
+            }
         }
 
         private void handleException(final CommandContextWrapper wrapper, final Throwable e) {

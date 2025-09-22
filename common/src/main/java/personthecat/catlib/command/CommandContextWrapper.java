@@ -30,8 +30,6 @@ import personthecat.catlib.event.lifecycle.ClientTickEvent;
 import personthecat.catlib.serialization.json.JsonPath;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.exception.CommandExecutionException;
-import personthecat.fresult.Result;
-import personthecat.fresult.Void;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -82,7 +80,11 @@ public record CommandContextWrapper(CommandContext<CommandSourceStack> ctx, ModD
 
     @SuppressWarnings("unchecked")
     public <T> Optional<T> getOptional(final String key, final Class<? super T> type) {
-        return Result.suppress(() -> this.get(key, (Class<T>) type)).get(Result::IGNORE);//.map(t -> (A) t);
+        try {
+            return Optional.ofNullable((T) this.get(key, type));
+        } catch (final Exception e) {
+            return Optional.empty();
+        }
     }
 
     public <T> List<T> getList(final String key, final Class<T> type) {
@@ -215,17 +217,25 @@ public record CommandContextWrapper(CommandContext<CommandSourceStack> ctx, ModD
     }
 
     public void execute(final String command) {
-        this.tryExecute(command).throwIfErr();
+        final Commands manager = this.getServer().getCommands();
+        try {
+            manager.performPrefixedCommand(this.ctx.getSource(), command);
+        } catch (final Throwable t) {
+            throw new CommandExecutionException(t);
+        }
     }
 
     public void execute(final String command, final Object... args) {
         this.execute(f(command, args));
     }
 
-    public Result<Void, CommandExecutionException> tryExecute(final String command) {
-        final Commands manager = this.getServer().getCommands();
-        return Result.suppress(() -> manager.performPrefixedCommand(this.ctx.getSource(), command))
-            .mapErr(CommandExecutionException::new);
+    public Optional<CommandExecutionException> tryExecute(final String command) {
+        try {
+            this.execute(command);
+            return Optional.empty();
+        } catch (final CommandExecutionException e) {
+            return Optional.of(e);
+        }
     }
 
     public String getInput() {

@@ -36,7 +36,6 @@ dependencies {
         transitive = false
     }
     forgeRuntimeLibrary group: 'com.personthecat', name: 'fastnoise', version: fastnoise_version
-    forgeRuntimeLibrary group: 'com.personthecat', name: 'fresult', version: fresult_version
     forgeRuntimeLibrary group: 'org.exjson', name: 'xjs-data', version: xjs_data_version
     forgeRuntimeLibrary group: 'org.exjson', name: 'xjs-compat', version: xjs_compat_version
     modImplementation group: 'curse.maven', name: 'configured-457570', version: configured_maven_version_neo

@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.fresult.Result;
 
 import java.io.Serializable;
 import java.util.regex.Matcher;
@@ -16,12 +15,7 @@ public final class Version implements Comparable<Version>, Serializable {
     private static final int COMPONENT_SIZE = 1 << 16;
 
     public static final Version ZERO = new Version(0, 0, 0, "", "");
-
-    public static final Codec<Version> CODEC = Codec.STRING.comapFlatMap(
-        s -> tryParse(s).fold(DataResult::success, e -> DataResult.error(e::getMessage)),
-        v -> v.friendly
-    );
-
+    public static final Codec<Version> CODEC = Codec.STRING.comapFlatMap(Version::tryParse, v -> v.friendly);
     private static final Pattern PATTERN =
         Pattern.compile("(\\d{1,5})(?:\\.(\\d{1,5})(?:\\.(\\d{1,5}))?)?(?:-([a-zA-Z0-9\\s:\\\\/_-]+))?(?:\\+([\\w.-]+))?");
 
@@ -63,8 +57,12 @@ public final class Version implements Comparable<Version>, Serializable {
         return new Version(checkRange(major), checkRange(minor), checkRange(patch), tag, meta);
     }
 
-    public static Result<Version, VersionParseException> tryParse(final String version) {
-        return Result.<Version, VersionParseException>of(() -> parse(version)).ifErr(Result::IGNORE);
+    public static DataResult<Version> tryParse(final String version) {
+        try {
+            return DataResult.success(parse(version));
+        } catch (final VersionParseException e) {
+            return DataResult.error(e::getMessage);
+        }
     }
 
     public static Version parse(final String version) {

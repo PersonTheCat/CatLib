@@ -5,10 +5,10 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.DataResult;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import personthecat.fresult.Result;
 import xjs.data.JsonContainer;
 import xjs.data.JsonObject;
 import xjs.data.JsonValue;
@@ -140,8 +140,12 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
      * @param raw The raw JSON path being deserialized.
      * @return An object representing every accessor leading to a JSON value.
      */
-    public static Result<JsonPath, CommandSyntaxException> tryParse(final String raw) {
-        return Result.of(() -> parse(raw)).ifErr(Result::IGNORE);
+    public static DataResult<JsonPath> tryParse(final String raw) {
+        try {
+            return DataResult.success(parse(raw));
+        } catch (final CommandSyntaxException e) {
+            return DataResult.error(e::getMessage);
+        }
     }
 
     /**

@@ -39,7 +39,7 @@ public final class McUtilsImpl {
         return ModDescriptor.builder()
             .modId(meta.getId())
             .name(meta.getName())
-            .version(Version.tryParse(meta.getVersion().getFriendlyString()).orElse(Version.ZERO))
+            .version(Version.tryParse(meta.getVersion().getFriendlyString()).result().orElse(Version.ZERO))
             .build();
     }
 }

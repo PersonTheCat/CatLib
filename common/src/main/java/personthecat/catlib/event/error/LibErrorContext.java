@@ -20,7 +20,6 @@ import personthecat.catlib.exception.FormattedException;
 import personthecat.catlib.exception.GenericFormattedException;
 import personthecat.catlib.exception.ModLoadException;
 import personthecat.catlib.util.McUtils;
-import personthecat.fresult.functions.ThrowingRunnable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -223,5 +222,10 @@ public class LibErrorContext {
         COMMON_ERRORS.clear();
         FATAL_ERRORS.clear();
         ERRED_MODS.clear();
+    }
+
+    @FunctionalInterface
+    public interface ThrowingRunnable<E extends Throwable> {
+        void run() throws E;
     }
 }
