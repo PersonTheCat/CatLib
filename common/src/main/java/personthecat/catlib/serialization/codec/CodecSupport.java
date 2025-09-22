@@ -8,7 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.registry.RegistryUtils;
 import xjs.data.Json;
-import xjs.data.JsonFormat;
 import xjs.data.JsonValue;
 
 import java.util.List;
@@ -43,7 +42,7 @@ public final class CodecSupport {
         if (o == null) return "null";
         final JsonValue value = serializeAny(o);
         if (value == null) return null;
-        return value.toString(JsonFormat.DJS_FORMATTED);
+        return value.toString("djs");
     }
 
     /**

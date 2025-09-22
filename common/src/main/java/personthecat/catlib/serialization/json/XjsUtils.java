@@ -43,7 +43,7 @@ public final class XjsUtils {
      */
     public static Optional<JsonObject> readJson(final Path file) {
         try {
-            return Optional.of(Json.parse(file.toFile()).asObject());
+            return Optional.of(Json.parse(file).asObject());
         } catch (final IOException e) {
             if (!(e instanceof FileNotFoundException)) {
                 log.warn("Error parsing JSON file", e);
@@ -87,7 +87,7 @@ public final class XjsUtils {
      */
     public static void writeJson(final JsonObject json, final Path file) {
         try {
-            JsonContext.autoWrite(file.toFile(), json);
+            JsonContext.autoWrite(file, json);
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -11,7 +11,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import personthecat.catlib.linting.Linter;
 import personthecat.catlib.util.McUtils;
-import xjs.data.JsonFormat;
 import xjs.data.JsonValue;
 
 import java.io.IOException;
@@ -147,7 +146,7 @@ public final class DecodeContextRenderer {
                 } catch (IOException ignored) { /* unreachable */ }
                 return Linter.DJS.lint(sw.toString());
             } else if (data instanceof JsonValue v) { // xjs
-                return Linter.DJS.lint(v.toString(JsonFormat.JSON_FORMATTED));
+                return Linter.DJS.lint(v.toString("djs"));
             }
             final var s = new GsonBuilder().setPrettyPrinting().setLenient().create().toJson(data);
             return Linter.DJS.lint(s);

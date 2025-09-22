@@ -39,7 +39,6 @@ import xjs.data.JsonObject;
 import xjs.data.JsonValue;
 import xjs.data.serialization.JsonContext;
 
-import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -325,11 +324,7 @@ public final class DefaultLibCommands {
         final Component headerComponent =
             Component.literal(f(DISPLAY_HEADER, header)).setStyle(DISPLAY_HEADER_STYLE);
 
-        String details = "";
-        try {
-            details = JsonContext.getWriter(extension(file.file)).stringify(json.trim(), XjsUtils.noCr());
-        } catch (IOException ignored) {}
-
+        final String details = JsonContext.getWriter(extension(file.file)).stringify(json.trim(), XjsUtils.noCr());
         final Component detailsComponent = Linter.DJS.lint(details);
 
         final long numLines = details.chars().filter(c -> c == '\n').count();

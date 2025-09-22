@@ -8,22 +8,22 @@ import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.command.annotations.Nullable;
 import xjs.data.StringType;
 import xjs.data.comments.CommentStyle;
-import xjs.data.serialization.token.DjsTokenizer;
+import xjs.data.serialization.JsonContext;
 import xjs.data.serialization.token.SymbolToken;
 import xjs.data.serialization.token.Token;
 import xjs.data.serialization.token.TokenStream;
 import xjs.data.serialization.token.TokenType;
+import xjs.data.serialization.token.TokenizingFunction;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class TokenHighlighter implements Highlighter {
-    private final Function<String, TokenStream> tokenizer;
+    private final TokenizingFunction tokenizer;
     private final Map<TokenType, Linter> tokenLinters;
     private final Map<StringType, Linter> stringLinters;
     private final Map<Pattern, Linter> stringPatternLinters;
@@ -33,7 +33,7 @@ public class TokenHighlighter implements Highlighter {
     private final @Nullable Linter keyLinter;
 
     private TokenHighlighter(
-            Function<String, TokenStream> tokenizer,
+            TokenizingFunction tokenizer,
             Map<TokenType, Linter> tokenLinters,
             Map<StringType, Linter> stringLinters,
             Map<Pattern, Linter> stringPatternLinters,
@@ -57,7 +57,7 @@ public class TokenHighlighter implements Highlighter {
 
     @Override
     public Highlighter.Instance get(String text) {
-        return new Instance(this.tokenizer.apply(text), text);
+        return new Instance(this.tokenizer.stream(text), text);
     }
 
     private @Nullable Linter getLinter(Token token, boolean expectingKey) {
@@ -97,7 +97,7 @@ public class TokenHighlighter implements Highlighter {
     }
 
     public static class Builder {
-        private @NotNull Function<String, TokenStream> tokenizer = DjsTokenizer::stream;
+        private @NotNull TokenizingFunction tokenizer = JsonContext.getTokenizer("djs");
         private final Map<TokenType, Linter> tokenLinters = new HashMap<>();
         private final Map<StringType, Linter> stringLinters = new HashMap<>();
         private final Map<Pattern, Linter> stringPatternLinters = new HashMap<>();
@@ -106,7 +106,7 @@ public class TokenHighlighter implements Highlighter {
         private final Map<Pattern, Linter> wordLinters = new HashMap<>();
         private @Nullable Linter keyLinter;
 
-        public Builder tokenizer(@NotNull Function<String, TokenStream> tokenizer) {
+        public Builder tokenizer(@NotNull TokenizingFunction tokenizer) {
             this.tokenizer = tokenizer;
             return this;
         }
@@ -235,7 +235,7 @@ public class TokenHighlighter implements Highlighter {
             this.current = null;
 
             while (!this.isUnbalanced && this.foundLinter == null && this.itr.hasNext()) {
-                final var next = this.itr.next();
+                final var next = this.itr.next(); // todo: catch syntax | unchecked io exception
                 final boolean expectingKey = this.expectingKey();
                 this.trackContainers(next);
                 this.foundLinter = TokenHighlighter.this.getLinter(next, expectingKey);

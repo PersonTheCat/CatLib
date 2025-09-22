@@ -46,7 +46,7 @@ public class JsonArgument implements ArgumentType<JsonArgument.Result> {
     public Result parse(final StringReader reader) throws CommandSyntaxException {
         final Path f = this.getter.parse(reader);
         final String ext = extension(f);
-        if (!Files.exists(f) && !(Files.isDirectory(f) || JsonContext.isKnownFormat(f.toFile()))) {
+        if (!Files.exists(f) && !(Files.isDirectory(f) || JsonContext.isKnownFormat(f))) {
             throw UNSUPPORTED_FORMAT.createWithContext(reader, ext);
         }
         return new Result(this.getter.dir, f);
