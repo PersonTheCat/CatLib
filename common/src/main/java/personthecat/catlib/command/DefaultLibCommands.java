@@ -63,7 +63,6 @@ import static personthecat.catlib.util.LibUtil.f;
 import static personthecat.catlib.util.PathUtils.extension;
 import static personthecat.catlib.util.PathUtils.noExtension;
 
-
 public final class DefaultLibCommands {
     public static final String FILE_ARGUMENT = "file";
     public static final String TO_ARGUMENT = "to";
@@ -117,10 +116,15 @@ public final class DefaultLibCommands {
             createDelete(mod),
             createClean(mod),
             createRename(mod),
+
+            // todo: fix not opening when file is new
             createOpen(mod),
             createCombine(mod),
             createCh(mod),
             createCw(mod),
+            // todo: add create / new
+
+            // todo: replace with convert
             createToJson(mod),
             createToXjs(mod)
         );

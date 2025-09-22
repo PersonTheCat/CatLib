@@ -21,18 +21,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class LibSuggestions {
 
-    /** A suggestion provider suggesting that any value is acceptable. */
-    public static final SuggestionProvider<CommandSourceStack> ANY_VALUE =
-        register("any_suggestion", (ctx, builder) -> suggestAny(builder));
-
-    /** A suggestion provider suggesting that any integer is acceptable. */
-    public static final SuggestionProvider<CommandSourceStack> ANY_INT =
-        register("integer_suggestion", "[<integer>]", "-1", "0", "1");
-
-    /** A suggestion provider suggesting that any decimal is acceptable. */
-    public static final SuggestionProvider<CommandSourceStack> ANY_DECIMAL =
-        register("decimal_suggestion", "[<decimal>]", "0.5", "1.0", "1.5");
-
     /**
      * A suggestion provider suggesting either the current JSON value or any.
      *
@@ -46,11 +34,11 @@ public class LibSuggestions {
     public static final SuggestionProvider<CommandSourceStack> CURRENT_JSON =
         register("current_json_suggestion", (ctx, builder) -> {
             final JsonArgument.Result json = CommandUtils.getLastArg(ctx, JsonArgument.class, JsonArgument.Result.class).orElse(null);
-            if (json == null) return suggestAny(builder);
+            if (json == null) return suggestJson(builder);
             final JsonPath path = CommandUtils.getLastArg(ctx, PathArgument.class, JsonPath.class).orElse(null);
-            if (path == null) return suggestAny(builder);
+            if (path == null) return suggestJson(builder);
             final JsonValue value = XjsUtils.getValueFromPath(json.json.get(), path).orElse(null);
-            if (value == null) return suggestAny(builder);
+            if (value == null) return suggestJson(builder);
 
             if (value.isObject()) return SharedSuggestionProvider.suggest(new String[] { "{ ... }" }, builder);
             if (value.isArray()) return SharedSuggestionProvider.suggest(new String[] { "[ ... ]" }, builder);
@@ -69,8 +57,8 @@ public class LibSuggestions {
             return SharedSuggestionProvider.suggest(handle.keySet().stream().map(Object::toString), builder);
         });
 
-    private static CompletableFuture<Suggestions> suggestAny(final SuggestionsBuilder builder) {
-        return SharedSuggestionProvider.suggest(new String[] { "[<any_value>]" }, builder);
+    private static CompletableFuture<Suggestions> suggestJson(final SuggestionsBuilder builder) {
+        return SharedSuggestionProvider.suggest(new String[] { "[<json_data>]" }, builder);
     }
 
     private static SuggestionProvider<CommandSourceStack> register(final String name, final String... suggestions) {

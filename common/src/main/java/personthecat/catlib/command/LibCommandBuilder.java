@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import org.jetbrains.annotations.Nullable;
+import personthecat.catlib.command.annotations.CommandBuilder;
 import personthecat.catlib.command.function.CommandFunction;
 import personthecat.catlib.data.ModDescriptor;
 import personthecat.catlib.util.McUtils;
@@ -57,7 +58,7 @@ import java.util.Objects;
  *         .generate((builder, wrappers) -> builder.execute(wrappers.get("")));
  * }</pre><p>
  *   Generated builder objects can then be passed into an active {@link CommandRegistrationContext}
- *   or annotated with {@link personthecat.catlib.command.annotations.CommandBuilder} and passed in through the parent class.
+ *   or annotated with {@link CommandBuilder} and passed in through the parent class.
  * </p>
  */
 @Log4j2

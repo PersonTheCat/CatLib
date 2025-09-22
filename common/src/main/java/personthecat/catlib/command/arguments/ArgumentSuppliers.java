@@ -44,31 +44,4 @@ public final class ArgumentSuppliers {
             return new ArgumentDescriptor<>(new JsonArgument(mod.configFolder()));
         }
     }
-
-    /**
-     * Provides a generic string argument suggesting the text <code>[&lt;any_value&gt;]</code>
-     */
-    public static class AnyValue implements ArgumentSupplier<String> {
-        public ArgumentDescriptor<String> get() {
-            return new ArgumentDescriptor<>(StringArgumentType.greedyString(), LibSuggestions.ANY_VALUE);
-        }
-    }
-
-    /**
-     * Provides a generic integer argument suggesting a few random integer values.
-     */
-    public static class AnyInt implements ArgumentSupplier<Integer> {
-        public ArgumentDescriptor<Integer> get() {
-            return new ArgumentDescriptor<>(IntegerArgumentType.integer(), LibSuggestions.ANY_INT);
-        }
-    }
-
-    /**
-     * Provides a generic decimal argument suggesting a few random decimal values.
-     */
-    public static class AnyDouble implements ArgumentSupplier<Double> {
-        public ArgumentDescriptor<Double> get() {
-            return new ArgumentDescriptor<>(DoubleArgumentType.doubleArg(), LibSuggestions.ANY_DECIMAL);
-        }
-    }
 }

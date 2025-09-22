@@ -32,9 +32,6 @@ import personthecat.catlib.util.McUtils;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import static personthecat.catlib.command.LibSuggestions.ANY_INT;
-import static personthecat.catlib.command.LibSuggestions.ANY_DECIMAL;
-
 public final class CommandUtils {
 
     private CommandUtils() {}
@@ -70,7 +67,7 @@ public final class CommandUtils {
      * @return An argument builder for the given specs.
      */
     public static RequiredArgumentBuilder<CommandSourceStack, Integer> arg(final String name, final int min, final int max) {
-        return Commands.argument(name, IntegerArgumentType.integer(min, max)).suggests(ANY_INT);
+        return Commands.argument(name, IntegerArgumentType.integer(min, max));
     }
 
     /**
@@ -82,7 +79,7 @@ public final class CommandUtils {
      * @return An argument builder for the given specs.
      */
     public static RequiredArgumentBuilder<CommandSourceStack, Double> arg(final String name, final double min, final double max) {
-        return Commands.argument(name, DoubleArgumentType.doubleArg(min, max)).suggests(ANY_DECIMAL);
+        return Commands.argument(name, DoubleArgumentType.doubleArg(min, max));
     }
 
     /**
