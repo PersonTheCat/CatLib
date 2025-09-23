@@ -1,6 +1,7 @@
 package personthecat.catlib.command;
 
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -21,6 +22,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import personthecat.catlib.command.arguments.EnumArgument;
 import personthecat.catlib.command.arguments.FileArgument;
 import personthecat.catlib.command.arguments.JsonArgument;
 import personthecat.catlib.command.arguments.PathArgument;
@@ -126,6 +128,26 @@ public final class CommandUtils {
      */
     public static RequiredArgumentBuilder<CommandSourceStack, Path> fileArg(final String name) {
         return fileArg(name, getDefaultRoot());
+    }
+
+    /**
+     * Generates an {@link EnumArgument} for the given name.
+     *
+     * @param name The name of the output argument node.
+     * @return An argument builder for the given specs.
+     */
+    public static <E extends Enum<E>> RequiredArgumentBuilder<CommandSourceStack, E> enumArg(final String name, Class<E> type) {
+        return Commands.argument(name, EnumArgument.of(type));
+    }
+
+    /**
+     * Generates a boolean argument for the given name.
+     *
+     * @param name The name of the output argument node.
+     * @return An argument builder for the given specs.
+     */
+    public static RequiredArgumentBuilder<CommandSourceStack, Boolean> boolArg(final String name) {
+        return Commands.argument(name, BoolArgumentType.bool());
     }
 
     /**

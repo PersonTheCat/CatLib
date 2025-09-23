@@ -30,7 +30,7 @@ public class EnumArgument<E extends Enum<E>> implements ArgumentType<E> {
         this.enumClass = enumClass;
     }
 
-    public static <E extends Enum<E>> EnumArgument<?> of(final Class<E> enumClass) {
+    public static <E extends Enum<E>> EnumArgument<E> of(final Class<E> enumClass) {
         return new EnumArgument<>(enumClass);
     }
 

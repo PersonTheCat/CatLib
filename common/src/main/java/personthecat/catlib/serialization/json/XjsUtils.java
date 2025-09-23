@@ -14,7 +14,7 @@ import xjs.data.serialization.writer.JsonWriterOptions;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 import static java.util.Optional.empty;
 import static personthecat.catlib.util.LibUtil.f;
@@ -109,11 +109,10 @@ public final class XjsUtils {
      * @param file the file containing JSON data.
      * @param f    Instructions for updating the JSON data.
      */
-    public static void updateJson(final Path file, final Consumer<JsonObject> f) {
+    public static void updateJson(final Path file, final UnaryOperator<JsonObject> f) {
         // If #readJson returned empty, it's because the file didn't exist.
         final var json = readJson(file).orElseGet(JsonObject::new);
-        f.accept(json);
-        writeJson(json, file);
+        writeJson(f.apply(json), file);
     }
 
     /**
@@ -217,13 +216,9 @@ public final class XjsUtils {
             if (val.right().isPresent()) { // Index
                 current = getOrTryNew(current.asArray(), val.right().get(), peek);
             } else if (peek.left().isPresent()) { // Key -> key -> object
-                current = current.asObject()
-                    .getOptional(val.left().orElseThrow(), JsonValue::asObject)
-                    .orElseGet(Json::object);
+                current = getOrCreateObject(current.asObject(), val.orThrow());
             } else { // Key -> index -> array
-                current = current.asObject()
-                    .getOptional(val.left().orElseThrow(), JsonValue::asArray)
-                    .orElseGet(Json::array);
+                current = getOrCreateArray(current.asObject(), val.orThrow());
             }
         }
         return current;

@@ -11,7 +11,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.Holder;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.effect.MobEffect;
@@ -35,10 +37,12 @@ import personthecat.catlib.serialization.json.JsonCombiner;
 import personthecat.catlib.util.McUtils;
 import personthecat.catlib.util.PathUtils;
 import xjs.data.Json;
+import xjs.data.JsonCopy;
 import xjs.data.JsonObject;
 import xjs.data.JsonValue;
 import xjs.data.serialization.JsonContext;
 
+import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,6 +53,10 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.minecraft.commands.Commands.literal;
+import static personthecat.catlib.command.CommandUtils.boolArg;
+import static personthecat.catlib.command.CommandUtils.clickToOpen;
+import static personthecat.catlib.command.CommandUtils.displayOnHover;
+import static personthecat.catlib.command.CommandUtils.enumArg;
 import static personthecat.catlib.command.LibSuggestions.CURRENT_JSON;
 import static personthecat.catlib.command.CommandUtils.arg;
 import static personthecat.catlib.command.CommandUtils.clickToRun;
@@ -73,6 +81,8 @@ public final class DefaultLibCommands {
     public static final String SCALE_ARGUMENT = "scale";
     public static final String REGISTRY_ARGUMENT = "registry";
     public static final String ITEM_ARGUMENT = "item";
+    public static final String OVERWRITE_ARGUMENT = "overwrite";
+    public static final String FORMAT_ARGUMENT = "format";
 
     /** The header displayed whenever the /display command runs. */
     private static final String DISPLAY_HEADER = "--- {} ---";
@@ -93,7 +103,7 @@ public final class DefaultLibCommands {
     /** The text formatting used for the undo button. */
     private static final Style UNDO_STYLE = Style.EMPTY
         .withColor(ChatFormatting.GRAY)
-        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to undo.")))
+        .withHoverEvent(displayOnHover("Click to undo."))
         .applyFormat(ChatFormatting.UNDERLINE)
         .withBold(true);
 
@@ -115,17 +125,13 @@ public final class DefaultLibCommands {
             createDelete(mod),
             createClean(mod),
             createRename(mod),
-
-            // todo: fix not opening when file is new
             createOpen(mod),
             createCombine(mod),
             createCh(mod),
             createCw(mod),
-            // todo: add create / new
-
-            // todo: replace with convert
-            createToJson(mod),
-            createToXjs(mod)
+            createNew(mod),
+            createConvert(mod),
+            createFormat(mod)
         );
     }
 
@@ -296,22 +302,35 @@ public final class DefaultLibCommands {
             );
     }
 
-    public static LibCommandBuilder createToJson(final ModDescriptor mod) {
-        return LibCommandBuilder.named("tojson")
+    public static LibCommandBuilder createNew(final ModDescriptor mod) {
+        return LibCommandBuilder.named("new")
             .arguments("<file>")
-            .append("Converts a DJS, Hjson, ubjson, or other supported format to a regular JSON file.")
-            .generate((builder, utl) -> builder
-                .then(fileArg(FILE_ARGUMENT, mod)
-                    .executes(utl.wrap(ctx -> convert(ctx, true)))));
+            .append("Generates an empty data file.")
+            .generate((builder, utl) ->
+                builder.then(fileArg(FILE_ARGUMENT, mod)
+                    .executes(utl.wrap(ctx -> newFile(ctx, false)))
+                    .then(boolArg(OVERWRITE_ARGUMENT)
+                        .executes(utl.wrap(ctx -> newFile(ctx, ctx.getBoolean(OVERWRITE_ARGUMENT)))))));
     }
 
-    public static LibCommandBuilder createToXjs(final ModDescriptor mod) {
-        return LibCommandBuilder.named("todjs")
-            .arguments("<file>")
-            .append("Converts a regular JSON into a DJS file.")
+    public static LibCommandBuilder createConvert(final ModDescriptor mod) {
+        return LibCommandBuilder.named("convert")
+            .arguments("<format> <file>")
+            .append("Converts JSON-like files between formats.")
             .generate((builder, utl) -> builder
                 .then(fileArg(FILE_ARGUMENT, mod)
-                    .executes(utl.wrap(ctx -> convert(ctx, false)))));
+                    .then(enumArg(FORMAT_ARGUMENT, Format.class)
+                        .executes(utl.wrap(DefaultLibCommands::convert)))));
+    }
+
+    public static LibCommandBuilder createFormat(final ModDescriptor mod) {
+        return LibCommandBuilder.named("format")
+            .arguments("<file>")
+            .append("Formats a JSON, JSONC, DJS, Hjson, or similar file.")
+            .append("Formatting options will match CatLib settings.")
+            .generate((builder, utl) -> builder
+                .then(fileArg(FILE_ARGUMENT, mod)
+                    .executes(utl.wrap(DefaultLibCommands::format))));
     }
 
     private static void display(final CommandContextWrapper wrapper) {
@@ -580,13 +599,33 @@ public final class DefaultLibCommands {
         wrapper.sendMessage("Updated chat width: {}", cfg.chatWidth().get());
     }
 
-    private static void convert(final CommandContextWrapper wrapper, final boolean toJson) {
+    private static void newFile(final CommandContextWrapper wrapper, final boolean overwrite) throws IOException {
+        final Path file = wrapper.getFile(FILE_ARGUMENT);
+        if (Files.exists(file)) {
+            if (overwrite) {
+                Files.delete(file);
+            } else {
+                wrapper.sendError("File already exists. Pass overwrite argument to replace file.");
+                return;
+            }
+        }
+        Files.createFile(file);
+        final var filenameStyle = 
+            Style.EMPTY.withUnderlined(true).withClickEvent(clickToOpen(file));
+        wrapper.sendMessage(
+            Component.empty()
+                .append("Created new file: ")
+                .append(Component.literal(file.getFileName().toString()).withStyle(filenameStyle)));
+    }
+
+    private static void convert(final CommandContextWrapper wrapper) {
         final Path source = wrapper.getFile(FILE_ARGUMENT);
+        final Format format = wrapper.get(FORMAT_ARGUMENT, Format.class);
         if (!Files.exists(source)) {
             wrapper.sendError("Found not found.");
             return;
         }
-        if (toJson == "json".equals(extension(source))) {
+        if (format.name().equalsIgnoreCase(extension(source))) {
             wrapper.sendError("File is already in the desired format.");
             return;
         }
@@ -595,8 +634,8 @@ public final class DefaultLibCommands {
             wrapper.sendError("The file could not be read.");
             return;
         }
-        final String extension = toJson ? "json" : "djs";
-        final Path converted = source.resolveSibling(noExtension(source) + extension);
+        final String extension = format.name().toLowerCase();
+        final Path converted = source.resolveSibling(noExtension(source) + "." + extension);
         XjsUtils.writeJson(json.get(), converted);
 
         if (!PathUtils.isIn(wrapper.getMod().backupFolder(), source)) {
@@ -605,5 +644,36 @@ public final class DefaultLibCommands {
         } else {
             wrapper.sendMessage("File converted successfully. The original could not be backed up.");
         }
+    }
+
+    private static void format(final CommandContextWrapper wrapper) {
+        final Path file = wrapper.getFile(FILE_ARGUMENT);
+        if (!Files.exists(file)) {
+            wrapper.sendError("No such file. Nothing to format.");
+            return;
+        }
+
+        // recursive copy, nothing but values and comments
+        XjsUtils.updateJson(file, o -> o.copy(JsonCopy.RECURSIVE | JsonCopy.COMMENTS));
+
+        final var mod = wrapper.getMod();
+        final var relativePath = mod.configFolder().relativize(file);
+        final var viewCommand = String.format("/%s display %s", mod.commandPrefix(), relativePath);
+        final var commandComponent =
+            Component.literal(viewCommand)
+                .withStyle(Style.EMPTY.withUnderlined(true).withClickEvent(clickToRun(viewCommand)));
+
+        wrapper.sendMessage(
+            Component.empty()
+                .append("File updated successfully. View with ")
+                .append(commandComponent));
+    }
+
+    private enum Format {
+        JSON,
+        JSONC,
+        DJS,
+        HJSON,
+        UBJSON
     }
 }
