@@ -12,7 +12,6 @@ import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingException;
 import org.jetbrains.annotations.Nullable;
 import xjs.data.Json;
-import xjs.data.JsonFormat;
 import xjs.data.JsonObject;
 import xjs.data.JsonValue;
 import xjs.data.comments.CommentType;
@@ -70,7 +69,7 @@ public class DjsConfigFormat implements ConfigFormat<CommentedConfig> {
 
         @Override
         public String writeToString(UnmodifiableConfig config) {
-            return toXjs(config).toString(JsonFormat.DJS_FORMATTED);
+            return toXjs(config).toString("djs");
         }
 
         private static JsonValue toXjs(Object o) {
