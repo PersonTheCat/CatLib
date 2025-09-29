@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import personthecat.catlib.linting.Linter;
+import personthecat.catlib.linting.Linters;
 import personthecat.catlib.util.McUtils;
 import xjs.data.JsonValue;
 
@@ -144,12 +144,12 @@ public final class DecodeContextRenderer {
                 try {
                     Streams.write(e, writer);
                 } catch (IOException ignored) { /* unreachable */ }
-                return Linter.DJS.lint(sw.toString());
+                return Linters.JSON.lint(sw.toString());
             } else if (data instanceof JsonValue v) { // xjs
-                return Linter.DJS.lint(v.toString("djs"));
+                return Linters.DJS.lint(v.toString("djs"));
             }
             final var s = new GsonBuilder().setPrettyPrinting().setLenient().create().toJson(data);
-            return Linter.DJS.lint(s);
+            return Linters.JSON.lint(s);
         } catch (Exception e) {
             log.error("Error rendering original data: {}", data, e);
             return Component.empty();

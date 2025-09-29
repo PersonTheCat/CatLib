@@ -274,7 +274,7 @@ public final class CommandUtils {
      * @return A {@link ClickEvent} to open the given file.
      */
     public static ClickEvent clickToOpen(final Path file) {
-        return new ClickEvent(ClickEvent.Action.OPEN_URL, file.toAbsolutePath().toString());
+        return new ClickEvent(ClickEvent.Action.OPEN_FILE, file.toAbsolutePath().toString());
     }
 
     /**

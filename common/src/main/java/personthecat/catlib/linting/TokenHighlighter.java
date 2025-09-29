@@ -1,6 +1,7 @@
 package personthecat.catlib.linting;
 
 import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -8,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import personthecat.catlib.command.annotations.Nullable;
 import xjs.data.StringType;
 import xjs.data.comments.CommentStyle;
+import xjs.data.exception.SyntaxException;
 import xjs.data.serialization.JsonContext;
 import xjs.data.serialization.token.SymbolToken;
 import xjs.data.serialization.token.Token;
@@ -15,6 +17,7 @@ import xjs.data.serialization.token.TokenStream;
 import xjs.data.serialization.token.TokenType;
 import xjs.data.serialization.token.TokenizingFunction;
 
+import java.io.UncheckedIOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -22,7 +25,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class TokenHighlighter implements Highlighter {
+    private static final Style UNCLOSED_ERROR = Linter.error("catlib.errorText.unclosed");
+    private static final Style UNEXPECTED_ERROR = Linter.error("catlib.errorText.unexpected");
     private final TokenizingFunction tokenizer;
     private final Map<TokenType, Linter> tokenLinters;
     private final Map<StringType, Linter> stringLinters;
@@ -216,7 +222,7 @@ public class TokenHighlighter implements Highlighter {
     }
 
     private class Instance implements Highlighter.Instance {
-        private final Deque<Character> openers = new ArrayDeque<>();
+        private final Deque<SymbolToken> openers = new ArrayDeque<>();
         private final TokenStream.Itr itr;
         private final String text;
         private @Nullable Linter foundLinter;
@@ -232,32 +238,54 @@ public class TokenHighlighter implements Highlighter {
         @Override
         public void next() {
             this.foundLinter = null;
-            this.current = null;
 
-            while (!this.isUnbalanced && this.foundLinter == null && this.itr.hasNext()) {
-                final var next = this.itr.next(); // todo: catch syntax | unchecked io exception
-                final boolean expectingKey = this.expectingKey();
-                this.trackContainers(next);
-                this.foundLinter = TokenHighlighter.this.getLinter(next, expectingKey);
-                this.current = next;
+            try {
+                while (!this.isUnbalanced && this.foundLinter == null && this.itr.hasNext()) {
+                    final var next = this.itr.next();
+                    final boolean expectingKey = this.expectingKey();
+                    this.trackContainers(next);
+                    if (this.foundLinter == null) {
+                        this.foundLinter = TokenHighlighter.this.getLinter(next, expectingKey);
+                    }
+                    this.current = next;
+                }
+            } catch (SyntaxException e) {
+                final int start = this.current != null ? this.current.end() : 0;
+                final int end = this.text.indexOf('\n', start + 1);
+                this.foundLinter = Linter.from(Linter.error(e.getMessage()));
+                this.current = new Token(start, end == -1 ? this.text.length() : end, 0, 0, TokenType.SYMBOL);
+                this.isUnbalanced = true;
+            } catch (UncheckedIOException e) {
+                log.warn("Suppressing exception highlighting tokens", e);
+                this.isUnbalanced = true;
             }
         }
 
         private void trackContainers(Token current) {
-            if (current.isSymbol('{')) {
-                this.openers.addFirst('{');
-            } else if (current.isSymbol('[')) {
-                this.openers.addFirst('[');
+            if (current.isSymbol('{') || current.isSymbol('[')) {
+                this.openers.addFirst((SymbolToken) current);
+                this.foundLinter = text -> Component.literal(text)
+                    .withStyle(this.isUnclosed((SymbolToken) current) ? UNCLOSED_ERROR : Style.EMPTY);
             } else if (current.isSymbol('}')) {
-                this.isUnbalanced = this.openers.isEmpty() || this.openers.poll() != '{';
+                if (this.openers.isEmpty() || this.openers.poll().symbol != '{') {
+                    this.foundLinter = Linter.from(UNEXPECTED_ERROR);
+                    this.isUnbalanced = true;
+                }
             } else if (current.isSymbol(']')) {
-                this.isUnbalanced = this.openers.isEmpty() || this.openers.poll() != '[';
+                if (this.openers.isEmpty() || this.openers.poll().symbol != '[') {
+                    this.foundLinter = Linter.from(UNEXPECTED_ERROR);
+                    this.isUnbalanced = true;
+                }
             }
+        }
+
+        private boolean isUnclosed(SymbolToken opener) {
+            return !this.itr.hasNext() && this.openers.contains(opener);
         }
 
         private boolean expectingKey() {
             final var keyTracker = this.openers.peek();
-            if (keyTracker == null || keyTracker == '{') {
+            if (keyTracker == null || keyTracker.symbol == '{') {
                 return this.getNextSymbol() == ':';
             }
             return false;
@@ -290,16 +318,12 @@ public class TokenHighlighter implements Highlighter {
         }
 
         @Override
-        public Component replacement() {
-            return this.currentLinter().lint(this.current().textOf(this.text));
+        public Linter match() {
+            return Objects.requireNonNull(this.foundLinter, "No such element");
         }
 
         private Token current() {
             return Objects.requireNonNull(this.current, "No such element");
-        }
-
-        private Linter currentLinter() {
-            return Objects.requireNonNull(this.foundLinter, "No such element");
         }
     }
 }

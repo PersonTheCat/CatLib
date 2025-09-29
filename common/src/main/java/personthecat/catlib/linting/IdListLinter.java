@@ -9,7 +9,7 @@ public final class IdListLinter {
     private static final Pattern ID_PATTERN = Pattern.compile("\\w+:\\w+", Pattern.MULTILINE);
 
     public static final Linter INSTANCE = Linter.of(
-        new RegexHighlighter(ID_PATTERN, IdLinter.ID));
+        RegexHighlighter.builder(ID_PATTERN).linter(IdLinter.ID).build());
 
     private IdListLinter() {}
 }

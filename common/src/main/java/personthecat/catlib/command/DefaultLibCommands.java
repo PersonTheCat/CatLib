@@ -21,11 +21,12 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
+import org.apache.commons.io.function.Uncheck;
 import personthecat.catlib.client.gui.SimpleTextPage;
 import personthecat.catlib.command.arguments.JsonArgument;
 import personthecat.catlib.config.LibConfig;
-import personthecat.catlib.linting.Linter;
 import personthecat.catlib.linting.IdListLinter;
+import personthecat.catlib.linting.Linters;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.serialization.codec.CodecSupport;
@@ -335,18 +336,22 @@ public final class DefaultLibCommands {
 
     private static void display(final CommandContextWrapper wrapper) {
         final JsonArgument.Result file = wrapper.getJsonFile(FILE_ARGUMENT);
-        final JsonValue json = wrapper.getOptional(PATH_ARGUMENT, JsonPath.class)
-            .flatMap(result -> XjsUtils.getValueFromPath(file.json.get(), result))
-            .orElseGet(file.json);
+
+        // get raw text or parse to display value in file
+        final String text = wrapper.getOptional(PATH_ARGUMENT, JsonPath.class)
+            .filter(result -> !result.isEmpty())
+            .flatMap(result ->
+                XjsUtils.getValueFromPath(file.json.get(), result)
+                    .map(json -> JsonContext.getWriter(extension(file.file)).stringify(json.trim(), XjsUtils.noCr())))
+            .orElseGet(() -> Uncheck.get(() -> Files.readString(file.file).replace("\r", "")));
 
         final String header = file.file.getParent().getFileName() + "/" + file.file.getFileName();
         final Component headerComponent =
             Component.literal(f(DISPLAY_HEADER, header)).setStyle(DISPLAY_HEADER_STYLE);
 
-        final String details = JsonContext.getWriter(extension(file.file)).stringify(json.trim(), XjsUtils.noCr());
-        final Component detailsComponent = Linter.DJS.lint(details);
+        final Component detailsComponent = Linters.get(file.file, Linters.NONE).lint(text);
 
-        final long numLines = details.chars().filter(c -> c == '\n').count();
+        final long numLines = text.chars().filter(c -> c == '\n').count();
         if (McUtils.isClientSide() && numLines >= LibConfig.displayLength()) {
             loadTextPage(wrapper, headerComponent, detailsComponent);
             return;
@@ -539,7 +544,7 @@ public final class DefaultLibCommands {
         }
         final String s = CodecSupport.anyToString(item);
         if (s != null) {
-            wrapper.sendMessage(Linter.DJS.lint(s.replaceAll("\r\n", "\n")));
+            wrapper.sendMessage(Linters.DJS.lint(s.replaceAll("\r\n", "\n")));
         } else {
             wrapper.sendMessage(item.toString());
         }

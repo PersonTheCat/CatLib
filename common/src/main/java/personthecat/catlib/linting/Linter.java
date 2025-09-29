@@ -3,8 +3,6 @@ package personthecat.catlib.linting;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import xjs.data.comments.CommentStyle;
-import xjs.data.serialization.token.TokenType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,22 +23,6 @@ public interface Linter {
 
     /** Singleton indicating a random color was chosen */
     Style RANDOM_COLOR = Colors.STYLE;
-
-    /** Default linter for DJS and JSON-like data */
-    Linter DJS = Linter.of(
-        TokenHighlighter.builder()
-            .key(ChatFormatting.LIGHT_PURPLE)
-            .token(TokenType.COMMENT, ChatFormatting.GRAY)
-            .comment(CommentStyle.MULTILINE_DOC, ChatFormatting.DARK_GREEN, ChatFormatting.ITALIC)
-            .comment(CommentStyle.LINE_DOC, ChatFormatting.DARK_GREEN, ChatFormatting.ITALIC)
-            .comment(Pattern.compile("^\\s*(todo|to-do)", Pattern.CASE_INSENSITIVE), ChatFormatting.YELLOW)
-            .word(Pattern.compile("^(?:true|false)$"), ChatFormatting.GOLD)
-            .word(Pattern.compile("^null$"), ChatFormatting.RED)
-            .token(TokenType.NUMBER, ChatFormatting.AQUA)
-            .token(TokenType.STRING, ChatFormatting.DARK_GREEN)
-            .build(),
-        UnbalancedTokenHighlighter.INSTANCE
-    );
 
     /**
      * Convert the given text into a {@link Component}.
@@ -88,7 +70,40 @@ public interface Linter {
      */
     default Linter withBackground(Style style) {
         final var supplier = Colors.getter(style);
-        return this.andThen(c -> Component.empty().withStyle(supplier.get()));
+        return this.andThen(c -> Component.empty().withStyle(supplier.get()).append(c));
+    }
+
+    /**
+     * Ignores some text within a given margin from start to end.
+     *
+     * @param left  Margin from the start of the text.
+     * @param right Margin from the end of the text.
+     * @return A new linter that ignores left and right margins.
+     */
+    default Linter scissor(int left, int right) {
+        return text -> {
+            final int s = Math.min(left, text.length());
+            final int e = Math.max(text.length() - right, 0);
+            return Component.empty()
+                .append(text.substring(0, s))
+                .append(this.lint(text.substring(s, e)))
+                .append(text.substring(e));
+        };
+    }
+
+    /**
+     * Elides some text from the beginning and end of the input.
+     *
+     * @param left  Margin from the start of the text.
+     * @param right Margin from the right of the text.
+     * @return A new linter that removes left and right margins;
+     */
+    default Linter clip(int left, int right) {
+        return text -> {
+            final int s = Math.min(left, text.length());
+            final int e = Math.max(text.length() - right, 0);
+            return this.lint(text.substring(s, e));
+        };
     }
 
     /**
@@ -140,6 +155,16 @@ public interface Linter {
     static Linter from(Style style) {
         final var supplier = Colors.getter(style);
         return text -> Component.literal(text).withStyle(supplier.get());
+    }
+
+    /**
+     * Generate a {@link Linter linter} which consumes the input and always returns
+     * {@link Component#empty}.
+     *
+     * @return A function which always returns empty text.
+     */
+    static Linter delete() {
+        return text -> Component.empty();
     }
 
     /**

@@ -1,103 +1,95 @@
 package personthecat.catlib.linting;
 
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import org.jetbrains.annotations.Nullable;
-import oshi.annotation.concurrent.ThreadSafe;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.regex.Matcher;
+import java.util.TreeSet;
 
-/**
- * The primary implementation supporting syntax highlighters for CatLib.
- *
- * <p>This object is valid and safe to use in a multithreaded context.
- */
-@ThreadSafe
-final class LinterDelegate implements Linter {
+record LinterDelegate(List<Highlighter> highlighters) implements Linter {
 
-    /** Whichever targets the author has selected for highlighting their text. */
-    private final List<Highlighter> highlighters;
-
-    /**
-     * Constructs a new SyntaxLinter used for linting in the standard MC chat.
-     *
-     * @param highlighters An array of text highlighters.
-     */
-    LinterDelegate(final List<Highlighter> highlighters) {
-        this.highlighters = highlighters;
-    }
-
-    /**
-     * Generates a formatted text component containing the input text the requested
-     * highlights.
-     *
-     * @param text Any text of the expected syntax.
-     * @return A linted text output containing the original message.
-     */
     @Override
     public Component lint(final String text) {
-        final var formatted = Component.empty();
-        final Context ctx = new Context(text, this.highlighters);
-
-        Highlighter.Instance h;
-        int i = 0;
-        while ((h = ctx.next(i)) != null) {
-            final int start = h.start();
-            final int end = h.end();
-
-            if (start - i > 0) {
-                // Append unformatted text;
-                formatted.append(Component.literal(text.substring(i, start)));
-            }
-            formatted.append(h.replacement());
-            ctx.skipTo(end);
-            i = end;
+        final var spans = this.computeSpans(text);
+        if (spans.isEmpty()) {
+            return Component.literal(text);
         }
+        final var boundaries = this.computeBoundaries(text, spans);
+        final var result = Component.empty();
 
-        return formatted.append(Component.literal(text.substring(i)));
+        // Iterate the atomic intervals and compose a message
+        boundary: for (int i = 0; i < boundaries.size() - 1; i++) {
+            final int segStart = boundaries.get(i);
+            final int segEnd = boundaries.get(i + 1);
+            if (segStart >= segEnd) continue;
+
+            final var slice = text.substring(segStart, segEnd);
+
+            // find spans that fully cover [s, e)
+            final List<Span> covering = spans.stream()
+                .filter(s -> s.start <= segStart && s.end >= segEnd)
+                .sorted(Comparator.comparingInt(s -> s.priority))
+                .toList();
+
+            if (covering.isEmpty()) {
+                result.append(Component.literal(text.substring(segStart, segEnd)));
+                continue;
+            }
+
+            // If any highlighter is atomic, choose one with the highest priority and use its replacement.
+            final var atomic = covering.stream()
+                .filter(s -> s.highlighter.atomic())
+                .min(Comparator.comparingInt(s -> s.priority));
+
+            if (atomic.isPresent()) {
+                final var span = atomic.get();
+                // if we're at the boundary, we can emit the replacement
+                if (segStart == span.start) {
+                    result.append(span.linter.lint(text.substring(span.start, span.end)));
+                }
+                continue; // otherwise, we have to skip this highlighter
+            }
+
+            // all other highlighters must support sub-range replacement -> merge
+            final var chars = StyledChar.fromText(slice);
+
+            for (final var span : covering) {
+                final var comp = span.linter.lint(slice);
+                if (comp.equals(CommonComponents.EMPTY)) {
+                    continue boundary; // support deletions explicitly
+                }
+                StyledChar.applyOverlay(chars, comp);
+            }
+            result.append(StyledChar.toComponent(chars));
+        }
+        return result;
     }
 
-    /**
-     * The context used for highlighting text output. Essentially just a list of
-     * {@link Matcher} -> {@link Style} for the given text.
-     */
-    private static class Context {
-        final List<Highlighter.Instance> highlighters = new ArrayList<>();
-        final String text;
-
-        Context(final String text, final List<Highlighter> highlighters) {
-            this.text = text;
-            for (final Highlighter highlighter : highlighters) {
-                this.highlighters.add(highlighter.get(text));
+    private @NotNull List<Span> computeSpans(final String text) {
+        final var spans = new ArrayList<Span>();
+        for (int i = 0; i < this.highlighters.size(); i++) {
+            final var highlighter = this.highlighters.get(i);
+            final var instance = highlighter.get(text);
+            for (; instance.found(); instance.next()) {
+                spans.add(new Span(highlighter, instance.match(), instance.start(), instance.end(), i));
             }
         }
-
-        @Nullable
-        Highlighter.Instance next(final int i) {
-            // Figure out whether any other matches have been found;
-            int start = Integer.MAX_VALUE;
-            Highlighter.Instance first = null;
-            for (final Highlighter.Instance h : this.highlighters) {
-                if (!h.found()) continue;
-                final int mStart = h.start();
-
-                if (mStart >= i && mStart < start) {
-                    start = mStart;
-                    first = h;
-                }
-            }
-            return first;
-        }
-
-        void skipTo(final int i) {
-            for (final Highlighter.Instance h : this.highlighters) {
-                if (!h.found()) continue;
-                if (h.end() <= i) {
-                    h.next();
-                }
-            }
-        }
+        return spans;
     }
+
+    private @NotNull List<Integer> computeBoundaries(final String text, final List<Span> spans) {
+        final var boundaries = new TreeSet<Integer>();
+        boundaries.add(0);
+        boundaries.add(text.length());
+        for (final var s : spans) {
+            boundaries.add(s.start);
+            boundaries.add(s.end);
+        }
+        return new ArrayList<>(boundaries);
+    }
+
+    record Span(Highlighter highlighter, Linter linter, int start, int end, int priority) {}
 }
