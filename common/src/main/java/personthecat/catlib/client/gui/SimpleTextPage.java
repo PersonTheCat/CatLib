@@ -73,21 +73,7 @@ public class SimpleTextPage extends LibMenu {
     @Override
     protected void renderDetails(GuiGraphics graphics, int x, int y, float partial) {
         super.renderDetails(graphics, x, y, partial);
-        if (y < Y0 + 6 || y > this.height - Y1 || x < 6 || x > this.width - 6) {
-            return;
-        }
-
-        final int o = Y0 + 6;
-        final int d = y - o;
-        final int h = this.font.lineHeight + 1;
-        final int l = d / h;
-        final int a = this.scroll + l;
-
-        if (a >= this.lines.size()) {
-            return;
-        }
-        final FormattedCharSequence chars = this.lines.get(a);
-        final Style s = this.font.getSplitter().componentStyleAtWidth(chars, x - 6);
+        final var s = this.getStyleAt(x, y);
         if (s == null) {
             return;
         }
@@ -99,6 +85,32 @@ public class SimpleTextPage extends LibMenu {
         if (tooltip != null) {
             this.setTooltipForNextRenderPass(tooltip);
         }
+    }
+
+    @Override
+    public boolean mouseClicked(double x, double y, int button) {
+        if (super.mouseClicked(x, y, button)) {
+            return true;
+        }
+        final var s = this.getStyleAt((int) x, (int) y);
+        return s != null && this.handleComponentClicked(s);
+    }
+
+    private @Nullable Style getStyleAt(int x, int y) {
+        if (y < Y0 + 6 || y > this.height - Y1 || x < 6 || x > this.width - 6) {
+            return null;
+        }
+        final int o = Y0 + 6;
+        final int d = y - o;
+        final int h = this.font.lineHeight + 1;
+        final int l = d / h;
+        final int a = this.scroll + l;
+
+        if (a >= this.lines.size()) {
+            return null;
+        }
+        final FormattedCharSequence chars = this.lines.get(a);
+        return this.font.getSplitter().componentStyleAtWidth(chars, x - 6);
     }
 
     @Override

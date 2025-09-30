@@ -3,6 +3,7 @@ package personthecat.catlib.linting;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import org.intellij.lang.annotations.RegExp;
 
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -12,7 +13,8 @@ import static personthecat.catlib.command.CommandUtils.clickToGo;
 import static personthecat.catlib.command.CommandUtils.displayOnHover;
 
 public final class MarkdownLinter {
-    private static final Pattern C_PREFIX = Pattern.compile("\\s*(?:/{2,}|#|/\\*{1,2}|\\*)?\\s?", Pattern.MULTILINE);
+    private static final @RegExp String COMMENT_TOKEN = "/{2,}|#|/\\*{1,2}|\\*";
+    private static final Pattern C_PREFIX = Pattern.compile("\\s*(?:" + COMMENT_TOKEN + ")?\\s?", Pattern.MULTILINE);
     private static final Pattern BOLD = Pattern.compile("(?<left>\\*{2}|_{2})(?<text>.+?)(?<right>\\1)", Pattern.MULTILINE | Pattern.DOTALL);
     private static final Pattern ITALIC_AST = Pattern.compile("(?<left>(?<!\\*)\\*(?!\\*))(?=\\S)(?<text>.+?)(?<=\\S)(?<right>(?<!\\*)\\*(?!\\*))", Pattern.MULTILINE | Pattern.DOTALL);
     private static final Pattern ITALIC_UND = Pattern.compile("(?<left>(?<!_)_(?!_))(?=\\S)(?<text>.+?)(?<=\\S)(?<right>(?<!_)_(?!_))", Pattern.MULTILINE | Pattern.DOTALL);
@@ -20,14 +22,15 @@ public final class MarkdownLinter {
     private static final Pattern FOR_EACH_LINE = Pattern.compile("^" + C_PREFIX + "(?<line>.*)", Pattern.MULTILINE);
     private static final Pattern LIKELY_PARAGRAPH = Pattern.compile("^(?![ \\t]*(#|[-*+][ \\t]|>[ \\t]|\\d+\\.[ \\t]|`{3,})).*$", Pattern.MULTILINE);
 
-    public static final Linter DISPLAY = createForMode(Mode.DISPLAY);
+    private static final Linter RAW_DISPLAY = createForMode(Mode.DISPLAY); // nested display is unwrapped
+    public static final Linter DISPLAY = RAW_DISPLAY.compose(MarkdownLinter::wrapParagraphs);
     public static final Linter IN_COMMENTS = createForMode(Mode.IN_COMMENTS);
     public static final Linter DEFAULT = createForMode(Mode.DEFAULT);
 
     private MarkdownLinter() {}
 
     private static Linter createForMode(final Mode mode) {
-        final var linter = Linter.of(
+        return Linter.of(
             headerLayer(mode, 1, 1, ChatFormatting.UNDERLINE, headerColor(mode), ChatFormatting.BOLD),
             headerLayer(mode, 2, 2, headerColor(mode), ChatFormatting.BOLD),
             headerLayer(mode, 3, 6, ChatFormatting.BOLD),
@@ -36,12 +39,9 @@ public final class MarkdownLinter {
             multilineLayer(mode, ITALIC_UND, ChatFormatting.ITALIC),
             codeBlock(mode),
             link(mode),
-            unorderedList(mode)
+            unorderedList(mode),
+            orderedList(mode)
         );
-        if (mode == Mode.DISPLAY) {
-            return linter.compose(MarkdownLinter::wrapParagraphs);
-        }
-        return linter;
     }
 
     private static ChatFormatting headerColor(final Mode mode) {
@@ -91,18 +91,28 @@ public final class MarkdownLinter {
     }
 
     private static Highlighter unorderedList(final Mode mode) {
-        var pattern = "^(?<bullet>[ \\t]*?[-+*])\\s+(?<entry>.+)$";
+        var pattern = "^(?<bullet>[ \\t]*?[-+*])[ \\t]+(?<entry>.+)$";
         if (mode == Mode.IN_COMMENTS) {
-            pattern = pattern.replace("^", "^" + C_PREFIX);
+            pattern = pattern.replace("^", "^[ \\t]*(?:" + COMMENT_TOKEN + ")[ \\t]*?");
         }
         return RegexHighlighter.builder(Pattern.compile(pattern, Pattern.MULTILINE))
             .linter("bullet", bullet(mode))
             .linter("entry", recurse(mode))
             .build();
     }
+    private static Highlighter orderedList(final Mode mode) {
+        var pattern = "^(?<number>[ \\t]*?\\d+\\.)[ \\t]+(?<entry>.+)$";
+        if (mode == Mode.IN_COMMENTS) {
+            pattern = pattern.replace("^", "^" + C_PREFIX);
+        }
+        return RegexHighlighter.builder(Pattern.compile(pattern, Pattern.MULTILINE))
+            .linter("number", number(mode))
+            .linter("entry", recurse(mode))
+            .build();
+    }
 
     private static Highlighter codeBlock(final Mode mode) {
-        var pattern = "^(?<left>```)(?:\\s*(?<lang>\\w+)\\s*(?<nl1>\n))?(?<body>[\\s\\S]*?)^(?<right>```)$(?<nl2>\\s*?\n)?";
+        var pattern = "^(?<left>`{3})(?:\\s*(?<lang>\\w+))?(?<nl1>[ \\t]*?\\r?\\n)(?<body>[\\s\\S]*?)^(?<right>`{3})$(?<nl2>\\s*?\\n)?";
         if (mode == Mode.IN_COMMENTS) {
             pattern = pattern.replace("^", "^" + C_PREFIX);
         }
@@ -135,6 +145,12 @@ public final class MarkdownLinter {
             : Linter.from(ChatFormatting.DARK_GRAY);
     }
 
+    private static Linter number(final Mode mode) {
+        return mode == Mode.DISPLAY
+            ? t -> Component.literal(t.replaceAll("^[ \\t]*(\\d+\\.)", "  $1")).withStyle(ChatFormatting.BOLD)
+            : Linter.from(ChatFormatting.DARK_GRAY);
+    }
+
     private static Linter multiline(final Mode mode, final Linter linter) {
         return mode == Mode.IN_COMMENTS ? forEachLine(linter) : linter;
     }
@@ -145,8 +161,8 @@ public final class MarkdownLinter {
 
     private static Linter recurse(final Mode mode) {
         return t -> {
-            final var linter = mode == Mode.DISPLAY ? DISPLAY : mode == Mode.IN_COMMENTS ? IN_COMMENTS : DEFAULT;
-            return Objects.requireNonNull(linter, "out of order").lint(t);
+            final var linter = mode == Mode.DISPLAY ? RAW_DISPLAY : mode == Mode.IN_COMMENTS ? IN_COMMENTS : DEFAULT;
+            return Objects.requireNonNull(linter, "early recursion").lint(t);
         };
     }
 
@@ -159,29 +175,32 @@ public final class MarkdownLinter {
         for (final String line : lines) {
             if (line.matches("^\\s*`{3}.*$")) {
                 preformatted = !preformatted;
+                if (preformatted && !paragraph.isEmpty()) { // start code block
+                    sb.append(paragraph).append('\n');
+                    paragraph.setLength(0);
+                }
             }
             if (preformatted) {
                 sb.append(line).append('\n');
                 continue;
             }
-
             if (LIKELY_PARAGRAPH.matcher(line).matches()) {
                 if (!paragraph.isEmpty()) paragraph.append(' ');
                 paragraph.append(line.trim());
             } else {
                 if (!paragraph.isEmpty()) {
-                    sb.append(paragraph).append("\n");
+                    sb.append(paragraph).append('\n');
                     paragraph.setLength(0);
                 }
                 sb.append(line).append('\n');
             }
             if (line.isBlank() && !paragraph.isEmpty()) {
-                sb.append(paragraph).append("\n");
+                sb.append(paragraph).append('\n');
                 paragraph.setLength(0);
             }
         }
         if (!paragraph.isEmpty()) {
-            sb.append(paragraph).append("\n");
+            sb.append(paragraph).append('\n');
         }
         return sb.toString();
     }
