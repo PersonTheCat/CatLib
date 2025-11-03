@@ -7,7 +7,6 @@ import net.minecraft.network.chat.Style;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.UnaryOperator;
-import java.util.regex.Pattern;
 
 import static personthecat.catlib.command.CommandUtils.displayOnHover;
 
@@ -103,6 +102,25 @@ public interface Linter {
             final int s = Math.min(left, text.length());
             final int e = Math.max(text.length() - right, 0);
             return this.lint(text.substring(s, e));
+        };
+    }
+
+    /**
+     * Generates a {@link Linter} combining the output of 2 others.
+     *
+     * <p>Note that each {@link Linter} <em>must be atomic</em>. In other words,
+     * the output of each linter must be the same length, or else the result is
+     * undefined behavior.
+     *
+     * @param overlay The other {@link Linter} to apply over this one.
+     * @return A new {@link Linter} combining both.
+     */
+    default Linter withOverlay(Linter overlay) {
+        return text -> {
+            final var chars = StyledChar.fromText(text);
+            StyledChar.applyOverlay(chars, this.lint(text));
+            StyledChar.applyOverlay(chars, overlay.lint(text));
+            return StyledChar.toComponent(chars);
         };
     }
 

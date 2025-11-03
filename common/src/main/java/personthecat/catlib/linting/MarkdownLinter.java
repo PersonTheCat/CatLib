@@ -20,7 +20,7 @@ public final class MarkdownLinter {
     private static final Pattern ITALIC_UND = Pattern.compile("(?<left>(?<!_)_(?!_))(?=\\S)(?<text>.+?)(?<=\\S)(?<right>(?<!_)_(?!_))", Pattern.MULTILINE | Pattern.DOTALL);
     private static final Pattern LINK = Pattern.compile("(?<lb>\\[)(?<text>.*)(?<rb>])(?<lp>\\()(?<link>.*)(?<rp>\\))", Pattern.MULTILINE);
     private static final Pattern FOR_EACH_LINE = Pattern.compile("^" + C_PREFIX + "(?<line>.*)", Pattern.MULTILINE);
-    private static final Pattern LIKELY_PARAGRAPH = Pattern.compile("^(?![ \\t]*(#|[-*+][ \\t]|>[ \\t]|\\d+\\.[ \\t]|`{3,})).*$", Pattern.MULTILINE);
+    private static final Pattern LIKELY_PARAGRAPH = Pattern.compile("^(?!\\h*(#|[-*+]\\h|>\\h|\\d+\\.\\h|`{3,})).*$", Pattern.MULTILINE);
 
     private static final Linter RAW_DISPLAY = createForMode(Mode.DISPLAY); // nested display is unwrapped
     public static final Linter DISPLAY = RAW_DISPLAY.compose(MarkdownLinter::wrapParagraphs);
@@ -91,9 +91,9 @@ public final class MarkdownLinter {
     }
 
     private static Highlighter unorderedList(final Mode mode) {
-        var pattern = "^(?<bullet>[ \\t]*?[-+*])[ \\t]+(?<entry>.+)$";
+        var pattern = "^(?<bullet>\\h*?[-+*])\\h+(?<entry>.+)$";
         if (mode == Mode.IN_COMMENTS) {
-            pattern = pattern.replace("^", "^[ \\t]*(?:" + COMMENT_TOKEN + ")[ \\t]*?");
+            pattern = pattern.replace("^", "^\\h*(?:" + COMMENT_TOKEN + ")\\h*?");
         }
         return RegexHighlighter.builder(Pattern.compile(pattern, Pattern.MULTILINE))
             .linter("bullet", bullet(mode))
@@ -101,7 +101,7 @@ public final class MarkdownLinter {
             .build();
     }
     private static Highlighter orderedList(final Mode mode) {
-        var pattern = "^(?<number>[ \\t]*?\\d+\\.)[ \\t]+(?<entry>.+)$";
+        var pattern = "^(?<number>\\h*?\\d+\\.)\\h+(?<entry>.+)$";
         if (mode == Mode.IN_COMMENTS) {
             pattern = pattern.replace("^", "^" + C_PREFIX);
         }
@@ -112,7 +112,7 @@ public final class MarkdownLinter {
     }
 
     private static Highlighter codeBlock(final Mode mode) {
-        var pattern = "^(?<left>`{3})(?:\\s*(?<lang>\\w+))?(?<nl1>[ \\t]*?\\r?\\n)(?<body>[\\s\\S]*?)^(?<right>`{3})$(?<nl2>\\s*?\\n)?";
+        var pattern = "^(?<left>`{3})(?:\\s*(?<lang>\\w+))?(?<nl1>\\h*?\\r?\\n)(?<body>[\\s\\S]*?)^(?<right>`{3})$(?<nl2>\\s*?\\n)?";
         if (mode == Mode.IN_COMMENTS) {
             pattern = pattern.replace("^", "^" + C_PREFIX);
         }
@@ -131,7 +131,7 @@ public final class MarkdownLinter {
             return forEachLine(Linter.from(ChatFormatting.GRAY));
         }
         final var lang = Objects.requireNonNullElse(matcher.group("lang"), "");
-        return Linters.get(lang, Linter.from(ChatFormatting.GRAY))
+        return Linters.get(LinterType.HIGHLIGHTS, lang, Linter.from(ChatFormatting.GRAY))
             .compose(t -> "  " + t.replace("\n", "\n  ")); // indent since we can't do background colors
     }
 
@@ -147,7 +147,7 @@ public final class MarkdownLinter {
 
     private static Linter number(final Mode mode) {
         return mode == Mode.DISPLAY
-            ? t -> Component.literal(t.replaceAll("^[ \\t]*(\\d+\\.)", "  $1")).withStyle(ChatFormatting.BOLD)
+            ? t -> Component.literal(t.replaceAll("^\\h*(\\d+\\.)", "  $1")).withStyle(ChatFormatting.BOLD)
             : Linter.from(ChatFormatting.DARK_GRAY);
     }
 

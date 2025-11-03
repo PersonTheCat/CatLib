@@ -22,10 +22,12 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import org.apache.commons.io.function.Uncheck;
+import personthecat.catlib.client.gui.EditableTextPage;
 import personthecat.catlib.client.gui.SimpleTextPage;
 import personthecat.catlib.command.arguments.JsonArgument;
 import personthecat.catlib.config.LibConfig;
 import personthecat.catlib.linting.IdListLinter;
+import personthecat.catlib.linting.LinterType;
 import personthecat.catlib.linting.Linters;
 import personthecat.catlib.registry.DynamicRegistries;
 import personthecat.catlib.registry.RegistryHandle;
@@ -78,6 +80,7 @@ public final class DefaultLibCommands {
     public static final String VALUE_ARGUMENT = "value";
     public static final String DIRECTORY_ARGUMENT = "dir";
     public static final String NAME_ARGUMENT = "name";
+    public static final String GENERATE_ARG = "generate";
     public static final String MAX_ARGUMENT = "max";
     public static final String SCALE_ARGUMENT = "scale";
     public static final String REGISTRY_ARGUMENT = "registry";
@@ -127,6 +130,7 @@ public final class DefaultLibCommands {
             createClean(mod),
             createRename(mod),
             createOpen(mod),
+            createEdit(mod),
             createCombine(mod),
             createCh(mod),
             createCw(mod),
@@ -267,6 +271,18 @@ public final class DefaultLibCommands {
             );
     }
 
+    public static LibCommandBuilder createEdit(final ModDescriptor mod) {
+        return LibCommandBuilder.named("edit")
+            .arguments("<file> [<generate>]")
+            .append("Opens a file using the in-game text editor.")
+            .side(CommandSide.CLIENT)
+            .generate((builder, utl) -> builder
+                .then(fileArg(FILE_ARGUMENT, mod)
+                    .executes(utl.wrap(ctx -> edit(ctx, false)))
+                .then(boolArg(GENERATE_ARG)
+                    .executes(utl.wrap(ctx -> edit(ctx, ctx.getBoolean(GENERATE_ARG)))))));
+    }
+
     public static LibCommandBuilder createCombine(final ModDescriptor mod) {
         return LibCommandBuilder.named("combine")
             .arguments("<file> <path> <to>")
@@ -349,7 +365,7 @@ public final class DefaultLibCommands {
         final Component headerComponent =
             Component.literal(f(DISPLAY_HEADER, header)).setStyle(DISPLAY_HEADER_STYLE);
 
-        final Component detailsComponent = Linters.get(file.file, Linters.NONE).lint(text);
+        final Component detailsComponent = Linters.get(LinterType.ATOMIC_RENDER, file.file, Linters.NONE).lint(text);
 
         final long numLines = text.chars().filter(c -> c == '\n').count();
         if (McUtils.isClientSide() && numLines >= LibConfig.displayLength()) {
@@ -491,6 +507,23 @@ public final class DefaultLibCommands {
             XjsUtils.writeJson(Json.object(), file);
         }
         Util.getPlatform().openUri(file.toUri());
+    }
+
+    @Environment(EnvType.CLIENT)
+    private static void edit(final CommandContextWrapper wrapper, final boolean generate) throws IOException {
+        final var file = wrapper.getFile(FILE_ARGUMENT);
+        if (Files.isDirectory(file)) {
+            wrapper.sendError("The given file is a directory. Cannot edit.");
+            return;
+        }
+        if (!Files.exists(file)) {
+            if (!generate) {
+                wrapper.sendError("No such file: " + file.getFileName());
+                return;
+            }
+            Files.writeString(file, "");
+        }
+        wrapper.setScreen(EditableTextPage.open(null, file));
     }
 
     private static void combine(final CommandContextWrapper wrapper) {

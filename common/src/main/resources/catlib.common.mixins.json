@@ -18,6 +18,7 @@
   ],
   "client": [
     "DatapackLoadFailureScreenMixin",
+    "StringSplitterAccessor",
     "TitleScreenMixin"
   ],
   "server": [

@@ -1,169 +1,66 @@
 package personthecat.catlib.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.Style;
-import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
-import personthecat.catlib.config.LibConfig;
+import personthecat.catlib.linting.Linter;
+import personthecat.catlib.linting.LinterType;
+import personthecat.catlib.linting.Linters;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class SimpleTextPage extends LibMenu {
-    protected final Component details;
-    protected final List<FormattedCharSequence> lines;
-    public int left;
-    public int right;
-    public boolean wrap;
-    protected int maxScroll;
-    protected int scroll;
+    protected final MultilineTextBox textBox;
 
     public SimpleTextPage(@Nullable Screen parent, Component title, Component details) {
+        this(parent, title, "", text -> details);
+    }
+
+    public SimpleTextPage(@Nullable Screen parent, Component title, String text, Linter highlights) {
+        this(parent, title, text, highlights, null);
+    }
+
+    public SimpleTextPage(
+            @Nullable Screen parent, Component title, String text, Linter highlights, @Nullable Linter details) {
         super(parent, title);
-        this.details = details;
-        this.lines = new ArrayList<>();
-        this.left = 6;
-        this.right = 6;
-        this.wrap = LibConfig.wrapText();
-        this.maxScroll = 0;
-        this.scroll = 0;
+        this.textBox = new MultilineTextBox(text, highlights, details);
+    }
+
+    public static SimpleTextPage open(Screen parent, Path path, Component title) throws IOException {
+        final var text = Files.readString(path);
+        final var highlights = Linters.get(LinterType.HIGHLIGHTS, path);
+        final var details = Linters.get(LinterType.DETAILS, path);
+        return new SimpleTextPage(parent, title, text, highlights, details);
     }
 
     @Override
     protected void init() {
         super.init();
-
-        this.resetLines();
-
-        final int menuHeight = this.height - Y1 - Y0;
-        final int linesPerPage = menuHeight / (this.font.lineHeight + 1);
-        this.maxScroll = this.lines.size() - linesPerPage + 1;
-
-        this.previous.active = false;
-        this.next.active = false;
-    }
-
-    protected void resetLines() {
-        this.lines.clear();
-        this.lines.addAll(this.font.split(this.details, this.wrap ? this.width - 12 : 10000));
-    }
-
-    @Override
-    protected void renderMenu(GuiGraphics graphics, int x, int y, float partial) {
-        final int h = this.font.lineHeight + 1;
-        int t = Y0 + 6;
-        for (int i = this.scroll; i < this.lines.size(); i++) {
-            final FormattedCharSequence chars = this.lines.get(i);
-
-            RenderSystem.enableBlend();
-            graphics.drawString(this.font, chars, this.left, t, 0xFFFFFF);
-            RenderSystem.disableBlend();
-
-            if ((t += h) > this.height - Y1) {
-                return;
-            }
-        }
+        this.textBox.init(0, Y0 + 6, this.width, this.height - Y1 - Y0 - 12, this.font);
+        this.setFocused(this.textBox);
+        this.addRenderableWidget(this.textBox);
     }
 
     @Override
     protected void renderDetails(GuiGraphics graphics, int x, int y, float partial) {
         super.renderDetails(graphics, x, y, partial);
-        final var s = this.getStyleAt(x, y);
-        if (s == null) {
-            return;
-        }
-        final HoverEvent hover = s.getHoverEvent();
-        if (hover == null) {
-            return;
-        }
-        final Component tooltip = hover.getValue(HoverEvent.Action.SHOW_TEXT);
+        final var tooltip = this.textBox.getTooltipAt(x, y);
         if (tooltip != null) {
             this.setTooltipForNextRenderPass(tooltip);
         }
     }
 
     @Override
-    public boolean mouseClicked(double x, double y, int button) {
-        if (super.mouseClicked(x, y, button)) {
-            return true;
-        }
-        final var s = this.getStyleAt((int) x, (int) y);
-        return s != null && this.handleComponentClicked(s);
-    }
-
-    private @Nullable Style getStyleAt(int x, int y) {
-        if (y < Y0 + 6 || y > this.height - Y1 || x < 6 || x > this.width - 6) {
-            return null;
-        }
-        final int o = Y0 + 6;
-        final int d = y - o;
-        final int h = this.font.lineHeight + 1;
-        final int l = d / h;
-        final int a = this.scroll + l;
-
-        if (a >= this.lines.size()) {
-            return null;
-        }
-        final FormattedCharSequence chars = this.lines.get(a);
-        return this.font.getSplitter().componentStyleAtWidth(chars, x - 6);
-    }
-
-    @Override
-    public boolean mouseScrolled(double x, double y, double h, double d) {
-        if (d > 0.0) {
-            if (this.scroll > 0) {
-                this.scroll--;
-                return true;
-            }
-        } else {
-            if (this.scroll <= this.maxScroll) {
-                this.scroll++;
+    public boolean mouseReleased(double x, double y, int button) {
+        final var style =  this.textBox.getStyleAt((int) x, (int) y);
+        if (style != null && style.getClickEvent() != null) {
+            if (Screen.hasControlDown() && !this.textBox.hasDraggedAny(x, y) && this.handleComponentClicked(style)) {
                 return true;
             }
         }
-        return false;
-    }
-
-    @Override
-    public boolean keyPressed(int key, int scan, int modifiers) {
-        if (super.keyPressed(key, scan, modifiers)) {
-            return true;
-        }
-        if (key == GLFW.GLFW_KEY_DOWN) {
-            if (this.scroll <= this.maxScroll) {
-                this.scroll++;
-                return true;
-            }
-        } else if (key == GLFW.GLFW_KEY_UP) {
-            if (this.scroll > 0) {
-                this.scroll--;
-                return true;
-            }
-        } else if (key == GLFW.GLFW_KEY_PAGE_DOWN) {
-            if (this.scroll <= this.maxScroll) {
-                this.scroll += 10;
-                if (this.scroll > this.maxScroll) {
-                    this.scroll = this.maxScroll;
-                }
-                return true;
-            }
-        } else if (key == GLFW.GLFW_KEY_PAGE_UP) {
-            if (this.scroll > 0) {
-                this.scroll -= 10;
-                if (this.scroll < 0) {
-                    this.scroll = 0;
-                }
-                return true;
-            }
-        } else if (key == GLFW.GLFW_KEY_SPACE || key == GLFW.GLFW_KEY_W) {
-            this.wrap = !this.wrap;
-            this.resetLines();
-        }
-        return false;
+        return super.mouseReleased(x, y, button);
     }
 }

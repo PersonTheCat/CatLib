@@ -5,12 +5,15 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 public class LibMenu extends Screen {
     protected static final ResourceLocation MENU_LIST_BACKGROUND = new ResourceLocation("textures/gui/menu_list_background.png");
@@ -31,7 +34,6 @@ public class LibMenu extends Screen {
     @Override
     protected void init() {
         this.clearWidgets();
-        this.children().clear();
 
         this.previous = Button.builder(CommonComponents.GUI_BACK, b -> this.onPrevious())
             .pos(this.width / 2 - 60 - 120 - 10, this.height - 35)
@@ -49,6 +51,15 @@ public class LibMenu extends Screen {
         this.addRenderableWidget(this.previous);
         this.addRenderableWidget(this.cancel);
         this.addRenderableWidget(this.next);
+    }
+
+    @Override
+    public void tick() {
+        for (final var widget : this.children()) {
+            if (widget instanceof TickableWidget tickable) {
+                tickable.tick();
+            }
+        }
     }
 
     public LibMenu loadImmediately() {
@@ -93,6 +104,11 @@ public class LibMenu extends Screen {
 
     protected void renderDetails(GuiGraphics graphics, int x, int y, float partial) {
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 16777215);
+    }
+
+    public void toast(Component title, Component message) {
+        final var mc = Objects.requireNonNull(this.minecraft);
+        mc.getToasts().addToast(SystemToast.multiline(mc, new SystemToast.SystemToastId(), title, message));
     }
 
     @Override

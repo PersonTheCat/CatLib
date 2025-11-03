@@ -1,0 +1,13 @@
+{
+  "error": true,
+  "spawners": false,
+  "is_null": null,
+  "list": [
+    "test:true",
+    "mod:id"
+  ],
+  "features": [
+    { "wrong": "yes!" },
+    { "also": 1234 }
+  ]
+}
