@@ -133,11 +133,11 @@ public final class XjsUtils {
      * <pre>
      *   /update my_json path.to.field true
      * </pre>
-     * @param json The JSON object containing this path.
+     * @param json The JSON object or array containing this path.
      * @param path The output of a {@link PathArgument}.
      * @param value The updated value to set at this path.
      */
-    public static void setValueFromPath(final JsonObject json, final JsonPath path, @Nullable final JsonValue value) {
+    public static void setValueFromPath(final JsonContainer json, final JsonPath path, @Nullable final JsonValue value) {
         if (path.isEmpty()) {
             return;
         }
@@ -173,11 +173,11 @@ public final class XjsUtils {
     /**
      * Gets a single value in a JSON object based on a full, dotted path.
      *
-     * @param json The JSON object containing this path.
+     * @param json The JSON object or array containing this path.
      * @param path The output of a {@link PathArgument}.
      * @return The value at this location, or else {@link Optional#empty}.
      */
-    public static Optional<JsonValue> getValueFromPath(final JsonObject json, final JsonPath path) {
+    public static Optional<JsonValue> getValueFromPath(final JsonContainer json, final JsonPath path) {
         if (path.isEmpty()) {
             return empty();
         }
@@ -200,11 +200,11 @@ public final class XjsUtils {
      *   If no object or array exists at this location, a new container will be created at this
      *   location and returned by the method.
      * </p>
-     * @param json The JSON object containing this path.
+     * @param json The JSON object or array containing this path.
      * @param path The output of a {@link PathArgument}.
      * @return The value at this location, the original <code>json</code>, or else a new container.
      */
-    public static JsonContainer getLastContainer(final JsonObject json, final JsonPath path) {
+    public static JsonContainer getLastContainer(final JsonContainer json, final JsonPath path) {
         if (path.isEmpty()) {
             return json;
         }
@@ -237,11 +237,11 @@ public final class XjsUtils {
      * </pre>
      * <p>An index of 1 (pointing to b) will be returned.</p>
      *
-     * @param json The JSON object containing the data being inspected.
+     * @param json The JSON object or array containing the data being inspected.
      * @param path The path to the expected data, which may or may not exist.
      * @return The index to the last matching element, or else -1.
      */
-    public static int getLastAvailable(final JsonObject json, final JsonPath path) {
+    public static int getLastAvailable(final JsonContainer json, final JsonPath path) {
         final MutableObject<JsonValue> current = new MutableObject<>(json);
         int index = -1;
 
@@ -276,11 +276,11 @@ public final class XjsUtils {
      * data being represented. It will account for the possibility that <b>object arrays may be
      * expressed as singletons</b> and return the <em>actual</em> path, should any be used.</p>
      *
-     * @param json The object being inspected.
+     * @param json The object or array being inspected.
      * @param path The canonicalized path to the expected value
      * @return The actual path to the value, or else the canonical path.
      */
-    public static JsonPath getClosestMatch(final JsonObject json, final JsonPath path) {
+    public static JsonPath getClosestMatch(final JsonContainer json, final JsonPath path) {
         final MutableObject<JsonValue> current = new MutableObject<>(json);
         final JsonPath.JsonPathBuilder builder = JsonPath.builder();
 

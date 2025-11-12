@@ -81,6 +81,16 @@ public final class JsonPathTest {
     }
 
     @Test
+    public void setValue_supportsRootArray() throws Exception {
+        final var json = Json.parse("[1,2,3,4]").asContainer();
+        final var path = JsonPath.parse("[0]"); //JsonPath.builder().index(0).build();
+        final var expected = Json.parse("[5,2,3,4]");
+
+        path.setValue(json, Json.value(5));
+        assertEquals(expected, json.setAllAccessed(false));
+    }
+
+    @Test
     public void getClosestMatch_withSamePath_locatesMatch() {
         final JsonObject subject = parse("a:{b:{}},c:[[{d:{}}]]");
 

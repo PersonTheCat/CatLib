@@ -127,6 +127,9 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
 
     private static void checkDot(final StringReader reader, final int begin) throws CommandSyntaxException {
         final int cursor = reader.getCursor();
+        if (cursor < 2) {
+            return;
+        }
         final char last = reader.getString().charAt(cursor - 2);
         if (cursor - 1 == begin || last == '.') {
             throw UNEXPECTED_ACCESSOR.createWithContext(reader);
@@ -232,23 +235,23 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         }
     }
 
-    public JsonContainer getLastContainer(final JsonObject json) {
+    public JsonContainer getLastContainer(final JsonContainer json) {
         return XjsUtils.getLastContainer(json, this);
     }
 
-    public Optional<JsonValue> getValue(final JsonObject json) {
+    public Optional<JsonValue> getValue(final JsonContainer json) {
         return XjsUtils.getValueFromPath(json, this);
     }
 
-    public void setValue(final JsonObject json, final @Nullable JsonValue value) {
+    public void setValue(final JsonContainer json, final @Nullable JsonValue value) {
         XjsUtils.setValueFromPath(json, this, value);
     }
 
-    public JsonPath getClosestMatch(final JsonObject json) {
+    public JsonPath getClosestMatch(final JsonContainer json) {
         return XjsUtils.getClosestMatch(json, this);
     }
 
-    public int getLastAvailable(final JsonObject json) {
+    public int getLastAvailable(final JsonContainer json) {
         return XjsUtils.getLastAvailable(json, this);
     }
 
