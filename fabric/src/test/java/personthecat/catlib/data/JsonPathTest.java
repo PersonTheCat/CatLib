@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class JsonPathTest {
@@ -76,8 +77,7 @@ public final class JsonPathTest {
         final JsonPath path = JsonPath.builder().key("a").index(0).build();
         final JsonObject out = (JsonObject) json.deepCopy();
 
-        path.setValue(out, JsonLiteral.jsonTrue());
-        assertEquals(json, out.setAllAccessed(false));
+        assertThrows(UnsupportedOperationException.class, () -> path.setValue(out, JsonLiteral.jsonTrue()));
     }
 
     @Test

@@ -626,10 +626,13 @@ public final class XjsUtils {
      * @return The existing or new array.
      */
     public static JsonArray getOrCreateArray(final JsonObject json, final String field) {
-        if (json.get(field) instanceof JsonArray array) {
+        final var value = json.get(field);
+        if (value instanceof JsonArray array) {
             return array;
+        } else if (value != null && !value.isNull()) {
+            throw new UnsupportedOperationException("Not an array at " + field + ": " + value);
         }
-        final JsonArray array = Json.array();
+        final var array = Json.array();
         json.set(field, array);
         return array;
     }

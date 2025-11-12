@@ -25,7 +25,7 @@ public class ForkJoinThreadLocalTest {
         final var futures = new ArrayList<ForkJoinTask<Data>>();
         for (int i = 0; i < PARALLELISM; i++) {
             futures.add(POOL.submit(() -> {
-                Thread.sleep(2); // we just need a small pause to ensure multithreading
+                Thread.sleep(4); // we just need a small pause to ensure multithreading
                 return FORK_LOCAL.get();
             }));
         }

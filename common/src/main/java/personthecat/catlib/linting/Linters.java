@@ -14,8 +14,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-import static personthecat.catlib.command.CommandUtils.clickToGo;
-
 public final class Linters {
     private static final Map<String, LinterMap> REGISTRY = new ConcurrentHashMap<>();
     public static final Linter DJS = jsonLike("djs");
@@ -69,7 +67,7 @@ public final class Linters {
         return Linter.of(
             TokenHighlighter.builder()
                 .tokenizer(JsonContext.getTokenizer(format))
-                .key(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE).withClickEvent(clickToGo("https://www.google.com")))
+                .key(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE))
                 .token(TokenType.COMMENT, ChatFormatting.GRAY)
                 .comment(CommentStyle.MULTILINE_DOC, MarkdownLinter.IN_COMMENTS.scissor(3, 2).withBackground(ChatFormatting.DARK_GREEN))
                 .comment(CommentStyle.LINE_DOC, MarkdownLinter.IN_COMMENTS.withBackground(ChatFormatting.DARK_GREEN))
@@ -91,7 +89,9 @@ public final class Linters {
     private static class LinterMap extends ConcurrentHashMap<LinterType, Linter> {
         @Override
         public Linter get(Object key) {
-            return Objects.requireNonNullElseGet(super.get(key), () -> super.get(LinterType.HIGHLIGHTS));
+            final var l = super.get(key);
+            if (l != null) return l;
+            return super.get(LinterType.HIGHLIGHTS);
         }
     }
 }
