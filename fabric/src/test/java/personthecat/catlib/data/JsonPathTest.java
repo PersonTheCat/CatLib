@@ -28,6 +28,14 @@ public final class JsonPathTest {
     }
 
     @Test
+    public void parse_supportsRootAsArray() throws CommandSyntaxException {
+        final var expected = JsonPath.builder().index(0).key("test").build();
+        final var raw = "[0].test";
+        final var path = JsonPath.parse(raw);
+        assertEquals(expected, path);
+    }
+
+    @Test
     public void serialize_printsCorrectPath() {
         final String expected = "key.hello[1][0]";
         final JsonPath path = JsonPath.builder().key("key").key("hello").index(1).index(0).build();
@@ -83,7 +91,7 @@ public final class JsonPathTest {
     @Test
     public void setValue_supportsRootArray() throws Exception {
         final var json = Json.parse("[1,2,3,4]").asContainer();
-        final var path = JsonPath.parse("[0]"); //JsonPath.builder().index(0).build();
+        final var path =JsonPath.parse("[0]"); //JsonPath.builder().index(0).build();
         final var expected = Json.parse("[5,2,3,4]");
 
         path.setValue(json, Json.value(5));
