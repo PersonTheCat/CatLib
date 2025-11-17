@@ -89,9 +89,9 @@ public final class JsonPathTest {
     }
 
     @Test
-    public void setValue_supportsRootArray() throws Exception {
+    public void setValue_supportsRootArray() {
         final var json = Json.parse("[1,2,3,4]").asContainer();
-        final var path =JsonPath.parse("[0]"); //JsonPath.builder().index(0).build();
+        final var path = JsonPath.builder().index(0).build();
         final var expected = Json.parse("[5,2,3,4]");
 
         path.setValue(json, Json.value(5));
@@ -183,22 +183,6 @@ public final class JsonPathTest {
         final JsonPath path = JsonPath.builder().key("x").key("y").key("z").build();
 
         assertEquals(-1, path.getLastAvailable(subject));
-    }
-
-    @Test
-    public void subPath_generatesPathSlice() {
-        final JsonPath expected = JsonPath.builder().key("two").index(3).build();
-        final JsonPath path = JsonPath.builder().index(1).key("two").index(3).key("four").build();
-        assertEquals(expected, path.subPath(1, 3));
-    }
-
-    @Test
-    public void append_addsElementsFromOtherPath() {
-        final JsonPath pathA = JsonPath.builder().key("a").index(0).build();
-        final JsonPath pathB = JsonPath.builder().key("b").index(1).build();
-        final JsonPath expected = JsonPath.builder().key("a").index(0).key("b").index(1).build();
-
-        assertEquals(expected, pathA.append(pathB));
     }
 
     @Test

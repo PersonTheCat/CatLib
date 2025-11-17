@@ -42,6 +42,8 @@ public class SimpleTextPage extends LibMenu {
         this.textBox.init(0, Y0 + 6, this.width, this.height - Y1 - Y0 - 12, this.font);
         this.setFocused(this.textBox);
         this.addRenderableWidget(this.textBox);
+        this.previous.active = false;
+        this.next.active = false;
     }
 
     @Override

@@ -11,9 +11,14 @@ import xjs.data.exception.SyntaxException;
 import xjs.data.serialization.JsonContext;
 import xjs.data.serialization.writer.JsonWriterOptions;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 import static java.util.Optional.empty;
@@ -137,11 +142,12 @@ public final class XjsUtils {
      * @param path The output of a {@link PathArgument}.
      * @param value The updated value to set at this path.
      */
-    public static void setValueFromPath(final JsonContainer json, final JsonPath path, @Nullable final JsonValue value) {
+    public static void setValueFromPath(
+            final JsonContainer json, final List<Either<String, Integer>> path, @Nullable final JsonValue value) {
         if (path.isEmpty()) {
             return;
         }
-        final Either<String, Integer> lastVal = path.get(path.size() - 1);
+        final Either<String, Integer> lastVal = path.getLast();
         final JsonContainer parent = getLastContainer(json, path);
         // This will ideally be handled by XJS in the future.
         if (value != null && value.getLinesAbove() == -1 && condenseNewValue(path, parent)) {
@@ -157,7 +163,8 @@ public final class XjsUtils {
      * @param container The parent container for this new value.
      * @return <code>true</code>, if the value should be condensed.
      */
-    private static boolean condenseNewValue(final JsonPath path, final JsonContainer container) {
+    private static boolean condenseNewValue(
+            final List<Either<String, Integer>> path, final JsonContainer container) {
         if (container.isEmpty()) {
             return true;
         }
@@ -177,12 +184,12 @@ public final class XjsUtils {
      * @param path The output of a {@link PathArgument}.
      * @return The value at this location, or else {@link Optional#empty}.
      */
-    public static Optional<JsonValue> getValueFromPath(final JsonContainer json, final JsonPath path) {
+    public static Optional<JsonValue> getValueFromPath(
+            final JsonContainer json, final List<Either<String, Integer>> path) {
         if (path.isEmpty()) {
             return empty();
         }
-        final Either<String, Integer> lastVal = path.get(path.size() - 1);
-        return getEither(getLastContainer(json, path), lastVal);
+        return getEither(getLastContainer(json, path), path.getLast());
     }
 
     /**
@@ -204,7 +211,8 @@ public final class XjsUtils {
      * @param path The output of a {@link PathArgument}.
      * @return The value at this location, the original <code>json</code>, or else a new container.
      */
-    public static JsonContainer getLastContainer(final JsonContainer json, final JsonPath path) {
+    public static JsonContainer getLastContainer(
+            final JsonContainer json, final List<Either<String, Integer>> path) {
         if (path.isEmpty()) {
             return json;
         }
@@ -241,7 +249,8 @@ public final class XjsUtils {
      * @param path The path to the expected data, which may or may not exist.
      * @return The index to the last matching element, or else -1.
      */
-    public static int getLastAvailable(final JsonContainer json, final JsonPath path) {
+    public static int getLastAvailable(
+            final JsonContainer json, final List<Either<String, Integer>> path) {
         final MutableObject<JsonValue> current = new MutableObject<>(json);
         int index = -1;
 
@@ -280,7 +289,8 @@ public final class XjsUtils {
      * @param path The canonicalized path to the expected value
      * @return The actual path to the value, or else the canonical path.
      */
-    public static JsonPath getClosestMatch(final JsonContainer json, final JsonPath path) {
+    public static JsonPath getClosestMatch(
+            final JsonContainer json, final List<Either<String, Integer>> path) {
         final MutableObject<JsonValue> current = new MutableObject<>(json);
         final JsonPath.JsonPathBuilder builder = JsonPath.builder();
 
@@ -307,7 +317,7 @@ public final class XjsUtils {
                 }
             });
             if (current.getValue() == null) {
-                return builder.build().append(path, i);
+                return builder.append(path, i).build();
             }
         }
         return builder.build();
@@ -450,7 +460,8 @@ public final class XjsUtils {
      * @param path The current output of a {@link PathArgument}.
      * @return A list of all adjacent paths.
      */
-    public static List<String> getPaths(final JsonObject json, final JsonPath path) {
+    public static List<String> getPaths(
+            final JsonObject json, final List<Either<String, Integer>> path) {
         JsonValue container;
         try {
             container = getLastContainer(json, path);
@@ -532,44 +543,57 @@ public final class XjsUtils {
      * @param either The accessor for this value, either a key or an index.
      * @param value The value to set at this location.
      */
-    private static void setEither(final JsonValue container, final Either<String, Integer> either, @Nullable final JsonValue value) {
-        if (either.left().isPresent()) {
-            if (value == null) {
-                container.asObject().remove(either.left().get());
-            } else if (value.hasComments()) {
-                container.asObject().set(either.left().get(), value);
-            } else {
-                final String key = either.left().get();
-                final JsonObject object = container.asObject();
-                object.set(key, value);
-            }
-        } else if (either.right().isPresent()) { // Just to stop the linting.
-            if (value == null) {
-                container.asArray().remove(either.right().get());
-            } else if (value.hasComments()) {
-                container.asArray().set(either.right().get(), value);
-            } else {
-                final int index = either.right().get();
-                final JsonArray array = container.asArray();
-                setOrAdd(array, index, value);
-            }
+    private static void setEither(final JsonContainer container, final Either<String, Integer> either, @Nullable final JsonValue value) {
+        if (value == null) {
+            either.ifLeft(key -> container.asObject().remove(key))
+                .ifRight(idx -> container.asArray().remove(idx));
+            return;
         }
+        final JsonReference ref = getOrCreateReference(container, either);
+        ref.set(transferFormatting(value, ref.get()));
     }
 
     /**
-     * Sets the value at the given index, or else if <code>index == array.size()</code>, adds it.
+     * Locates or generates a reference to a value at the given accessor.
      *
-     * @param array The array being added into.
-     * @param index The index of the value being set.
-     * @param value The value being set.
-     * @return <code>array</code>, for method chaining.
-     * @throws IndexOutOfBoundsException If <code>index &lt; 0 || index &gt; size</code>
+     * @param container Either a JSON object or array.
+     * @param either The accessor for this value, either a key or an index.
+     * @return A reference to a value in the container
      */
-    public static JsonArray setOrAdd(final JsonArray array, final int index, final JsonValue value) {
-        if (index == array.size()) {
-            return array.add(value);
-        }
-        return array.set(index, value);
+    private static JsonReference getOrCreateReference(final JsonContainer container, final Either<String, Integer> either) {
+        return either.map(
+            key -> {
+                final var o = container.asObject();
+                var r = o.getReference(key);
+                if (r == null) o.addReference(key, r = new JsonReference(null));
+                return r;
+            },
+            idx -> {
+                final var a = container.asArray();
+                if (idx == a.size()) {
+                    final var r = new JsonReference(null);
+                    a.addReference(r);
+                    return r;
+                }
+                return a.getReference(idx);
+            }
+        );
+    }
+
+    /**
+     * Copies relevant formatting from a source value to another JSON value, if the target
+     * value is unformatted.
+     *
+     * @param value  The target value being formatted.
+     * @param source The source value providing formatting options.
+     * @return The target value, for chaining.
+     * @param <V> The exact type of value supplied, for chaining.
+     */
+    private static <V extends JsonValue> V transferFormatting(final V value, final JsonValue source) {
+        if (!value.hasComments() && source.hasComments()) value.setComments(source.getComments());
+        if (value.getLinesAbove() < 1) value.setLinesAbove(source.getLinesAbove());
+        if (value.getLinesBetween() < 1) value.setLinesBetween(source.getLinesBetween());
+        return value;
     }
 
     /**

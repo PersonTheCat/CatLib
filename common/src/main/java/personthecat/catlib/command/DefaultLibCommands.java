@@ -357,7 +357,7 @@ public final class DefaultLibCommands {
         final String text = wrapper.getOptional(PATH_ARGUMENT, JsonPath.class)
             .filter(result -> !result.isEmpty())
             .flatMap(result ->
-                XjsUtils.getValueFromPath(file.json.get(), result)
+                result.getValue(file.json.get())
                     .map(json -> JsonContext.getWriter(extension(file.file)).stringify(json.trim(), XjsUtils.noCr())))
             .orElseGet(() -> Uncheck.get(() -> Files.readString(file.file).replace("\r", "")));
 
@@ -393,13 +393,13 @@ public final class DefaultLibCommands {
         final String toEscaped = wrapper.getString(VALUE_ARGUMENT);
         final String toLiteral = unEscape(toEscaped);
         final JsonValue toValue = Json.parse(toLiteral).trim();
-        final JsonValue fromValue = XjsUtils.getValueFromPath(file.json.get(), path)
+        final JsonValue fromValue = path.getValue(file.json.get())
             .orElseGet(() -> Json.value(null));
         final String fromLiteral = fromValue.unformatted().toString(XjsUtils.noCr());
         final String fromEscaped = escape(fromLiteral);
 
         // Write the new value.
-        XjsUtils.setValueFromPath(file.json.get(), path, toValue.isNull() ? null : toValue);
+        path.setValue(file.json.get(), toValue.isNull() ? null : toValue);
         XjsUtils.writeJson(file.json.get(), file.file);
 
         wrapper.sendMessage(

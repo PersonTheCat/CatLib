@@ -13,7 +13,6 @@ import personthecat.catlib.command.arguments.PathArgument;
 import personthecat.catlib.command.arguments.RegistryArgument;
 import personthecat.catlib.registry.RegistryHandle;
 import personthecat.catlib.serialization.json.JsonPath;
-import personthecat.catlib.serialization.json.XjsUtils;
 import personthecat.catlib.util.LibUtil;
 import xjs.data.JsonValue;
 
@@ -37,7 +36,7 @@ public class LibSuggestions {
             if (json == null) return suggestJson(builder);
             final JsonPath path = CommandUtils.getLastArg(ctx, PathArgument.class, JsonPath.class).orElse(null);
             if (path == null) return suggestJson(builder);
-            final JsonValue value = XjsUtils.getValueFromPath(json.json.get(), path).orElse(null);
+            final JsonValue value = path.getValue(json.json.get()).orElse(null);
             if (value == null) return suggestJson(builder);
 
             if (value.isObject()) return SharedSuggestionProvider.suggest(new String[] { "{ ... }" }, builder);

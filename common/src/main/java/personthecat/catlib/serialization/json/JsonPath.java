@@ -7,14 +7,16 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.DataResult;
 import net.minecraft.network.chat.Component;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xjs.data.JsonContainer;
-import xjs.data.JsonObject;
 import xjs.data.JsonValue;
 import xjs.data.PathFilter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -23,7 +25,7 @@ import java.util.stream.Collectors;
  * <p>In other words, this object is a container holding keys and indices which
  * point to a value at some arbitrary depth in a JSON array or object.
  */
-public class JsonPath implements Iterable<Either<String, Integer>> {
+public class JsonPath {
     private static final DynamicCommandExceptionType INVALID_CHARACTER =
         new DynamicCommandExceptionType(c -> Component.translatable("catlib.errorText.invalidCharacter", c));
     private static final SimpleCommandExceptionType UNEXPECTED_ACCESSOR =
@@ -33,12 +35,11 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
     private final String raw;
 
     public JsonPath(final List<Either<String, Integer>> path) {
-        this.path = path;
-        this.raw = serialize(path);
+        this(path, serialize(path));
     }
 
     public JsonPath(final List<Either<String, Integer>> path, final String raw) {
-        this.path = path;
+        this.path = Collections.unmodifiableList(path);
         this.raw = raw;
     }
 
@@ -113,6 +114,21 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         return new JsonPath(path, reader.getString().substring(begin, reader.getCursor()));
     }
 
+    /**
+     * Variant of {@link #parse(String)} which returns instead of throwing
+     * an exception.
+     *
+     * @param raw The raw JSON path being deserialized.
+     * @return An object representing every accessor leading to a JSON value.
+     */
+    public static DataResult<JsonPath> tryParse(final String raw) {
+        try {
+            return DataResult.success(parse(raw));
+        } catch (final CommandSyntaxException e) {
+            return DataResult.error(e::getMessage);
+        }
+    }
+
     private static String readKey(final StringReader reader) {
         final int start = reader.getCursor();
         while (reader.canRead() && inKey(reader.peek())) {
@@ -134,38 +150,6 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         if (cursor - 1 == begin || last == '.') {
             throw UNEXPECTED_ACCESSOR.createWithContext(reader);
         }
-    }
-
-    /**
-     * Variant of {@link #parse(String)} which returns instead of throwing
-     * an exception.
-     *
-     * @param raw The raw JSON path being deserialized.
-     * @return An object representing every accessor leading to a JSON value.
-     */
-    public static DataResult<JsonPath> tryParse(final String raw) {
-        try {
-            return DataResult.success(parse(raw));
-        } catch (final CommandSyntaxException e) {
-            return DataResult.error(e::getMessage);
-        }
-    }
-
-    /**
-     * Generates a new JsonPath from a string containing only keys.
-     *
-     * <p>This method is intended as optimization in cases where no
-     * arrays are needed.
-     *
-     * @param raw The raw JSON path containing <b>keys only</b>.
-     * @return A new object representing this path.
-     */
-    public static JsonPath objectOnly(final String raw) {
-        final List<Either<String, Integer>> path = new ArrayList<>();
-        for (final String key : raw.split("\\.")) {
-            path.add(Either.left(key));
-        }
-        return new JsonPath(path, raw);
     }
 
     /**
@@ -197,7 +181,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
      * @param json The json containing the expected paths.
      * @return A list of objects representing these paths.
      */
-    public static List<JsonPath> getAllPaths(final JsonObject json) {
+    public static List<JsonPath> getAllPaths(final JsonContainer json) {
         return toPaths(json.getPaths());
     }
 
@@ -207,7 +191,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
      * @param json The json containing the expected paths.
      * @return A list of objects representing these paths.
      */
-    public static List<JsonPath> getUsedPaths(final JsonObject json) {
+    public static List<JsonPath> getUsedPaths(final JsonContainer json) {
         return toPaths(json.getPaths(PathFilter.USED));
     }
 
@@ -217,7 +201,7 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
      * @param json The json containing the expected paths.
      * @return A list of objects representing these paths.
      */
-    public static List<JsonPath> getUnusedPaths(final JsonObject json) {
+    public static List<JsonPath> getUnusedPaths(final JsonContainer json) {
         return toPaths(json.getPaths(PathFilter.UNUSED));
     }
 
@@ -236,23 +220,23 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
     }
 
     public JsonContainer getLastContainer(final JsonContainer json) {
-        return XjsUtils.getLastContainer(json, this);
+        return XjsUtils.getLastContainer(json, this.path);
     }
 
     public Optional<JsonValue> getValue(final JsonContainer json) {
-        return XjsUtils.getValueFromPath(json, this);
+        return XjsUtils.getValueFromPath(json, this.path);
     }
 
     public void setValue(final JsonContainer json, final @Nullable JsonValue value) {
-        XjsUtils.setValueFromPath(json, this, value);
+        XjsUtils.setValueFromPath(json, this.path, value);
     }
 
     public JsonPath getClosestMatch(final JsonContainer json) {
-        return XjsUtils.getClosestMatch(json, this);
+        return XjsUtils.getClosestMatch(json, this.path);
     }
 
     public int getLastAvailable(final JsonContainer json) {
-        return XjsUtils.getLastAvailable(json, this);
+        return XjsUtils.getLastAvailable(json, this.path);
     }
 
     public JsonPathBuilder toBuilder() {
@@ -263,12 +247,16 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
         return new Stub(this.raw);
     }
 
-    public Collection<Either<String, Integer>> asCollection() {
-        return Collections.unmodifiableCollection(this.path);
+    public List<Either<String, Integer>> asList() {
+        return this.path;
     }
 
     public String asRawPath() {
         return this.raw;
+    }
+
+    public Either<String, Integer> getLast() {
+        return this.path.getLast();
     }
 
     public boolean isEmpty() {
@@ -277,49 +265,6 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
 
     public int size() {
         return this.path.size();
-    }
-
-    public Either<String, Integer> get(final int index) {
-        return this.path.get(index);
-    }
-
-    public int indexOf(final String key) {
-        return this.path.indexOf(Either.left(key));
-    }
-
-    public int lastIndexOf(final String key) {
-        return this.path.lastIndexOf(Either.left(key));
-    }
-
-    public List<Either<String, Integer>> subList(final int s, final int e) {
-        return this.path.subList(s, e);
-    }
-
-    public JsonPath subPath(final String key) {
-        final int index = this.indexOf(key);
-        return index < 0 ? this : this.subPath(index, this.size());
-    }
-
-    public JsonPath subPath(final int s, final int e) {
-        return new JsonPath(this.subList(s, e));
-    }
-
-    public JsonPath append(final JsonPath path) {
-        return this.append(path, 0, path.size());
-    }
-
-    public JsonPath append(final JsonPath path, final int startInclusive) {
-        return this.append(path, startInclusive, path.size());
-    }
-
-    public JsonPath append(final JsonPath path, final int startInclusive, final int endExclusive) {
-        return this.toBuilder().append(path, startInclusive, endExclusive).build();
-    }
-
-    @NotNull
-    @Override
-    public Iterator<Either<String, Integer>> iterator() {
-        return this.path.iterator();
     }
 
     @Override
@@ -393,7 +338,21 @@ public class JsonPath implements Iterable<Either<String, Integer>> {
             return this;
         }
 
+        public JsonPathBuilder append(final JsonPath path, final int startInclusive) {
+            return this.append(path.path, startInclusive);
+        }
+
+        public JsonPathBuilder append(
+                final List<Either<String, Integer>> path, final int startInclusive) {
+            return this.append(path, startInclusive, path.size());
+        }
+
         public JsonPathBuilder append(final JsonPath path, final int startInclusive, final int endExclusive) {
+            return this.append(path.path, startInclusive, endExclusive);
+        }
+
+        public JsonPathBuilder append(
+                final List<Either<String, Integer>> path, final int startInclusive, final int endExclusive) {
             for (int i = startInclusive; i < endExclusive; i++) {
                 path.get(i).ifLeft(this::key).ifRight(this::index);
             }

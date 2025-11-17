@@ -27,7 +27,7 @@ public class PathArgument implements ArgumentType<JsonPath> {
         }
         final JsonPath path = CommandUtils.getLastArg(ctx, PathArgument.class, JsonPath.class)
             .orElseGet(() -> new JsonPath(Collections.emptyList()));
-        return SharedSuggestionProvider.suggest(XjsUtils.getPaths(json.get(), path), builder);
+        return SharedSuggestionProvider.suggest(XjsUtils.getPaths(json.get(), path.asList()), builder);
     }
 
     @Override
