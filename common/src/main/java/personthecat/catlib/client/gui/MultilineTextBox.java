@@ -197,7 +197,7 @@ public class MultilineTextBox extends AbstractWidget implements TickableWidget {
     }
 
     private void renderSelectionBackground(GuiGraphics graphics, int drawX) {
-        if (!this.hasSelection()) return;
+        if (!this.editable || !this.hasSelection()) return;
 
         int topRow = Math.min(this.selStartRow(), this.selEndRow());
         int bottomRow = Math.max(this.selStartRow(), this.selEndRow());
